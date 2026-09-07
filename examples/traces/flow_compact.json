@@ -1,0 +1,383 @@
+{
+  "claim": "approximate_optimality_for_the_supplied_constrained_quadratic",
+  "events": [
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.22864162211218356,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.3148172562323492,
+      "step": 1,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.09097058359599158,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.17513942191692308,
+      "step": 2,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.048362367350556115,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.09743372226951678,
+      "step": 3,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.035175424685020336,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.05420441686621793,
+      "step": 4,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.031094158859142056,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.03015505042165433,
+      "step": 5,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029831035846935867,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.01677588503860899,
+      "step": 6,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029440108175954886,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.009332775601215008,
+      "step": 7,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02931911881667491,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.005192018198871585,
+      "step": 8,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029281673462596386,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.002888428279996781,
+      "step": 9,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029270084389388534,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.001606893044114964,
+      "step": 10,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029266497652899535,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.0008939481977472081,
+      "step": 11,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926538758323212,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.0004973220732906147,
+      "step": 12,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029265044024492773,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.0002766706675009486,
+      "step": 13,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264937695484026,
+      "operation": "projected_gradient_step",
+      "stationarity": 0.0001539176770275647,
+      "step": 14,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264904787405125,
+      "operation": "projected_gradient_step",
+      "stationarity": 8.562762187826428e-05,
+      "step": 15,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264894602586605,
+      "operation": "projected_gradient_step",
+      "stationarity": 4.763643637373951e-05,
+      "step": 16,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489145045705,
+      "operation": "projected_gradient_step",
+      "stationarity": 2.6501145548766672e-05,
+      "step": 17,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489047489517,
+      "operation": "projected_gradient_step",
+      "stationarity": 1.4743141361215262e-05,
+      "step": 18,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890172965633,
+      "operation": "projected_gradient_step",
+      "stationarity": 8.201917792303667e-06,
+      "step": 19,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489007952058,
+      "operation": "projected_gradient_step",
+      "stationarity": 4.562898355516574e-06,
+      "step": 20,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890050599988,
+      "operation": "projected_gradient_step",
+      "stationarity": 2.5384357573247157e-06,
+      "step": 21,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489004164927,
+      "operation": "projected_gradient_step",
+      "stationarity": 1.4121848860955866e-06,
+      "step": 22,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890038879093,
+      "operation": "projected_gradient_step",
+      "stationarity": 7.856279784028264e-07,
+      "step": 23,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890038021733,
+      "operation": "projected_gradient_step",
+      "stationarity": 4.3706127047409993e-07,
+      "step": 24,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037756387,
+      "operation": "projected_gradient_step",
+      "stationarity": 2.431463230102902e-07,
+      "step": 25,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489003767426,
+      "operation": "projected_gradient_step",
+      "stationarity": 1.3526738326932525e-07,
+      "step": 26,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037648855,
+      "operation": "projected_gradient_step",
+      "stationarity": 7.525207346002074e-08,
+      "step": 27,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489003764098,
+      "operation": "projected_gradient_step",
+      "stationarity": 4.186430182450862e-08,
+      "step": 28,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037638547,
+      "operation": "projected_gradient_step",
+      "stationarity": 2.3289986447558817e-08,
+      "step": 29,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037637797,
+      "operation": "projected_gradient_step",
+      "stationarity": 1.2956706407048757e-08,
+      "step": 30,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037637565,
+      "operation": "projected_gradient_step",
+      "stationarity": 7.2080867170749876e-09,
+      "step": 31,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037637485,
+      "operation": "projected_gradient_step",
+      "stationarity": 4.010009335341413e-09,
+      "step": 32,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.029264890037637468,
+      "operation": "projected_gradient_step",
+      "stationarity": 2.2308519865744883e-09,
+      "step": 33,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489003763746,
+      "operation": "projected_gradient_step",
+      "stationarity": 1.2410696558589979e-09,
+      "step": 34,
+      "structure": "balanced_flow"
+    },
+    {
+      "evidence": "runtime_summary_only",
+      "objective": 0.02926489003763746,
+      "operation": "projected_gradient_step",
+      "stationarity": 6.904330511958297e-10,
+      "step": 35,
+      "structure": "balanced_flow"
+    }
+  ],
+  "final": {
+    "multiplier": [
+      -0.011329310244234593,
+      0.00946230600873526,
+      -0.00023294848174690755,
+      0.002099952717246245
+    ],
+    "state": [
+      0.9695254307901229,
+      0.9695254307901223,
+      1.3429262541082734,
+      1.3429262541082725,
+      0.37340082331814994
+    ]
+  },
+  "intermediate_evidence": "not_retained; summaries_are_not_independently_verified",
+  "mode": "compact",
+  "not_claimed": [
+    "correct_structure_for_the_world",
+    "neural_reasoning_faithfulness",
+    "cryptographic_execution_attestation",
+    "inference_speedup"
+  ],
+  "problem": {
+    "boundary": [
+      [
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        -1.0
+      ],
+      [
+        1.0,
+        -1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        -1.0,
+        0.0,
+        1.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0,
+        -1.0,
+        0.0
+      ]
+    ],
+    "boundary_shape": [
+      4,
+      5
+    ],
+    "measurement": [
+      [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.8
+      ]
+    ],
+    "observed": [
+      1.000012301533575,
+      0.7029874553750847,
+      0.3172586214463779
+    ],
+    "ridge": 0.01,
+    "structure_name": "balanced_flow"
+  },
+  "schema": "universa-recurrent.trace.v1",
+  "solver": {
+    "adaptive": true,
+    "iterations": 35,
+    "max_steps": 256,
+    "step_size": 1.7850746111401858,
+    "stop_reason": "stationarity_tolerance",
+    "tolerance": 1e-09
+  }
+}

@@ -1,0 +1,9 @@
+universa-recurrent
+Copyright 2026 universa-recurrent contributors.
+
+Original integration scaffold, licensed under Apache-2.0.
+The optional Universa dependency remains a separate project under its own license.
+No upstream repository source code, private models, weights, or datasets are vendored.
+The initial scaffold was prepared with an AI coding assistant and locally tested.
+This notice does not claim original discovery of projected gradient descent,
+nullspace coordinates, optimality conditions, or causal abstraction.

@@ -1,0 +1,17 @@
+A small circulation: estimate flow without creating or destroying it at junctions.
+Synthetic measurements; no trained neural model; no speedup claim.
+
+Candidate balanced_flow                validation MSE 0.001612
+Candidate wrong_diagonal_constraint    validation MSE 0.138974
+
+Structure: balanced_flow
+Operation: repeated measurement fitting constrained to balanced states.
+Iterations: 35; stop: stationarity_tolerance.
+Trace: full; final numerical witness retained.
+This explains explicit operations, not why a learned model would choose them.
+Coordinates: 5 edge values -> 2 cycle coordinates
+Reconstruction: [0.96953 0.96953 1.34293 1.34293 0.3734 ]
+Distance from direct-solve baseline: 2.778e-09
+Distance from hidden synthetic truth (evaluation only): 9.529e-02
+Witness: PASS (full numerical update chain)
+The corresponding record is retained as examples/traces/flow_full.json.

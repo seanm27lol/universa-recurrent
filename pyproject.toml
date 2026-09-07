@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "universa-recurrent"
+version = "0.1.0"
+description = "A readable, witness-bearing baseline for structured recurrent computation"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [{name = "universa-recurrent contributors"}]
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+universa = ["universa @ git+https://github.com/seanm27lol/Universa.git@132fdf8d5ebe87deb3d6cb597c8ab77407176918"]
+
+[project.scripts]
+universa-recurrent = "universa_recurrent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
