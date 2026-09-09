@@ -1,45 +1,73 @@
-# Architecture: one system, separable claims
+# Architecture: what is genuinely connected
+
+## Current learned path
 
 ```mermaid
 flowchart TD
-    M[Measurements] --> R[Candidate selection: all-candidate baseline]
-    R -->|clear evidence| C[Cached structural coordinates]
-    R -->|ambiguous| X[Refuse]
-    C --> U[State-reusing numerical update]
-    U --> S{Progress or budget?}
-    S -->|continue| U
-    S -->|stop| O[Estimate and final witness]
-    U -.-> T[Lingua operation records]
-    O --> V[Independent numerical checker]
-    T --> V
+    X[Observed values + mask] --> E[Learned encoder]
+    E --> R[One-time learned route]
+    R --> Q[Selected explicit basis Q]
+    Q --> A[Latent coordinates a]
+    X --> U[Shared learned update]
+    E --> U
+    A --> U
+    U --> A2[Updated coordinates]
+    A2 --> H{Readiness signal}
+    H -->|continue| U
+    H -->|stop or budget| Z[State z = Q a]
+    Z --> L[Lingua record]
+    L --> V[Independent structural checker]
 ```
 
-Fallback in words: measurements → choose a candidate → compile its coordinates →
-repeat an update → return an estimate and evidence. Ambiguity leads to refusal.
+In words:
 
-| Layer | Current contract | Future extension |
+1. encode a partial noisy observation;
+2. choose one of two known constraint spaces;
+3. carry a small coordinate state inside that space;
+4. reuse one learned update for several steps;
+5. stop from a learned signal or a hard budget;
+6. emit an estimate and a scoped mathematical record.
+
+## What came from where
+
+| Source | Real connection in this repo | Connection that does not yet exist |
 |---|---|---|
-| Structure | B describes homogeneous linear constraints | Affine constraints, typed transport between spaces |
-| Selector | Score all candidates using validation observations | Learned inexpensive selection with uncertainty |
-| Update | Reuse a small coordinate state; classical quadratic optimization | Trained shared-weight nonlinear updates |
-| Stopping | Numerical stationarity or hard iteration cap | Task-calibrated stopping under measured compute budgets |
-| Lingua | Explicit operation names and retained evidence | Extensible typed operation registry |
-| Checker | Matrix-vector checks of specific claims | Formal/sparse checkers for additional operations |
+| **HOMYMOLY** | Motivates testing exact structural restrictions against generic estimation | Its lifting result is not a proof that this architecture helps |
+| **Universa** | Structural spaces, transport/project language, optional pinned adapter | The current neural model does not use Universa's discovery loop or switch structures after step 0 |
+| **Recurrent computation** | One update network is reused over a persistent coordinate state | Repetition is not automatically useful or faster |
+| **Lingua** | Records explicit selected structures and measurable state dynamics | It does not translate arbitrary hidden features into human concepts |
+| **Applied CMCM** | Motivates asking which parts of a computational record are worth retaining | Its earlier witness results do not settle this new task |
 
-## Connections that are real, and those that are not yet built
+## The most important missing connection
 
-HOMYMOLY motivates using the right constraints; its results do not guarantee a
-benefit on this new task. Universa provides structural machinery via an optional
-adapter, but this demo does not use its learned router or discovery loop. Applied
-CMCM supplies questions about retaining computational records, not a theorem that
-our compact records are sufficient for every audit.
+Current inference chooses a structure once:
 
-Learned recurrence and general neural interpretability are not implemented. A
-small correct solver is a foundation for those experiments, not evidence that they
-will work. [Claims ledger](claims.md) records the distinction.
+```text
+route once → recur inside that space
+```
 
-## Why a separate repo?
+The larger research idea is:
 
-Update, trace schema, and checker changes can be reviewed together. Earlier
-research repos retain their own implementation and experiment history. The
-optional Universa dependency is pinned; its source is not copied here.
+```text
+recur → detect mismatch → transport or revise route → continue
+```
+
+That requires persistent typed states, safe transport between spaces, uncertainty
+retention, and tests showing that switching does not destroy evidence. It is Stage
+3, not something the present two-structure demo has already achieved.
+
+## Two adaptive execution paths
+
+| Path | What it does | Honest interpretation |
+|---|---|---|
+| `dense` | Updates the full batch every round and freezes logically halted states | Regular GPU work; mean logical steps may not save compute |
+| `compact` | Gathers only active samples before each later update | Fewer update examples, but indexing overhead can erase the gain |
+
+Only wall-clock measurement at comparable quality supports an efficiency claim.
+
+## Why the direct method stays
+
+The toy task is a constrained quadratic problem. A direct solver exists and may
+be better. Its role is not ceremonial: it prevents a learned recurrent system
+from receiving credit merely for solving a problem that linear algebra already
+solves cheaply.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "universa-recurrent"
-version = "0.1.0"
+version = "0.3.0"
 description = "A readable, witness-bearing baseline for structured recurrent computation"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,6 +15,7 @@ dependencies = ["numpy>=1.26,<3"]
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
 universa = ["universa @ git+https://github.com/seanm27lol/Universa.git@132fdf8d5ebe87deb3d6cb597c8ab77407176918"]
+neural = ["torch>=2.10,<3"]
 
 [project.scripts]
 universa-recurrent = "universa_recurrent.cli:main"

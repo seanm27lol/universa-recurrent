@@ -66,3 +66,17 @@ witness. It must not invent “the model realized...” explanations.
 
 Next: [run the README example](../README.md#quickstart), inspect
 [the retained output](example_run.txt), then read [the equations](mathematics.md).
+
+## 6. Where does the learned version begin?
+
+The neural path keeps the same visible graph and candidate spaces, but learns the
+route and repeated coordinate correction from synthetic examples.
+
+```text
+classical: hand-written update + exact stopping test
+neural:    learned update + learned readiness signal
+```
+
+The mathematical subspace is still explicit. The learned hidden features are not.
+Run `neural-eval` to compare the model with shallow fixed depths and transparent
+references before interpreting an adaptive result.

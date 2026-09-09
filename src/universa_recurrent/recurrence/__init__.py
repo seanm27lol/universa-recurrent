@@ -1,3 +1,4 @@
-"""Classical state-reusing recurrence first; learned updates are not implemented."""
-from .solver import ReconstructionProblem, direct_solve, solve
-__all__ = ["ReconstructionProblem", "direct_solve", "solve"]
+"""Transparent classical recurrence; learned recurrence lives in ``neural``."""
+from .solver import ReconstructionProblem, SolveResult, direct_solve, solve
+
+__all__ = ["ReconstructionProblem", "SolveResult", "direct_solve", "solve"]

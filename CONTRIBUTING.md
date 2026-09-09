@@ -9,7 +9,7 @@ this idea already appear? What can the reader run? What has actually been checke
 ## Development
 
 ```bash
-python -m pip install -e ".[test]"
+python -m pip install -e ".[test,neural]"
 python -m pytest -q
 python -m compileall -q src tests examples experiments
 ```
@@ -23,8 +23,7 @@ should be accompanied by an ordinary-language example.
 
 Do not overwrite previous artifacts. Every timed result must record the machine,
 software versions, input sizes, seeds, repetitions, warmup, what was timed, and
-what was excluded. A witness checker's runtime is not the solver's runtime.
-Experiments discovered during development are exploratory, not preregistered.
+what was excluded. A witness checker's runtime is not the solver's runtime. A logical halt is not automatically skipped device work. Report the strongest fixed depth, not only the maximum-depth control. Experiments discovered during development are exploratory, not preregistered.
 
 ## Contributions involving earlier projects
 

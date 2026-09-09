@@ -1,41 +1,75 @@
 # Local validation
 
-Prepared September 7, 2026. These are development checks, not preregistered results.
+Prepared September 8, 2026. These are development checks, not preregistered
+scientific results.
+
+## Environment
 
 - Python: 3.13.5
 - NumPy: 2.3.5
+- PyTorch: 2.10.0+cpu
 - Pytest: 9.0.2
-- Editable installation: passed using installed dependencies (no network).
-- Full-trace CLI demo and independent checker: passed.
-- Compact-trace CLI demo and final-only checker: passed.
-- Retained full and compact example records: checked by the test suite.
-- Python compilation and publishing-script shell syntax: passed.
-- Local Markdown file links: checked with no missing files.
-- Publishing guard tests: offline stubs only; no repository was created.
-- GitHub Actions: configured, **not executed**.
-- Optional upstream Universa adapter: **skipped**, not installed. A public
-  clone attempt failed because this runtime could not resolve github.com.
-  The adapter is an unexecuted integration until its optional CI/test is run.
+
+The local environment had no GPU. GPU speed and compact-execution behavior must
+therefore be measured on the target machine rather than inferred here.
+
+## Checks completed
+
+- Editable installation and source-tree execution: passed.
+- Classical full and compact demonstrations: passed.
+- Classical independent witness checks and tamper tests: passed.
+- Neural CPU train → checkpoint → demo → checkpoint-bound Lingua verification:
+  passed.
+- Neural dense and compact adaptive outputs: matched in routes and step counts,
+  and agreed within `atol=1e-7`, `rtol=1e-6`; different batch shapes can change
+  the final float32 state by a few ulps.
+- Every nonempty five-coordinate mask pattern: transparent and Gaussian-reference
+  solvers returned finite outputs.
+- Unobserved-value leakage guard: changing masked coordinates did not change the
+  neural output.
+- Neural record tampering checks: altered state, diagnostics, event continuity,
+  halt metadata, update counts, and checkpoint identity were rejected.
+- Checkpoint checks: legacy v0.2 semantics load explicitly; unknown formats,
+  nonfinite tensors, and unsupported PyTorch loader versions are rejected.
+- Tiny deterministic CPU reruns: model tensors, history, and evaluation matched;
+  checkpoint file hashes differed because elapsed-time metadata is intentionally
+  recorded.
+- Python compilation: passed.
+- Local Markdown links: passed.
+- GitHub Actions: configured, not yet executed for this source revision.
+- Optional commit-pinned Universa adapter: skipped locally because this runtime
+  could not resolve `github.com`. Its dedicated CI job remains the integration
+  check.
 
 ## Test output
 
 ```text
-................................................................s....... [ 81%]
-................                                                         [100%]
-=========================== short test summary info ============================
+........................................................................ [ 69%]
+........s.......................                                         [100%]
 SKIPPED [1] tests/test_upstream_adapter.py:9: Optional commit-pinned Universa dependency not installed
-87 passed, 1 skipped in 0.26s
+103 passed, 1 skipped
 ```
 
-## Exploratory timings
+## Exploratory boundaries
 
-Raw development rows are in
-[development_microbenchmark.json](../experiments/results/development_microbenchmark.json).
-They compare direct, compact-recursive, and full-recursive paths on one tiny graph
-family. The direct solve was faster in this development run. No general speedup,
-GPU performance, or trained-model conclusion follows.
+The repository distinguishes:
+
+```text
+logical updates ≠ examples executed by the update network ≠ wall-clock time
+```
+
+A tiny CPU smoke run validates plumbing only. It is not evidence of model quality
+or acceleration. The public neural protocol remains a draft until its code,
+seeds, thresholds, hardware regime, and decision rules are frozen before a
+confirmatory run.
 
 ## Source identity
 
-SHA-256 over sorted source paths and bytes: `f1210713fe47b58fff467ea61d6dd2d886593e33598af8472acf50104c9238dd`.
-This identifies tested source content, not a remote execution attestation.
+SHA-256 over sorted Python paths and bytes in the installed package:
+
+```text
+a8c18dbd1165e6ad18d9ff60dd09cb693845688765fd2949fd01767ad871d1be
+```
+
+This identifies tested source content. It does not authenticate a remote
+execution.
