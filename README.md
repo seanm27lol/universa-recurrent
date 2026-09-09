@@ -5,6 +5,19 @@
 Permanent rule: start with a familiar example, explain the intuition, define the
 math, show runnable code, ground it in known fields, and state the limits.
 
+## Research update: replication and temporal Lingua
+
+The [five-training-seed audit](docs/replication_20260909.md) reports the accuracy,
+timing and limitations of the supplied DGX experiments. Recompute the report
+checks with `python scripts/audit_replication.py reports.zip`.
+
+[Temporal Lingua](docs/temporal_lingua.md) proposes describing short windows of
+states, with a [separate draft protocol](experiments/TEMPORAL_LINGUA_PROTOCOL_DRAFT.md).
+It distinguishes NLA reconstruction, J-space readouts and causal evidence.
+This is a research-plan and auditing update: the model, training recipe, package
+version 0.5.0 and existing checkpoint behavior are unchanged. No temporal
+language decoder has been trained or implemented by this update.
+
 ## New in 0.5.0: separate the estimate from the claim
 
 ```text
