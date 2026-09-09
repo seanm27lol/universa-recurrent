@@ -2,6 +2,9 @@
 
 Reconstruct only a reviewed, checksummed source overlay on its exact Git base.
 Never consume files from a user's DGX or publish checkpoints/run artifacts.
+The Actions token has contents permission, not workflows permission. Preserve
+all workflow files from the base; the preparation job still tests the full
+release, including v2, before publishing its source-only commit.
 """
 from __future__ import annotations
 import base64
@@ -18,6 +21,7 @@ ARCHIVE_SHA256 = 'cf155699cdadacd7935ae56966c5dbd65b7100444266bb5da17413820baada
 SUBTREES = {'src': 'a5b3ddfcb57b922ada98a1321979c39970388aa7',
             'tests': 'faaa157f87a0dd4a4282de65292084a44f292ec0'}
 ALLOWED_ROOT_FILES = {'AGENTS.md', 'Makefile', 'README.md', 'pyproject.toml'}
+DEFERRED_WORKFLOW = '.github/workflows/tests.yml'
 
 
 def git(*args: str) -> str:
@@ -56,7 +60,7 @@ def main() -> None:
     if manifest['subtrees'] != SUBTREES or set(manifest['files']) != set(payloads):
         raise SystemExit('Manifest/file-set mismatch')
     for name, data in payloads.items():
-        allowed = (name in ALLOWED_ROOT_FILES or name == '.github/workflows/tests.yml'
+        allowed = (name in ALLOWED_ROOT_FILES or name == DEFERRED_WORKFLOW
                    or name.startswith(('src/universa_recurrent/', 'tests/', 'docs/', 'scripts/', 'experiments/')))
         if not allowed or '\\' in name or '\0' in name or '\n' in name:
             raise SystemExit(f'Unapproved path: {name!r}')
@@ -67,8 +71,12 @@ def main() -> None:
         if target.resolve().is_relative_to(root) is False or target.is_symlink():
             raise SystemExit('Symlink/path escape refused')
         data.decode('utf-8')
-    # All payloads are validated before the first write. Existing unrelated files
-    # are retained from the immutable base, not imported from a developer folder.
+    # Validate the whole archive, but do not request a workflow mutation outside
+    # the job token's granted permissions. The source/test identities are intact.
+    if payloads.pop(DEFERRED_WORKFLOW, None) is None:
+        raise SystemExit('Expected deferred workflow absent from reviewed overlay')
+    if any(name.startswith('.github/') for name in payloads):
+        raise SystemExit('Workflow/CI changes are not permitted in this source release')
     for name, data in payloads.items():
         target = root / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -79,8 +87,11 @@ def main() -> None:
     for directory, expected in SUBTREES.items():
         if git('rev-parse', f'{tree}:{directory}') != expected:
             raise SystemExit(f'{directory} differs from locally tested source')
+    if git('rev-parse', f'{tree}:.github') != git('rev-parse', f'{BASE}:.github'):
+        raise SystemExit('Refusing to change any existing workflow or GitHub configuration')
     (staging / 'expected-release-tree.txt').write_text(tree + '\n', encoding='ascii')
-    print(f'Verified {len(payloads)} UTF-8 files; src and tests match audited Git trees.')
+    print(f'Verified {len(payloads)} UTF-8 source files; src and tests match audited Git trees.')
+    print('Existing workflows unchanged. Full release tests run in this preparation job.')
     print(f'Candidate complete tree: {tree}')
 
 
