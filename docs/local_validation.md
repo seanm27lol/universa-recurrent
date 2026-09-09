@@ -1,17 +1,29 @@
 # Local validation
 
-Prepared September 8, 2026. These are development checks, not preregistered
+Updated September 9, 2026. These are development checks, not preregistered
 scientific results.
 
-## Environment
+## Publication repair
+
+The first public v0.3 commit (`56163c7`) accidentally omitted the neural model,
+training, neural Lingua, neural checker, and neural test files while retaining
+documentation that referred to them. A DGX checkout of that commit reported
+`85 passed, 1 skipped`; that was a valid check of the classical layer, but it did
+**not** exercise learned recurrence.
+
+Version 0.3.1 restores the omitted source and makes the dedicated CPU-neural CI
+job fail if those files or commands disappear again.
+
+## Local environment
 
 - Python: 3.13.5
 - NumPy: 2.3.5
 - PyTorch: 2.10.0+cpu
 - Pytest: 9.0.2
 
-The local environment had no GPU. GPU speed and compact-execution behavior must
-therefore be measured on the target machine rather than inferred here.
+The local validation environment had no GPU. GPU timing and compact-execution
+behavior must therefore be measured on the target machine rather than inferred.
+The earlier DGX v0.2 exploratory run does not validate the repaired v0.3.1 code.
 
 ## Checks completed
 
@@ -20,25 +32,26 @@ therefore be measured on the target machine rather than inferred here.
 - Classical independent witness checks and tamper tests: passed.
 - Neural CPU train → checkpoint → demo → checkpoint-bound Lingua verification:
   passed.
-- Neural dense and compact adaptive outputs: matched in routes and step counts,
-  and agreed within `atol=1e-7`, `rtol=1e-6`; different batch shapes can change
-  the final float32 state by a few ulps.
+- Neural dense and compact adaptive outputs: matched in routes, logical step
+  counts, and final states within declared float32 tolerances.
+- Dense and compact execution report logical updates separately from actual
+  sample-update evaluations.
 - Every nonempty five-coordinate mask pattern: transparent and Gaussian-reference
   solvers returned finite outputs.
-- Unobserved-value leakage guard: changing masked coordinates did not change the
-  neural output.
-- Neural record tampering checks: altered state, diagnostics, event continuity,
-  halt metadata, update counts, and checkpoint identity were rejected.
-- Checkpoint checks: legacy v0.2 semantics load explicitly; unknown formats,
-  nonfinite tensors, and unsupported PyTorch loader versions are rejected.
-- Tiny deterministic CPU reruns: model tensors, history, and evaluation matched;
-  checkpoint file hashes differed because elapsed-time metadata is intentionally
-  recorded.
+- Unobserved-value leakage guard: changing values where the mask is zero did not
+  change routes or neural outputs.
+- Neural record tampering checks: altered state, boundary identity, event state,
+  halt metadata, execution counts, and checkpoint identity were rejected.
+- Checkpoint checks: v0.2 residual and halt semantics are preserved; unknown
+  formats, nonfinite tensors, changed bases, and unsupported loader versions are
+  rejected.
+- Restricted loading: `weights_only=True` plus a narrow `TorchVersion` allowlist
+  for legacy metadata.
+- Full requested benchmark size is processed, rather than silently timing only
+  the first batch.
 - Python compilation: passed.
-- Local Markdown links: passed.
-- GitHub Actions: configured, not yet executed for this source revision.
 - Optional commit-pinned Universa adapter: skipped locally because this runtime
-  could not resolve `github.com`. Its dedicated CI job remains the integration
+  could not resolve `github.com`; its dedicated CI job remains the integration
   check.
 
 ## Test output
@@ -65,10 +78,10 @@ confirmatory run.
 
 ## Source identity
 
-SHA-256 over sorted Python paths and bytes in the installed package:
+SHA-256 over sorted Python paths and bytes in the repaired installed package:
 
 ```text
-a8c18dbd1165e6ad18d9ff60dd09cb693845688765fd2949fd01767ad871d1be
+7d4d44d8b84f8a25779d9db60f7d45f6c418976375df51664178cc54ef41c04b
 ```
 
 This identifies tested source content. It does not authenticate a remote

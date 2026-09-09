@@ -25,33 +25,23 @@ class NeuralBatchSpec:
 
 
 def candidate_bases() -> tuple[list[str], np.ndarray, np.ndarray]:
-    """Return the names, orthonormal bases, and boundaries used by the toy task.
-
-    The candidates come from the readable five-edge flow example. They have the
-    same ambient and latent dimensions, so one small shared recurrent core can
-    operate in either coordinate system.
-    """
+    """Return names, orthonormal bases, and boundaries for the toy task."""
     example = flow_example(7)
     dimensions = {candidate.latent_dimension for candidate in example.candidates}
     if len(dimensions) != 1:
         raise ValueError("the current neural task requires equal latent dimensions")
     names = [candidate.name for candidate in example.candidates]
-    bases = np.stack([candidate.basis for candidate in example.candidates]).astype(
-        np.float32
-    )
-    boundaries = np.stack(
-        [candidate.boundary for candidate in example.candidates]
-    ).astype(np.float32)
+    bases = np.stack([candidate.basis for candidate in example.candidates]).astype(np.float32)
+    boundaries = np.stack([candidate.boundary for candidate in example.candidates]).astype(np.float32)
     return names, bases, boundaries
 
 
 class StructuredFlowDataset(Dataset):
     """Deterministic partial noisy observations of structured flows.
 
-    Coordinates are standard normal inside one of the candidate subspaces.
-    Observation masks are independent of the structure label. A mask is repaired
-    only when it exposes fewer than two ambient coordinates; this keeps the toy
-    task numerically meaningful while preserving genuine ambiguous cases.
+    Coordinates are standard normal inside one candidate subspace. Observation
+    masks are independent of the structure label. A mask is repaired only when
+    it exposes fewer than two ambient coordinates.
     """
 
     def __init__(
@@ -66,9 +56,9 @@ class StructuredFlowDataset(Dataset):
             raise ValueError("n must be a positive integer")
         if isinstance(seed, bool) or not isinstance(seed, int):
             raise ValueError("seed must be an integer")
-        if not (0.0 < observe_probability <= 1.0):
-            raise ValueError("observe_probability must be in (0,1]")
-        if noise_std < 0 or not np.isfinite(noise_std):
+        if not np.isfinite(observe_probability) or not (0.0 < observe_probability <= 1.0):
+            raise ValueError("observe_probability must be finite and in (0,1]")
+        if not np.isfinite(noise_std) or noise_std < 0:
             raise ValueError("noise_std must be finite and nonnegative")
 
         names, bases, _ = candidate_bases()
@@ -77,13 +67,9 @@ class StructuredFlowDataset(Dataset):
 
         labels = rng.integers(0, num_structures, size=n, endpoint=False)
         coordinates = rng.normal(0, 1, size=(n, latent_dim)).astype(np.float32)
-        truth = np.einsum(
-            "bnd,bd->bn", bases[labels], coordinates, optimize=True
-        ).astype(np.float32)
+        truth = np.einsum("bnd,bd->bn", bases[labels], coordinates, optimize=True).astype(np.float32)
 
-        masks = (
-            rng.random((n, ambient_dim)) < observe_probability
-        ).astype(np.float32)
+        masks = (rng.random((n, ambient_dim)) < observe_probability).astype(np.float32)
         for index in range(n):
             if masks[index].sum() < 2:
                 masks[index, rng.choice(ambient_dim, size=2, replace=False)] = 1.0
