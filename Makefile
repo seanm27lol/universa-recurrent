@@ -1,4 +1,4 @@
-.PHONY: test demo check benchmark neural-smoke
+.PHONY: test demo check benchmark neural-v2-smoke
 
 test:
 	python -m pytest -q
@@ -11,9 +11,16 @@ check:
 	python -m pytest -q
 
 benchmark:
-	python experiments/benchmark.py --output runs/classical-benchmark.json
+	python experiments/benchmark.py --output runs/benchmark.json
 
-neural-smoke:
-	python -m universa_recurrent.cli neural-train --device cpu --train-size 64 --val-size 32 --epochs 1 --batch-size 32 --hidden-dim 16 --steps 2 --output /tmp/universa-neural-smoke.pt
-	python -m universa_recurrent.cli neural-demo --device cpu --checkpoint /tmp/universa-neural-smoke.pt --max-steps 2 --fixed --output /tmp/universa-neural-smoke.json
-	python -m universa_recurrent.cli neural-verify /tmp/universa-neural-smoke.json --checkpoint /tmp/universa-neural-smoke.pt
+neural-v2-smoke:
+	python -m universa_recurrent.cli neural-v2-train --device cpu \
+		--train-size 48 --calibration-size 24 --epochs 1 --batch-size 16 \
+		--hidden-dim 12 --candidate-embedding-dim 4 --steps 2 \
+		--output /tmp/universa-recurrent-v2-smoke.pt
+	python -m universa_recurrent.cli neural-v2-demo --device cpu \
+		--checkpoint /tmp/universa-recurrent-v2-smoke.pt \
+		--output /tmp/universa-recurrent-v2-smoke.json
+	python -m universa_recurrent.cli neural-v2-verify \
+		/tmp/universa-recurrent-v2-smoke.json \
+		--checkpoint /tmp/universa-recurrent-v2-smoke.pt

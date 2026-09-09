@@ -722,7 +722,15 @@ def benchmark_checkpoint(
     if not math.isfinite(halt_threshold) or not (0 <= halt_threshold <= 1):
         raise ValueError("halt_threshold must lie in [0,1]")
     model, metadata, device = load_checkpoint(path, device_name=device_name)
-    dataset = StructuredFlowDataset(n, seed=seed)
+    raw_metadata = metadata.get("raw_metadata", {})
+    training = raw_metadata.get("training", {}) if isinstance(raw_metadata, dict) else {}
+    if not isinstance(training, dict):
+        training = {}
+    dataset = StructuredFlowDataset(
+        n, seed=seed,
+        noise_std=float(training.get("noise_std", 0.05)),
+        observe_probability=float(training.get("observe_probability", 0.7)),
+    )
     observed_all = dataset.observed.to(device)
     mask_all = dataset.mask.to(device)
     truth_all = dataset.truth.to(device)

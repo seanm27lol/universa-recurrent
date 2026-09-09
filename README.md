@@ -1,12 +1,13 @@
 # universa-recurrent
 
-**Choose a mathematical space. Reuse a latent state. Keep a record that says exactly what can be checked.**
+**GitHub-native release 0.4.1.** Use this checkout, not the retired overlay installers.
+See [the release audit](docs/release_audit_0.4.1.md) for the fixes and tested scope.
 
-> Permanent design rule: begin with a familiar example, define the mathematics,
-> show runnable code, connect it to established fields, and state the limits.
+**Keep several mathematical explanations alive, refine them, then commit only when the evidence is strong enough.**
 
-**Status: transparent classical baseline + exploratory learned recurrence.**
-Nothing here is yet a sealed scientific result.
+> Permanent rule: begin with a familiar example, define the mathematics, show runnable code, connect it to established fields, and state the limits.
+
+**Status:** transparent classical baseline, historical neural v1, and exploratory neural v2. Nothing here is yet a sealed scientific result.
 
 ## The idea in one picture
 
@@ -14,60 +15,57 @@ Nothing here is yet a sealed scientific result.
 partial noisy measurements
           │
           ▼
-  learned structure router
+  candidate structures Q₁, Q₂, ...
+          │
+     ┌────┴────┐
+     ▼         ▼
+ state in Q₁  state in Q₂       keep every plausible hypothesis
+     │         │
+     └────┬────┘
+          ▼
+ shared recurrent update
+          │
+ revise route evidence after every step
+          │
+   ┌──────┼────────┐
+   ▼      ▼        ▼
+continue  commit   abstain
+                    │
+                    └─ return a provisional mixture, not a single-structure claim
           │
           ▼
- choose coordinates z = Q a
-          │
-          ▼
- shared update Fθ ───────────────┐
-          │                      │
-          ├─ measure progress    │
-          └─ stop or continue ───┘
-          │
-          ▼
- estimate + Lingua record
-          │
-          ▼
- independent property checker
+ estimate + Lingua record + independent checker
 ```
 
-The first example is a circulation on a small graph. Incoming and outgoing flow
-must balance at each junction. This resembles Kirchhoff's current law, but it is
-not a complete circuit or hydraulic model.
+The first example is a five-edge circulation. Some measurements are hidden or noisy, and balanced flow must not appear or disappear at a junction. This resembles Kirchhoff's current law, but it is not a complete circuit or hydraulic model.
 
-## What each layer does
+## What changed in neural v2
 
-| Layer | Implemented now | Not yet established |
-|---|---|---|
-| **HOMYMOLY connection** | Motivates testing exact structural restrictions | A universal benefit from topology |
-| **Universa connection** | Candidate subspaces, cached coordinates, optional pinned adapter | Learned discovery or recurrent switching between arbitrary structures |
-| **Recurrence** | One learned update reused over latent-coordinate steps | A general reasoning system |
-| **Adaptive execution** | Dense and active-sample-compacted inference paths | A speedup merely because mean logical steps fall |
-| **Lingua** | Typed records of routes, measured dynamics, and structural checks | Semantic decoding of hidden features or execution attestation |
-| **Applied CMCM connection** | Full versus compact records and property-specific verification | A theorem that more witness information always helps |
+Neural v1 selected one structure before recurrence. Its first DGX experiment showed that wrong early routes dominated error, while adaptive stopping mainly limited damage after those mistakes. Neural v2 therefore:
 
-The earlier repositories remain separate and keep their own evidence histories:
-[HOMYMOLY](https://github.com/seanm27lol/HOMYMOLY),
-[Universa](https://github.com/seanm27lol/Universa), and
-[Applied Experiments of CMCM](https://github.com/seanm27lol/Applied-Experiments-of-CMCM).
+1. carries one recurrent state per candidate structure;
+2. revises route probabilities after each update;
+3. makes an explicit **continue / commit / abstain** decision;
+4. calibrates that decision on data separate from the final test set;
+5. records candidate trajectories and rejected alternatives in Lingua;
+6. compares against direct, untied-depth, ambient recurrent, dedicated fixed-depth, transparent, and privileged reference methods.
+
+This is not yet Universa's full structure-switching vision: v2 does not transport one persistent state between different structures or invoke structure discovery.
 
 ## Install
 
 ```bash
 git clone https://github.com/seanm27lol/universa-recurrent.git
 cd universa-recurrent
-python3 -m venv .venv
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 python -m pip install -e ".[test,neural]"
 python -m pytest -q
 ```
 
-NumPy is enough for the classical path. The learned path requires PyTorch 2.10
-or newer; `--device auto` selects CUDA when available. Load only checkpoints you
-created or otherwise trust.
+`--system-site-packages` is convenient on an NVIDIA DGX Spark that already has a working CUDA PyTorch installation. A normal isolated environment also works.
 
-## 1. Transparent classical example
+## Run the readable classical example
 
 ```bash
 python -m universa_recurrent.cli demo \
@@ -77,130 +75,89 @@ python -m universa_recurrent.cli demo \
 python -m universa_recurrent.cli verify runs/classical.json
 ```
 
-The direct solver, repeated update, Lingua record, and independent checker are all
-small enough to inspect line by line.
-
-## 2. Train learned recurrence
+## Train neural v2
 
 ```bash
-python -m universa_recurrent.cli neural-train \
+python -m universa_recurrent.cli neural-v2-train \
   --device cuda \
   --train-size 20000 \
-  --val-size 4000 \
+  --calibration-size 4000 \
   --epochs 20 \
   --batch-size 512 \
   --hidden-dim 64 \
+  --candidate-embedding-dim 8 \
   --steps 8 \
-  --output checkpoints/neural_v1.pt
+  --output checkpoints/neural_v2.pt
 ```
 
-Neural v1 learns:
+The default run trains the main model and the declared controls. Use `--no-controls` only for a plumbing smoke test, not a comparative experiment.
 
-1. a two-way structure route;
-2. a shared coordinate update reused at every step;
-3. a readiness signal trained from a synthetic future-regret teacher.
-
-The teacher can see synthetic truth during training. Inference cannot.
-
-## 3. Evaluate against the references we almost missed
+## Evaluate, benchmark, and inspect Lingua
 
 ```bash
-python -m universa_recurrent.cli neural-eval \
+python -m universa_recurrent.cli neural-v2-eval \
   --device cuda \
-  --checkpoint checkpoints/neural_v1.pt \
+  --checkpoint checkpoints/neural_v2.pt \
   --n 4000 \
-  --output runs/neural_v1_eval.json
-```
+  --output runs/neural_v2_eval.json
 
-The report includes:
-
-```text
-adaptive thresholds
-fixed depths 1 / 2 / 4 / 8
-non-learned fit-each-structure baseline
-generator-aware Gaussian Bayes reference
-route-correct versus route-wrong reconstruction error
-logical updates versus examples actually sent through the update network
-```
-
-The Gaussian reference uses privileged knowledge of the toy generator. Its soft
-posterior mixture is the squared-error Bayes reference under those assumptions;
-its hard MAP route is only a diagnostic. Neither is a deployable method.
-The two candidate spaces share one direction, and partial noisy measurements can
-be ambiguous, so perfect route recovery is not assumed. Recurrence itself also
-needs tied/untied and direct feed-forward ablations before receiving causal
-credit for any gain.
-
-## 4. Measure real execution, not just “mean steps”
-
-```bash
-python -m universa_recurrent.cli neural-benchmark \
+python -m universa_recurrent.cli neural-v2-benchmark \
   --device cuda \
-  --checkpoint checkpoints/neural_v1.pt \
+  --checkpoint checkpoints/neural_v2.pt \
   --n 65536 \
   --batch-size 4096 \
-  --halt-threshold 0.50 \
-  --output runs/neural_v1_benchmark.json
+  --output runs/neural_v2_benchmark.json
+
+python -m universa_recurrent.cli neural-v2-demo \
+  --device cuda \
+  --checkpoint checkpoints/neural_v2.pt \
+  --output runs/neural_v2_lingua.json
+
+python -m universa_recurrent.cli neural-v2-verify \
+  runs/neural_v2_lingua.json \
+  --checkpoint checkpoints/neural_v2.pt
 ```
+
+## Read results correctly
 
 ```text
-logical halting  ≠  skipped GPU work  ≠  lower wall-clock latency
+fewer logical steps
+      ≠ fewer candidate updates actually executed
+      ≠ lower wall-clock latency
+      ≠ better reconstruction
 ```
 
-The dense adaptive path freezes halted states but still evaluates the whole batch.
-The compact path gathers only active samples. Dynamic indexing may still cost more
-than it saves, so the benchmark reports time and quality together. It also times
-the transparent fit-each-structure solver; the neural model does not receive a
-free pass merely because it is the focus of the repository.
+| Layer | Implemented now | Not established |
+|---|---|---|
+| **Structures** | Explicit candidate subspaces and cached bases | Correct structure for every real task |
+| **Recurrence** | Shared update over every candidate state | A universal benefit from recurrence |
+| **Routing** | Evidence revision at every step | Perfectly calibrated probabilities |
+| **Selective decision** | Calibrated commit or abstain rule | One policy optimal for all costs |
+| **Lingua** | Candidate states, probabilities, residuals, decisions, rejected alternatives | Human meanings for arbitrary hidden features |
+| **Checker** | Arithmetic, structural, policy, and checkpoint-binding checks | Network replay or remote execution attestation |
+| **Controls** | Direct, untied, ambient, dedicated fixed depth, transparent, Gaussian reference | A confirmatory causal conclusion from one exploratory run |
 
-## 5. Emit and check a neural Lingua record
+## Where the earlier projects fit
 
-```bash
-python -m universa_recurrent.cli neural-demo \
-  --device cuda \
-  --checkpoint checkpoints/neural_v1.pt \
-  --seed 9001 \
-  --output runs/neural_v1_lingua.json
+| Project | Real connection | Boundary |
+|---|---|---|
+| [HOMYMOLY](https://github.com/seanm27lol/HOMYMOLY) | Motivates testing computation restricted to an appropriate structure. | Its lifting result does not prove this neural architecture helps. |
+| [Universa](https://github.com/seanm27lol/Universa) | Supplies the broader route, transport, project, and discover program. | This repo currently keeps parallel subspace hypotheses; it does not yet perform general typed transport or discovery. |
+| [Applied CMCM](https://github.com/seanm27lol/Applied-Experiments-of-CMCM) | Motivates measuring which computational records are worth retaining. | More witness information is not assumed to improve learning or checking. |
 
-python -m universa_recurrent.cli neural-verify \
-  runs/neural_v1_lingua.json \
-  --checkpoint checkpoints/neural_v1.pt
-```
+No private RF-MoE code, weights, data, or results are included.
 
-The checker can independently recompute the final constraint residual, final
-observed-coordinate residual, and event consistency. With `--checkpoint`, it also
-binds the embedded structure and configuration to those exact checkpoint bytes.
-It **does not replay the network**, explain the router causally, or prove that a
-remote machine executed the recorded path.
-
-## Where to read next
+## Read next
 
 | Question | Document |
 |---|---|
-| What should I understand first? | [Start here](docs/start_here.md) |
-| How does the neural loop work? | [Neural recurrence](docs/neural_recurrence.md) |
-| What did the code audit find? | [Development audit](docs/development_audit.md) |
-| What does Lingua establish? | [Lingua](docs/lingua.md) |
-| Which claims are allowed? | [Claims ledger](docs/claims.md) |
-| How do the projects connect? | [Architecture](docs/architecture.md) |
-| What real fields resemble these ideas? | [Known examples and sources](docs/real_world_connections.md) |
+| How does v2 work? | [Neural v2](docs/neural_v2.md) |
+| What does Lingua actually verify? | [Lingua](docs/lingua.md) |
+| Which claims are permitted? | [Claims ledger](docs/claims.md) |
+| How do the pieces connect? | [Architecture](docs/architecture.md) |
+| What is still missing? | [Roadmap](docs/roadmap.md) |
+| What was the classical foundation? | [Start here](docs/start_here.md) |
 
-## Repository map
+**Founding question:** Can a structure-aware recurrent solver reach a target quality with less total work while retaining enough evidence for specified checks?
 
-```text
-src/universa_recurrent/
-  structures/       explicit constraint spaces and cached bases
-  recurrence/       transparent classical recurrence and direct baseline
-  neural/            data, model, baselines, training, benchmarking, Lingua
-  lingua/           classical record schema
-  verification/     classical independent checks
-experiments/        exploratory protocols and benchmark runners
-tests/              success, failure, tampering, and compatibility tests
-docs/               explanations, claim boundaries, and known precedents
-```
-
-**Founding question:** Can a structure-aware recurrent solver reach a target
-quality with less total work while retaining enough evidence for specified
-checks?
-
-Efficiency and checkability are separate hypotheses. Either may fail.
+Efficiency, accuracy, calibrated refusal, and interpretability are separate hypotheses. Any of them may fail.

@@ -1,2 +1,2 @@
-"""Learn the system through the flow demos; see docs/start_here.md."""
-__version__ = "0.3.0"
+"""Readable structured recurrence. This literal is the single release version."""
+__version__ = "0.4.1"

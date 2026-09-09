@@ -1,30 +1,21 @@
 # Roadmap: earn each connection
 
-```text
-0  transparent solver and witnesses                 complete
-1  learned recurrence inside one selected space     exploratory implementation
-2  honest compute and baseline accounting           implemented; DGX measurement needed
-3  revise or switch structures during recurrence    next architecture
-4  compress Lingua by property                       next witness experiment
-5  causal interpretation of learned decisions       later research
-```
-
-| Stage | Deliverable | Gate before claiming success |
+| Stage | Deliverable | Gate before a claim |
 |---|---|---|
-| 0 | Classical direct/recurrent controls and independent checks | All numerical claims reproducible and tamper tests pass |
-| 1 | Learned router, shared update, synthetic halting teacher | Held-out evaluation against fixed and classical controls |
-| 2 | Dense/compact execution, GPU benchmark, and recurrence ablations | Better wall-clock/quality point than fixed-depth, untied-depth, and direct feed-forward controls |
-| 3 | Persistent typed state with route revision or transport | Wrong-route recovery without destructive information loss |
-| 4 | Property-specific compact Lingua | Fewer bytes/checking cost while preserving declared audit questions |
-| 5 | Hypotheses for selected hidden mechanisms | Held-out predictive and causal intervention tests |
+| 0 | Transparent classical solver and witnesses | Independent numerical checks |
+| 1 | Neural v1: one early route, shared recurrence | Exploratory only; failure modes retained |
+| 2 | **Neural v2: parallel hypotheses, route revision, commit/abstain** | Full controls, calibration/test separation, DGX benchmark |
+| 3 | Typed state transport between structures | Check transport laws and quantify information loss |
+| 4 | Structure discovery and admission | Novelty/certification tests and refusal controls |
+| 5 | Compact Lingua budgets | Preserve declared checks while reducing storage/check cost |
+| 6 | Neural semantic interpretation | Held-out predictive and causal interventions |
 
-Do not add graphs, sheaves, categories, discovery, and general neural
-interpretability simultaneously. The next narrow question is whether route
-uncertainty can guide **when to remain, blend, revise, or switch**.
+## Immediate v2 questions
 
-Two separate hypotheses remain:
+1. Does delaying commitment reduce wrong-route damage on an untouched test seed?
+2. Does the posterior mixture beat hard selection without privileged generator knowledge?
+3. Does active compaction lower wall-clock cost at any realistic batch size?
+4. Does v2 outperform direct, untied, ambient, and dedicated-depth controls?
+5. Are its route probabilities sufficiently calibrated for the declared rejection rule?
 
-- **H-efficiency:** target quality with less total computation.
-- **H-witness:** less retained history while preserving chosen checks.
-
-Either may succeed while the other fails.
+A direct solver, a refusal, or a negative latency result can be the correct outcome.

@@ -1,30 +1,28 @@
 # Claim ledger
 
-| Statement | Status | Evidence or next test |
+| Statement | Status | Evidence or required test |
 |---|---|---|
-| Classical flow demo reuses reduced state and avoids repeated SVD | Implemented | Solver and factorization-blocking tests |
-| Classical full records support update-chain checks | Implemented numerically | Independent checker and tamper tests |
-| Learned two-way structure router | Implemented on one synthetic family | Held-out accuracy, classical baseline, generator-aware reference |
-| Learned state-reusing recurrence | Implemented | Shared update network over explicit latent coordinates |
-| Decoded neural state lies in the selected subspace | Implemented up to floating-point residual | Parameterization `z = Q a` and independent record check |
-| Learned halting reduces logical updates | Measurable, not guaranteed | Threshold table on held-out data |
-| Learned halting reduces executed update examples | Available only in compact mode | `update_examples_per_sample` |
-| Learned halting makes inference faster | **Not established** | GPU wall-clock benchmark against fixed depths at comparable quality |
-| Learned router beats a simple structural router | **Not established** | `fit_each_structure` baseline can match or beat it |
-| Explicit subspace coordinates improve over an unstructured recurrent model | **Not tested** | Requires a matched ambient/reduced random-subspace control |
-| Neural recurrence beats the strongest fixed depth | **Not established in general** | Compare all reported depths; do not use only the eight-step control |
-| Weight sharing or recurrence itself causes any observed gain | **Not isolated** | Requires tied-vs-untied and recurrent-vs-direct feed-forward ablations |
-| The structure label is perfectly recoverable in the toy generator | FALSE | The candidate spaces overlap and partial noisy observations can be ambiguous; use the privileged reference for context |
-| Generator-aware Bayes reference is deployable | FALSE | It knows the synthetic prior and noise level |
-| Neural Lingua verifies the learned update path | FALSE in v1 | It checks final structural claims and summaries, not network replay |
-| Standalone neural records are authenticated | FALSE | Use optional local-checkpoint binding; neither mode is remote execution attestation |
-| `weights_only=True` makes arbitrary checkpoints safe | FALSE | PyTorch is pinned to 2.10+ for known fixes, but checkpoints must still come from a trusted source |
-| Lingua explains hidden-feature semantics | **Not established** | Requires predictive and causal intervention evidence |
-| Recurrence switches between structures | **Not implemented** | Current inference routes once, then remains in that space |
-| General structure discovery | **Not integrated** | Future Universa-based experiment |
-| Compact records preserve every historical property | FALSE by design | Endpoint/path counterexamples |
-| Topology or category theory generally improves models | Not claimed | Narrow task-specific evidence only |
+| Classical solver reuses reduced coordinates and avoids repeated SVD | Implemented | Classical solver tests |
+| Neural v1 routes once, then recurs inside one selected space | Implemented; historical exploratory path | v1 source and tests |
+| Neural v2 maintains one state per candidate structure | Implemented | Shape, gradient, and inference tests |
+| V2 revises candidate probabilities after recurrent updates | Implemented | Retained trajectories and Lingua events |
+| V2 can continue, commit, or abstain | Implemented | Dense/compact and policy tests |
+| Abstention returns a provisional probability-weighted mixture | Implemented | Arithmetic and tamper tests |
+| Policy thresholds use a disjoint calibration split | Implemented | Checkpoint seed metadata and tests |
+| Candidate states satisfy their declared linear constraints | Implemented up to floating-point tolerance | `z = Q a` plus independent checker |
+| Dense and compact v2 make matching decisions | Tested on listed cases | Equivalence tests within declared tolerances |
+| Compact v2 skips candidate update examples | Implemented | Execution counters |
+| Compact v2 is faster | **Not established** | DGX wall-clock benchmark at matched quality and batch size |
+| V2 improves on v1 | **Not established** | New DGX evaluation on untouched test seeds |
+| V2 beats the transparent solver | **Not established** | Held-out evaluation and timing |
+| Recurrence itself causes a gain | **Not established** | Direct, dedicated-depth, and untied controls |
+| Structural coordinates cause a gain | **Not established** | Ambient recurrent control |
+| Route probabilities are calibrated | **Not established** | Reliability/calibration diagnostics on untouched data |
+| The calibrated costs are universally appropriate | FALSE | They are declared experimental choices |
+| Lingua verifies candidate trajectories and policy arithmetic | Implemented for retained one-example records | Independent checker and tamper tests |
+| Lingua explains hidden-feature semantics | **Not established** | Predictive and causal intervention evidence |
+| V2 transports one persistent state between structures | **Not implemented** | Future typed-transport experiment |
+| V2 discovers new structures | **Not implemented** | Future Universa integration |
+| A passing test is a scientific result | FALSE | A confirmatory protocol must be sealed before its test block is opened |
 
-Engineering tests are not preregistered scientific results. Exploratory thresholds,
-architectural revisions, and negative findings must remain visible rather than
-being retroactively described as confirmed hypotheses.
+Keep negative and ambiguous outcomes visible. Do not turn logical step reduction into a latency claim or a valid structural state into a correct modeling assumption.

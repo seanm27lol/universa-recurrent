@@ -1,60 +1,60 @@
 # Lingua: say what ran, and what can be checked
 
-Lingua is not a machine-generated story about what a model “must have thought.”
-It is a typed record of explicit operations, measured dynamics, assumptions, and
-property-specific evidence.
+Lingua is not a story about what a model “must have thought.” It is a typed record of explicit operations, measured dynamics, assumptions, and property-specific evidence.
 
-## Two record families
+## Record families
 
-| Record | Independent checker currently establishes | Does not establish |
+| Record | The checker establishes | It does not establish |
 |---|---|---|
-| Classical full trace | Every retained projected-gradient transition and final constrained optimum, within tolerance | Remote execution attestation |
+| Classical full trace | Every retained numerical transition and final constrained optimum, within tolerance | Remote execution attestation |
 | Classical compact trace | Final constrained optimum, within tolerance | Discarded intermediate history |
-| Neural trace v1, standalone | Final membership in the boundary carried by the record, final observed residual, and event consistency | Whether that boundary came from an untampered checkpoint |
-| Neural trace v1 + checkpoint | The standalone checks plus binding to the exact checkpoint hash, candidate names, boundaries, and model configuration | Learned update replay, correct routing, hidden semantics, optimality |
+| Neural v1 + checkpoint | Final structure, summaries, and binding to checkpoint/library | Learned update replay or correct routing |
+| Neural v2 + checkpoint | Candidate state feasibility, residual/probability arithmetic, route revisions, policy decision, selected-or-mixture output, and checkpoint/library binding | Probability calibration, hidden semantics, optimality, or remote execution |
 
-## Neural example
+## V2 example
 
 ```text
-OBSERVED: router selected balanced_flow with probability 0.83
-OBSERVED: 5 recurrent updates were assigned
-MEASURED: observed-coordinate RMS fell from 0.48 to 0.06
-CHECKED: final state satisfies the selected boundary constraint within tolerance
-NOT CLAIMED: hidden feature 17 means “circulation”
+STEP 1
+  balanced_flow       p=0.58  observed residual=0.31
+  alternate_structure p=0.42  observed residual=0.36
+  decision: continue
+
+STEP 4
+  balanced_flow       p=0.89  observed residual=0.07
+  alternate_structure p=0.11  observed residual=0.19
+  decision: commit to balanced_flow
+
+CHECKED
+  each candidate obeyed its own declared boundary constraint
+  probabilities summed to one
+  the threshold rule permitted commitment at step 4
+  the final state equals the selected candidate state
+
+NOT CLAIMED
+  a hidden feature means “conservation”
+  the selected structure is true
+  the network executed on a particular remote device
 ```
 
-The record embeds the selected boundary matrix and a fingerprint, final state,
-observation mask, route probabilities, event summaries, model configuration, and
-checkpoint SHA-256. The hash identifies bytes; it does not prove where or when a
-remote execution occurred.
+If confidence remains below the final rule, the record says `abstain` and the output is a mixture. It must not attach a single-structure certificate to that mixture.
 
-The standalone fingerprint only detects accidental inconsistency inside the record:
-someone who replaces both the boundary and its fingerprint can create a different
-self-consistent claim. Pass `--checkpoint` to `neural-verify` when the record must be
-bound to the local model and candidate library.
-
-## Five claims that must stay separate
+## Five claims that remain different
 
 ```text
 constraint satisfaction
+        ≠ correct structural choice
         ≠ optimization optimality
-        ≠ retained-path correctness
-        ≠ physical execution provenance
+        ≠ execution provenance
         ≠ faithful semantic interpretation
 ```
 
-A project may support one without supporting the others.
+## Applied CMCM connection
 
-## Relation to Applied CMCM
+Applied CMCM asks when the record of a computation matters. This repo turns that into engineering questions:
 
-Applied CMCM asks when the record of a computation matters. This repo turns that
-question into an engineering comparison:
-
-- what information is retained;
-- which properties remain checkable;
+- which fields are retained;
+- which properties remain independently checkable;
 - how many bytes and how much time the record costs;
-- what historical questions become impossible after compression.
+- which questions become impossible after compression.
 
-More available witness information did not universally predict more learned
-benefit in the earlier experiments. Therefore every new Lingua field needs an
-explicit use, cost, and test.
+Every new field needs an explicit use, cost, and test. More record information is not presumed better.

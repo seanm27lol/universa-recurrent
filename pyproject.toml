@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "universa-recurrent"
-version = "0.3.1"
-description = "A readable, witness-bearing baseline for structured recurrent computation"
+dynamic = ["version"]
+description = "Readable multi-hypothesis structured recurrence with checkable mathematical records"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
@@ -27,3 +27,6 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-ra"
+
+[tool.setuptools.dynamic]
+version = {attr = "universa_recurrent.__version__"}
