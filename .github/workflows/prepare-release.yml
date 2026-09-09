@@ -1,0 +1,64 @@
+name: Prepare audited 0.4.1 release
+"on":
+  push:
+    branches: [staging/release-v0.4.1]
+permissions:
+  contents: write
+concurrency:
+  group: prepare-audited-0.4.1
+  cancel-in-progress: false
+jobs:
+  verified-source:
+    if: github.repository == 'seanm27lol/universa-recurrent'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE: 45e47cb156d1ebbb63d2751058c109dcc9e5a96b
+      OUTPUT_BRANCH: release/neural-v2-0.4.1
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Apply only validated source to the exact base
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-source"
+          cp _release/* "$RUNNER_TEMP/release-source/"
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$BASE"
+          git checkout --detach "$BASE"
+          python "$RUNNER_TEMP/release-source/prepare_release.py" "$RUNNER_TEMP/release-source"
+      - name: Install reproducible CPU test environment
+        run: |
+          python -m pip install 'setuptools>=68' wheel
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.10.0'
+          python -m pip install -e '.[test]'
+      - name: Compile, test, and validate packaging
+        run: |
+          python -m compileall -q src tests scripts examples experiments
+          python -m pytest -q
+          python scripts/check_release.py
+          python scripts/check_wheel.py
+      - name: Produce a clean source commit, not a payload commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git write-tree)" = "$(cat "$RUNNER_TEMP/release-source/expected-release-tree.txt")"
+          git diff --exit-code
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$BASE"
+          git config user.name 'universa-recurrent release audit'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Publish audited neural v2 and GitHub-native 0.4.1 release' \
+            -m 'Full source and tests match reviewed Git subtrees. CPU tests, source version checks, and installed wheel checks passed. No GPU speed claim.'
+          test "$(git rev-parse HEAD^)" = "$BASE"
+          test -z "$(git ls-tree -r --name-only HEAD _release .github/workflows/prepare-release.yml)"
+          git push origin "HEAD:refs/heads/$OUTPUT_BRANCH"
+          echo "Verified source commit: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Main is not changed by this job; promote only after checking this run.' >> "$GITHUB_STEP_SUMMARY"
