@@ -1,163 +1,110 @@
 # universa-recurrent
 
-**GitHub-native release 0.4.1.** Use this checkout, not the retired overlay installers.
-See [the release audit](docs/release_audit_0.4.1.md) for the fixes and tested scope.
+**Estimate a signal. Keep alternatives alive. State exactly what can be checked.**
 
-**Keep several mathematical explanations alive, refine them, then commit only when the evidence is strong enough.**
+Permanent rule: start with a familiar example, explain the intuition, define the
+math, show runnable code, ground it in known fields, and state the limits.
 
-> Permanent rule: begin with a familiar example, define the mathematics, show runnable code, connect it to established fields, and state the limits.
-
-**Status:** transparent classical baseline, historical neural v1, and exploratory neural v2. Nothing here is yet a sealed scientific result.
-
-## The idea in one picture
+## New in 0.5.0: separate the estimate from the claim
 
 ```text
-partial noisy measurements
-          │
-          ▼
-  candidate structures Q₁, Q₂, ...
-          │
-     ┌────┴────┐
-     ▼         ▼
- state in Q₁  state in Q₂       keep every plausible hypothesis
-     │         │
-     └────┬────┘
-          ▼
- shared recurrent update
-          │
- revise route evidence after every step
-          │
-   ┌──────┼────────┐
-   ▼      ▼        ▼
-continue  commit   abstain
-                    │
-                    └─ return a provisional mixture, not a single-structure claim
-          │
-          ▼
- estimate + Lingua record + independent checker
+                    candidate estimates + learned weights
+                                  │
+               ┌──────────────────┴──────────────────┐
+               ▼                                     ▼
+      weighted numerical estimate          optional structural proposal
+      returned on every example             carries its own candidate
+               │                                     │
+      weighted-sum arithmetic check          candidate-constraint check
 ```
 
-The first example is a five-edge circulation. Some measurements are hidden or noisy, and balanced flow must not appear or disappear at a junction. This resembles Kirchhoff's current law, but it is not a complete circuit or hydraulic model.
+Changing the proposal threshold does NOT change the weighted estimate or its
+computation depth. A mixture across different subspaces generally belongs to
+neither, so it never inherits a single candidate's certificate.
 
-## What changed in neural v2
+This release adds a **matched-output experiment**, not a newly proven superior
+architecture. It reuses v2 checkpoints and calibrates every structured control
+with the same empirical coverage rule on the same calibration data.
 
-Neural v1 selected one structure before recurrence. Its first DGX experiment showed that wrong early routes dominated error, while adaptive stopping mainly limited damage after those mistakes. Neural v2 therefore:
+## Run the new comparison
 
-1. carries one recurrent state per candidate structure;
-2. revises route probabilities after each update;
-3. makes an explicit **continue / commit / abstain** decision;
-4. calibrates that decision on data separate from the final test set;
-5. records candidate trajectories and rejected alternatives in Lingua;
-6. compares against direct, untied-depth, ambient recurrent, dedicated fixed-depth, transparent, and privileged reference methods.
+In your existing checkout and Python environment:
 
-This is not yet Universa's full structure-switching vision: v2 does not transport one persistent state between different structures or invoke structure discovery.
+```bash
+git pull --ff-only
+.venv/bin/python -m pip install --no-deps -e .
+.venv/bin/python scripts/check_release.py
+.venv/bin/python -m pytest -q
 
-## Install
+bash scripts/run_dual_study.sh /absolute/path/to/neural_v2.pt
+```
+
+No retraining is required. This leaves weights untouched and creates a fresh
+`runs/` directory with calibration, evaluation, benchmark and Lingua reports.
+The script defaults to CUDA; pass `cpu` as its second argument for CPU operation.
+
+| Report | Question |
+|---|---|
+| `eval.json` | Which estimator has lower error? How many structural proposals are issued or wrong? |
+| `benchmark.json` | What does that EXACT output mode cost on the same examples? |
+| `lingua.json` and `verification.json` | Do the weighted sum and separately scoped candidate checks agree? |
+
+[Start with the worked dual-output explanation](docs/dual_outputs.md).
+For independent training repetitions and historical v1 comparisons, that page
+also documents `python -m universa_recurrent.neural.dual_cli`.
+
+## Install from scratch
 
 ```bash
 git clone https://github.com/seanm27lol/universa-recurrent.git
 cd universa-recurrent
-python3 -m venv --system-site-packages .venv
+python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[test,neural]"
+python -m pip install -e '.[test,neural]'
+python scripts/check_release.py
 python -m pytest -q
 ```
 
-`--system-site-packages` is convenient on an NVIDIA DGX Spark that already has a working CUDA PyTorch installation. A normal isolated environment also works.
+NumPy is enough for the classical solver. Neural studies require PyTorch >=2.10.
+Use only checkpoints you created or otherwise trust. No external account, GPU
+service, or private application is required by the public source.
 
-## Run the readable classical example
+## Earlier paths remain available
 
 ```bash
-python -m universa_recurrent.cli demo \
-  --trace full \
-  --output runs/classical.json
-
+python -m universa_recurrent.cli demo --trace full --output runs/classical.json
 python -m universa_recurrent.cli verify runs/classical.json
+python -m universa_recurrent.cli --help
 ```
 
-## Train neural v2
-
-```bash
-python -m universa_recurrent.cli neural-v2-train \
-  --device cuda \
-  --train-size 20000 \
-  --calibration-size 4000 \
-  --epochs 20 \
-  --batch-size 512 \
-  --hidden-dim 64 \
-  --candidate-embedding-dim 8 \
-  --steps 8 \
-  --output checkpoints/neural_v2.pt
-```
-
-The default run trains the main model and the declared controls. Use `--no-controls` only for a plumbing smoke test, not a comparative experiment.
-
-## Evaluate, benchmark, and inspect Lingua
-
-```bash
-python -m universa_recurrent.cli neural-v2-eval \
-  --device cuda \
-  --checkpoint checkpoints/neural_v2.pt \
-  --n 4000 \
-  --output runs/neural_v2_eval.json
-
-python -m universa_recurrent.cli neural-v2-benchmark \
-  --device cuda \
-  --checkpoint checkpoints/neural_v2.pt \
-  --n 65536 \
-  --batch-size 4096 \
-  --output runs/neural_v2_benchmark.json
-
-python -m universa_recurrent.cli neural-v2-demo \
-  --device cuda \
-  --checkpoint checkpoints/neural_v2.pt \
-  --output runs/neural_v2_lingua.json
-
-python -m universa_recurrent.cli neural-v2-verify \
-  runs/neural_v2_lingua.json \
-  --checkpoint checkpoints/neural_v2.pt
-```
-
-## Read results correctly
-
-```text
-fewer logical steps
-      ≠ fewer candidate updates actually executed
-      ≠ lower wall-clock latency
-      ≠ better reconstruction
-```
-
-| Layer | Implemented now | Not established |
+| Piece | Contribution | Boundary |
 |---|---|---|
-| **Structures** | Explicit candidate subspaces and cached bases | Correct structure for every real task |
-| **Recurrence** | Shared update over every candidate state | A universal benefit from recurrence |
-| **Routing** | Evidence revision at every step | Perfectly calibrated probabilities |
-| **Selective decision** | Calibrated commit or abstain rule | One policy optimal for all costs |
-| **Lingua** | Candidate states, probabilities, residuals, decisions, rejected alternatives | Human meanings for arbitrary hidden features |
-| **Checker** | Arithmetic, structural, policy, and checkpoint-binding checks | Network replay or remote execution attestation |
-| **Controls** | Direct, untied, ambient, dedicated fixed depth, transparent, Gaussian reference | A confirmatory causal conclusion from one exploratory run |
+| HOMYMOLY | Motivation for appropriate structural constraints | Not a universal topology benefit |
+| Universa | Explicit spaces and optional pinned adapter | General discovery/transport not integrated |
+| Recurrence | Shared learned updates and comparison models | Not established as better than direct or untied models |
+| Lingua | Typed arithmetic and constraint records | No hidden-neuron semantics, neural replay, or execution authentication |
+| Applied CMCM | Ask which records are worth retaining/checking | A faster or more useful witness is still an experiment |
 
-## Where the earlier projects fit
+Historical source and results stay in their original projects:
+[HOMYMOLY](https://github.com/seanm27lol/HOMYMOLY),
+[Universa](https://github.com/seanm27lol/Universa),
+[Applied CMCM](https://github.com/seanm27lol/Applied-Experiments-of-CMCM).
 
-| Project | Real connection | Boundary |
-|---|---|---|
-| [HOMYMOLY](https://github.com/seanm27lol/HOMYMOLY) | Motivates testing computation restricted to an appropriate structure. | Its lifting result does not prove this neural architecture helps. |
-| [Universa](https://github.com/seanm27lol/Universa) | Supplies the broader route, transport, project, and discover program. | This repo currently keeps parallel subspace hypotheses; it does not yet perform general typed transport or discovery. |
-| [Applied CMCM](https://github.com/seanm27lol/Applied-Experiments-of-CMCM) | Motivates measuring which computational records are worth retaining. | More witness information is not assumed to improve learning or checking. |
-
-No private RF-MoE code, weights, data, or results are included.
-
-## Read next
+## Reading map
 
 | Question | Document |
 |---|---|
-| How does v2 work? | [Neural v2](docs/neural_v2.md) |
-| What does Lingua actually verify? | [Lingua](docs/lingua.md) |
-| Which claims are permitted? | [Claims ledger](docs/claims.md) |
-| How do the pieces connect? | [Architecture](docs/architecture.md) |
-| What is still missing? | [Roadmap](docs/roadmap.md) |
-| What was the classical foundation? | [Start here](docs/start_here.md) |
+| Where do I start? | [Beginner walkthrough](docs/start_here.md) |
+| Why separate estimates from claims? | [Dual outputs](docs/dual_outputs.md) |
+| What does v2 do? | [Multiple hypotheses](docs/neural_v2.md) |
+| What was checked in this release? | [0.5.0 audit](docs/release_audit_0.5.0.md) |
+| What experiment is proposed? | [Draft protocol](experiments/DUAL_OUTPUT_PROTOCOL_DRAFT.md) |
+| What are the earlier mathematical guarantees? | [Mathematics](docs/mathematics.md) and [Lingua](docs/lingua.md) |
 
-**Founding question:** Can a structure-aware recurrent solver reach a target quality with less total work while retaining enough evidence for specified checks?
+## Honest status
 
-Efficiency, accuracy, calibrated refusal, and interpretability are separate hypotheses. Any of them may fail.
+This is a small synthetic research scaffold. Tests establish software properties,
+not scientific success. The new study deliberately keeps inference depth fixed
+to isolate output policy; adaptive stopping requires separate evidence. Similar
+parameter counts do not equalize objectives, computation, or inductive bias.
+No GPU speedup, general reasoning ability, or universal interpretability is claimed.
