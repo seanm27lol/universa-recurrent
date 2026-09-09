@@ -24,5 +24,10 @@
 | V2 transports one persistent state between structures | **Not implemented** | Future typed-transport experiment |
 | V2 discovers new structures | **Not implemented** | Future Universa integration |
 | A passing test is a scientific result | FALSE | A confirmatory protocol must be sealed before its test block is opened |
+| Execution benchmarks can avoid inheriting training settings | Implemented in 0.5.1 | Fresh workers, explicit common controls, and stored backend settings |
+| Determinism explains the earlier GPU timing shift | **Not established** | Rebenchmark existing checkpoints; historical settings were not fully recorded |
+| Switching an execution profile leaves every output unchanged | Must be checked per run | Numeric tolerances and exact discrete-claim comparison; mismatches suppress matched-output ratios |
 
 Keep negative and ambiguous outcomes visible. Do not turn logical step reduction into a latency claim or a valid structural state into a correct modeling assumption.
+
+For the no-retraining profile comparison and its limits, see [Execution audit](execution_audit.md).
