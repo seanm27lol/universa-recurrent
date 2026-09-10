@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ('cli.py', 'neural/model.py', 'neural/train.py', 'neural/lingua.py',
             'neural/verification.py', 'neural/v2.py', 'neural/v2_train.py',
             'neural/v2_lingua.py', 'neural/v2_verification.py', 'neural/dual_output.py',
-            'neural/dual_study.py', 'neural/dual_lingua.py', 'neural/dual_cli.py')
+            'neural/dual_study.py', 'neural/dual_lingua.py', 'neural/dual_cli.py', 'neural/final_state.py', 'neural/retention_lingua.py', 'neural/retention_study.py')
 
 
 def main():
@@ -41,6 +41,7 @@ def main():
         for command in ('compare','replicate','verify'):
             if command not in help_text:
                 raise SystemExit(f'Missing dual command: {command}')
+        subprocess.check_output([sys.executable,'-m','universa_recurrent.neural.retention_study','--help'],text=True)
     print(f'Release check PASS: {package.__version__}')
     print('Version, editable-install location, required modules, and available CLI commands agree.')
     print('Packaging validation is not a model-quality or GPU-performance result.')
