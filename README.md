@@ -14,11 +14,25 @@ checks with `python scripts/audit_replication.py reports.zip`.
 [Temporal Lingua](docs/temporal_lingua.md) proposes describing short windows of
 states, with a [separate draft protocol](experiments/TEMPORAL_LINGUA_PROTOCOL_DRAFT.md).
 It distinguishes NLA reconstruction, J-space readouts and causal evidence.
-This is a research-plan and auditing update: the model, training recipe, package
-version 0.5.0 and existing checkpoint behavior are unchanged. No temporal
-language decoder has been trained or implemented by this update.
+That research-plan update left the model and training recipe unchanged.
+No temporal language decoder has been trained or implemented.
 
-## New in 0.5.0: separate the estimate from the claim
+## New in 0.5.2: final-state-only inference and measured audit costs
+
+Keep the current state for ordinary inference; retain the numerical trajectory
+only when requested. Same frozen weights and depth, with paired output checks.
+The experiment separately measures inference, memory, record generation and checks.
+[Read the scope and run instructions](docs/final_state_inference.md).
+
+```bash
+git pull --ff-only
+.venv/bin/python -m pip install --no-deps -e .
+.venv/bin/python scripts/check_release.py
+.venv/bin/python -m pytest -q
+bash scripts/run_retention_study.sh /path/to/replication/results cuda
+```
+
+## Earlier in 0.5.0: separate the estimate from the claim
 
 ```text
                     candidate estimates + learned weights

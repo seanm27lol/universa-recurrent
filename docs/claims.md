@@ -19,7 +19,7 @@
 | Structural coordinates cause a gain | **Not established** | Ambient recurrent control |
 | Route probabilities are calibrated | **Not established** | Reliability/calibration diagnostics on untouched data |
 | The calibrated costs are universally appropriate | FALSE | They are declared experimental choices |
-| Lingua verifies candidate trajectories and policy arithmetic | Implemented for retained one-example records | Independent checker and tamper tests |
+| Lingua checks candidate geometry, recorded diagnostics and policy arithmetic | Implemented for retained one-example records | Independent checker and tamper tests |
 | Lingua explains hidden-feature semantics | **Not established** | Predictive and causal intervention evidence |
 | V2 transports one persistent state between structures | **Not implemented** | Future typed-transport experiment |
 | V2 discovers new structures | **Not implemented** | Future Universa integration |
@@ -31,3 +31,12 @@
 Keep negative and ambiguous outcomes visible. Do not turn logical step reduction into a latency claim or a valid structural state into a correct modeling assumption.
 
 For the no-retraining profile comparison and its limits, see [Execution audit](execution_audit.md).
+
+## Final-state retention study (0.5.2)
+
+The opt-in final-only adapter retains no history stack and reuses the existing
+fixed-depth updates. Tests and the GPU runner compare final tensors and discrete
+claims to rollout. This is not adaptive stopping or an established speedup.
+Retained-history checks cover candidate geometry and diagnostic arithmetic, not
+learned transitions. Sampled Lingua timings and full-cohort inference have distinct
+denominators. See [the retention study](final_state_inference.md).
