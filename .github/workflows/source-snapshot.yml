@@ -1,0 +1,23 @@
+name: Public source snapshot
+"on":
+  push:
+    branches: [audit/source-snapshot-8cdea5a]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 8cdea5a5967a0149f59ee52a85d2e7ed1a86b663
+          persist-credentials: false
+      - name: Archive tracked public source only
+        run: git archive --format=zip --output="$RUNNER_TEMP/public-source.zip" HEAD
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-source-8cdea5a
+          path: ${{ runner.temp }}/public-source.zip
+          retention-days: 3
+          if-no-files-found: error
