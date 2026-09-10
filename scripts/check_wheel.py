@@ -19,7 +19,7 @@ def main():
         wheel,=tmp.glob('*.whl')
         with zipfile.ZipFile(wheel) as archive:
             for module in ('model','train','lingua','verification','v2','v2_train','v2_lingua',
-                           'v2_verification','dual_output','dual_study','dual_lingua','dual_cli'):
+                           'v2_verification','dual_output','dual_study','dual_lingua','dual_cli','final_state','retention_lingua','retention_study'):
                 if f'universa_recurrent/neural/{module}.py' not in archive.namelist():
                     raise RuntimeError(f'Wheel missing module: {module}')
         target=tmp/'installed'
@@ -34,6 +34,8 @@ def main():
         from importlib.util import find_spec
         if find_spec('torch') is not None:
             subprocess.run([sys.executable,'-m','universa_recurrent.neural.dual_cli','--help'],
+                           cwd=tmp,env=env,check=True)
+            subprocess.run([sys.executable,'-m','universa_recurrent.neural.retention_study','--help'],
                            cwd=tmp,env=env,check=True)
     print('Wheel check PASS: neural runtimes and dual-output experiment are included.')
 
