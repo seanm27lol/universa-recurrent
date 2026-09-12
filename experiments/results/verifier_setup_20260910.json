@@ -1,0 +1,540 @@
+{
+  "archive_sha256": "8d904dfd76a4e0409d406e669ce3c3e98ab7dea36abb6cab228057cc670aaf37",
+  "worker_count": 5,
+  "condition_rows": 80,
+  "timing_samples": 1200,
+  "statistic_checks": 720,
+  "consistency_errors": [],
+  "all_reported_agreement": true,
+  "summary_agreement_consistent": true,
+  "initial_prepare_ms": {
+    "10100": 12.017215,
+    "6100": 18.329704,
+    "7100": 11.817549,
+    "8100": 11.833997,
+    "9100": 12.034991
+  },
+  "initial_prepare_ms_median": 12.017215,
+  "rows": [
+    {
+      "model": "shared",
+      "retention": "endpoint",
+      "record_count": 1,
+      "files_per_record_ms": 11.65494,
+      "files_per_record_ms_min": 11.577964,
+      "files_per_record_ms_max": 11.730301,
+      "prepare_once_per_batch_ms": 11.922302,
+      "prepare_once_per_batch_ms_min": 11.832446,
+      "prepare_once_per_batch_ms_max": 11.962991,
+      "reuse_prepared_snapshot_ms": 0.121776,
+      "reuse_prepared_snapshot_ms_min": 0.089728,
+      "reuse_prepared_snapshot_ms_max": 0.125217,
+      "prepare_once_per_batch_paired_speedup": 0.9784928661411174,
+      "prepare_once_per_batch_paired_time_reduction_pct": -2.1979857598451558,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        -2.678037747068429,
+        -1.9809797390634376
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 95.74651819734595,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.95557559812372,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.92278185990702,
+        99.23012902683325
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "endpoint",
+      "record_count": 4,
+      "files_per_record_ms": 46.575728,
+      "files_per_record_ms_min": 46.44984,
+      "files_per_record_ms_max": 46.764658,
+      "prepare_once_per_batch_ms": 12.153439,
+      "prepare_once_per_batch_ms_min": 12.105631,
+      "prepare_once_per_batch_ms_max": 12.168911,
+      "reuse_prepared_snapshot_ms": 0.26245,
+      "reuse_prepared_snapshot_ms_min": 0.253186,
+      "reuse_prepared_snapshot_ms_max": 0.269857,
+      "prepare_once_per_batch_paired_speedup": 3.8362277750950247,
+      "prepare_once_per_batch_paired_time_reduction_pct": 73.93272614071438,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        73.86192992428604,
+        74.0635273551034
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 178.18501809868545,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.43878558889493,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.42036381263517,
+        99.45754568571678
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "endpoint",
+      "record_count": 16,
+      "files_per_record_ms": 186.560117,
+      "files_per_record_ms_min": 186.123169,
+      "files_per_record_ms_max": 188.119678,
+      "prepare_once_per_batch_ms": 12.916884,
+      "prepare_once_per_batch_ms_min": 12.83818,
+      "prepare_once_per_batch_ms_max": 12.968677,
+      "reuse_prepared_snapshot_ms": 0.965623,
+      "reuse_prepared_snapshot_ms_min": 0.94759,
+      "reuse_prepared_snapshot_ms_max": 1.036167,
+      "prepare_once_per_batch_paired_speedup": 14.452491078774829,
+      "prepare_once_per_batch_paired_time_reduction_pct": 93.08077760055762,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        93.05919434961426,
+        93.11525164566132
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 192.7493121021351,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.4811914039568,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.44919797279262,
+        99.49183461416744
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "endpoint",
+      "record_count": 64,
+      "files_per_record_ms": 770.768962,
+      "files_per_record_ms_min": 768.572307,
+      "files_per_record_ms_max": 777.132155,
+      "prepare_once_per_batch_ms": 15.895416,
+      "prepare_once_per_batch_ms_min": 15.635351,
+      "prepare_once_per_batch_ms_max": 16.096809,
+      "reuse_prepared_snapshot_ms": 3.878714,
+      "reuse_prepared_snapshot_ms_min": 3.799048,
+      "reuse_prepared_snapshot_ms_max": 4.225979,
+      "prepare_once_per_batch_paired_speedup": 48.85575976207205,
+      "prepare_once_per_batch_paired_time_reduction_pct": 97.95315843030585,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        97.91159091847292,
+        97.96566297567627
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 198.1513220618999,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.49533518646541,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.45171910023019,
+        99.51114517967667
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "trajectory",
+      "record_count": 1,
+      "files_per_record_ms": 11.87995,
+      "files_per_record_ms_min": 11.851613,
+      "files_per_record_ms_max": 11.923918,
+      "prepare_once_per_batch_ms": 12.132703,
+      "prepare_once_per_batch_ms_min": 12.124687,
+      "prepare_once_per_batch_ms_max": 12.200927,
+      "reuse_prepared_snapshot_ms": 0.276754,
+      "reuse_prepared_snapshot_ms_min": 0.269794,
+      "reuse_prepared_snapshot_ms_max": 0.286978,
+      "prepare_once_per_batch_paired_speedup": 0.9768320381698952,
+      "prepare_once_per_batch_paired_time_reduction_pct": -2.3717446730668446,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        -2.7018379706985396,
+        -1.691528126380204
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 42.926028169421215,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 97.67041107075366,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        97.5930734246045,
+        97.73737122311643
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "trajectory",
+      "record_count": 4,
+      "files_per_record_ms": 47.551351,
+      "files_per_record_ms_min": 47.487079,
+      "files_per_record_ms_max": 47.655319,
+      "prepare_once_per_batch_ms": 12.906116,
+      "prepare_once_per_batch_ms_min": 12.88138,
+      "prepare_once_per_batch_ms_max": 12.987924,
+      "reuse_prepared_snapshot_ms": 0.949558,
+      "reuse_prepared_snapshot_ms_min": 0.92935,
+      "reuse_prepared_snapshot_ms_max": 1.024342,
+      "prepare_once_per_batch_paired_speedup": 3.6857572539334043,
+      "prepare_once_per_batch_paired_time_reduction_pct": 72.86853335409407,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        72.68652997892741,
+        72.91778489616237
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 50.18684377362941,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.00744592644527,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        97.84626431117398,
+        98.0446114733366
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "trajectory",
+      "record_count": 16,
+      "files_per_record_ms": 190.316557,
+      "files_per_record_ms_min": 189.913642,
+      "files_per_record_ms_max": 192.111576,
+      "prepare_once_per_batch_ms": 15.669767,
+      "prepare_once_per_batch_ms_min": 15.579878,
+      "prepare_once_per_batch_ms_max": 15.844648,
+      "reuse_prepared_snapshot_ms": 3.615384,
+      "reuse_prepared_snapshot_ms_min": 3.559847,
+      "reuse_prepared_snapshot_ms_max": 3.735672,
+      "prepare_once_per_batch_paired_speedup": 12.151690537478766,
+      "prepare_once_per_batch_paired_time_reduction_pct": 91.77069234181239,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        91.66629641066017,
+        91.80459342353767
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 52.83648876413073,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.1073685564835,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.03839139978807,
+        98.12743119586689
+      ]
+    },
+    {
+      "model": "shared",
+      "retention": "trajectory",
+      "record_count": 64,
+      "files_per_record_ms": 783.603557,
+      "files_per_record_ms_min": 783.30602,
+      "files_per_record_ms_max": 788.40466,
+      "prepare_once_per_batch_ms": 26.414829,
+      "prepare_once_per_batch_ms_min": 26.139867,
+      "prepare_once_per_batch_ms_max": 26.497038,
+      "reuse_prepared_snapshot_ms": 14.191101,
+      "reuse_prepared_snapshot_ms_min": 14.03838,
+      "reuse_prepared_snapshot_ms_max": 14.511055,
+      "prepare_once_per_batch_paired_speedup": 29.838137387612335,
+      "prepare_once_per_batch_paired_time_reduction_pct": 96.64858437036635,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        96.6189816891727,
+        96.6628793431206
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 55.55627149718687,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.20002319620993,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.14803847407092,
+        98.20780389253233
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "endpoint",
+      "record_count": 1,
+      "files_per_record_ms": 11.675436,
+      "files_per_record_ms_min": 11.64526,
+      "files_per_record_ms_max": 11.72414,
+      "prepare_once_per_batch_ms": 11.914542,
+      "prepare_once_per_batch_ms_min": 11.904478,
+      "prepare_once_per_batch_ms_max": 11.992783,
+      "reuse_prepared_snapshot_ms": 0.090496,
+      "reuse_prepared_snapshot_ms_min": 0.088561,
+      "reuse_prepared_snapshot_ms_max": 0.124881,
+      "prepare_once_per_batch_paired_speedup": 0.9782251687138236,
+      "prepare_once_per_batch_paired_time_reduction_pct": -2.225952876964521,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        -2.3071464527492536,
+        -2.0046360581309264
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 129.06945058345121,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.22522332319572,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.93039540450566,
+        99.24028170338312
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "endpoint",
+      "record_count": 4,
+      "files_per_record_ms": 46.622881,
+      "files_per_record_ms_min": 46.615744,
+      "files_per_record_ms_max": 46.708753,
+      "prepare_once_per_batch_ms": 12.121135,
+      "prepare_once_per_batch_ms_min": 12.085567,
+      "prepare_once_per_batch_ms_max": 12.158431,
+      "reuse_prepared_snapshot_ms": 0.298802,
+      "reuse_prepared_snapshot_ms_min": 0.250594,
+      "reuse_prepared_snapshot_ms_max": 0.34437,
+      "prepare_once_per_batch_paired_speedup": 3.8463329547934246,
+      "prepare_once_per_batch_paired_time_reduction_pct": 74.00121071802253,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        73.96969471653418,
+        74.09056211944262
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 156.2300720878709,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.35991836486029,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.26272919339124,
+        99.46249748053067
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "endpoint",
+      "record_count": 16,
+      "files_per_record_ms": 186.991207,
+      "files_per_record_ms_min": 186.107602,
+      "files_per_record_ms_max": 187.114408,
+      "prepare_once_per_batch_ms": 12.899652,
+      "prepare_once_per_batch_ms_min": 12.81242,
+      "prepare_once_per_batch_ms_max": 12.951204,
+      "reuse_prepared_snapshot_ms": 1.007479,
+      "reuse_prepared_snapshot_ms_min": 0.95495,
+      "reuse_prepared_snapshot_ms_max": 1.065879,
+      "prepare_once_per_batch_paired_speedup": 14.475704947726701,
+      "prepare_once_per_batch_paired_time_reduction_pct": 93.09187356601211,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        93.06871301259365,
+        93.15262777626403
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 185.68432989670254,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.46145159338093,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.42910979125402,
+        99.48876793976736
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "endpoint",
+      "record_count": 64,
+      "files_per_record_ms": 771.123827,
+      "files_per_record_ms_min": 768.902453,
+      "files_per_record_ms_max": 786.961435,
+      "prepare_once_per_batch_ms": 15.745383,
+      "prepare_once_per_batch_ms_min": 15.637478,
+      "prepare_once_per_batch_ms_max": 15.929545,
+      "reuse_prepared_snapshot_ms": 3.798233,
+      "reuse_prepared_snapshot_ms_min": 3.788889,
+      "reuse_prepared_snapshot_ms_max": 3.951434,
+      "prepare_once_per_batch_paired_speedup": 48.97459953816303,
+      "prepare_once_per_batch_paired_time_reduction_pct": 97.9581252130081,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        97.93447457395759,
+        97.99583889393513
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 203.01870784199784,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 99.50743455584484,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        99.48763210773889,
+        99.50977712141638
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "trajectory",
+      "record_count": 1,
+      "files_per_record_ms": 11.874606,
+      "files_per_record_ms_min": 11.821165,
+      "files_per_record_ms_max": 11.933918,
+      "prepare_once_per_batch_ms": 12.135055,
+      "prepare_once_per_batch_ms_min": 12.080543,
+      "prepare_once_per_batch_ms_max": 12.191311,
+      "reuse_prepared_snapshot_ms": 0.259474,
+      "reuse_prepared_snapshot_ms_min": 0.251729,
+      "reuse_prepared_snapshot_ms_max": 0.275074,
+      "prepare_once_per_batch_paired_speedup": 0.9784463389558656,
+      "prepare_once_per_batch_paired_time_reduction_pct": -2.2028454894251093,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        -2.667077964523634,
+        -1.6303364359758987
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 45.764145925988736,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 97.81488328960135,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        97.69502354549444,
+        97.87903319906897
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "trajectory",
+      "record_count": 4,
+      "files_per_record_ms": 47.533911,
+      "files_per_record_ms_min": 47.380934,
+      "files_per_record_ms_max": 47.825257,
+      "prepare_once_per_batch_ms": 12.802515,
+      "prepare_once_per_batch_ms_min": 12.737635,
+      "prepare_once_per_batch_ms_max": 12.892516,
+      "reuse_prepared_snapshot_ms": 0.859605,
+      "reuse_prepared_snapshot_ms_min": 0.848629,
+      "reuse_prepared_snapshot_ms_max": 0.946246,
+      "prepare_once_per_batch_paired_speedup": 3.7172099149139433,
+      "prepare_once_per_batch_paired_time_reduction_pct": 73.09810253147485,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        72.83305620310587,
+        73.18360045613555
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 55.49015414668881,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.19787849686543,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.00608260637134,
+        98.21468719457988
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "trajectory",
+      "record_count": 16,
+      "files_per_record_ms": 189.971307,
+      "files_per_record_ms_min": 189.310791,
+      "files_per_record_ms_max": 190.334381,
+      "prepare_once_per_batch_ms": 15.350292,
+      "prepare_once_per_batch_ms_min": 15.329252,
+      "prepare_once_per_batch_ms_max": 15.365909,
+      "reuse_prepared_snapshot_ms": 3.30367,
+      "reuse_prepared_snapshot_ms_min": 3.255717,
+      "reuse_prepared_snapshot_ms_max": 3.451431,
+      "prepare_once_per_batch_paired_speedup": 12.371377451004356,
+      "prepare_once_per_batch_paired_time_reduction_pct": 91.91682572162718,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        91.88323659796023,
+        91.94614660816323
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 57.347912040042495,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.25625735196468,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.18318300036752,
+        98.28466584786061
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "retention": "trajectory",
+      "record_count": 64,
+      "files_per_record_ms": 782.889441,
+      "files_per_record_ms_min": 782.549422,
+      "files_per_record_ms_max": 783.183586,
+      "prepare_once_per_batch_ms": 25.121924,
+      "prepare_once_per_batch_ms_min": 25.028339,
+      "prepare_once_per_batch_ms_max": 25.243973,
+      "reuse_prepared_snapshot_ms": 13.003285,
+      "reuse_prepared_snapshot_ms_min": 12.884293,
+      "reuse_prepared_snapshot_ms_max": 13.18407,
+      "prepare_once_per_batch_paired_speedup": 31.162468646907776,
+      "prepare_once_per_batch_paired_time_reduction_pct": 96.79101161294156,
+      "prepare_once_per_batch_paired_time_reduction_pct_range": [
+        96.7767489703238,
+        96.80308129229195
+      ],
+      "reuse_prepared_snapshot_paired_speedup": 60.180902133576254,
+      "reuse_prepared_snapshot_paired_time_reduction_pct": 98.33834328740964,
+      "reuse_prepared_snapshot_paired_time_reduction_pct_range": [
+        98.31660542487415,
+        98.3542046137685
+      ]
+    }
+  ],
+  "largest_sample_to_row_median": [
+    [
+      2.9255188762845896,
+      9100,
+      "shared",
+      "endpoint",
+      1,
+      "files_per_record",
+      34.317217,
+      11.730301
+    ],
+    [
+      2.9120947626278055,
+      9100,
+      "fixed_depth_4",
+      "trajectory",
+      1,
+      "prepare_once_per_batch",
+      35.179686,
+      12.080543
+    ],
+    [
+      2.8662011978370656,
+      7100,
+      "fixed_depth_4",
+      "endpoint",
+      1,
+      "prepare_once_per_batch",
+      34.373729,
+      11.992783
+    ],
+    [
+      2.4874811895583684,
+      9100,
+      "fixed_depth_4",
+      "trajectory",
+      16,
+      "prepare_once_per_batch",
+      38.131226,
+      15.329252
+    ],
+    [
+      2.4817990471681455,
+      10100,
+      "shared",
+      "trajectory",
+      16,
+      "prepare_once_per_batch",
+      38.869279,
+      15.661735
+    ],
+    [
+      2.4789481021610054,
+      8100,
+      "shared",
+      "trajectory",
+      16,
+      "prepare_once_per_batch",
+      38.621709,
+      15.579878
+    ],
+    [
+      2.4443169075135023,
+      6100,
+      "shared",
+      "trajectory",
+      16,
+      "prepare_once_per_batch",
+      38.729341,
+      15.844648
+    ],
+    [
+      1.9134391935904271,
+      10100,
+      "fixed_depth_4",
+      "trajectory",
+      64,
+      "prepare_once_per_batch",
+      48.069274,
+      25.121924
+    ],
+    [
+      1.9086853188588515,
+      7100,
+      "fixed_depth_4",
+      "trajectory",
+      64,
+      "prepare_once_per_batch",
+      47.894969,
+      25.093172
+    ],
+    [
+      1.5044458378280894,
+      9100,
+      "fixed_depth_4",
+      "endpoint",
+      4,
+      "files_per_record",
+      70.140155,
+      46.621921
+    ]
+  ],
+  "number_samples_gt_2x_row_median": 7,
+  "number_samples_gt_10x_row_median": 0
+}
