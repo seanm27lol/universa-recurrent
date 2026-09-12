@@ -64,3 +64,14 @@ fits and calibration. Software implementation and local smoke tests do not
 establish its scientific result. Actual held-out coverage, wrong-claim rates and
 numerical-estimate error must be interpreted separately; the protocol promises no
 model winner, risk guarantee, equivalence result or new receipt-verification claim.
+
+The [completed study](claim_reliability_20260911.md) was audited from saved
+predictions and regenerated truth. Shared minus four-step conditional claim error
+at target 75% is +0.0553 percentage points, with a paired 95% interval
+[-0.1349, +0.2502]. It establishes neither an eight-step advantage nor equivalence.
+At the secondary 50% target, observed wrong-claim rates are 0.1416% shared and
+0.0999% four-step, with achieved coverage near 50%; these are not risk guarantees.
+The analytic reference's inclusive ties force its nominal 75% policy to 100%
+actual coverage. Saved data and metric arithmetic replay; exact checkpoint basis
+bytes and GPU execution remain unverified, including a local/reported basis-hash
+difference whose cause cannot be established without the checkpoint values.

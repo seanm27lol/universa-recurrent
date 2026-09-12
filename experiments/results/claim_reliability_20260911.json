@@ -1,0 +1,4488 @@
+{
+  "audit_format": "universa.claim-reliability.independent-metrics-audit.v1",
+  "input_archive": "claim-reliability-20260911-223944-FTvvdn-reports.zip",
+  "input_zip_sha256": "6681c6217f7704091e5e4f1bcf2136f53360c6bed5e88ba1c724c589545222b8",
+  "method": "Independent formulas from saved finite numeric NPZ arrays. No producer analysis, neural inference, torch, or unpickling.",
+  "numpy_version": "2.5.3",
+  "checks": {
+    "study_constants": 64,
+    "common_arrays": 55,
+    "policy_numeric_leaves": 1200,
+    "test_metric_leaves": 1260,
+    "summary_per_fit_metric_leaves": 1260,
+    "aggregate_metric_leaves": 1492,
+    "bootstrap_numeric_leaves": 15
+  },
+  "total_scalar_comparisons": 5346,
+  "max_absolute_difference_by_group": {
+    "study_constants": 0.0,
+    "policy_numeric_leaves": 0.0,
+    "test_metric_leaves": 1.1102230246251565e-16,
+    "summary_per_fit_metric_leaves": 1.1102230246251565e-16,
+    "aggregate_metric_leaves": 1.1102230246251565e-16,
+    "bootstrap_numeric_leaves": 2.6020852139652106e-18
+  },
+  "mismatches": [],
+  "status": "PASS",
+  "distinct_model_fit_predictions": 16,
+  "per_fit_reports_recomputed": 20,
+  "test_input_count": 20000,
+  "primary_table": [
+    {
+      "model": "shared",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.75006,
+      "mean_wrong_claim_rate": 0.11071865237689087,
+      "wrong_claim_rate_range": [
+        0.10700220279020092,
+        0.11505426459817564
+      ],
+      "wrong_counts": [
+        1617,
+        1668,
+        1728,
+        1603,
+        1689
+      ],
+      "claimed_counts": [
+        14924,
+        14986,
+        15019,
+        14981,
+        15096
+      ],
+      "mse": 0.04698183601702501,
+      "top_accuracy": 0.79179,
+      "brier_score": 0.22885670271896358,
+      "nll": 0.33037029609513757
+    },
+    {
+      "model": "fixed_depth_4",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.74788,
+      "mean_wrong_claim_rate": 0.11016586025472774,
+      "wrong_claim_rate_range": [
+        0.10659524606628724,
+        0.11466065747613997
+      ],
+      "wrong_counts": [
+        1588,
+        1661,
+        1730,
+        1592,
+        1669
+      ],
+      "claimed_counts": [
+        14874,
+        14954,
+        15088,
+        14935,
+        14937
+      ],
+      "mse": 0.04703128156726305,
+      "top_accuracy": 0.79156,
+      "brier_score": 0.2276307171139568,
+      "nll": 0.32602120204260643
+    },
+    {
+      "model": "direct",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.75276,
+      "mean_wrong_claim_rate": 0.1175452325857487,
+      "wrong_claim_rate_range": [
+        0.11405145980535929,
+        0.12023014350902718
+      ],
+      "wrong_counts": [
+        1711,
+        1751,
+        1817,
+        1818,
+        1752
+      ],
+      "claimed_counts": [
+        15002,
+        14995,
+        15146,
+        15121,
+        15012
+      ],
+      "mse": 0.04920906412767401,
+      "top_accuracy": 0.79208,
+      "brier_score": 0.2358748133242711,
+      "nll": 0.34111992852875844
+    },
+    {
+      "model": "gaussian_generator_reference",
+      "n_fits": 1,
+      "target_coverage": 0.75,
+      "mean_coverage": 1.0,
+      "mean_wrong_claim_rate": 0.2031,
+      "wrong_claim_rate_range": [
+        0.2031,
+        0.2031
+      ],
+      "wrong_counts": [
+        4062
+      ],
+      "claimed_counts": [
+        20000
+      ],
+      "mse": 0.044274502839873386,
+      "top_accuracy": 0.7968999999999999,
+      "brier_score": 0.2174673448388453,
+      "nll": 0.30728024979013197
+    }
+  ],
+  "coverage_sweep": [
+    {
+      "model": "shared",
+      "n_fits": 5,
+      "target_coverage": 0.25,
+      "mean_coverage": 0.25456,
+      "mean_wrong_claim_rate": 0.0,
+      "wrong_claim_rate_range": [
+        0.0,
+        0.0
+      ],
+      "wrong_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "claimed_counts": [
+        5069,
+        5061,
+        5126,
+        5104,
+        5096
+      ]
+    },
+    {
+      "model": "shared",
+      "n_fits": 5,
+      "target_coverage": 0.5,
+      "mean_coverage": 0.50126,
+      "mean_wrong_claim_rate": 0.0014157580045669692,
+      "wrong_claim_rate_range": [
+        0.000399800099950025,
+        0.0027860696517412937
+      ],
+      "wrong_counts": [
+        11,
+        4,
+        28,
+        11,
+        17
+      ],
+      "claimed_counts": [
+        10003,
+        10005,
+        10050,
+        10079,
+        9989
+      ]
+    },
+    {
+      "model": "shared",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.75006,
+      "mean_wrong_claim_rate": 0.11071865237689087,
+      "wrong_claim_rate_range": [
+        0.10700220279020092,
+        0.11505426459817564
+      ],
+      "wrong_counts": [
+        1617,
+        1668,
+        1728,
+        1603,
+        1689
+      ],
+      "claimed_counts": [
+        14924,
+        14986,
+        15019,
+        14981,
+        15096
+      ]
+    },
+    {
+      "model": "shared",
+      "n_fits": 5,
+      "target_coverage": 0.9,
+      "mean_coverage": 0.90152,
+      "mean_wrong_claim_rate": 0.17603952703223985,
+      "wrong_claim_rate_range": [
+        0.17239658422978818,
+        0.18112498618631892
+      ],
+      "wrong_counts": [
+        3100,
+        3181,
+        3278,
+        3109,
+        3203
+      ],
+      "claimed_counts": [
+        17928,
+        18039,
+        18098,
+        18034,
+        18053
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "n_fits": 5,
+      "target_coverage": 0.25,
+      "mean_coverage": 0.25483,
+      "mean_wrong_claim_rate": 0.0,
+      "wrong_claim_rate_range": [
+        0.0,
+        0.0
+      ],
+      "wrong_counts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "claimed_counts": [
+        5160,
+        5030,
+        5099,
+        5128,
+        5066
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "n_fits": 5,
+      "target_coverage": 0.5,
+      "mean_coverage": 0.5002300000000001,
+      "mean_wrong_claim_rate": 0.0009991019963941294,
+      "wrong_claim_rate_range": [
+        0.0004006811579685465,
+        0.0013981823629281933
+      ],
+      "wrong_counts": [
+        11,
+        13,
+        14,
+        4,
+        8
+      ],
+      "claimed_counts": [
+        10020,
+        10012,
+        10013,
+        9983,
+        9995
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.74788,
+      "mean_wrong_claim_rate": 0.11016586025472774,
+      "wrong_claim_rate_range": [
+        0.10659524606628724,
+        0.11466065747613997
+      ],
+      "wrong_counts": [
+        1588,
+        1661,
+        1730,
+        1592,
+        1669
+      ],
+      "claimed_counts": [
+        14874,
+        14954,
+        15088,
+        14935,
+        14937
+      ]
+    },
+    {
+      "model": "fixed_depth_4",
+      "n_fits": 5,
+      "target_coverage": 0.9,
+      "mean_coverage": 0.89898,
+      "mean_wrong_claim_rate": 0.17560739075036547,
+      "wrong_claim_rate_range": [
+        0.17422514050414556,
+        0.1774193548387097
+      ],
+      "wrong_counts": [
+        3200,
+        3125,
+        3190,
+        3131,
+        3141
+      ],
+      "claimed_counts": [
+        18082,
+        17913,
+        17980,
+        17971,
+        17952
+      ]
+    },
+    {
+      "model": "direct",
+      "n_fits": 5,
+      "target_coverage": 0.25,
+      "mean_coverage": 0.25428,
+      "mean_wrong_claim_rate": 7.916427095393495e-05,
+      "wrong_claim_rate_range": [
+        0.0,
+        0.00019920318725099602
+      ],
+      "wrong_counts": [
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "claimed_counts": [
+        5134,
+        5020,
+        5066,
+        5122,
+        5086
+      ]
+    },
+    {
+      "model": "direct",
+      "n_fits": 5,
+      "target_coverage": 0.5,
+      "mean_coverage": 0.4995,
+      "mean_wrong_claim_rate": 0.006805855078516025,
+      "wrong_claim_rate_range": [
+        0.00509796081567373,
+        0.009217513275222924
+      ],
+      "wrong_counts": [
+        76,
+        54,
+        51,
+        67,
+        92
+      ],
+      "claimed_counts": [
+        10035,
+        9948,
+        10004,
+        9982,
+        9981
+      ]
+    },
+    {
+      "model": "direct",
+      "n_fits": 5,
+      "target_coverage": 0.75,
+      "mean_coverage": 0.75276,
+      "mean_wrong_claim_rate": 0.1175452325857487,
+      "wrong_claim_rate_range": [
+        0.11405145980535929,
+        0.12023014350902718
+      ],
+      "wrong_counts": [
+        1711,
+        1751,
+        1817,
+        1818,
+        1752
+      ],
+      "claimed_counts": [
+        15002,
+        14995,
+        15146,
+        15121,
+        15012
+      ]
+    },
+    {
+      "model": "direct",
+      "n_fits": 5,
+      "target_coverage": 0.9,
+      "mean_coverage": 0.89963,
+      "mean_wrong_claim_rate": 0.1767796039632629,
+      "wrong_claim_rate_range": [
+        0.17522894795622068,
+        0.1803886827971873
+      ],
+      "wrong_counts": [
+        3186,
+        3138,
+        3152,
+        3258,
+        3170
+      ],
+      "claimed_counts": [
+        17996,
+        17908,
+        17978,
+        18061,
+        18020
+      ]
+    },
+    {
+      "model": "gaussian_generator_reference",
+      "n_fits": 1,
+      "target_coverage": 0.25,
+      "mean_coverage": 0.3749,
+      "mean_wrong_claim_rate": 0.0,
+      "wrong_claim_rate_range": [
+        0.0,
+        0.0
+      ],
+      "wrong_counts": [
+        0
+      ],
+      "claimed_counts": [
+        7498
+      ]
+    },
+    {
+      "model": "gaussian_generator_reference",
+      "n_fits": 1,
+      "target_coverage": 0.5,
+      "mean_coverage": 0.50085,
+      "mean_wrong_claim_rate": 0.0,
+      "wrong_claim_rate_range": [
+        0.0,
+        0.0
+      ],
+      "wrong_counts": [
+        0
+      ],
+      "claimed_counts": [
+        10017
+      ]
+    },
+    {
+      "model": "gaussian_generator_reference",
+      "n_fits": 1,
+      "target_coverage": 0.75,
+      "mean_coverage": 1.0,
+      "mean_wrong_claim_rate": 0.2031,
+      "wrong_claim_rate_range": [
+        0.2031,
+        0.2031
+      ],
+      "wrong_counts": [
+        4062
+      ],
+      "claimed_counts": [
+        20000
+      ]
+    },
+    {
+      "model": "gaussian_generator_reference",
+      "n_fits": 1,
+      "target_coverage": 0.9,
+      "mean_coverage": 1.0,
+      "mean_wrong_claim_rate": 0.2031,
+      "wrong_claim_rate_range": [
+        0.2031,
+        0.2031
+      ],
+      "wrong_counts": [
+        4062
+      ],
+      "claimed_counts": [
+        20000
+      ]
+    }
+  ],
+  "primary_paired_bootstrap": {
+    "wrong_claim_rate_difference": {
+      "estimate": 0.0005527921221631232,
+      "percentile95": [
+        -0.0013486692928368228,
+        0.0025018405423912313
+      ],
+      "defined_resamples": 2000,
+      "undefined_resamples": 0
+    },
+    "mse_difference": {
+      "estimate": -4.9445550238037274e-05,
+      "percentile95": [
+        -0.0002604526179019648,
+        0.000174132310133275
+      ],
+      "defined_resamples": 2000,
+      "undefined_resamples": 0
+    },
+    "coverage_difference": {
+      "estimate": 0.00218,
+      "percentile95": [
+        0.00022000000000000025,
+        0.004280249999999999
+      ],
+      "defined_resamples": 2000,
+      "undefined_resamples": 0
+    }
+  },
+  "primary_per_fit_differences": [
+    {
+      "training_seed": 6100,
+      "wrong_claim_rate_difference": 0.0015854882072574156,
+      "coverage_difference": 0.0024999999999999467,
+      "mse_difference": 0.0007058478002225782
+    },
+    {
+      "training_seed": 7100,
+      "wrong_claim_rate_difference": 0.000229923480273439,
+      "coverage_difference": 0.0015999999999999348,
+      "mse_difference": -0.0007984601916085493
+    },
+    {
+      "training_seed": 8100,
+      "wrong_claim_rate_difference": 0.0003936071220356635,
+      "coverage_difference": -0.003449999999999953,
+      "mse_difference": -0.0005637533765039116
+    },
+    {
+      "training_seed": 9100,
+      "wrong_claim_rate_difference": 0.000406956723913679,
+      "coverage_difference": 0.0022999999999999687,
+      "mse_difference": -0.0005110088959343825
+    },
+    {
+      "training_seed": 10100,
+      "wrong_claim_rate_difference": 0.00014798507733540522,
+      "coverage_difference": 0.007950000000000013,
+      "mse_difference": 0.0009201469126340761
+    }
+  ],
+  "inclusive_tie_overshoots": [
+    {
+      "training_seed": 6100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.25,
+      "threshold": 1.0,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 1874,
+      "calibration_coverage": 0.3748,
+      "test_coverage": 0.3749
+    },
+    {
+      "training_seed": 6100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.75,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 6100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.9,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 7100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.25,
+      "threshold": 1.0,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 1874,
+      "calibration_coverage": 0.3748,
+      "test_coverage": 0.3749
+    },
+    {
+      "training_seed": 7100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.75,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 7100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.9,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 8100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.25,
+      "threshold": 1.0,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 1874,
+      "calibration_coverage": 0.3748,
+      "test_coverage": 0.3749
+    },
+    {
+      "training_seed": 8100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.75,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 8100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.9,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 9100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.25,
+      "threshold": 1.0,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 1874,
+      "calibration_coverage": 0.3748,
+      "test_coverage": 0.3749
+    },
+    {
+      "training_seed": 9100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.75,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 9100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.9,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 10100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.25,
+      "threshold": 1.0,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 1874,
+      "calibration_coverage": 0.3748,
+      "test_coverage": 0.3749
+    },
+    {
+      "training_seed": 10100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.75,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    },
+    {
+      "training_seed": 10100,
+      "model": "gaussian_generator_reference",
+      "target_coverage": 0.9,
+      "threshold": 0.5,
+      "calibration_count": 5000,
+      "calibration_claimed_count": 5000,
+      "calibration_coverage": 1.0,
+      "test_coverage": 1.0
+    }
+  ],
+  "aggregate": {
+    "shared": {
+      "n_fits": 5,
+      "per_fit": [
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.792,
+          "mse": 0.04817523088417176,
+          "brier_score": 0.22790812946765732,
+          "nll": 0.3286547447943042,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9955549836158752,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5069,
+              "abstained_count": 14931,
+              "wrong_claim_count": 0,
+              "coverage": 0.25345,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007572597826834437
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.929816484451294,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10003,
+              "abstained_count": 9997,
+              "wrong_claim_count": 11,
+              "coverage": 0.50015,
+              "wrong_claim_rate": 0.0010996700989703088,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006141663722272103,
+                0.001968212785775313
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5425223112106323,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14924,
+              "abstained_count": 5076,
+              "wrong_claim_count": 1617,
+              "coverage": 0.7462,
+              "wrong_claim_rate": 0.10834896810506567,
+              "wrong_claim_rate_all_inputs": 0.08085,
+              "wrong_claim_rate_wilson95": [
+                0.10346265301233207,
+                0.11343685437810114
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5169753432273865,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17928,
+              "abstained_count": 2072,
+              "wrong_claim_count": 3100,
+              "coverage": 0.8964,
+              "wrong_claim_rate": 0.17291387773315484,
+              "wrong_claim_rate_all_inputs": 0.155,
+              "wrong_claim_rate_wilson95": [
+                0.1674483984977905,
+                0.17851949738548575
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7933,
+          "mse": 0.04628534571580819,
+          "brier_score": 0.2283050860172252,
+          "nll": 0.3292540838343011,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9944429993629456,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5061,
+              "abstained_count": 14939,
+              "wrong_claim_count": 0,
+              "coverage": 0.25305,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007584558869071834
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9295186996459961,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10005,
+              "abstained_count": 9995,
+              "wrong_claim_count": 4,
+              "coverage": 0.50025,
+              "wrong_claim_rate": 0.000399800099950025,
+              "wrong_claim_rate_all_inputs": 0.0002,
+              "wrong_claim_rate_wilson95": [
+                0.00015548508875643853,
+                0.001027614760453218
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5440477132797241,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14986,
+              "abstained_count": 5014,
+              "wrong_claim_count": 1668,
+              "coverage": 0.7493,
+              "wrong_claim_rate": 0.1113038836247164,
+              "wrong_claim_rate_all_inputs": 0.0834,
+              "wrong_claim_rate_wilson95": [
+                0.10636771968024251,
+                0.11643927050679391
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5149760246276855,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18039,
+              "abstained_count": 1961,
+              "wrong_claim_count": 3181,
+              "coverage": 0.90195,
+              "wrong_claim_rate": 0.17634015189312047,
+              "wrong_claim_rate_all_inputs": 0.15905,
+              "wrong_claim_rate_wilson95": [
+                0.17084773342673998,
+                0.1819703896693089
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.78865,
+          "mse": 0.04664460161775867,
+          "brier_score": 0.23624833116021432,
+          "nll": 0.3405432281170036,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.994343638420105,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5126,
+              "abstained_count": 14874,
+              "wrong_claim_count": 0,
+              "coverage": 0.2563,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007488455250578525
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9354367852210999,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10050,
+              "abstained_count": 9950,
+              "wrong_claim_count": 28,
+              "coverage": 0.5025,
+              "wrong_claim_rate": 0.0027860696517412937,
+              "wrong_claim_rate_all_inputs": 0.0014,
+              "wrong_claim_rate_wilson95": [
+                0.0019283605207334668,
+                0.004023738392482682
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5773990154266357,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15019,
+              "abstained_count": 4981,
+              "wrong_claim_count": 1728,
+              "coverage": 0.75095,
+              "wrong_claim_rate": 0.11505426459817564,
+              "wrong_claim_rate_all_inputs": 0.0864,
+              "wrong_claim_rate_wilson95": [
+                0.11004926396473474,
+                0.12025613254127981
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5243469476699829,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18098,
+              "abstained_count": 1902,
+              "wrong_claim_count": 3278,
+              "coverage": 0.9049,
+              "wrong_claim_rate": 0.18112498618631892,
+              "wrong_claim_rate_all_inputs": 0.1639,
+              "wrong_claim_rate_wilson95": [
+                0.1755819655673108,
+                0.18680334610075736
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7943,
+          "mse": 0.04574022584319862,
+          "brier_score": 0.22510826778947735,
+          "nll": 0.3256622700560765,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9939063191413879,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5104,
+              "abstained_count": 14896,
+              "wrong_claim_count": 0,
+              "coverage": 0.2552,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007520708799722699
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9233647584915161,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10079,
+              "abstained_count": 9921,
+              "wrong_claim_count": 11,
+              "coverage": 0.50395,
+              "wrong_claim_rate": 0.0010913781129080265,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006095344930355803,
+                0.001953379832874745
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5378774404525757,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14981,
+              "abstained_count": 5019,
+              "wrong_claim_count": 1603,
+              "coverage": 0.74905,
+              "wrong_claim_rate": 0.10700220279020092,
+              "wrong_claim_rate_all_inputs": 0.08015,
+              "wrong_claim_rate_wilson95": [
+                0.10215262737187668,
+                0.11205327314709408
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5168396234512329,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18034,
+              "abstained_count": 1966,
+              "wrong_claim_count": 3109,
+              "coverage": 0.9017,
+              "wrong_claim_rate": 0.17239658422978818,
+              "wrong_claim_rate_all_inputs": 0.15545,
+              "wrong_claim_rate_wilson95": [
+                0.1669536312710513,
+                0.17797907439801577
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7907,
+          "mse": 0.048063776024187814,
+          "brier_score": 0.2267136991602437,
+          "nll": 0.32773715367400247,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9944719076156616,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5096,
+              "abstained_count": 14904,
+              "wrong_claim_count": 0,
+              "coverage": 0.2548,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007532506356741598
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9303858280181885,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9989,
+              "abstained_count": 10011,
+              "wrong_claim_count": 17,
+              "coverage": 0.49945,
+              "wrong_claim_rate": 0.0017018720592651916,
+              "wrong_claim_rate_all_inputs": 0.00085,
+              "wrong_claim_rate_wilson95": [
+                0.0010628768128850673,
+                0.002723979906160687
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5352594256401062,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15096,
+              "abstained_count": 4904,
+              "wrong_claim_count": 1689,
+              "coverage": 0.7548,
+              "wrong_claim_rate": 0.11188394276629571,
+              "wrong_claim_rate_all_inputs": 0.08445,
+              "wrong_claim_rate_wilson95": [
+                0.10695388094498424,
+                0.11701148107841398
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5113974213600159,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18053,
+              "abstained_count": 1947,
+              "wrong_claim_count": 3203,
+              "coverage": 0.90265,
+              "wrong_claim_rate": 0.17742203511881682,
+              "wrong_claim_rate_all_inputs": 0.16015,
+              "wrong_claim_rate_wilson95": [
+                0.17191813076529175,
+                0.18306319160155624
+              ]
+            }
+          }
+        }
+      ],
+      "descriptive_fit_variation": {
+        "mse": {
+          "per_fit": [
+            0.04817523088417176,
+            0.04628534571580819,
+            0.04664460161775867,
+            0.04574022584319862,
+            0.048063776024187814
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.04698183601702501,
+          "minimum": 0.04574022584319862,
+          "maximum": 0.04817523088417176,
+          "sample_sd": 0.0010880265497126547
+        },
+        "top_accuracy": {
+          "per_fit": [
+            0.792,
+            0.7933,
+            0.78865,
+            0.7943,
+            0.7907
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.79179,
+          "minimum": 0.78865,
+          "maximum": 0.7943,
+          "sample_sd": 0.0022176564206387106
+        },
+        "brier_score": {
+          "per_fit": [
+            0.22790812946765732,
+            0.2283050860172252,
+            0.23624833116021432,
+            0.22510826778947735,
+            0.2267136991602437
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.22885670271896358,
+          "minimum": 0.22510826778947735,
+          "maximum": 0.23624833116021432,
+          "sample_sd": 0.004315190374870958
+        },
+        "nll": {
+          "per_fit": [
+            0.3286547447943042,
+            0.3292540838343011,
+            0.3405432281170036,
+            0.3256622700560765,
+            0.32773715367400247
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.33037029609513757,
+          "minimum": 0.3256622700560765,
+          "maximum": 0.3405432281170036,
+          "sample_sd": 0.005847575142591124
+        },
+        "coverage_results": {
+          "0.25": {
+            "coverage": {
+              "per_fit": [
+                0.25345,
+                0.25305,
+                0.2563,
+                0.2552,
+                0.2548
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.25456,
+              "minimum": 0.25305,
+              "maximum": 0.2563,
+              "sample_sd": 0.0013235369280832215
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "sample_sd": 0.0
+            }
+          },
+          "0.5": {
+            "coverage": {
+              "per_fit": [
+                0.50015,
+                0.50025,
+                0.5025,
+                0.50395,
+                0.49945
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.50126,
+              "minimum": 0.49945,
+              "maximum": 0.50395,
+              "sample_sd": 0.0018908992569674349
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0010996700989703088,
+                0.000399800099950025,
+                0.0027860696517412937,
+                0.0010913781129080265,
+                0.0017018720592651916
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.0014157580045669692,
+              "minimum": 0.000399800099950025,
+              "maximum": 0.0027860696517412937,
+              "sample_sd": 0.0008939965890326806
+            }
+          },
+          "0.75": {
+            "coverage": {
+              "per_fit": [
+                0.7462,
+                0.7493,
+                0.75095,
+                0.74905,
+                0.7548
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.75006,
+              "minimum": 0.7462,
+              "maximum": 0.7548,
+              "sample_sd": 0.0031526576090657437
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.10834896810506567,
+                0.1113038836247164,
+                0.11505426459817564,
+                0.10700220279020092,
+                0.11188394276629571
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.11071865237689087,
+              "minimum": 0.10700220279020092,
+              "maximum": 0.11505426459817564,
+              "sample_sd": 0.003159324758432098
+            }
+          },
+          "0.9": {
+            "coverage": {
+              "per_fit": [
+                0.8964,
+                0.90195,
+                0.9049,
+                0.9017,
+                0.90265
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.90152,
+              "minimum": 0.8964,
+              "maximum": 0.9049,
+              "sample_sd": 0.0031278187287629225
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.17291387773315484,
+                0.17634015189312047,
+                0.18112498618631892,
+                0.17239658422978818,
+                0.17742203511881682
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.17603952703223985,
+              "minimum": 0.17239658422978818,
+              "maximum": 0.18112498618631892,
+              "sample_sd": 0.0035673629800961485
+            }
+          }
+        }
+      }
+    },
+    "fixed_depth_4": {
+      "n_fits": 5,
+      "per_fit": [
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7928,
+          "mse": 0.047469383083949185,
+          "brier_score": 0.22693125446158946,
+          "nll": 0.32512338344167835,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9960756897926331,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5160,
+              "abstained_count": 14840,
+              "wrong_claim_count": 0,
+              "coverage": 0.258,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007439149422630465
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9468432664871216,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10020,
+              "abstained_count": 9980,
+              "wrong_claim_count": 11,
+              "coverage": 0.501,
+              "wrong_claim_rate": 0.0010978043912175648,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006131241922659625,
+                0.001964875362780309
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5528507828712463,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14874,
+              "abstained_count": 5126,
+              "wrong_claim_count": 1588,
+              "coverage": 0.7437,
+              "wrong_claim_rate": 0.10676347989780825,
+              "wrong_claim_rate_all_inputs": 0.0794,
+              "wrong_claim_rate_wilson95": [
+                0.10190179251817676,
+                0.11182823462466841
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5132827162742615,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18082,
+              "abstained_count": 1918,
+              "wrong_claim_count": 3200,
+              "coverage": 0.9041,
+              "wrong_claim_rate": 0.17697157394093574,
+              "wrong_claim_rate_all_inputs": 0.16,
+              "wrong_claim_rate_wilson95": [
+                0.17147767383836454,
+                0.18260269745104868
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7915,
+          "mse": 0.04708380590741674,
+          "brier_score": 0.2300015922513779,
+          "nll": 0.3286893424762371,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9979388117790222,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5030,
+              "abstained_count": 14970,
+              "wrong_claim_count": 0,
+              "coverage": 0.2515,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.000763126699980353
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9606979489326477,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10012,
+              "abstained_count": 9988,
+              "wrong_claim_count": 13,
+              "coverage": 0.5006,
+              "wrong_claim_rate": 0.0012984418697562924,
+              "wrong_claim_rate_all_inputs": 0.00065,
+              "wrong_claim_rate_wilson95": [
+                0.0007590008898685257,
+                0.002220425146714104
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5475760698318481,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14954,
+              "abstained_count": 5046,
+              "wrong_claim_count": 1661,
+              "coverage": 0.7477,
+              "wrong_claim_rate": 0.11107396014444296,
+              "wrong_claim_rate_all_inputs": 0.08305,
+              "wrong_claim_rate_wilson95": [
+                0.1061372376435529,
+                0.11621044988721935
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5146663784980774,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17913,
+              "abstained_count": 2087,
+              "wrong_claim_count": 3125,
+              "coverage": 0.89565,
+              "wrong_claim_rate": 0.17445430692792943,
+              "wrong_claim_rate_all_inputs": 0.15625,
+              "wrong_claim_rate_wilson95": [
+                0.16896681592579477,
+                0.18008139512157412
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7887500000000001,
+          "mse": 0.04720835499426258,
+          "brier_score": 0.22971931265895432,
+          "nll": 0.3278235610944569,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9977898597717285,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5099,
+              "abstained_count": 14901,
+              "wrong_claim_count": 0,
+              "coverage": 0.25495,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007528077937937568
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9596700072288513,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10013,
+              "abstained_count": 9987,
+              "wrong_claim_count": 14,
+              "coverage": 0.50065,
+              "wrong_claim_rate": 0.0013981823629281933,
+              "wrong_claim_rate_all_inputs": 0.0007,
+              "wrong_claim_rate_wilson95": [
+                0.0008330787973983478,
+                0.0023457135346550825
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5611141920089722,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15088,
+              "abstained_count": 4912,
+              "wrong_claim_count": 1730,
+              "coverage": 0.7544,
+              "wrong_claim_rate": 0.11466065747613997,
+              "wrong_claim_rate_all_inputs": 0.0865,
+              "wrong_claim_rate_wilson95": [
+                0.10967457316258354,
+                0.11984290939725283
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5209768414497375,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17980,
+              "abstained_count": 2020,
+              "wrong_claim_count": 3190,
+              "coverage": 0.899,
+              "wrong_claim_rate": 0.1774193548387097,
+              "wrong_claim_rate_all_inputs": 0.1595,
+              "wrong_claim_rate_wilson95": [
+                0.17190446242159088,
+                0.18307205766386367
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79235,
+          "mse": 0.046251234739133,
+          "brier_score": 0.2228237794972018,
+          "nll": 0.31985781860907586,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9958622455596924,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5128,
+              "abstained_count": 14872,
+              "wrong_claim_count": 0,
+              "coverage": 0.2564,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007485536822442867
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9399570226669312,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9983,
+              "abstained_count": 10017,
+              "wrong_claim_count": 4,
+              "coverage": 0.49915,
+              "wrong_claim_rate": 0.0004006811579685465,
+              "wrong_claim_rate_all_inputs": 0.0002,
+              "wrong_claim_rate_wilson95": [
+                0.00015582776195395835,
+                0.0010298783363675856
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5429964065551758,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14935,
+              "abstained_count": 5065,
+              "wrong_claim_count": 1592,
+              "coverage": 0.74675,
+              "wrong_claim_rate": 0.10659524606628724,
+              "wrong_claim_rate_all_inputs": 0.0796,
+              "wrong_claim_rate_wilson95": [
+                0.10174677075645806,
+                0.11164604605654997
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5130464434623718,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17971,
+              "abstained_count": 2029,
+              "wrong_claim_count": 3131,
+              "coverage": 0.89855,
+              "wrong_claim_rate": 0.17422514050414556,
+              "wrong_claim_rate_all_inputs": 0.15655,
+              "wrong_claim_rate_wilson95": [
+                0.1687493226413692,
+                0.17984020306740375
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7924,
+          "mse": 0.04714362911155374,
+          "brier_score": 0.2286776467006605,
+          "nll": 0.3286119045915839,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9955820441246033,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5066,
+              "abstained_count": 14934,
+              "wrong_claim_count": 0,
+              "coverage": 0.2533,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007577078794072768
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9225032329559326,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9995,
+              "abstained_count": 10005,
+              "wrong_claim_count": 8,
+              "coverage": 0.49975,
+              "wrong_claim_rate": 0.0008004002001000501,
+              "wrong_claim_rate_all_inputs": 0.0004,
+              "wrong_claim_rate_wilson95": [
+                0.00040563656510950044,
+                0.001578739215065567
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.564098596572876,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14937,
+              "abstained_count": 5063,
+              "wrong_claim_count": 1669,
+              "coverage": 0.74685,
+              "wrong_claim_rate": 0.1117359576889603,
+              "wrong_claim_rate_all_inputs": 0.08345,
+              "wrong_claim_rate_wilson95": [
+                0.1067832086418075,
+                0.11688836086325245
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5225123763084412,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17952,
+              "abstained_count": 2048,
+              "wrong_claim_count": 3141,
+              "coverage": 0.8976,
+              "wrong_claim_rate": 0.17496657754010694,
+              "wrong_claim_rate_all_inputs": 0.15705,
+              "wrong_claim_rate_wilson95": [
+                0.16947844787479888,
+                0.18059378200295012
+              ]
+            }
+          }
+        }
+      ],
+      "descriptive_fit_variation": {
+        "mse": {
+          "per_fit": [
+            0.047469383083949185,
+            0.04708380590741674,
+            0.04720835499426258,
+            0.046251234739133,
+            0.04714362911155374
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.04703128156726305,
+          "minimum": 0.046251234739133,
+          "maximum": 0.047469383083949185,
+          "sample_sd": 0.0004602015234015775
+        },
+        "top_accuracy": {
+          "per_fit": [
+            0.7928,
+            0.7915,
+            0.7887500000000001,
+            0.79235,
+            0.7924
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.79156,
+          "minimum": 0.7887500000000001,
+          "maximum": 0.7928,
+          "sample_sd": 0.00164065535686197
+        },
+        "brier_score": {
+          "per_fit": [
+            0.22693125446158946,
+            0.2300015922513779,
+            0.22971931265895432,
+            0.2228237794972018,
+            0.2286776467006605
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.2276307171139568,
+          "minimum": 0.2228237794972018,
+          "maximum": 0.2300015922513779,
+          "sample_sd": 0.002944284254312559
+        },
+        "nll": {
+          "per_fit": [
+            0.32512338344167835,
+            0.3286893424762371,
+            0.3278235610944569,
+            0.31985781860907586,
+            0.3286119045915839
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.32602120204260643,
+          "minimum": 0.31985781860907586,
+          "maximum": 0.3286893424762371,
+          "sample_sd": 0.003737398320072801
+        },
+        "coverage_results": {
+          "0.25": {
+            "coverage": {
+              "per_fit": [
+                0.258,
+                0.2515,
+                0.25495,
+                0.2564,
+                0.2533
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.25483,
+              "minimum": 0.2515,
+              "maximum": 0.258,
+              "sample_sd": 0.0025474497050972378
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "sample_sd": 0.0
+            }
+          },
+          "0.5": {
+            "coverage": {
+              "per_fit": [
+                0.501,
+                0.5006,
+                0.50065,
+                0.49915,
+                0.49975
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.5002300000000001,
+              "minimum": 0.49915,
+              "maximum": 0.501,
+              "sample_sd": 0.000758781918603771
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0010978043912175648,
+                0.0012984418697562924,
+                0.0013981823629281933,
+                0.0004006811579685465,
+                0.0008004002001000501
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.0009991019963941294,
+              "minimum": 0.0004006811579685465,
+              "maximum": 0.0013981823629281933,
+              "sample_sd": 0.0004050313460689775
+            }
+          },
+          "0.75": {
+            "coverage": {
+              "per_fit": [
+                0.7437,
+                0.7477,
+                0.7544,
+                0.74675,
+                0.74685
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.74788,
+              "minimum": 0.7437,
+              "maximum": 0.7544,
+              "sample_sd": 0.003948195790484533
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.10676347989780825,
+                0.11107396014444296,
+                0.11466065747613997,
+                0.10659524606628724,
+                0.1117359576889603
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.11016586025472774,
+              "minimum": 0.10659524606628724,
+              "maximum": 0.11466065747613997,
+              "sample_sd": 0.0034575472231100387
+            }
+          },
+          "0.9": {
+            "coverage": {
+              "per_fit": [
+                0.9041,
+                0.89565,
+                0.899,
+                0.89855,
+                0.8976
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.89898,
+              "minimum": 0.89565,
+              "maximum": 0.9041,
+              "sample_sd": 0.0031381921547286055
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.17697157394093574,
+                0.17445430692792943,
+                0.1774193548387097,
+                0.17422514050414556,
+                0.17496657754010694
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.17560739075036547,
+              "minimum": 0.17422514050414556,
+              "maximum": 0.1774193548387097,
+              "sample_sd": 0.0014828241003288383
+            }
+          }
+        }
+      }
+    },
+    "direct": {
+      "n_fits": 5,
+      "per_fit": [
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79245,
+          "mse": 0.048630603381011175,
+          "brier_score": 0.23545443131076144,
+          "nll": 0.3411412542622929,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9969786405563354,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5134,
+              "abstained_count": 14866,
+              "wrong_claim_count": 0,
+              "coverage": 0.2567,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007476795170662711
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8654209971427917,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10035,
+              "abstained_count": 9965,
+              "wrong_claim_count": 76,
+              "coverage": 0.50175,
+              "wrong_claim_rate": 0.007573492775286498,
+              "wrong_claim_rate_all_inputs": 0.0038,
+              "wrong_claim_rate_wilson95": [
+                0.006055575308857281,
+                0.009468273679091723
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5679189562797546,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15002,
+              "abstained_count": 4998,
+              "wrong_claim_count": 1711,
+              "coverage": 0.7501,
+              "wrong_claim_rate": 0.11405145980535929,
+              "wrong_claim_rate_all_inputs": 0.08555,
+              "wrong_claim_rate_wilson95": [
+                0.10906334623641761,
+                0.11923717714455714
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5235932469367981,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17996,
+              "abstained_count": 2004,
+              "wrong_claim_count": 3186,
+              "coverage": 0.8998,
+              "wrong_claim_rate": 0.1770393420760169,
+              "wrong_claim_rate_all_inputs": 0.1593,
+              "wrong_claim_rate_wilson95": [
+                0.17153164323159953,
+                0.18268489103105412
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79205,
+          "mse": 0.04872925072515475,
+          "brier_score": 0.23531838036455738,
+          "nll": 0.3397731211484185,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9972227811813354,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5020,
+              "abstained_count": 14980,
+              "wrong_claim_count": 1,
+              "coverage": 0.251,
+              "wrong_claim_rate": 0.00019920318725099602,
+              "wrong_claim_rate_all_inputs": 5e-05,
+              "wrong_claim_rate_wilson95": [
+                3.516511948534423e-05,
+                0.0011275823255873668
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8880712985992432,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9948,
+              "abstained_count": 10052,
+              "wrong_claim_count": 54,
+              "coverage": 0.4974,
+              "wrong_claim_rate": 0.005428226779252111,
+              "wrong_claim_rate_all_inputs": 0.0027,
+              "wrong_claim_rate_wilson95": [
+                0.00416297681676424,
+                0.007075290923279468
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5827011466026306,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14995,
+              "abstained_count": 5005,
+              "wrong_claim_count": 1751,
+              "coverage": 0.74975,
+              "wrong_claim_rate": 0.11677225741913971,
+              "wrong_claim_rate_all_inputs": 0.08755,
+              "wrong_claim_rate_wilson95": [
+                0.11172991757825933,
+                0.12201089956725013
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5327771306037903,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17908,
+              "abstained_count": 2092,
+              "wrong_claim_count": 3138,
+              "coverage": 0.8954,
+              "wrong_claim_rate": 0.17522894795622068,
+              "wrong_claim_rate_all_inputs": 0.1569,
+              "wrong_claim_rate_wilson95": [
+                0.16973082601783895,
+                0.18086637378755477
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7923,
+          "mse": 0.04875175648429849,
+          "brier_score": 0.23360105762675606,
+          "nll": 0.33673982446800854,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9973248243331909,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5066,
+              "abstained_count": 14934,
+              "wrong_claim_count": 0,
+              "coverage": 0.2533,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007577078794072768
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8843578100204468,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10004,
+              "abstained_count": 9996,
+              "wrong_claim_count": 51,
+              "coverage": 0.5002,
+              "wrong_claim_rate": 0.00509796081567373,
+              "wrong_claim_rate_all_inputs": 0.00255,
+              "wrong_claim_rate_wilson95": [
+                0.00387975835927186,
+                0.006696094511319706
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5804039835929871,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15146,
+              "abstained_count": 4854,
+              "wrong_claim_count": 1817,
+              "coverage": 0.7573,
+              "wrong_claim_rate": 0.11996566750297108,
+              "wrong_claim_rate_all_inputs": 0.09085,
+              "wrong_claim_rate_wilson95": [
+                0.11488718198505317,
+                0.12523687929366295
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5352442264556885,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17978,
+              "abstained_count": 2022,
+              "wrong_claim_count": 3152,
+              "coverage": 0.8989,
+              "wrong_claim_rate": 0.17532539770831015,
+              "wrong_claim_rate_all_inputs": 0.1576,
+              "wrong_claim_rate_wilson95": [
+                0.16983662978885966,
+                0.18095288602719084
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.78955,
+          "mse": 0.050569876661484,
+          "brier_score": 0.23672968084971643,
+          "nll": 0.34180161884171134,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9971676468849182,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5122,
+              "abstained_count": 14878,
+              "wrong_claim_count": 0,
+              "coverage": 0.2561,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007494298939120777
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8819424510002136,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9982,
+              "abstained_count": 10018,
+              "wrong_claim_count": 67,
+              "coverage": 0.4991,
+              "wrong_claim_rate": 0.006712081747144861,
+              "wrong_claim_rate_all_inputs": 0.00335,
+              "wrong_claim_rate_wilson95": [
+                0.005289159800243142,
+                0.008514530093004262
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5770993828773499,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15121,
+              "abstained_count": 4879,
+              "wrong_claim_count": 1818,
+              "coverage": 0.75605,
+              "wrong_claim_rate": 0.12023014350902718,
+              "wrong_claim_rate_all_inputs": 0.0909,
+              "wrong_claim_rate_wilson95": [
+                0.11514254991613526,
+                0.1255106475888188
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5236204266548157,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18061,
+              "abstained_count": 1939,
+              "wrong_claim_count": 3258,
+              "coverage": 0.90305,
+              "wrong_claim_rate": 0.1803886827971873,
+              "wrong_claim_rate_all_inputs": 0.1629,
+              "wrong_claim_rate_wilson95": [
+                0.17484911856656385,
+                0.18606417666953626
+              ]
+            }
+          }
+        },
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79405,
+          "mse": 0.04936383338642163,
+          "brier_score": 0.23827051646956424,
+          "nll": 0.3461438239233609,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9966422319412231,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5086,
+              "abstained_count": 14914,
+              "wrong_claim_count": 1,
+              "coverage": 0.2543,
+              "wrong_claim_rate": 0.00019661816751867872,
+              "wrong_claim_rate_all_inputs": 5e-05,
+              "wrong_claim_rate_wilson95": [
+                3.4708777709593604e-05,
+                0.0011129613153481922
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8452072143554688,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9981,
+              "abstained_count": 10019,
+              "wrong_claim_count": 92,
+              "coverage": 0.49905,
+              "wrong_claim_rate": 0.009217513275222924,
+              "wrong_claim_rate_all_inputs": 0.0046,
+              "wrong_claim_rate_wilson95": [
+                0.007522396817531194,
+                0.011290266317420574
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5792787671089172,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15012,
+              "abstained_count": 4988,
+              "wrong_claim_count": 1752,
+              "coverage": 0.7506,
+              "wrong_claim_rate": 0.11670663469224621,
+              "wrong_claim_rate_all_inputs": 0.0876,
+              "wrong_claim_rate_wilson95": [
+                0.11166836448784373,
+                0.12194101853877962
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5319191217422485,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18020,
+              "abstained_count": 1980,
+              "wrong_claim_count": 3170,
+              "coverage": 0.901,
+              "wrong_claim_rate": 0.17591564927857936,
+              "wrong_claim_rate_all_inputs": 0.1585,
+              "wrong_claim_rate_wilson95": [
+                0.1704257305351826,
+                0.18154371356554097
+              ]
+            }
+          }
+        }
+      ],
+      "descriptive_fit_variation": {
+        "mse": {
+          "per_fit": [
+            0.048630603381011175,
+            0.04872925072515475,
+            0.04875175648429849,
+            0.050569876661484,
+            0.04936383338642163
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.04920906412767401,
+          "minimum": 0.048630603381011175,
+          "maximum": 0.050569876661484,
+          "sample_sd": 0.0008138999159884701
+        },
+        "top_accuracy": {
+          "per_fit": [
+            0.79245,
+            0.79205,
+            0.7923,
+            0.78955,
+            0.79405
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.79208,
+          "minimum": 0.78955,
+          "maximum": 0.79405,
+          "sample_sd": 0.0016177144370994726
+        },
+        "brier_score": {
+          "per_fit": [
+            0.23545443131076144,
+            0.23531838036455738,
+            0.23360105762675606,
+            0.23672968084971643,
+            0.23827051646956424
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.2358748133242711,
+          "minimum": 0.23360105762675606,
+          "maximum": 0.23827051646956424,
+          "sample_sd": 0.0017411559159326278
+        },
+        "nll": {
+          "per_fit": [
+            0.3411412542622929,
+            0.3397731211484185,
+            0.33673982446800854,
+            0.34180161884171134,
+            0.3461438239233609
+          ],
+          "defined_fits": 5,
+          "total_fits": 5,
+          "mean": 0.34111992852875844,
+          "minimum": 0.33673982446800854,
+          "maximum": 0.3461438239233609,
+          "sample_sd": 0.0034170119661894776
+        },
+        "coverage_results": {
+          "0.25": {
+            "coverage": {
+              "per_fit": [
+                0.2567,
+                0.251,
+                0.2533,
+                0.2561,
+                0.2543
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.25428,
+              "minimum": 0.251,
+              "maximum": 0.2567,
+              "sample_sd": 0.002285169577952578
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0,
+                0.00019920318725099602,
+                0.0,
+                0.0,
+                0.00019661816751867872
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 7.916427095393495e-05,
+              "minimum": 0.0,
+              "maximum": 0.00019920318725099602,
+              "sample_sd": 0.00010840399511897434
+            }
+          },
+          "0.5": {
+            "coverage": {
+              "per_fit": [
+                0.50175,
+                0.4974,
+                0.5002,
+                0.4991,
+                0.49905
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.4995,
+              "minimum": 0.4974,
+              "maximum": 0.50175,
+              "sample_sd": 0.001606626901305969
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.007573492775286498,
+                0.005428226779252111,
+                0.00509796081567373,
+                0.006712081747144861,
+                0.009217513275222924
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.006805855078516025,
+              "minimum": 0.00509796081567373,
+              "maximum": 0.009217513275222924,
+              "sample_sd": 0.0016754789518899891
+            }
+          },
+          "0.75": {
+            "coverage": {
+              "per_fit": [
+                0.7501,
+                0.74975,
+                0.7573,
+                0.75605,
+                0.7506
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.75276,
+              "minimum": 0.74975,
+              "maximum": 0.7573,
+              "sample_sd": 0.0036137584313287825
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.11405145980535929,
+                0.11677225741913971,
+                0.11996566750297108,
+                0.12023014350902718,
+                0.11670663469224621
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.1175452325857487,
+              "minimum": 0.11405145980535929,
+              "maximum": 0.12023014350902718,
+              "sample_sd": 0.00257751998685851
+            }
+          },
+          "0.9": {
+            "coverage": {
+              "per_fit": [
+                0.8998,
+                0.8954,
+                0.8989,
+                0.90305,
+                0.901
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.89963,
+              "minimum": 0.8954,
+              "maximum": 0.90305,
+              "sample_sd": 0.002829664291042331
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.1770393420760169,
+                0.17522894795622068,
+                0.17532539770831015,
+                0.1803886827971873,
+                0.17591564927857936
+              ],
+              "defined_fits": 5,
+              "total_fits": 5,
+              "mean": 0.1767796039632629,
+              "minimum": 0.17522894795622068,
+              "maximum": 0.1803886827971873,
+              "sample_sd": 0.00214234576446034
+            }
+          }
+        }
+      }
+    },
+    "gaussian_generator_reference": {
+      "n_fits": 1,
+      "per_fit": [
+        {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      ],
+      "descriptive_fit_variation": {
+        "mse": {
+          "per_fit": [
+            0.044274502839873386
+          ],
+          "defined_fits": 1,
+          "total_fits": 1,
+          "mean": 0.044274502839873386,
+          "minimum": 0.044274502839873386,
+          "maximum": 0.044274502839873386,
+          "sample_sd": null
+        },
+        "top_accuracy": {
+          "per_fit": [
+            0.7968999999999999
+          ],
+          "defined_fits": 1,
+          "total_fits": 1,
+          "mean": 0.7968999999999999,
+          "minimum": 0.7968999999999999,
+          "maximum": 0.7968999999999999,
+          "sample_sd": null
+        },
+        "brier_score": {
+          "per_fit": [
+            0.2174673448388453
+          ],
+          "defined_fits": 1,
+          "total_fits": 1,
+          "mean": 0.2174673448388453,
+          "minimum": 0.2174673448388453,
+          "maximum": 0.2174673448388453,
+          "sample_sd": null
+        },
+        "nll": {
+          "per_fit": [
+            0.30728024979013197
+          ],
+          "defined_fits": 1,
+          "total_fits": 1,
+          "mean": 0.30728024979013197,
+          "minimum": 0.30728024979013197,
+          "maximum": 0.30728024979013197,
+          "sample_sd": null
+        },
+        "coverage_results": {
+          "0.25": {
+            "coverage": {
+              "per_fit": [
+                0.3749
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.3749,
+              "minimum": 0.3749,
+              "maximum": 0.3749,
+              "sample_sd": null
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "sample_sd": null
+            }
+          },
+          "0.5": {
+            "coverage": {
+              "per_fit": [
+                0.50085
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.50085,
+              "minimum": 0.50085,
+              "maximum": 0.50085,
+              "sample_sd": null
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.0
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "sample_sd": null
+            }
+          },
+          "0.75": {
+            "coverage": {
+              "per_fit": [
+                1.0
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 1.0,
+              "minimum": 1.0,
+              "maximum": 1.0,
+              "sample_sd": null
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.2031
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.2031,
+              "minimum": 0.2031,
+              "maximum": 0.2031,
+              "sample_sd": null
+            }
+          },
+          "0.9": {
+            "coverage": {
+              "per_fit": [
+                1.0
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 1.0,
+              "minimum": 1.0,
+              "maximum": 1.0,
+              "sample_sd": null
+            },
+            "wrong_claim_rate": {
+              "per_fit": [
+                0.2031
+              ],
+              "defined_fits": 1,
+              "total_fits": 1,
+              "mean": 0.2031,
+              "minimum": 0.2031,
+              "maximum": 0.2031,
+              "sample_sd": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "per_fit": [
+    {
+      "training_seed": 6100,
+      "models": {
+        "shared": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.792,
+          "mse": 0.04817523088417176,
+          "brier_score": 0.22790812946765732,
+          "nll": 0.3286547447943042,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9955549836158752,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5069,
+              "abstained_count": 14931,
+              "wrong_claim_count": 0,
+              "coverage": 0.25345,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007572597826834437
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.929816484451294,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10003,
+              "abstained_count": 9997,
+              "wrong_claim_count": 11,
+              "coverage": 0.50015,
+              "wrong_claim_rate": 0.0010996700989703088,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006141663722272103,
+                0.001968212785775313
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5425223112106323,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14924,
+              "abstained_count": 5076,
+              "wrong_claim_count": 1617,
+              "coverage": 0.7462,
+              "wrong_claim_rate": 0.10834896810506567,
+              "wrong_claim_rate_all_inputs": 0.08085,
+              "wrong_claim_rate_wilson95": [
+                0.10346265301233207,
+                0.11343685437810114
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5169753432273865,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17928,
+              "abstained_count": 2072,
+              "wrong_claim_count": 3100,
+              "coverage": 0.8964,
+              "wrong_claim_rate": 0.17291387773315484,
+              "wrong_claim_rate_all_inputs": 0.155,
+              "wrong_claim_rate_wilson95": [
+                0.1674483984977905,
+                0.17851949738548575
+              ]
+            }
+          }
+        },
+        "fixed_depth_4": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7928,
+          "mse": 0.047469383083949185,
+          "brier_score": 0.22693125446158946,
+          "nll": 0.32512338344167835,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9960756897926331,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5160,
+              "abstained_count": 14840,
+              "wrong_claim_count": 0,
+              "coverage": 0.258,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007439149422630465
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9468432664871216,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10020,
+              "abstained_count": 9980,
+              "wrong_claim_count": 11,
+              "coverage": 0.501,
+              "wrong_claim_rate": 0.0010978043912175648,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006131241922659625,
+                0.001964875362780309
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5528507828712463,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14874,
+              "abstained_count": 5126,
+              "wrong_claim_count": 1588,
+              "coverage": 0.7437,
+              "wrong_claim_rate": 0.10676347989780825,
+              "wrong_claim_rate_all_inputs": 0.0794,
+              "wrong_claim_rate_wilson95": [
+                0.10190179251817676,
+                0.11182823462466841
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5132827162742615,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18082,
+              "abstained_count": 1918,
+              "wrong_claim_count": 3200,
+              "coverage": 0.9041,
+              "wrong_claim_rate": 0.17697157394093574,
+              "wrong_claim_rate_all_inputs": 0.16,
+              "wrong_claim_rate_wilson95": [
+                0.17147767383836454,
+                0.18260269745104868
+              ]
+            }
+          }
+        },
+        "direct": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79245,
+          "mse": 0.048630603381011175,
+          "brier_score": 0.23545443131076144,
+          "nll": 0.3411412542622929,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9969786405563354,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5134,
+              "abstained_count": 14866,
+              "wrong_claim_count": 0,
+              "coverage": 0.2567,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007476795170662711
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8654209971427917,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10035,
+              "abstained_count": 9965,
+              "wrong_claim_count": 76,
+              "coverage": 0.50175,
+              "wrong_claim_rate": 0.007573492775286498,
+              "wrong_claim_rate_all_inputs": 0.0038,
+              "wrong_claim_rate_wilson95": [
+                0.006055575308857281,
+                0.009468273679091723
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5679189562797546,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15002,
+              "abstained_count": 4998,
+              "wrong_claim_count": 1711,
+              "coverage": 0.7501,
+              "wrong_claim_rate": 0.11405145980535929,
+              "wrong_claim_rate_all_inputs": 0.08555,
+              "wrong_claim_rate_wilson95": [
+                0.10906334623641761,
+                0.11923717714455714
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5235932469367981,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17996,
+              "abstained_count": 2004,
+              "wrong_claim_count": 3186,
+              "coverage": 0.8998,
+              "wrong_claim_rate": 0.1770393420760169,
+              "wrong_claim_rate_all_inputs": 0.1593,
+              "wrong_claim_rate_wilson95": [
+                0.17153164323159953,
+                0.18268489103105412
+              ]
+            }
+          }
+        },
+        "gaussian_generator_reference": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "training_seed": 7100,
+      "models": {
+        "shared": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7933,
+          "mse": 0.04628534571580819,
+          "brier_score": 0.2283050860172252,
+          "nll": 0.3292540838343011,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9944429993629456,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5061,
+              "abstained_count": 14939,
+              "wrong_claim_count": 0,
+              "coverage": 0.25305,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007584558869071834
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9295186996459961,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10005,
+              "abstained_count": 9995,
+              "wrong_claim_count": 4,
+              "coverage": 0.50025,
+              "wrong_claim_rate": 0.000399800099950025,
+              "wrong_claim_rate_all_inputs": 0.0002,
+              "wrong_claim_rate_wilson95": [
+                0.00015548508875643853,
+                0.001027614760453218
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5440477132797241,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14986,
+              "abstained_count": 5014,
+              "wrong_claim_count": 1668,
+              "coverage": 0.7493,
+              "wrong_claim_rate": 0.1113038836247164,
+              "wrong_claim_rate_all_inputs": 0.0834,
+              "wrong_claim_rate_wilson95": [
+                0.10636771968024251,
+                0.11643927050679391
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5149760246276855,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18039,
+              "abstained_count": 1961,
+              "wrong_claim_count": 3181,
+              "coverage": 0.90195,
+              "wrong_claim_rate": 0.17634015189312047,
+              "wrong_claim_rate_all_inputs": 0.15905,
+              "wrong_claim_rate_wilson95": [
+                0.17084773342673998,
+                0.1819703896693089
+              ]
+            }
+          }
+        },
+        "fixed_depth_4": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7915,
+          "mse": 0.04708380590741674,
+          "brier_score": 0.2300015922513779,
+          "nll": 0.3286893424762371,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9979388117790222,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5030,
+              "abstained_count": 14970,
+              "wrong_claim_count": 0,
+              "coverage": 0.2515,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.000763126699980353
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9606979489326477,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10012,
+              "abstained_count": 9988,
+              "wrong_claim_count": 13,
+              "coverage": 0.5006,
+              "wrong_claim_rate": 0.0012984418697562924,
+              "wrong_claim_rate_all_inputs": 0.00065,
+              "wrong_claim_rate_wilson95": [
+                0.0007590008898685257,
+                0.002220425146714104
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5475760698318481,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14954,
+              "abstained_count": 5046,
+              "wrong_claim_count": 1661,
+              "coverage": 0.7477,
+              "wrong_claim_rate": 0.11107396014444296,
+              "wrong_claim_rate_all_inputs": 0.08305,
+              "wrong_claim_rate_wilson95": [
+                0.1061372376435529,
+                0.11621044988721935
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5146663784980774,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17913,
+              "abstained_count": 2087,
+              "wrong_claim_count": 3125,
+              "coverage": 0.89565,
+              "wrong_claim_rate": 0.17445430692792943,
+              "wrong_claim_rate_all_inputs": 0.15625,
+              "wrong_claim_rate_wilson95": [
+                0.16896681592579477,
+                0.18008139512157412
+              ]
+            }
+          }
+        },
+        "direct": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79205,
+          "mse": 0.04872925072515475,
+          "brier_score": 0.23531838036455738,
+          "nll": 0.3397731211484185,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9972227811813354,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5020,
+              "abstained_count": 14980,
+              "wrong_claim_count": 1,
+              "coverage": 0.251,
+              "wrong_claim_rate": 0.00019920318725099602,
+              "wrong_claim_rate_all_inputs": 5e-05,
+              "wrong_claim_rate_wilson95": [
+                3.516511948534423e-05,
+                0.0011275823255873668
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8880712985992432,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9948,
+              "abstained_count": 10052,
+              "wrong_claim_count": 54,
+              "coverage": 0.4974,
+              "wrong_claim_rate": 0.005428226779252111,
+              "wrong_claim_rate_all_inputs": 0.0027,
+              "wrong_claim_rate_wilson95": [
+                0.00416297681676424,
+                0.007075290923279468
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5827011466026306,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14995,
+              "abstained_count": 5005,
+              "wrong_claim_count": 1751,
+              "coverage": 0.74975,
+              "wrong_claim_rate": 0.11677225741913971,
+              "wrong_claim_rate_all_inputs": 0.08755,
+              "wrong_claim_rate_wilson95": [
+                0.11172991757825933,
+                0.12201089956725013
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5327771306037903,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17908,
+              "abstained_count": 2092,
+              "wrong_claim_count": 3138,
+              "coverage": 0.8954,
+              "wrong_claim_rate": 0.17522894795622068,
+              "wrong_claim_rate_all_inputs": 0.1569,
+              "wrong_claim_rate_wilson95": [
+                0.16973082601783895,
+                0.18086637378755477
+              ]
+            }
+          }
+        },
+        "gaussian_generator_reference": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "training_seed": 8100,
+      "models": {
+        "shared": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.78865,
+          "mse": 0.04664460161775867,
+          "brier_score": 0.23624833116021432,
+          "nll": 0.3405432281170036,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.994343638420105,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5126,
+              "abstained_count": 14874,
+              "wrong_claim_count": 0,
+              "coverage": 0.2563,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007488455250578525
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9354367852210999,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10050,
+              "abstained_count": 9950,
+              "wrong_claim_count": 28,
+              "coverage": 0.5025,
+              "wrong_claim_rate": 0.0027860696517412937,
+              "wrong_claim_rate_all_inputs": 0.0014,
+              "wrong_claim_rate_wilson95": [
+                0.0019283605207334668,
+                0.004023738392482682
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5773990154266357,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15019,
+              "abstained_count": 4981,
+              "wrong_claim_count": 1728,
+              "coverage": 0.75095,
+              "wrong_claim_rate": 0.11505426459817564,
+              "wrong_claim_rate_all_inputs": 0.0864,
+              "wrong_claim_rate_wilson95": [
+                0.11004926396473474,
+                0.12025613254127981
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5243469476699829,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18098,
+              "abstained_count": 1902,
+              "wrong_claim_count": 3278,
+              "coverage": 0.9049,
+              "wrong_claim_rate": 0.18112498618631892,
+              "wrong_claim_rate_all_inputs": 0.1639,
+              "wrong_claim_rate_wilson95": [
+                0.1755819655673108,
+                0.18680334610075736
+              ]
+            }
+          }
+        },
+        "fixed_depth_4": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7887500000000001,
+          "mse": 0.04720835499426258,
+          "brier_score": 0.22971931265895432,
+          "nll": 0.3278235610944569,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9977898597717285,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5099,
+              "abstained_count": 14901,
+              "wrong_claim_count": 0,
+              "coverage": 0.25495,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007528077937937568
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9596700072288513,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10013,
+              "abstained_count": 9987,
+              "wrong_claim_count": 14,
+              "coverage": 0.50065,
+              "wrong_claim_rate": 0.0013981823629281933,
+              "wrong_claim_rate_all_inputs": 0.0007,
+              "wrong_claim_rate_wilson95": [
+                0.0008330787973983478,
+                0.0023457135346550825
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5611141920089722,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15088,
+              "abstained_count": 4912,
+              "wrong_claim_count": 1730,
+              "coverage": 0.7544,
+              "wrong_claim_rate": 0.11466065747613997,
+              "wrong_claim_rate_all_inputs": 0.0865,
+              "wrong_claim_rate_wilson95": [
+                0.10967457316258354,
+                0.11984290939725283
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5209768414497375,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17980,
+              "abstained_count": 2020,
+              "wrong_claim_count": 3190,
+              "coverage": 0.899,
+              "wrong_claim_rate": 0.1774193548387097,
+              "wrong_claim_rate_all_inputs": 0.1595,
+              "wrong_claim_rate_wilson95": [
+                0.17190446242159088,
+                0.18307205766386367
+              ]
+            }
+          }
+        },
+        "direct": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7923,
+          "mse": 0.04875175648429849,
+          "brier_score": 0.23360105762675606,
+          "nll": 0.33673982446800854,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9973248243331909,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5066,
+              "abstained_count": 14934,
+              "wrong_claim_count": 0,
+              "coverage": 0.2533,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007577078794072768
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8843578100204468,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10004,
+              "abstained_count": 9996,
+              "wrong_claim_count": 51,
+              "coverage": 0.5002,
+              "wrong_claim_rate": 0.00509796081567373,
+              "wrong_claim_rate_all_inputs": 0.00255,
+              "wrong_claim_rate_wilson95": [
+                0.00387975835927186,
+                0.006696094511319706
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5804039835929871,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15146,
+              "abstained_count": 4854,
+              "wrong_claim_count": 1817,
+              "coverage": 0.7573,
+              "wrong_claim_rate": 0.11996566750297108,
+              "wrong_claim_rate_all_inputs": 0.09085,
+              "wrong_claim_rate_wilson95": [
+                0.11488718198505317,
+                0.12523687929366295
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5352442264556885,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17978,
+              "abstained_count": 2022,
+              "wrong_claim_count": 3152,
+              "coverage": 0.8989,
+              "wrong_claim_rate": 0.17532539770831015,
+              "wrong_claim_rate_all_inputs": 0.1576,
+              "wrong_claim_rate_wilson95": [
+                0.16983662978885966,
+                0.18095288602719084
+              ]
+            }
+          }
+        },
+        "gaussian_generator_reference": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "training_seed": 9100,
+      "models": {
+        "shared": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7943,
+          "mse": 0.04574022584319862,
+          "brier_score": 0.22510826778947735,
+          "nll": 0.3256622700560765,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9939063191413879,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5104,
+              "abstained_count": 14896,
+              "wrong_claim_count": 0,
+              "coverage": 0.2552,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007520708799722699
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9233647584915161,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10079,
+              "abstained_count": 9921,
+              "wrong_claim_count": 11,
+              "coverage": 0.50395,
+              "wrong_claim_rate": 0.0010913781129080265,
+              "wrong_claim_rate_all_inputs": 0.00055,
+              "wrong_claim_rate_wilson95": [
+                0.0006095344930355803,
+                0.001953379832874745
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5378774404525757,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14981,
+              "abstained_count": 5019,
+              "wrong_claim_count": 1603,
+              "coverage": 0.74905,
+              "wrong_claim_rate": 0.10700220279020092,
+              "wrong_claim_rate_all_inputs": 0.08015,
+              "wrong_claim_rate_wilson95": [
+                0.10215262737187668,
+                0.11205327314709408
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5168396234512329,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18034,
+              "abstained_count": 1966,
+              "wrong_claim_count": 3109,
+              "coverage": 0.9017,
+              "wrong_claim_rate": 0.17239658422978818,
+              "wrong_claim_rate_all_inputs": 0.15545,
+              "wrong_claim_rate_wilson95": [
+                0.1669536312710513,
+                0.17797907439801577
+              ]
+            }
+          }
+        },
+        "fixed_depth_4": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79235,
+          "mse": 0.046251234739133,
+          "brier_score": 0.2228237794972018,
+          "nll": 0.31985781860907586,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9958622455596924,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5128,
+              "abstained_count": 14872,
+              "wrong_claim_count": 0,
+              "coverage": 0.2564,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007485536822442867
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9399570226669312,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9983,
+              "abstained_count": 10017,
+              "wrong_claim_count": 4,
+              "coverage": 0.49915,
+              "wrong_claim_rate": 0.0004006811579685465,
+              "wrong_claim_rate_all_inputs": 0.0002,
+              "wrong_claim_rate_wilson95": [
+                0.00015582776195395835,
+                0.0010298783363675856
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5429964065551758,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14935,
+              "abstained_count": 5065,
+              "wrong_claim_count": 1592,
+              "coverage": 0.74675,
+              "wrong_claim_rate": 0.10659524606628724,
+              "wrong_claim_rate_all_inputs": 0.0796,
+              "wrong_claim_rate_wilson95": [
+                0.10174677075645806,
+                0.11164604605654997
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5130464434623718,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17971,
+              "abstained_count": 2029,
+              "wrong_claim_count": 3131,
+              "coverage": 0.89855,
+              "wrong_claim_rate": 0.17422514050414556,
+              "wrong_claim_rate_all_inputs": 0.15655,
+              "wrong_claim_rate_wilson95": [
+                0.1687493226413692,
+                0.17984020306740375
+              ]
+            }
+          }
+        },
+        "direct": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.78955,
+          "mse": 0.050569876661484,
+          "brier_score": 0.23672968084971643,
+          "nll": 0.34180161884171134,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9971676468849182,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5122,
+              "abstained_count": 14878,
+              "wrong_claim_count": 0,
+              "coverage": 0.2561,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007494298939120777
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8819424510002136,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9982,
+              "abstained_count": 10018,
+              "wrong_claim_count": 67,
+              "coverage": 0.4991,
+              "wrong_claim_rate": 0.006712081747144861,
+              "wrong_claim_rate_all_inputs": 0.00335,
+              "wrong_claim_rate_wilson95": [
+                0.005289159800243142,
+                0.008514530093004262
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5770993828773499,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15121,
+              "abstained_count": 4879,
+              "wrong_claim_count": 1818,
+              "coverage": 0.75605,
+              "wrong_claim_rate": 0.12023014350902718,
+              "wrong_claim_rate_all_inputs": 0.0909,
+              "wrong_claim_rate_wilson95": [
+                0.11514254991613526,
+                0.1255106475888188
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5236204266548157,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18061,
+              "abstained_count": 1939,
+              "wrong_claim_count": 3258,
+              "coverage": 0.90305,
+              "wrong_claim_rate": 0.1803886827971873,
+              "wrong_claim_rate_all_inputs": 0.1629,
+              "wrong_claim_rate_wilson95": [
+                0.17484911856656385,
+                0.18606417666953626
+              ]
+            }
+          }
+        },
+        "gaussian_generator_reference": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "training_seed": 10100,
+      "models": {
+        "shared": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7907,
+          "mse": 0.048063776024187814,
+          "brier_score": 0.2267136991602437,
+          "nll": 0.32773715367400247,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9944719076156616,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5096,
+              "abstained_count": 14904,
+              "wrong_claim_count": 0,
+              "coverage": 0.2548,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007532506356741598
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9303858280181885,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9989,
+              "abstained_count": 10011,
+              "wrong_claim_count": 17,
+              "coverage": 0.49945,
+              "wrong_claim_rate": 0.0017018720592651916,
+              "wrong_claim_rate_all_inputs": 0.00085,
+              "wrong_claim_rate_wilson95": [
+                0.0010628768128850673,
+                0.002723979906160687
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5352594256401062,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15096,
+              "abstained_count": 4904,
+              "wrong_claim_count": 1689,
+              "coverage": 0.7548,
+              "wrong_claim_rate": 0.11188394276629571,
+              "wrong_claim_rate_all_inputs": 0.08445,
+              "wrong_claim_rate_wilson95": [
+                0.10695388094498424,
+                0.11701148107841398
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5113974213600159,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18053,
+              "abstained_count": 1947,
+              "wrong_claim_count": 3203,
+              "coverage": 0.90265,
+              "wrong_claim_rate": 0.17742203511881682,
+              "wrong_claim_rate_all_inputs": 0.16015,
+              "wrong_claim_rate_wilson95": [
+                0.17191813076529175,
+                0.18306319160155624
+              ]
+            }
+          }
+        },
+        "fixed_depth_4": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7924,
+          "mse": 0.04714362911155374,
+          "brier_score": 0.2286776467006605,
+          "nll": 0.3286119045915839,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9955820441246033,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5066,
+              "abstained_count": 14934,
+              "wrong_claim_count": 0,
+              "coverage": 0.2533,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0007577078794072768
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.9225032329559326,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9995,
+              "abstained_count": 10005,
+              "wrong_claim_count": 8,
+              "coverage": 0.49975,
+              "wrong_claim_rate": 0.0008004002001000501,
+              "wrong_claim_rate_all_inputs": 0.0004,
+              "wrong_claim_rate_wilson95": [
+                0.00040563656510950044,
+                0.001578739215065567
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.564098596572876,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 14937,
+              "abstained_count": 5063,
+              "wrong_claim_count": 1669,
+              "coverage": 0.74685,
+              "wrong_claim_rate": 0.1117359576889603,
+              "wrong_claim_rate_all_inputs": 0.08345,
+              "wrong_claim_rate_wilson95": [
+                0.1067832086418075,
+                0.11688836086325245
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5225123763084412,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 17952,
+              "abstained_count": 2048,
+              "wrong_claim_count": 3141,
+              "coverage": 0.8976,
+              "wrong_claim_rate": 0.17496657754010694,
+              "wrong_claim_rate_all_inputs": 0.15705,
+              "wrong_claim_rate_wilson95": [
+                0.16947844787479888,
+                0.18059378200295012
+              ]
+            }
+          }
+        },
+        "direct": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.79405,
+          "mse": 0.04936383338642163,
+          "brier_score": 0.23827051646956424,
+          "nll": 0.3461438239233609,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 0.9966422319412231,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1250,
+              "calibration_coverage": 0.25,
+              "test_count": 20000,
+              "claimed_count": 5086,
+              "abstained_count": 14914,
+              "wrong_claim_count": 1,
+              "coverage": 0.2543,
+              "wrong_claim_rate": 0.00019661816751867872,
+              "wrong_claim_rate_all_inputs": 5e-05,
+              "wrong_claim_rate_wilson95": [
+                3.4708777709593604e-05,
+                0.0011129613153481922
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.8452072143554688,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 9981,
+              "abstained_count": 10019,
+              "wrong_claim_count": 92,
+              "coverage": 0.49905,
+              "wrong_claim_rate": 0.009217513275222924,
+              "wrong_claim_rate_all_inputs": 0.0046,
+              "wrong_claim_rate_wilson95": [
+                0.007522396817531194,
+                0.011290266317420574
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5792787671089172,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 3750,
+              "calibration_coverage": 0.75,
+              "test_count": 20000,
+              "claimed_count": 15012,
+              "abstained_count": 4988,
+              "wrong_claim_count": 1752,
+              "coverage": 0.7506,
+              "wrong_claim_rate": 0.11670663469224621,
+              "wrong_claim_rate_all_inputs": 0.0876,
+              "wrong_claim_rate_wilson95": [
+                0.11166836448784373,
+                0.12194101853877962
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5319191217422485,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 4500,
+              "calibration_coverage": 0.9,
+              "test_count": 20000,
+              "claimed_count": 18020,
+              "abstained_count": 1980,
+              "wrong_claim_count": 3170,
+              "coverage": 0.901,
+              "wrong_claim_rate": 0.17591564927857936,
+              "wrong_claim_rate_all_inputs": 0.1585,
+              "wrong_claim_rate_wilson95": [
+                0.1704257305351826,
+                0.18154371356554097
+              ]
+            }
+          }
+        },
+        "gaussian_generator_reference": {
+          "n_calibration": 5000,
+          "n_test": 20000,
+          "n_classes": 2,
+          "top_accuracy": 0.7968999999999999,
+          "mse": 0.044274502839873386,
+          "brier_score": 0.2174673448388453,
+          "nll": 0.30728024979013197,
+          "coverage_results": {
+            "0.25": {
+              "target_coverage": 0.25,
+              "threshold": 1.0,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 1874,
+              "calibration_coverage": 0.3748,
+              "test_count": 20000,
+              "claimed_count": 7498,
+              "abstained_count": 12502,
+              "wrong_claim_count": 0,
+              "coverage": 0.3749,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0005120687822824249
+              ]
+            },
+            "0.5": {
+              "target_coverage": 0.5,
+              "threshold": 0.995839465273308,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 2500,
+              "calibration_coverage": 0.5,
+              "test_count": 20000,
+              "claimed_count": 10017,
+              "abstained_count": 9983,
+              "wrong_claim_count": 0,
+              "coverage": 0.50085,
+              "wrong_claim_rate": 0.0,
+              "wrong_claim_rate_all_inputs": 0.0,
+              "wrong_claim_rate_wilson95": [
+                0.0,
+                0.0003833469311414698
+              ]
+            },
+            "0.75": {
+              "target_coverage": 0.75,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            },
+            "0.9": {
+              "target_coverage": 0.9,
+              "threshold": 0.5,
+              "calibration_count": 5000,
+              "calibration_claimed_count": 5000,
+              "calibration_coverage": 1.0,
+              "test_count": 20000,
+              "claimed_count": 20000,
+              "abstained_count": 0,
+              "wrong_claim_count": 4062,
+              "coverage": 1.0,
+              "wrong_claim_rate": 0.2031,
+              "wrong_claim_rate_all_inputs": 0.2031,
+              "wrong_claim_rate_wilson95": [
+                0.19758168041715357,
+                0.20873235059296136
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Saved predictions are replayed arithmetically; neural weights and remote execution are not authenticated.",
+    "Five neural fits share the same 20000 test inputs; the Gaussian reference is one deterministic fit.",
+    "Intervals condition on fixed fitted models and fixed calibration policies; exclude training and calibration uncertainty.",
+    "No equivalence margin was prespecified; intervals spanning zero do not establish equivalence.",
+    "Target coverage is not necessarily achieved held-out coverage, especially with inclusive cutoff ties.",
+    "Policy fields are compared with the calibration lock; file hashes, source identity and execution chronology are outside this metrics audit."
+  ]
+}
