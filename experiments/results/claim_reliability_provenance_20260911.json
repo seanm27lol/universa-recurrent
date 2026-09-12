@@ -1,0 +1,445 @@
+{
+  "format": "universa.claim-reliability.independent-provenance-audit.v1",
+  "status": "PASS_WITH_BASIS_HASH_LIMITATION",
+  "consistency_failures": [],
+  "basis_hash_observation": {
+    "reported_checkpoint_basis_sha256": "c5f113ea993a43014edcfcfe2a20aa270e238889b566251652d67c804baed529",
+    "local_generated_basis_sha256": "f76944965521311a055139ee5a22578975f96f3fe5220c8e01522dc3fa55e5e6",
+    "hashes_equal": false,
+    "interpretation": "Reported checkpoint basis bytes are absent, so this hash cannot be independently reproduced. Local generator basis hash differs; both complete saved datasets nonetheless regenerate exactly. Numerical platform differences are possible, not established from this ZIP."
+  },
+  "input_zip": "claim-reliability-20260911-223944-FTvvdn-reports.zip",
+  "zip_sha256": "6681c6217f7704091e5e4f1bcf2136f53360c6bed5e88ba1c724c589545222b8",
+  "inventory_counts": {
+    "members": 23,
+    "json": 13,
+    "npz": 10,
+    "arrays": 100,
+    "expanded_bytes": 13766865,
+    "archive_bytes": 13494281,
+    "source_package_python_files": 32,
+    "summary_artifact_hashes": 22,
+    "common_cohort_array_comparisons": 32,
+    "duplicate_gaussian_array_comparisons": 12,
+    "prior_checkpoint_calibration_hash_pairs": 5,
+    "locked_model_fit_target_policies": 80
+  },
+  "check_counts": {
+    "protocol_source": 23,
+    "local_replay_source": 32,
+    "reference_bindings": 12,
+    "previous_reference_pairs": 5,
+    "lock_bindings": 67,
+    "cohort_identity": 23,
+    "artifact_identity": 10,
+    "array_identity": 320,
+    "model_metadata": 50,
+    "environment": 10,
+    "common_cohorts": 32,
+    "gaussian_consistency": 12,
+    "local_data_replay": 12,
+    "summary_identity": 6
+  },
+  "manifest_sha256": "483d5378988f9ecf2a22dae2f015062f492eecbecb98959fd9a87ded969023e1",
+  "calibration_lock_sha256": "3605890bd3f1520be92c2ea4dd4ae88d3f9d7e89f9224ca08e5b12e9bd17ca61",
+  "protocol_sha256": "a5eb4a7c4b443c45c6ab02e75b14cc41c7a80735a2f6d80985f06ef34c4b4b1f",
+  "committed_source": "f57778c47dfa245158d6cee91261493dd1ee7716",
+  "package_source_sha256": "de50e59143103d1f7f3843a3b78220ae02bfb9525e7166fdf3388e2cc669704a",
+  "scripts_sha256": {
+    "benchmark_verified_pipeline.py": "97b6f2c5797f58b3c4d710bd3d2ee9ee7f208785a6b12f2455d924144ea8a3ee",
+    "benchmark_verifier_setup.py": "a08ccd34373ba9abd2a9e223c8a437409980e599fcca453140c7beacf32ad683",
+    "claim_reliability_metrics.py": "47c468dc278e4bff454f9449a4dd742d3d91b5a66b6ab737aeddcb1273bafcdd",
+    "run_claim_reliability.py": "99ce93c36bcf5cfdb46e1a5579fc8a55d4a60f473d138e027c4044fa19b61eab"
+  },
+  "cohorts": {
+    "calibration": {
+      "inputs": {
+        "count": 5000,
+        "distinct_count": 5000,
+        "ordered_sha256": "b006166c2137339b3f95a023f33e7594092770309bdcc9dfec7578e1d412bca8",
+        "unique_sha256": "b562356e45949369e25e4c4296b9e1b2c6d80bc58fa61961a1829848d0477a7e"
+      },
+      "dataset_sha256": "eb805f71cd0227df6e0e0d6d1e4c10b026250dfe87e9ab6ca83f6b4608b58bbe"
+    },
+    "test": {
+      "inputs": {
+        "count": 20000,
+        "distinct_count": 20000,
+        "ordered_sha256": "5999355e6465cf8ee817cdeab6539b91c175573b4cd3377f2ee06efc0fb07336",
+        "unique_sha256": "20c649fda08f67e6dcf6735ff484fa2b0ce7ed0a478333fb9149606c2e508889"
+      },
+      "dataset_sha256": "8ec9ae9e72f1699846db1994b2a7cc6b132551a551c251fc1228f2b15f509b9b"
+    }
+  },
+  "regenerated_dataset_sha256": {
+    "calibration": "eb805f71cd0227df6e0e0d6d1e4c10b026250dfe87e9ab6ca83f6b4608b58bbe",
+    "test": "8ec9ae9e72f1699846db1994b2a7cc6b132551a551c251fc1228f2b15f509b9b"
+  },
+  "reported_source_environment": {
+    "git_commit": null,
+    "numpy": "2.4.6",
+    "package_version": "0.5.2",
+    "portable_source_commit": "f57778c47dfa245158d6cee91261493dd1ee7716",
+    "python": "3.11.14",
+    "python_source_sha256": "de50e59143103d1f7f3843a3b78220ae02bfb9525e7166fdf3388e2cc669704a",
+    "torch": "2.14.0+cu130"
+  },
+  "reported_gpu_environment": {
+    "cuda_runtime": "13.0",
+    "device_name": "NVIDIA GB10",
+    "neural_device": "cuda",
+    "numpy": "2.4.6",
+    "torch": "2.14.0+cu130"
+  },
+  "reported_execution": {
+    "cublas_workspace_config": ":4096:8",
+    "cudnn_allow_tf32": false,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": false,
+    "float32_matmul_precision": "highest",
+    "matmul_allow_tf32": false,
+    "num_interop_threads": 20,
+    "num_threads": 1
+  },
+  "chronology": {
+    "commit_timestamp": "2026-09-11T22:34:18-04:00",
+    "zip_phase_timestamps_consistent": true,
+    "zip_timestamps_have_no_timezone": true,
+    "authentication": "Committed source enforces calibration barrier; byte bindings and ZIP metadata are consistent. Timestamps and remote execution are not authenticated."
+  },
+  "limitations": [
+    "No model weights or original calibration files are uploaded. Their matching hashes are reported identities, not rehashed local originals.",
+    "Local regenerated basis hash differs from the reported checkpoint basis hash. Actual checkpoint basis bytes are absent; the exact cause is unresolved. Dataset arrays match byte for byte.",
+    "No neural inference is replayed. Exact saved cohort regeneration and array/byte identity do not authenticate remote GPU execution.",
+    "The global lock binds all 80 fit/model/target policies to calibration arrays. Without an authenticated execution trace, local arithmetic and hashes cannot prove no earlier access to test data.",
+    "Reported parameter counts, neural depths and CUDA execution settings are consistent with source/report metadata, not measurements replayed from actual weights.",
+    "Only 5000 calibration and 20000 test inputs are independent cohort members; repeated fit/Gaussian copies do not multiply sample size.",
+    "No receipt/property verification or latency study was performed in this audit. Metric arithmetic is audited separately."
+  ],
+  "inventory": [
+    {
+      "file": "results/calibration-10100.json",
+      "expanded_bytes": 9717,
+      "compressed_bytes": 2403,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        56
+      ],
+      "sha256": "511ca9f5a48f176ccaef616207dd41031194bb18725196c09452347281e103b4"
+    },
+    {
+      "file": "results/calibration-10100.npz",
+      "expanded_bytes": 298131,
+      "compressed_bytes": 297976,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        56
+      ],
+      "sha256": "761b13d5bde2f7e2b95714e4e2784c92712b961f9a89d17a377878f94782635f"
+    },
+    {
+      "file": "results/calibration-6100.json",
+      "expanded_bytes": 9714,
+      "compressed_bytes": 2388,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        46
+      ],
+      "sha256": "5ecd76c031b1602828ff3e508daa0e349d0a95feef566f0ddbb63db5d86f60c6"
+    },
+    {
+      "file": "results/calibration-6100.npz",
+      "expanded_bytes": 298037,
+      "compressed_bytes": 297884,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        46
+      ],
+      "sha256": "a7a26d188e0c2b9ac7aeacb97a38f89f81e8f54ea1ab5e94d4d8d4236d6edc80"
+    },
+    {
+      "file": "results/calibration-7100.json",
+      "expanded_bytes": 9716,
+      "compressed_bytes": 2393,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        50
+      ],
+      "sha256": "0c324788a6fec44cde33e97148b73c9498ba0131d6cb08623576b29ebce25115"
+    },
+    {
+      "file": "results/calibration-7100.npz",
+      "expanded_bytes": 298109,
+      "compressed_bytes": 297957,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        50
+      ],
+      "sha256": "399e910d8e899e157f19d95833a1db110e6b287c5a794b024289ae3dc9d9afb2"
+    },
+    {
+      "file": "results/calibration-8100.json",
+      "expanded_bytes": 9715,
+      "compressed_bytes": 2395,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        52
+      ],
+      "sha256": "f51a2e3659f1762753014d0fc5bc587acf7c73017464be2674354afb7cbbefd1"
+    },
+    {
+      "file": "results/calibration-8100.npz",
+      "expanded_bytes": 298193,
+      "compressed_bytes": 298043,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        52
+      ],
+      "sha256": "6964ba27bd5d6054e386807d623a976b528874a16e07d781ee60d490e9d2aa4a"
+    },
+    {
+      "file": "results/calibration-9100.json",
+      "expanded_bytes": 9716,
+      "compressed_bytes": 2401,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        54
+      ],
+      "sha256": "fee3e73a06f3c44b2a7749a85c36dcb2d471e6a5ed92d34b50dfa1985eb115d8"
+    },
+    {
+      "file": "results/calibration-9100.npz",
+      "expanded_bytes": 298128,
+      "compressed_bytes": 297976,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        54
+      ],
+      "sha256": "a603686c95c073c99b7eeece6f87a2dc46e3cfa3bbcd8d3129fa4a670c31ce01"
+    },
+    {
+      "file": "results/calibration-lock.json",
+      "expanded_bytes": 21643,
+      "compressed_bytes": 1819,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        58
+      ],
+      "sha256": "3605890bd3f1520be92c2ea4dd4ae88d3f9d7e89f9224ca08e5b12e9bd17ca61"
+    },
+    {
+      "file": "results/manifest.json",
+      "expanded_bytes": 12066,
+      "compressed_bytes": 3450,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        39,
+        44
+      ],
+      "sha256": "483d5378988f9ecf2a22dae2f015062f492eecbecb98959fd9a87ded969023e1"
+    },
+    {
+      "file": "results/summary.json",
+      "expanded_bytes": 140142,
+      "compressed_bytes": 16373,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        14
+      ],
+      "sha256": "a4146a0251e5f30fe1e179f3ab10ffcd11639009a7a7048be81afbf45294d5b2"
+    },
+    {
+      "file": "results/test-10100.json",
+      "expanded_bytes": 21351,
+      "compressed_bytes": 4032,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        10
+      ],
+      "sha256": "1abc697fff8d390ec3973252c5c38eca2f381936d91462fa05c6ede8aebe41e4"
+    },
+    {
+      "file": "results/test-10100.npz",
+      "expanded_bytes": 2389609,
+      "compressed_bytes": 2389742,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        10
+      ],
+      "sha256": "5845aa1acddaacf286676ba79421dc3db33ee223a875ce27882b30256c9d2f25"
+    },
+    {
+      "file": "results/test-6100.json",
+      "expanded_bytes": 21306,
+      "compressed_bytes": 3970,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        0
+      ],
+      "sha256": "5ef47a76928e57c90908d3c1bb83bfb8d407f5f5819048a78474675539038317"
+    },
+    {
+      "file": "results/test-6100.npz",
+      "expanded_bytes": 2389059,
+      "compressed_bytes": 2389195,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        0
+      ],
+      "sha256": "a0e91ad861a4363fb4eaa2f9ca671287309ae135ad2e3baba5c0e9bc08de8967"
+    },
+    {
+      "file": "results/test-7100.json",
+      "expanded_bytes": 21347,
+      "compressed_bytes": 4037,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        2
+      ],
+      "sha256": "54a701fafd0feb3168beec4f4c10b49924f616661ea68b560f78af340e022744"
+    },
+    {
+      "file": "results/test-7100.npz",
+      "expanded_bytes": 2389149,
+      "compressed_bytes": 2389282,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        2
+      ],
+      "sha256": "5e95747c1ec8137cd203156a2290ac6795172f452a3d89334a5cb63727bbc2a3"
+    },
+    {
+      "file": "results/test-8100.json",
+      "expanded_bytes": 21302,
+      "compressed_bytes": 3982,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        6
+      ],
+      "sha256": "79a4face07597b8df058855a422747452251f66d4da57c51b74f32092bb0b7f4"
+    },
+    {
+      "file": "results/test-8100.npz",
+      "expanded_bytes": 2389698,
+      "compressed_bytes": 2389831,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        6
+      ],
+      "sha256": "c0f0283753ad794df5608603f9ebccbfea21a2b0be5c67129d26fbb6e6a32e57"
+    },
+    {
+      "file": "results/test-9100.json",
+      "expanded_bytes": 21312,
+      "compressed_bytes": 3997,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        8
+      ],
+      "sha256": "234e088cf3031b3300e365ff07f38a63e728523793971d4d7f2ea95c4e2960c3"
+    },
+    {
+      "file": "results/test-9100.npz",
+      "expanded_bytes": 2389705,
+      "compressed_bytes": 2389837,
+      "zip_local_timestamp": [
+        2026,
+        9,
+        11,
+        22,
+        40,
+        8
+      ],
+      "sha256": "57a1101226fcecd9f17660cf8113fb3c7bde6f8d24a9115ece7efb1790a7b627"
+    }
+  ]
+}

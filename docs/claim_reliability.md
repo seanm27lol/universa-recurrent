@@ -1,5 +1,9 @@
 # When a checked answer chooses the wrong structure
 
+The completed DGX run and independent audits are documented in
+[the September 11 results](claim_reliability_20260911.md). The original protocol
+below and its executable specification are preserved unchanged.
+
 A noisy, partially observed flow can fit more than one structural explanation.
 A receipt can verify that a candidate satisfies its declared constraints even
 when that candidate is not the structure that generated the observation. The
