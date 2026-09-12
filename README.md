@@ -24,7 +24,11 @@ coverage thresholds on 5,000 calibration inputs before evaluating 20,000 fresh
 test inputs. It reuses the five existing fits, compares shared eight-step with
 four-step and one-pass models, and retains a privileged analytic reference.
 The DGX launcher includes a complete source snapshot and can run after SSH closes.
-This is a planned quality experiment; its result is not established by smoke tests.
+The [completed 20,000-input results](docs/claim_reliability_20260911.md) find no
+clear primary eight-step advantage over four-step. Both recurrent models have
+very low observed wrong-claim rates at roughly 50% coverage, with a substantial
+abstention tradeoff. The audit preserves an analytic-reference tie effect and
+an unresolved raw-basis provenance limitation.
 
 ## Research update: replication and temporal Lingua
 
