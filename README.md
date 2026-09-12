@@ -19,6 +19,13 @@ preparation included. All 6,400 saved receipts pass local property-check replay.
 These receipts cover 256 distinct inputs; their guarantees do not establish
 correct routing. A separate post-hoc quality analysis retains that distinction.
 
+The [next claim-reliability protocol](docs/claim_reliability.md) freezes all
+coverage thresholds on 5,000 calibration inputs before evaluating 20,000 fresh
+test inputs. It reuses the five existing fits, compares shared eight-step with
+four-step and one-pass models, and retains a privileged analytic reference.
+The DGX launcher includes a complete source snapshot and can run after SSH closes.
+This is a planned quality experiment; its result is not established by smoke tests.
+
 ## Research update: replication and temporal Lingua
 
 The [five-training-seed audit](docs/replication_20260909.md) reports the accuracy,
