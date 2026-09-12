@@ -49,4 +49,7 @@ denominators. See [the retention study](final_state_inference.md).
 | The setup ZIP establishes new neural accuracy or independently replayed correctness | FALSE | Four saved receipts are repeated; receipt/reference bytes are absent |
 | Prepared checking still runs each record's arithmetic and geometry checks | Source-reviewed and regression-tested | Unchanged per-record checker plus exact snapshot matching; no cached verdict |
 | Preparing a new reference helps a one-record batch | Not supported in this run | About 2.2% slower with preparation included |
-| These setup savings give the same improvement in full request latency | Unmeasured | [Verified pipeline study](verified_pipeline.md), fresh cohort and every record checked |
+| Prepared references reduce measured full request costs | Reported DGX timings; locally audited reports and saved receipts | [September 11 pipeline results](verified_pipeline_20260911.md): 80.61x paired speedup for 256 shared endpoint records, preparation included |
+| Every saved pipeline receipt passes the existing property checker | Independently replayed locally | 6,400 receipts, 256 distinct inputs; no checkpoint binding or neural execution replay |
+| A passing property check establishes a correct structural choice | FALSE | Shared claims choose the wrong synthetic label about 13.4% of the time in the small post-hoc cohort |
+| The fresh pipeline cohort establishes confirmatory model superiority | FALSE | Post-hoc 256-input comparison; shared/four-step differences are small and mixed |
