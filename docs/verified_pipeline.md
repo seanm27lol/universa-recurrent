@@ -1,5 +1,9 @@
 # Time a request through its completed record check
 
+The completed DGX run and local receipt audit are documented in
+[the September 11 results](verified_pipeline_20260911.md). The experiment
+description below records the original measurement design.
+
 A service receives a batch of observations, computes an estimate, builds a
 numerical receipt for every observation, and checks every receipt. The relevant
 cost is the time until those checks finish. A fast model or a fast isolated
@@ -66,9 +70,9 @@ counts, raw timings and execution order. They exclude model weight files.
 Receipts permit an independent arithmetic/geometry audit; file binding still
 requires the corresponding trusted checkpoint and calibration bytes.
 
-Local CPU smoke tests are implementation checks. The DGX results remain
-unmeasured until this experiment runs there. This is not a new neural-accuracy
-study and is not preregistered confirmatory evidence.
+Local CPU smoke tests are implementation checks. At implementation time the DGX
+results were unmeasured; the completed run is linked above. This protocol was not
+a new neural-accuracy study and is not preregistered confirmatory evidence.
 
 Local validation on September 11, 2026: 362 tests passed; three CUDA equivalence
 tests and the optional upstream integration test were skipped. The release check

@@ -13,10 +13,11 @@ reference is reused, including preparation. Those checks repeat four saved
 receipts; they do not measure inference or new model accuracy. The numerical
 report audit found no discrepancies.
 
-The [next verified pipeline study](docs/verified_pipeline.md) measures batched
-inference through completed checking on up to 256 fresh inputs, checking every
-record. It reuses frozen checkpoints and calibration, and exports all canonical
-receipts. Its DGX performance is not yet measured.
+The [completed verified pipeline study](docs/verified_pipeline_20260911.md)
+reports 3,179.01 ms falling to 39.28 ms for 256 shared endpoint records, with
+preparation included. All 6,400 saved receipts pass local property-check replay.
+These receipts cover 256 distinct inputs; their guarantees do not establish
+correct routing. A separate post-hoc quality analysis retains that distinction.
 
 ## Research update: replication and temporal Lingua
 
