@@ -129,6 +129,8 @@ def test_worker_smoke_and_counts(sample,kind):
     assert outcome['accepted_decisions_and_existing_checks_agree']
     assert len(outcome['rows'])==4
     for row in outcome['rows']:
+        assert row['source_record_pool_size'] == 1
+        assert row['distinct_records_in_batch'] == 1
         assert set(row['timings'])=={'files_per_record','prepare_once_per_batch','reuse_prepared_snapshot'}
         for t in row['timings'].values():assert t['median_ms']>0
 
@@ -167,6 +169,9 @@ def test_main_cli_writes_complete_without_weights(sample,tmp_path):
     args=['--reports',str(archive),'--replication-dir',str(root),'--output-dir',str(out),
           '--record-counts','1','--repeats','1']
     assert mod.main(args)==0
-    assert json.loads((out/'summary.json').read_text())['all_checks_agreed']
+    summary = json.loads((out/'summary.json').read_text())
+    assert summary['all_checks_agreed']
+    assert summary['repeats'] == 1
+    assert summary['warning'].startswith('1 measured repeats per condition;')
     assert not list(out.glob('*.pt'))
     assert mod.main(args)==2  # exclusive output directory

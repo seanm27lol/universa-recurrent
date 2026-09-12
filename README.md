@@ -5,6 +5,20 @@
 Permanent rule: start with a familiar example, explain the intuition, define the
 math, show runnable code, ground it in known fields, and state the limits.
 
+## Research update: verification setup
+
+The [September 10 CPU run](docs/verifier_setup_20260910.md) reports 97.95% less
+verification time for 64 shared-model endpoint receipt checks when one prepared
+reference is reused, including preparation. Those checks repeat four saved
+receipts; they do not measure inference or new model accuracy. The numerical
+report audit found no discrepancies.
+
+The [completed verified pipeline study](docs/verified_pipeline_20260911.md)
+reports 3,179.01 ms falling to 39.28 ms for 256 shared endpoint records, with
+preparation included. All 6,400 saved receipts pass local property-check replay.
+These receipts cover 256 distinct inputs; their guarantees do not establish
+correct routing. A separate post-hoc quality analysis retains that distinction.
+
 ## Research update: replication and temporal Lingua
 
 The [five-training-seed audit](docs/replication_20260909.md) reports the accuracy,
