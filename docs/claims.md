@@ -53,3 +53,14 @@ denominators. See [the retention study](final_state_inference.md).
 | Every saved pipeline receipt passes the existing property checker | Independently replayed locally | 6,400 receipts, 256 distinct inputs; no checkpoint binding or neural execution replay |
 | A passing property check establishes a correct structural choice | FALSE | Shared claims choose the wrong synthetic label about 13.4% of the time in the small post-hoc cohort |
 | The fresh pipeline cohort establishes confirmatory model superiority | FALSE | Post-hoc 256-input comparison; shared/four-step differences are small and mixed |
+
+## Prospective claim-reliability study
+
+The [fixed next protocol](claim_reliability.md) evaluates the existing five fits
+on 20,000 fresh common test inputs after every coverage threshold is frozen on
+5,000 separate calibration inputs. It specifies a primary shared/four-step
+comparison at 75% target coverage and input-paired uncertainty conditional on the
+fits and calibration. Software implementation and local smoke tests do not
+establish its scientific result. Actual held-out coverage, wrong-claim rates and
+numerical-estimate error must be interpreted separately; the protocol promises no
+model winner, risk guarantee, equivalence result or new receipt-verification claim.
