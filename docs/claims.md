@@ -40,3 +40,13 @@ claims to rollout. This is not adaptive stopping or an established speedup.
 Retained-history checks cover candidate geometry and diagnostic arithmetic, not
 learned transitions. Sampled Lingua timings and full-cohort inference have distinct
 denominators. See [the retention study](final_state_inference.md).
+
+## Prepared verifier and request pipeline
+
+| Statement | Status | Evidence or required test |
+|---|---|---|
+| Preparing a pinned reference amortizes repeated verification setup | Reported CPU timings, independently recomputed | [September 10 setup audit](verifier_setup_20260910.md); 97.95% less time for 64 shared endpoint receipts, preparation included |
+| The setup ZIP establishes new neural accuracy or independently replayed correctness | FALSE | Four saved receipts are repeated; receipt/reference bytes are absent |
+| Prepared checking still runs each record's arithmetic and geometry checks | Source-reviewed and regression-tested | Unchanged per-record checker plus exact snapshot matching; no cached verdict |
+| Preparing a new reference helps a one-record batch | Not supported in this run | About 2.2% slower with preparation included |
+| These setup savings give the same improvement in full request latency | Unmeasured | [Verified pipeline study](verified_pipeline.md), fresh cohort and every record checked |

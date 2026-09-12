@@ -1,5 +1,8 @@
 # Validate the reference once; check every new calculation
 
+The completed run is analyzed in [the September 10 setup audit](verifier_setup_20260910.md).
+The next experiment measures [the complete verified request pipeline](verified_pipeline.md).
+
 ## A familiar example
 
 A laboratory checks its reference manual's edition before a session. It then

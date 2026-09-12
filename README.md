@@ -5,6 +5,19 @@
 Permanent rule: start with a familiar example, explain the intuition, define the
 math, show runnable code, ground it in known fields, and state the limits.
 
+## Research update: verification setup
+
+The [September 10 CPU run](docs/verifier_setup_20260910.md) reports 97.95% less
+verification time for 64 shared-model endpoint receipt checks when one prepared
+reference is reused, including preparation. Those checks repeat four saved
+receipts; they do not measure inference or new model accuracy. The numerical
+report audit found no discrepancies.
+
+The [next verified pipeline study](docs/verified_pipeline.md) measures batched
+inference through completed checking on up to 256 fresh inputs, checking every
+record. It reuses frozen checkpoints and calibration, and exports all canonical
+receipts. Its DGX performance is not yet measured.
+
 ## Research update: replication and temporal Lingua
 
 The [five-training-seed audit](docs/replication_20260909.md) reports the accuracy,

@@ -191,7 +191,11 @@ def benchmark_worker(worker, checkpoint, calibration, counts, repeats, order_see
                         start = time.perf_counter_ns();run(mode)
                         timings[mode].append((time.perf_counter_ns() - start) / 1e6)
                 rows.append({'model': group['model'], 'retention': kind, 'record_count': count,
-                             'distinct_saved_records': len(payloads), 'timings': {m: stats(v) for m,v in timings.items()},
+                             # Keep the original pool-size field for existing consumers.
+                             'distinct_saved_records': len(payloads),
+                             'source_record_pool_size': len(payloads),
+                             'distinct_records_in_batch': len(set(batch)),
+                             'timings': {m: stats(v) for m,v in timings.items()},
                              'mode_order_each_repeat': orders})
     if cp_sha != digest(checkpoint) or cal_sha != digest(calibration):
         raise ValueError('reference files changed during benchmark')
@@ -239,8 +243,9 @@ def main(argv=None):
             write_json(args.output_dir/f'seed-{w["training_seed"]}.json', result)
             results.append(result)
         summary = {'format': plan['format']+'.complete', 'all_checks_agreed': True,
-                   'checkpoint_runs': len(results), 'results': results, 'scope': plan['scope'],
-                   'warning': 'Three repeats by default; descriptive timing, not statistical significance. Repeated saved receipts measure setup amortization, not generalization or execution authenticity.'}
+                   'checkpoint_runs': len(results), 'repeats': args.repeats,
+                   'results': results, 'scope': plan['scope'],
+                   'warning': f'{args.repeats} measured repeats per condition; descriptive timing, not statistical significance. Repeated saved receipts measure setup amortization, not generalization or execution authenticity.'}
         write_json(args.output_dir/'summary.json', summary)
         print('COMPLETE:', args.output_dir/'summary.json')
         return 0
