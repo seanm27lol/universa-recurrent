@@ -1,0 +1,19 @@
+name: Overflow codec source
+on:
+  push:
+    branches: [audit/overflow-source-8e9ee07]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 8e9ee075da0f4f8432b8182596cb66beccc8c91d
+      - run: git archive --format=zip --output=public-source.zip HEAD
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-source-8e9ee07
+          path: public-source.zip
+          retention-days: 3
