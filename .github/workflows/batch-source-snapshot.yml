@@ -1,0 +1,20 @@
+name: Batch verifier source snapshot
+on:
+  push:
+    branches: [audit/batch-source-216792b]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 216792b16f5d48e95fd061801a9b61cd81a30b15
+          persist-credentials: false
+      - run: git archive --format=zip --output=public-source.zip HEAD
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: batch-public-source-216792b
+          path: public-source.zip
+          retention-days: 3
