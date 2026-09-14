@@ -1,0 +1,20 @@
+name: Batch result audit source
+on:
+  push:
+    branches: [audit/batch-result-source-fa172df]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fa172dfe75092a41dcc7c8171c4052555578966e
+          persist-credentials: false
+      - run: git archive --format=zip HEAD > "$RUNNER_TEMP/source.zip"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: batch-result-source-fa172df
+          path: ${{ runner.temp }}/source.zip
+          retention-days: 3
