@@ -86,3 +86,13 @@ solver, never the decoder; its size is reported separately. Named and rotated
 controls match numerical payloads, not necessarily common metadata size.
 No trained natural-language bottleneck, semantic faithfulness, whole-model
 compression or performance improvement is established by this implementation.
+
+## Frozen codec generalization
+
+The [new-input codec study](codec_generalization.md) reuses the overflow-safe
+codec without refitting and keeps sixteen bits as the primary precision, with
+eight/twelve-bit controls. New matched/noisy/sparse cohorts test preservation and
+task error separately. A zero changed-claim count on the previous cohort is not
+an all-input guarantee. Sixteen-bit values, identifiers, metadata and retained
+solver context remain separately counted; this is not learned language or a
+whole-model memory claim. Implementation tests do not establish the new results.
