@@ -75,3 +75,14 @@ The analytic reference's inclusive ties force its nominal 75% policy to 100%
 actual coverage. Saved data and metric arithmetic replay; exact checkpoint basis
 bytes and GPU execution remain unverified, including a local/reported basis-hash
 difference whose cause cannot be established without the checkpoint values.
+
+## State-description continuation (opt-in experiment)
+
+The [state-continuation study](state_continuation.md) implements pause, numerical
+state encoding, reconstruction and one-cut resumption of frozen models. It gates
+on raw-state restoration and measures lossy errors without hiding failures.
+Compression ranges use separate calibration inputs. Context remains with the
+solver, never the decoder; its size is reported separately. Named and rotated
+controls match numerical payloads, not necessarily common metadata size.
+No trained natural-language bottleneck, semantic faithfulness, whole-model
+compression or performance improvement is established by this implementation.

@@ -160,3 +160,11 @@ not scientific success. The new study deliberately keeps inference depth fixed
 to isolate output policy; adaptive stopping requires separate evidence. Similar
 parameter counts do not equalize objectives, computation, or inductive bias.
 No GPU speedup, general reasoning ability, or universal interpretability is claimed.
+
+## State-description continuation experiment
+
+Pause the frozen model, encode known cycle coordinates and route evidence,
+reconstruct them, and resume the original remaining computation. Raw-state,
+equal-payload rotated, erasure, shuffled-state and stop-at-cut controls keep
+compression separate from semantic claims. No training or hidden-neuron explanation
+is claimed. [Protocol and run command](docs/state_continuation.md).
