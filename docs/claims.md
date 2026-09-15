@@ -96,3 +96,11 @@ task error separately. A zero changed-claim count on the previous cohort is not
 an all-input guarantee. Sixteen-bit values, identifiers, metadata and retained
 solver context remain separately counted; this is not learned language or a
 whole-model memory claim. Implementation tests do not establish the new results.
+
+## Typed mathematical edits (opt-in pilot)
+
+The [edit experiment](mathematical_edits.md) compares named commands on decoded
+16-bit states with direct numerical interventions and wrong-candidate controls.
+Variable meanings and parser alignment are specified, not discovered. Effect
+preservation after continuation is an empirical question. No natural-language
+interpreter, semantic discovery, formal causal abstraction or speedup is claimed.
