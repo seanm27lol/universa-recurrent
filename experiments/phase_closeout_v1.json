@@ -1,0 +1,40 @@
+{
+  "format": "universa-recurrent.phase-closeout.v1.protocol",
+  "stage": "Final validation of this structured-state research phase; no automatic follow-on experiment",
+  "selection_data_seed": 87000,
+  "data_seeds": [91000, 92000],
+  "n_per_seed": 256,
+  "training_seeds": [6100, 7100, 8100, 9100, 10100],
+  "models": ["shared", "fixed_depth_4"],
+  "frozen_source_commit": "3eb96a9d01ae4828a6a697c47c7d861489fa1935",
+  "frozen_scripts_sha256": {
+    "benchmark_local_response.py": "52f6c241073a54d7210498f5da867279edfdbf9eade511eb3f1db7dad4efe01f",
+    "local_response.py": "1f5fbb76fd62c1602e7d5463ef728e504ccee53a4fd25b49960ac67c38ca08c7",
+    "benchmark_state_continuation.py": "415b967c05a60ae70978c44bbffde998c4f8af0c82105feec941b7f4a14252d0",
+    "continuation_codec.py": "c7af20f19ab50e98b871b2858fe602302a16c95d8a227aa71a47fb9dffe31e60"
+  },
+  "primary": {
+    "model": "fixed_depth_4",
+    "cut": 2,
+    "horizon": "original_remaining_updates",
+    "radius": 0.125,
+    "order": "linear",
+    "scales": [0.25, 0.5, 1.0],
+    "families": ["two_cycles_0", "two_cycles_1", "cross_candidate", "cycle_evidence_0", "cycle_evidence_1", "dense_0", "dense_1", "dense_2", "dense_3"],
+    "weighting": "Equal weight per input, frozen fit, noncontrol query and output component",
+    "relative_rms_limit_for_limited_utility": 0.8,
+    "relative_rms_limit_for_close_prediction": 0.1,
+    "comparison": "No-effect prediction of the original output; not task accuracy, claim reliability or semantic interpretation"
+  },
+  "uncertainty": {
+    "method": "Paired percentile bootstrap, resample inputs within each seed block after averaging the five frozen fits",
+    "repeats": 3000,
+    "seed": 93000,
+    "upper_percentile": 0.95,
+    "interpretation": "Approximate test-input uncertainty conditional on the five fits and fixed queries; not a population-of-models guarantee"
+  },
+  "decision": "Close this phase either way. Support limited utility only when the pooled one-sided 95% upper relative-RMS estimate is at most 0.8 AND each seed-block point estimate is at most 0.8. Apply the same rule at 0.1 for close prediction. Report nonfinite cases as failures. Do not retune after seeing this holdout.",
+  "secondary": "Report all original orders, both prescribed radii, both models/cuts, horizons and sizes. The small-edit full-quadratic result and large-edit failure remain descriptive; neither can replace the primary after data inspection.",
+  "costs": "The unchanged common evaluator constructs all orders from 73 probes per input/cut/horizon/radius. It is not an optimized 13-probe linear runtime. Construction time is descriptive, not a speed benchmark. It retains the measured 1720-byte full rule; a stand-alone linear base/J would need 280 bytes, which is an algebraic count, not a measured memory saving.",
+  "scope": "Raw known-field response prediction only. No training of neural weights, changes to old ranges/thresholds, codec repair, discovered semantics, natural-language inference, GPU-memory saving or execution authentication. Full raw reports stay on the DGX; the upload bundle includes per-input losses, original input arrays, report hashes, gates, costs and all summary cells."
+}
