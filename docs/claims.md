@@ -1,5 +1,33 @@
 # Claim ledger
 
+## Completed phase-one findings (2026-09-16)
+
+**This sequence is closed.** Read the [findings](phase_one_results.md) and
+[technical closeout](phase_one_technical_report.md) before interpreting the
+historical implementation/protocol entries below. Their original requirements
+remain visible; a broad claim is not upgraded merely because a narrower test passed.
+
+| Statement | Status after the reported experiments | Evidence and boundary |
+|---|---|---|
+| Prepared/batched receipt processing reduces full local request time in the measured cases | Supported, workload-specific | Shared endpoint pipeline: 27.131 -> 14.149 ms for 256 inputs, models/references already loaded; not a neural speedup |
+| Bounded conversion eliminates long full-trajectory requests | Not supported | Chunk16 improves median consistency, but the checkpoint-aggregated p90 remains about 101 ms |
+| Frozen 16-bit numerical descriptions approximately preserve continuation | Supported on the tested cohorts | Seven claim/abstention changes in 184,320 correlated comparisons on 2,048 underlying problems; not exact preservation |
+| A correct typed field edit closely reproduces a direct intervention | Supported in the pilot | 1.72e-11 effect-disagreement MSE, five claim differences on repeated comparisons of 512 inputs; names supplied by the schema |
+| Individual intervention effects always add | Not supported | Paired edits show substantial downstream interaction |
+| The locked linear predictor meets the declared limited-usefulness criterion | MET | Relative RMS 0.690756; upper estimate 0.732032 <= 0.8; both block points <= 0.8 |
+| The locked predictor meets the separate close-prediction criterion | NOT MET | The same result is not <= 0.1; one individual fit also exceeds 0.8 |
+| The response rule is a cheap or compact interpreter | Not established | Common evaluator: 73 probes and 1,720 coefficient bytes per input; raw state: 24 bytes |
+| The final run validates a compressed-language pipeline end to end | FALSE | Final prediction evaluation uses raw known fields, not the compressed typed-edit path |
+| This phase discovers opaque-neuron meanings or a general language for models | Not established | Known-field numerical operations and local approximations only |
+
+Exact values, denominators and source-archive identities are in the
+[public summary](../experiments/results/phase_one_20260916.json). Saved-loss and
+receipt audits do not independently rerun checkpoint inference or authenticate
+execution. No new model, codec, threshold or automatic follow-on run accompanies
+this closeout.
+
+## Historical implementation and protocol ledger
+
 | Statement | Status | Evidence or required test |
 |---|---|---|
 | Classical solver reuses reduced coordinates and avoids repeated SVD | Implemented | Classical solver tests |
@@ -57,7 +85,7 @@ denominators. See [the retention study](final_state_inference.md).
 ## Prospective claim-reliability study
 
 The [fixed next protocol](claim_reliability.md) evaluates the existing five fits
-on 20,000 fresh common test inputs after every coverage threshold is frozen on
+on 20,000 fresh test inputs after every coverage threshold is frozen on
 5,000 separate calibration inputs. It specifies a primary shared/four-step
 comparison at 75% target coverage and input-paired uncertainty conditional on the
 fits and calibration. Software implementation and local smoke tests do not

@@ -1,0 +1,183 @@
+{
+  "format": "universa-recurrent.phase-one-results.v1",
+  "date": "2026-09-16",
+  "phase_status": "closed",
+  "new_experiment": false,
+  "summary_scope": "Documentation of existing uploaded report audits, not new training or independent checkpoint inference.",
+  "primary_and_secondary_source": "phase_closeout",
+  "primary_protocol": "../phase_closeout_v1.json",
+  "final_validation": {
+    "primary": {
+      "relative_rms_error": 0.6907564505293968,
+      "per_seed_block_relative_rms": [0.6750156127595343, 0.708026274175079],
+      "uncertainty": {
+        "percentile_interval_95": [0.6354184777016796, 0.739562321858428],
+        "one_sided_upper_95": 0.7320320681586976,
+        "bootstrap_repeats": 3000,
+        "seed": 93000
+      },
+      "limited_utility_criterion_met": true,
+      "close_prediction_criterion_met": false,
+      "rms_error_reduction_vs_no_change": 0.3092435494706032,
+      "mse_reduction_vs_no_change": 0.5228555260520289,
+      "prediction_mse": 0.0002554585703049948,
+      "effect_mse": 0.0005353903990363527,
+      "response_prediction_rmse": 0.01598307136644878,
+      "no_change_rmse": 0.02313850468453726,
+      "descriptive_inputs_beating_no_change": 480
+    },
+    "per_fit_primary": [
+      {"training_seed": 6100, "relative_rms_error": 0.8225250763785391},
+      {"training_seed": 7100, "relative_rms_error": 0.6725045605137606},
+      {"training_seed": 8100, "relative_rms_error": 0.6423329081153543},
+      {"training_seed": 9100, "relative_rms_error": 0.6631586297719216},
+      {"training_seed": 10100, "relative_rms_error": 0.6224627789790307}
+    ],
+    "secondary_rows": [
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.25, "order": "none", "prediction_mse": 7.858805170019796e-05, "effect_mse": 7.858805170019796e-05, "relative_rms_error": 1.0},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.25, "order": "linear", "prediction_mse": 7.511078709414387e-06, "effect_mse": 7.858805170019796e-05, "relative_rms_error": 0.30915259438774373},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.25, "order": "diagonal_quadratic", "prediction_mse": 3.7398858065370993e-06, "effect_mse": 7.858805170019796e-05, "relative_rms_error": 0.21814783627756398},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.25, "order": "full_quadratic", "prediction_mse": 1.6739934955355694e-06, "effect_mse": 7.858805170019796e-05, "relative_rms_error": 0.14594815928686486},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.5, "order": "none", "prediction_mse": 0.0003028593850653708, "effect_mse": 0.0003028593850653708, "relative_rms_error": 1.0},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.5, "order": "linear", "prediction_mse": 8.083141756971069e-05, "effect_mse": 0.0003028593850653708, "relative_rms_error": 0.51661805440056},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.5, "order": "diagonal_quadratic", "prediction_mse": 8.220292755461083e-05, "effect_mse": 0.0003028593850653708, "relative_rms_error": 0.5209824865678055},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 0.5, "order": "full_quadratic", "prediction_mse": 6.645992740968943e-05, "effect_mse": 0.0003028593850653708, "relative_rms_error": 0.4684458687000606},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 1.0, "order": "none", "prediction_mse": 0.0012247237603434894, "effect_mse": 0.0012247237603434894, "relative_rms_error": 1.0},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 1.0, "order": "linear", "prediction_mse": 0.0006780332146358593, "effect_mse": 0.0012247237603434894, "relative_rms_error": 0.7440573528507797},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 1.0, "order": "diagonal_quadratic", "prediction_mse": 0.0016568092674569303, "effect_mse": 0.0012247237603434894, "relative_rms_error": 1.1631003484294267},
+      {"model": "fixed_depth_4", "cut": 2, "horizon": "original_remaining_updates", "radius": 0.125, "scale": 1.0, "order": "full_quadratic", "prediction_mse": 0.001606025255313151, "effect_mse": 0.0012247237603434894, "relative_rms_error": 1.1451361200692824}
+    ],
+    "costs": {
+      "probes_per_input_cut_horizon_radius": 73,
+      "full_rule_bytes_per_input": 1720,
+      "dynamic_state_bytes_per_input": 24,
+      "retained_context_bytes_per_input": 304,
+      "primary_setup_and_all_predictions_ms_per_256_inputs": [72.566894, 74.973169, 76.930649, 74.348876, 74.644697, 73.886831, 72.431001, 72.440981, 74.609398, 75.467047],
+      "timing_is_descriptive_not_benchmark": true
+    },
+    "secondary_rows_available_in_original_aggregation": 192,
+    "public_secondary_selection": "All four approximations and three edit sizes at the locked primary model/cut/horizon/radius; other cells remain in the original closeout aggregation."
+  },
+  "final_validation_audit": {
+    "archive_crc": "pass",
+    "members": 13,
+    "worker_reports": 10,
+    "reported_metric_rows_reconciled": 21120,
+    "loss_cells_recomputed": 1920,
+    "numeric_arrays_checked": 1928,
+    "summary_cells_recomputed": 192,
+    "reported_full_precision_gates": 40,
+    "reported_fit_cases": 160,
+    "reported_failures": 0,
+    "independent_input_observation_pairs": 512,
+    "input_block_hashes": {
+      "91000": "faf776b4ec4e3c152bcf44eae944044c2bf6caf60a9cd22daaf0b993720dd6cc",
+      "92000": "f85062cf10208beaa41ddea49367951bb737d2acac439b5396578f8963bc519a"
+    },
+    "worker_report_hashes": "all_match",
+    "per_input_losses_hash": "match",
+    "bootstrap_from_losses": "matches_saved_result",
+    "criteria": "match_locked_definitions",
+    "archive_sha256": "5c3037f54583514e9e0644f4cde9c2f08578695bdd945edbbce340e13b391118",
+    "source_protocol_semantics": "reviewed against pinned GitHub file",
+    "scope": "Loss/summary/identity audit only. Raw probes, predictions and checkpoint bytes are not in this bundle; no neural replay or independent recomputation of raw per-query losses.",
+    "unverified": "Original raw arrays_sha256 values identify missing files; protocol/runner hashes alone do not authenticate chronology or execution.",
+    "holdout_vs_pilot_observation_overlap": 0,
+    "original_continuation_report_byte_hashes": "10/10 match uploaded originals",
+    "frozen_manifest_reconciliation": "40/40 match original continuation manifests",
+    "checkpoint_calibration_hashes_vs_original_reports": "all match reported identifiers, not actual checkpoint bytes"
+  },
+  "earlier_findings": {
+    "replication": {
+      "underlying_test_inputs": 4000,
+      "training_fits": 5,
+      "mean_task_mse": {"shared_8": 0.049565, "dedicated_4": 0.0499, "one_pass": 0.052676},
+      "scope": "Same test cohort; objectives and compute differ across fitted alternatives."
+    },
+    "batched_pipeline": {
+      "inputs_per_request": 256,
+      "training_fits": 5,
+      "repeats_per_fit": 10,
+      "shared_endpoint_ms": {"prepared_scalar": 27.131, "batch_check": 17.271, "batch_generate_and_check": 14.149},
+      "statistic": "Median of five checkpoint-level medians; milliseconds per whole request. Models/references already loaded. Not neural-only latency."
+    },
+    "bounded_receipts": {
+      "underlying_inputs": 256,
+      "shared_trajectory_chunk16_median_ms": 47.2265,
+      "shared_trajectory_chunk16_median_checkpoint_p90_ms": 101.32,
+      "gc_generation2_events_diagnostic_pass": 164,
+      "gc_generation2_median_ms": 50.81,
+      "scope": "GC instrumented in a separate pass; not the cause of every uninstrumented spike."
+    },
+    "codec_generalization": {
+      "underlying_latent_problems": 2048,
+      "observation_conditions": 3,
+      "repeated_comparisons_per_bit_width": 184320,
+      "changed_claims": {"8bit": 1646, "12bit": 127, "16bit": 7},
+      "worst_component_change_16bit": 0.0003142357,
+      "claim_difference_type_16bit": "Issuance/abstention threshold crossings; not switches between two issued candidates.",
+      "uncompressed_shared_wrong_claim_rate_percent": {"matched": 11.196, "noise_x3": 16.08, "sparse_040": 22.819},
+      "scope": "Approximate preservation of original outputs, not truth, learned-language semantics or total-memory savings."
+    },
+    "mathematical_edits": {
+      "underlying_inputs": 512,
+      "targeted_repeated_comparisons": 122880,
+      "correct_decoded_effect_disagreement_mse": 1.7191877793e-11,
+      "wrong_candidate_effect_disagreement_mse": 0.005132027,
+      "correct_decoded_changed_claims": 5,
+      "wrong_candidate_changed_claims": 31681,
+      "scope": "Effects subtract each path own no-edit baseline. Meanings hand-specified. Commands applied after decoding without requantization."
+    },
+    "edit_composition": {
+      "underlying_inputs": 256,
+      "targeted_continued_repeated_comparisons": 76800,
+      "joint_effect_disagreement_mse": 2.732986e-11,
+      "joint_changed_claims": 4,
+      "full_size_within_candidate_continued_relative_rms_percent": [47.941, 60.864],
+      "scope": "Adding separately measured effects misses interactions; not a codec failure."
+    }
+  },
+  "sources": {
+    "replication": {
+      "archive_name": "replication-20260909-173545-3Lc0us-reports.zip",
+      "archive_sha256": "b79190dc4353740ab926cc24ccc7243afa0151d8fe7c9b910cd9a27f53d51ef0",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "batched_pipeline": {
+      "archive_name": "batched-pipeline-20260914-013254-uR5FFJ-reports.zip",
+      "archive_sha256": "35b71b5165309b55b063541664d0436c12b488a40378e75ebc68c3d7b7789824",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "bounded_receipts": {
+      "archive_name": "bounded-receipts-20260914-084356-h6fJC5-reports.zip",
+      "archive_sha256": "9e9cc3b2e1d42cb17fbd16e89273df4d1cc47b5ffc7acfb5673c39a13241125b",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "codec_generalization": {
+      "archive_name": "codec-generalization-20260914-211922-bqy3g4-reports.zip",
+      "archive_sha256": "1d3ef8b907da40b55dfc9e61b4a1d4412e4daee34792ba477a3d4b05ac5d6645",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "mathematical_edits": {
+      "archive_name": "mathematical-edits-20260914-233635-F6LuEY-reports.zip",
+      "archive_sha256": "08d23621d649ef6211214be90b04d757a9bac640219b63b33c55daa5a2ddef0d",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "edit_composition": {
+      "archive_name": "edit-composition-20260916-160328-9Fezdp-reports.zip",
+      "archive_sha256": "3e9969bc7f4aa7a70ffb834b50d6f2affebf2307d81f686a7f468b7053d8b9da",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "local_response": {
+      "archive_name": "local-response-20260916-162915-Ijr6s7-reports.zip",
+      "archive_sha256": "a27fd2e6851fc1987839c89446bb1c7814c59cf4bd6a045e9a8d864679329935",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    },
+    "phase_closeout": {
+      "archive_name": "phase-closeout-20260916-165013-qpUqCa-reports.zip",
+      "archive_sha256": "5c3037f54583514e9e0644f4cde9c2f08578695bdd945edbbce340e13b391118",
+      "availability": "Owner-supplied evidence archive; not included in this public documentation update."
+    }
+  },
+  "audit_limits": "Previously audited arithmetic/losses and reported identities; checkpoints and complete final-validation raw predictions were not uploaded. No execution authentication. No raw report archive or per-input example is committed here."
+}
