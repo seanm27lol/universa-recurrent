@@ -74,6 +74,22 @@ def _attempted(actual: dict, name: str) -> bool:
     )
 
 
+def _greedy_identity_counts(actual: dict) -> dict:
+    """Per-stage exact/drift_diverged tallies; never hidden, never decision input."""
+    counts = {
+        "identity_stage": {"exact": 0, "drift_diverged": 0},
+        "behavior_stage": {"exact": 0, "drift_diverged": 0},
+    }
+    for row in actual.values():
+        gate = row.get("identity", {}).get("greedy", {})
+        if gate.get("status") in counts["identity_stage"]:
+            counts["identity_stage"][gate["status"]] += 1
+        gate = row.get("p0_p1_greedy_gate", {})
+        if gate.get("status") in counts["behavior_stage"]:
+            counts["behavior_stage"][gate["status"]] += 1
+    return counts
+
+
 def _summarize_smoke(manifest: dict, rows: list[dict]) -> dict:
     expected, actual = _expected_actual(manifest, rows)
     group_ids = {row["group_id"] for row in expected.values()}
@@ -130,6 +146,7 @@ def _summarize_smoke(manifest: dict, rows: list[dict]) -> dict:
         "successful_groups": completed,
         "failed_groups": failed,
         "skipped_groups": skipped,
+        "greedy_identity": _greedy_identity_counts(actual),
         "edit_eligibility": "NOT ASSESSED: Milestone 1 has no scientific edit-coverage measurement",
         "uneditable_groups": None,
         "metrics": metrics,
@@ -560,6 +577,7 @@ def _summarize_pilot(manifest: dict, rows: list[dict]) -> dict:
         "successful_groups": completed,
         "failed_groups": failed,
         "skipped_groups": skipped,
+        "greedy_identity": _greedy_identity_counts(actual),
         "edit_eligibility": coverage,
         "uneditable_groups": len(group_ids) - coverage["eligible_groups"],
         "metrics": metrics,

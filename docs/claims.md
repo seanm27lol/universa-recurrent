@@ -41,8 +41,8 @@ is published as a template with every outcome field pending.
 | The frozen text editor classifies and minimally edits explicit current-value statements | Implemented and fixture-tested | Three frozen forms, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only replacement; agreement with the reference program recorded separately and never gating an edit; rule version and sha256 enter the manifest |
 | Pilot decision statistics resample whole groups | Implemented and fixture-tested | 3,000 bootstrap resamples at a fixed seed; one-sided 95% upper/lower estimates for the §8 rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | Calibration and pilot stages run from one CLI | Implemented, fixture-level | `--stage smoke|calibration|pilot` with smoke unchanged; pilot requires `--calibration-fit`; `run_calibration.sh`/`run_pilot.sh` follow the smoke script pattern; real-model execution NOT RUN |
-| The 256-group released-model calibration fit exists | NOT RUN | No target/AV/AR weights fetched or loaded on this branch; `baseline_fit_identity` unfilled |
-| The 128-group pilot outcome and keep/stop decision exist | NOT RUN | Decision fields in `completion.json`/`report.md` and the pilot decision document are PENDING PILOT RUN |
+| The 256-group released-model calibration fit exists | SUPERSEDED: an unpadded fit exists; pinned re-baseline PENDING RERUN | Unpadded run calibration-20260921T221636Z-63a6be98 COMPLETE (fit identity `74eca5c2…`, frozen median norm 98.430) but predates kernel-shape pinning; superseded as the pilot input — see the next section |
+| The 128-group pilot outcome and keep/stop decision exist | NOT RUN; first attempt FAILED before any condition | Attempt pilot-20260921T222056Z-69535f26 died in `Target.identity_gate` on variant pilot-0000-A-x with no conditions executed and no outcomes inspected; decision fields in `completion.json`/`report.md` and the pilot decision document remain PENDING the pinned rerun |
 | The 512-group locked validation exists | NOT RUN; not implemented | No validation stage in the CLI; the pilot reports a projected cost against the eight-hour budget and never auto-starts it |
 | P4 is an optimal compression baseline, or generic reconstruction already matches language | FALSE as framed | The condition is no-more-than-budget under a declared byte rule; the comparison is a pilot question, not a premise |
 | Frozen-rule edits establish discovered variable semantics in the activation | NOT CLAIMED | The parser matches frozen surface forms only; a statement's truth never gates its editability |
@@ -67,9 +67,45 @@ inspecting results.
 | Statement | Status | Evidence and boundary |
 |---|---|---|
 | An appended answer suffix cannot change the causal prefix activation at equal sequence length | Proven bitwise on released Qwen2.5-7B-Instruct | Eight same-length pairs with different suffix content bitwise identical (GB10 BF16 and CPU fp32); `score_answer` now enforces a tolerance-free same-length dummy-suffix bitwise equality gate, so a genuine content leak fails while kernel noise cannot |
-| Cross-length BF16 drift at the prefix site is bounded kernel noise under a frozen justified bound | Measured on smoke data; bound frozen pre-pilot | Maximum relative L2 drift 3.09e-2 across 20 cross-length appends (cuBLAS kernel re-selection on sm_121; CPU fp32 collapses to ~4e-6; answer argmax stable 20/20); `SUFFIX_DRIFT_BOUND = 1e-1`, safety factor ≈3 over the measured maximum, justified per brief §4, recorded in the manifest and in per-score `suffix_drift_relative` evidence |
+| Cross-length BF16 drift at the prefix site is bounded kernel noise under a frozen justified bound | Measured on smoke data; bound frozen pre-pilot; coverage **FALSIFIED on the pilot distribution** 2026-09-21 (pre-pilot, no outcomes inspected) | Maximum relative L2 drift 3.09e-2 across 20 cross-length appends (cuBLAS kernel re-selection on sm_121; CPU fp32 collapses to ~4e-6; answer argmax stable 20/20); `SUFFIX_DRIFT_BOUND = 1e-1`, safety factor ≈3 over the measured maximum, justified per brief §4, recorded in the manifest and in per-score `suffix_drift_relative` evidence. Falsification preserved explicitly: pilot-0000-A-x measured 2.58e-1 (a prompt-conditioned heavy tail the smoke sample missed; fp32 collapses it to ~3.2e-6, so noise, not leak). The bound stays frozen as an untouched backstop and was never re-fitted to pilot data; the operative fix is kernel-shape pinning — see the next section |
 | The smoke rerun with the repaired gate exists | COMPLETE (engineering smoke) | Run smoke-20260921T211151Z-a4e4a038 on the repaired code: 8/8 groups successful, independent auditor PASS, drift evidence max 3.55e-2 across 336 samples inside the frozen 1e-1 bound; measured P0 25/32 (0.781), P1 gate bitwise, P2 18/32 (0.562, KL 1.41), P3 15/32 (KL 4.63), P5 0/32 (KL 10.49), donor KL 0.098. Eight smoke groups are engineering data, not a scientific result: P0 0.781 sits below the 80% pilot-usability floor, an early signal for the pilot decision — not a smoke failure and not a pilot outcome; calibration/pilot remain NOT RUN |
 | The causality gate or the drift measurements establish anything about the semantic content of activations | FALSE | The gate discriminates a causal leak from kernel-reduction noise only; no interpretation, faithfulness, or semantics claim |
+
+## GB10 first pilot attempt: identity-gate failure and kernel-shape pinning (2026-09-21)
+
+After the unpadded calibration completed (run
+calibration-20260921T221636Z-63a6be98), the first pilot attempt (run
+pilot-20260921T222056Z-69535f26, preserved with `completion.json: FAILED`)
+died in `Target.identity_gate` on the first variant, pilot-0000-A-x ("raw
+restoration changed greedy answer"), before any condition ran: 1 failed
+group, 127 skipped, no pilot or validation outcomes inspected. Gate-level
+diagnosis on the same variant (local scratch probes `/tmp/owl_greedy_probe/`,
+not committed): the unpatched and pinned greedy paths diverge at generation
+step 2 in a near-tie argmax flip (unpatched EOS margin 0.75; pinned "\n"
+margin 0.375), and the unpadded prefix site at that sequence differs from
+the pinned vector by 2.58e-1 relative — 2.6× the frozen 1e-1 bound and 7×
+the smoke maximum. The drift is deterministic (same-length bitwise), appears
+at every append length +1…+5 (0.26 on pilot-0000-A-x; 0.12–0.16 on two more
+variants, all above the bound at answer-suffix lengths), grows from 6.3e-2
+already at the block-0 output, and collapses to ~3.2e-6 in fp32 — pure
+kernel-reselection noise with a prompt-conditioned heavy tail, not a
+semantic leak, but outside the smoke-fitted bound's cover. `score_answer`'s
+bound would have been exceeded in the behavior stage as well. Re-fitting the
+bound to pilot data was rejected (a tolerance fitted to the distribution
+that broke it, with weaker bug discrimination); the repair instead removes
+the drift class by construction.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Unpadded cross-length prefix-site drift on the pilot distribution stays within the frozen 1e-1 bound | FALSE (falsified 2026-09-21, pre-pilot, gate measurements only) | pilot-0000-A-x 2.58e-1 at the divergence step and ~0.26 at every append +1…+5; pilot-0000-A-y 0.144–0.165; pilot-0001-A-x 0.019 (+1) then 0.122–0.127; the smoke's 336 samples (max 3.55e-2) under-sampled a prompt-conditioned tail; fp32 collapses all of it to ~3.2e-6 |
+| The first pilot attempt produced condition outcomes or a decision | FALSE; failed run preserved explicitly | Run pilot-20260921T222056Z-69535f26 died in the identity stage on variant 1; its decision/summary fields are degenerate artifacts of a dead run, not measurements |
+| Kernel-shape pinning removes the cross-length drift class by construction | Implemented and fixture-tested; real-model gate check PASSED on pilot-0000-A-x | Every target forward right-padded to `TARGET_BUCKET = 128` (masked pads exactly zero, bitwise-proven; same-shape forwards bitwise deterministic on this backend); greedy/scoring write into masked pad slots; loud pre-inference fit check (max prompt 79 + 8 generation + 3 suffix = 90 ≤ 128); `SUFFIX_DRIFT_BOUND` kept frozen as an untouched backstop; the greedy identity comparison is a recorded exact/drift_diverged backstop counted in summaries, never a decision input. Gate check (pinned code, this variant plus two more): identity gates bitwise, greedy "exact", `suffix_drift_relative` exactly 0.0 — details in reports/milestone_two.md |
+| The pinned re-baseline runs (smoke, calibration, pilot) exist | NOT RUN; PENDING | Unpadded smoke-20260921T211151Z-a4e4a038 and calibration-20260921T221636Z-63a6be98 are superseded engineering evidence; the three-stage rerun sequence and new run IDs are recorded in reports/milestone_two.md after execution |
+
+The bounded stopping rule is unchanged: one pilot, at most one locked
+validation, then a write-up even on failure. This pre-pilot repeatability
+repair inspected gate internals only; no pilot or validation outcomes were
+observed, and no tolerance was relaxed.
 
 ## Completed phase-one findings (2026-09-16)
 

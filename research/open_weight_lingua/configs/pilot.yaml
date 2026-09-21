@@ -35,6 +35,14 @@ target_decoding:
   greedy: true
   max_new_tokens: 8
 
+# Fixed right-padded sequence length for every target forward (kernel-shape
+# pinning on sm_121, target.TARGET_BUCKET). Established pre-pilot 2026-09-21
+# after the first pilot attempt's identity-gate failure; masked pads
+# contribute exactly zero (bitwise-proven). The runner checks loudly before
+# inference that every prompt + generation ceiling + answer suffix fits;
+# B never changes silently. Supersedes the unpadded smoke/calibration runs.
+target_bucket: 128
+
 norm_policy: >-
   Receiver original float32 norm retained separately (4 bytes) for P2/P3/P4/P5/
   donor/edited patches. The calibration_median_norm diagnostic uses the frozen
