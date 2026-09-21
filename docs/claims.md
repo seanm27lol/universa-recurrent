@@ -24,6 +24,53 @@ The bounded scientific stopping rule remains one pilot and at most one locked
 validation, followed by a write-up even on failure. Neither stage is executable
 from this Milestone 1 runner. Phase One's conclusions below are unchanged.
 
+## Phase Two Milestone 2 (2026-09-21)
+
+Milestone 2 adds the grouped split plan, the P4 calibration-fitted PCA
+baseline, the frozen text editor, group-bootstrap decision statistics and the
+calibration/pilot runner stages to the same
+[isolated implementation](../research/open_weight_lingua/README.md). Smoke
+behavior is unchanged, and the
+[pilot decision document](../research/open_weight_lingua/protocols/pilot_decision.md)
+is published as a template with every outcome field pending.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The five-split plan (smoke, calibration, pilot, two validation blocks) is deterministic and disjoint | Implemented and fixture-tested | Fixed split order, namespaces and seeds; carried canonical-program and tokenized-prompt exclusion inventories; plan hash over every group identity; disjointness is textual and no released-model data exists yet |
+| The P4 baseline is fitted on pooled, unlabeled calibration unit directions with a declared byte-budget rank | Implemented and fixture-tested | PCA mean/basis, rank `min(fitted_rank, floor(text_bytes/2))`, float16 coefficients, shared mean/basis bytes reported separately, sha256 fit identity for the manifest; no task labels and no norm restoration inside the fit |
+| The frozen text editor classifies and minimally edits explicit current-value statements | Implemented and fixture-tested | Three frozen forms, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only replacement; agreement with the reference program recorded separately and never gating an edit; rule version and sha256 enter the manifest |
+| Pilot decision statistics resample whole groups | Implemented and fixture-tested | 3,000 bootstrap resamples at a fixed seed; one-sided 95% upper/lower estimates for the §8 rules; absolute log-probability contrasts only, no fraction-recovered ratios |
+| Calibration and pilot stages run from one CLI | Implemented, fixture-level | `--stage smoke|calibration|pilot` with smoke unchanged; pilot requires `--calibration-fit`; `run_calibration.sh`/`run_pilot.sh` follow the smoke script pattern; real-model execution NOT RUN |
+| The 256-group released-model calibration fit exists | NOT RUN | No target/AV/AR weights fetched or loaded on this branch; `baseline_fit_identity` unfilled |
+| The 128-group pilot outcome and keep/stop decision exist | NOT RUN | Decision fields in `completion.json`/`report.md` and the pilot decision document are PENDING PILOT RUN |
+| The 512-group locked validation exists | NOT RUN; not implemented | No validation stage in the CLI; the pilot reports a projected cost against the eight-hour budget and never auto-starts it |
+| P4 is an optimal compression baseline, or generic reconstruction already matches language | FALSE as framed | The condition is no-more-than-budget under a declared byte rule; the comparison is a pilot question, not a premise |
+| Frozen-rule edits establish discovered variable semantics in the activation | NOT CLAIMED | The parser matches frozen surface forms only; a statement's truth never gates its editability |
+| Any scientific threshold (80% P0 floor, 5-point P2 loss bound, 32-group edit floor) has been assessed | NOT YET | These are design choices to lock before validation; pilot outcomes are pending |
+
+The bounded stopping rule is unchanged: one pilot, at most one locked
+validation, then a write-up even on failure. A negative pilot does not trigger
+checkpoint shopping; a repaired source/API bug permits only a regression test
+plus a visibly versioned rerun of the affected pilot (brief §11).
+
+## GB10 real-model smoke: suffix-causality repair (2026-09-21)
+
+The first released-model smoke (run smoke-20260921T185833Z-c264a184, raw
+measurements in the retained suffix-probe results) passed fetch, all 32
+identity gates bitwise, and every AV/AR call, then failed teacher-forced
+scoring: the old `allclose(1e-5)` comparison of the prefix-site vector before
+and after appending an answer suffix is unattainable whenever the GEMM
+reduction order changes with sequence length. The check was re-derived from
+the smoke measurements and frozen before the pilot, not relaxed after
+inspecting results.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| An appended answer suffix cannot change the causal prefix activation at equal sequence length | Proven bitwise on released Qwen2.5-7B-Instruct | Eight same-length pairs with different suffix content bitwise identical (GB10 BF16 and CPU fp32); `score_answer` now enforces a tolerance-free same-length dummy-suffix bitwise equality gate, so a genuine content leak fails while kernel noise cannot |
+| Cross-length BF16 drift at the prefix site is bounded kernel noise under a frozen justified bound | Measured on smoke data; bound frozen pre-pilot | Maximum relative L2 drift 3.09e-2 across 20 cross-length appends (cuBLAS kernel re-selection on sm_121; CPU fp32 collapses to ~4e-6; answer argmax stable 20/20); `SUFFIX_DRIFT_BOUND = 1e-1`, safety factor ≈3 over the measured maximum, justified per brief §4, recorded in the manifest and in per-score `suffix_drift_relative` evidence |
+| The smoke rerun with the repaired gate exists | COMPLETE (engineering smoke) | Run smoke-20260921T211151Z-a4e4a038 on the repaired code: 8/8 groups successful, independent auditor PASS, drift evidence max 3.55e-2 across 336 samples inside the frozen 1e-1 bound; measured P0 25/32 (0.781), P1 gate bitwise, P2 18/32 (0.562, KL 1.41), P3 15/32 (KL 4.63), P5 0/32 (KL 10.49), donor KL 0.098. Eight smoke groups are engineering data, not a scientific result: P0 0.781 sits below the 80% pilot-usability floor, an early signal for the pilot decision — not a smoke failure and not a pilot outcome; calibration/pilot remain NOT RUN |
+| The causality gate or the drift measurements establish anything about the semantic content of activations | FALSE | The gate discriminates a causal leak from kernel-reduction noise only; no interpretation, faithfulness, or semantics claim |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

@@ -11,6 +11,22 @@ import torch
 
 from .metrics import answer_tokens, sequence_log_probability
 
+SUFFIX_DRIFT_BOUND = 1e-1
+"""Frozen bound on cross-length relative drift at the scored prefix site.
+
+Justified from smoke-test data and frozen before the pilot (brief §4:
+investigate on smoke-test data and document a justified bound before the
+pilot; never relax tolerances after inspecting validation results). In the
+2026-09-21 GB10 smoke probe (run smoke-20260921T185833Z-c264a184, raw
+measurements retained in the suffix-probe results), appending 1-5 answer
+tokens moved the prefix-site vector by at most 3.09e-2 in
+||drift||₂/||original||₂ terms: BF16 cuBLAS kernel re-selection on sm_121
+changes the GEMM reduction order, and the reassociation compounds over
+blocks. CPU fp32 collapses the drift to ~4e-6, and equal-length pairs stay
+bitwise identical, so this bound covers only known kernel-reduction noise,
+with a safety factor of about three over the measured maximum.
+"""
+
 
 @dataclass(frozen=True)
 class Site:
@@ -212,10 +228,40 @@ class Target:
         )
         # Capture before patching; appended answers may not leak into the prefix.
         observed = self.capture(extended, extended_mask, site, check_index=False).vector
-        if not torch.allclose(
-            observed.float(), original_vector.float(), atol=1e-5, rtol=1e-5
-        ):
+        # Same-length causality gate: a deterministic dummy suffix of equal
+        # length must reproduce the site vector bitwise. Equal-length forwards
+        # select identical kernels, so any difference is genuine suffix-content
+        # dependence, not reduction-order noise (measured bitwise zero across
+        # eight same-length pairs in the 2026-09-21 GB10 smoke probe).
+        dummy_id = getattr(self.tokenizer, "pad_token_id", None)
+        if dummy_id is None:
+            dummy_id = self.tokenizer.eos_token_id
+        if dummy_id is None:
+            dummy_id = 0
+        dummy_suffix = [dummy_id] * len(suffix)
+        if dummy_suffix == suffix:
+            raise RuntimeError(
+                "dummy suffix coincides with the answer suffix; "
+                "the causality gate cannot discriminate a leak"
+            )
+        dummy = torch.cat((ids[:, :length], ids.new_tensor([dummy_suffix])), dim=1)
+        # Same total length, so the extended mask applies unchanged.
+        observed_dummy = self.capture(
+            dummy, extended_mask, site, check_index=False
+        ).vector
+        if not torch.equal(observed, observed_dummy):
             raise RuntimeError("answer suffix changed the causal prefix activation")
+        # Cross-length, only kernel-reduction drift is expected; the frozen
+        # justified bound is documented on SUFFIX_DRIFT_BOUND.
+        drift = float(
+            torch.linalg.vector_norm(observed.float() - original_vector.float())
+            / torch.linalg.vector_norm(original_vector.float())
+        )
+        if not drift <= SUFFIX_DRIFT_BOUND:
+            raise RuntimeError(
+                f"cross-length suffix drift {drift:.6g} exceeds the frozen "
+                f"pre-pilot bound {SUFFIX_DRIFT_BOUND:.6g}"
+            )
         logits = self.forward(
             extended,
             extended_mask,
@@ -225,6 +271,7 @@ class Target:
         return {
             "token_ids_including_eos": suffix,
             "log_probability": sequence_log_probability(logits, length, suffix),
+            "suffix_drift_relative": drift,
         }
 
     def identity_gate(self, ids, mask, site):

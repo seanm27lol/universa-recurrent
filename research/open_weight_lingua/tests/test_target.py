@@ -2,6 +2,8 @@ import pytest
 import torch
 from transformers.modeling_outputs import BaseModelOutput
 from open_weight_lingua.target import (
+    SUFFIX_DRIFT_BOUND,
+    ActivationRecord,
     Target,
     Site,
     block_hook,
@@ -113,3 +115,93 @@ def test_answer_suffix_is_causal_and_patch_stays_at_prefix(model_factory, tokeni
     assert len(seen) >= 1
     # Prefix's pre-patch causal vector remains fixed as suffix grows.
     assert all(torch.allclose(row[0, 2], record.vector) for row in seen)
+
+
+def test_score_answer_records_suffix_drift(model_factory, tokenizer):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    score = target.score_answer(ids, mask, record.site, "19", record.vector)
+    assert score["token_ids_including_eos"] == [11, 19, 2]
+    # CPU fixture drift is far below the frozen justified bound.
+    assert 0 <= score["suffix_drift_relative"] < 1e-3
+
+
+def _fake_record(vector, ids, mask, site):
+    return ActivationRecord(
+        vector, site, ids[0].tolist(), mask[0].tolist(), "fake", site.layer + 1
+    )
+
+
+def test_same_length_dummy_gate_rejects_suffix_dependence(
+    model_factory, tokenizer, monkeypatch
+):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+
+    def leaking_capture(capture_ids, capture_mask, site, *, check_index=True):
+        # The captured vector depends on suffix content: a genuine causal leak.
+        vector = torch.full((16,), float(sum(capture_ids[0].tolist())))
+        return _fake_record(vector, capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", leaking_capture)
+    with pytest.raises(
+        RuntimeError, match="answer suffix changed the causal prefix activation"
+    ):
+        target.score_answer(ids, mask, record.site, "19", record.vector)
+
+
+def test_suffix_drift_bound_rejects_excess_drift(
+    model_factory, tokenizer, monkeypatch
+):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+
+    def drifting_capture(capture_ids, capture_mask, site, *, check_index=True):
+        # Equal-length captures agree bitwise but sit far from the original.
+        vector = torch.zeros_like(record.vector)
+        return _fake_record(vector, capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", drifting_capture)
+    with pytest.raises(RuntimeError, match="suffix drift"):
+        target.score_answer(ids, mask, record.site, "19", record.vector)
+
+
+def test_suffix_drift_within_bound_passes(model_factory, tokenizer, monkeypatch):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+
+    def kernel_noise_capture(capture_ids, capture_mask, site, *, check_index=True):
+        vector = record.vector * 1.01
+        return _fake_record(vector, capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", kernel_noise_capture)
+    score = target.score_answer(ids, mask, record.site, "19", record.vector)
+    assert score["suffix_drift_relative"] == pytest.approx(0.01, rel=1e-3)
+    assert score["suffix_drift_relative"] <= SUFFIX_DRIFT_BOUND
+    assert score["token_ids_including_eos"] == [11, 19, 2]
+    assert score["log_probability"] < 0
+
+
+def test_dummy_suffix_token_resolution(model_factory, tokenizer, monkeypatch):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    calls = []
+
+    def recording_capture(capture_ids, capture_mask, site, *, check_index=True):
+        calls.append(capture_ids[0].tolist())
+        return _fake_record(record.vector, capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", recording_capture)
+    target.score_answer(ids, mask, record.site, "19", record.vector)
+    assert calls[0][-3:] == [11, 19, 2]
+    # TinyTokenizer has no pad token; the dummy falls back to EOS.
+    assert calls[1][-3:] == [2, 2, 2]
+    calls.clear()
+    tokenizer.pad_token_id = 7
+    target.score_answer(ids, mask, record.site, "19", record.vector)
+    assert calls[1][-3:] == [7, 7, 7]
