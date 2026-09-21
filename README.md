@@ -44,6 +44,11 @@ prediction result is not a speedup or total-memory saving.
 
 ## Research history and reproducibility
 
+Phase Two now has an isolated [Qwen/NLA engineering scaffold](research/open_weight_lingua/README.md)
+for testing whether language can preserve one selected activation. Its CPU fixture
+tests are software checks; released-model smoke, pilot and validation results are
+not yet available. This does not reopen or extend the completed Phase-One claims.
+
 The existing experiment scripts remain available to reproduce results; they are
 not a new required run list. The [roadmap](docs/roadmap.md) marks this experimental
 sequence closed, and the [claim ledger](docs/claims.md) separates measured results

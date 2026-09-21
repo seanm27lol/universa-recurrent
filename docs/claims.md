@@ -1,5 +1,29 @@
 # Claim ledger
 
+## Phase Two Milestone 1 (2026-09-21)
+
+An isolated [Qwen/NLA engineering implementation](../research/open_weight_lingua/README.md)
+transfers the preserve/intervene/measure procedure to one learned activation.
+[Source audit](../research/open_weight_lingua/reports/source_compatibility.md) and
+[local verification](../research/open_weight_lingua/reports/milestone_one.md) distinguish
+implemented interfaces from released-model evidence.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| One block-output vector can be captured and reinserted without changing the fixture computation | Tested locally with tiny random Qwen models | Native BF16 equality, hidden-state indexing, single-site mutation, hook cleanup, padding and repeated-input tests; not a released-Qwen result |
+| Released NLA metadata/tokenizer conventions are resolved | Source-audited and tokenizer-tested | Immutable model/source lock; actual AV marker/neighbors and AR suffix/depth checked |
+| The local AV adapter distinguishes different injected embeddings | Tested locally with fixtures | Cache-free A/B/A calls with identical token IDs; no SGLang equivalence or real AV quality claim |
+| AR reconstruction uses the trained value head and omits final normalization | Implemented and fixture-tested | Required safe head loading, shape/dtype validation and final-block test; released AR weights not loaded |
+| Text alone reconstructs the complete native activation | NOT CLAIMED | Direction reconstruction restores a separately retained four-byte original norm; all remaining prompt context persists |
+| The pinned environment runs on this GB10 | Partially checked | Installation, imports and basic BF16 kernel passed; capability warning remains; full real-model smoke NOT RUN |
+| The eight-group runner produces auditable evidence | Fixture-tested | Safe numeric files, all-group accounting, reports-only inventory and independent saved-count/KL replay; no execution authentication |
+| Language preserves or specifically edits real Qwen behavior | NOT ESTABLISHED | Released-weight smoke NOT RUN; pilot, calibration/PCA, text-edit coverage and locked validation are later milestones |
+| This is a recurrent-depth experiment, a new NLA method, or a whole-state compression result | FALSE | Conventional transformer; external pretrained NLA pair; one selected-token patch |
+
+The bounded scientific stopping rule remains one pilot and at most one locked
+validation, followed by a write-up even on failure. Neither stage is executable
+from this Milestone 1 runner. Phase One's conclusions below are unchanged.
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
