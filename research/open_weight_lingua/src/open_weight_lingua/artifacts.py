@@ -63,6 +63,12 @@ class RunDirectory:
         retained = sorted(
             path for path in (self.path / "raw").glob("*") if path.is_file()
         )
+        # Calibration baseline artifacts live at the run root; the safetensors
+        # payload stays local like raw evidence, while its JSON sidecar travels
+        # with the reports.
+        retained += sorted(
+            path for path in self.path.glob("*.safetensors") if path.is_file()
+        )
         inventory = {
             "included": [
                 {

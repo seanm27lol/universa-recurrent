@@ -1,0 +1,57 @@
+# DRAFT — Milestone 2 pilot operational choices.
+#
+# Draft until a completed pilot records them (phase_two_brief.md Sections 6-9
+# and 11). The frozen values are duplicated in each run's manifest.json; this
+# file is the human-readable draft, not the locked record.
+
+stage: pilot  # smoke -> calibration -> pilot; locked validation is not implemented
+
+splits:  # problem groups per split (brief Section 6 table)
+  smoke: 8
+  calibration: 256
+  pilot: 128
+  validation_a: 256
+  validation_b: 256
+
+seeds:
+  split_pilot: 203001        # tasks.SPLIT_SEEDS["pilot"]
+  runner: 203100             # P5 generator + torch manual seed
+  bootstrap: 203100          # whole-group bootstrap seed
+  bootstrap_resamples: 3000  # brief Section 8 default
+
+thresholds:  # quoted from brief Sections 7-9 design choices; never weakened on held-out results
+  unmodified_accuracy_floor: 0.80
+  p2_accuracy_loss_upper_points: 5.0   # one-sided 95% upper estimate
+  p2_minus_p3_logprob_lower: 0.0       # one-sided 95% lower must be positive
+  edit_eligible_group_floor: 32
+  stage_budget_hours: 8                # per scientific stage; projection reported, never auto-started
+
+av_decoding:  # one greedy description per activation (brief Section 6)
+  greedy: true
+  max_new_tokens: 200
+  descriptions_per_activation: 1
+
+target_decoding:
+  greedy: true
+  max_new_tokens: 8
+
+norm_policy: >-
+  Receiver original float32 norm retained separately (4 bytes) for P2/P3/P4/P5/
+  donor/edited patches. The calibration_median_norm diagnostic uses the frozen
+  calibration median recorded in the pilot manifest; the Milestone 1 smoke-local
+  median is retired outside smoke.
+
+p4_baseline:  # fitted on pooled, unlabeled calibration unit directions only
+  kind: pca_unit_directions
+  coefficients: float16
+  rank_rule: rank = min(fitted_rank, floor(text_bytes / 2))
+  budget_interpretation: no-more-than-budget
+
+edit_rule:
+  version: 1.0.0
+  sha256: e1560d7ec22a2cc5cafda0a46dd05d54d611b7fbf45b3f6b7f6ab36e5bc41fb3
+  policy: >-
+    Edit the affected variable's stated current value to the group's
+    counterfactual value; same-delta wrong-variable control when eligible;
+    absent/ambiguous descriptions receive a status, never a fabricated
+    replacement.
