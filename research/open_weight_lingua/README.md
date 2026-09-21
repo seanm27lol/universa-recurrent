@@ -155,7 +155,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | Small implementation | What to look for |
 |---|---|
 | [tasks.py](src/open_weight_lingua/tasks.py) | Explicit interpreter, paired-answer integrity, deterministic groups, canonical-program and tokenized-prompt exclusions |
-| [target.py](src/open_weight_lingua/target.py) | Block output versus `hidden_states[layer+1]`, one site, native restoration, exception-safe hooks, suffix causality via a same-length dummy-suffix bitwise gate plus a frozen pre-pilot cross-length drift bound |
+| [target.py](src/open_weight_lingua/target.py) | Block output versus `hidden_states[layer+1]`, one site, native restoration, exception-safe hooks, suffix causality via a same-length dummy-suffix bitwise gate plus a frozen pre-pilot cross-length drift bound; every target forward right-padded to the fixed 128-token bucket (`TARGET_BUCKET`) for kernel-shape pinning, with greedy/scoring writing into masked pad slots |
 | [nla_adapter.py](src/open_weight_lingua/nla_adapter.py) | Exact loaded metadata/templates, marker context, cache-free AV embedding injection, required AR value head, no final norm |
 | [geometry.py](src/open_weight_lingua/geometry.py) | Direction and retained norm stay separate; nonfinite/near-zero rejection |
 | [metrics.py](src/open_weight_lingua/metrics.py) | Strict integer output, multi-token answer plus EOS scoring, float32 full-vocabulary KL |
@@ -190,7 +190,7 @@ on the released Qwen or NLA weights, and are not preregistered scientific result
 
 | File in a fresh run | Contents |
 |---|---|
-| `manifest.json` | Written before model inference: all inputs/IDs, code/protocol hashes, exact revisions, metadata, software and frozen engineering settings; immutable once written, so calibration runs keep `baseline_fit_identity` null and the fit identity is written to `completion.json` and `baseline_fit.json` after inference, while pilot runs record it in the manifest together with the frozen edit-rule version and sha256 |
+| `manifest.json` | Written before model inference: all inputs/IDs, code/protocol hashes, exact revisions, metadata, software and frozen engineering settings; immutable once written, so calibration runs keep `baseline_fit_identity` null and the fit identity is written to `completion.json` and `baseline_fit.json` after inference, while pilot runs record it in the manifest together with the frozen edit-rule version and sha256; `target_bucket`/`target_padding_policy` record the 128-token kernel-shape pinning and `greedy_identity_gate` the greedy backstop policy |
 | `results.json` | Every planned prompt variant, identity checks, descriptions, scores, controls, timings, bytes and failures |
 | `summary.json`, `report.md` | All-group/all-variant denominators and valid-case distribution metrics; no selection of attractive examples; pilot `report.md` adds a decision section evaluating the frozen thresholds |
 | `baseline_fit.safetensors`, `baseline_fit.json` | Calibration stage only: P4 mean/basis plus sidecar (format version, dtype, fitted rank, width) with a sha256 content identity; loaded by the pilot via `--calibration-fit` |

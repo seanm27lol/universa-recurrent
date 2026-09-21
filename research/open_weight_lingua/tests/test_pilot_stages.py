@@ -468,3 +468,105 @@ def test_pilot_summary_counts_failed_rows_and_never_fabricates_kl():
     assert decision["recommendation"] == "stop"
     assert "unmodified_accuracy" in decision["unmet_criteria"]
     assert "edit_eligible_groups" in decision["unmet_criteria"]
+
+
+def test_check_target_bucket_fit_is_loud_and_pre_inference():
+    fitting = [
+        {
+            "id": "row-fit",
+            "input_ids": [0] * 120,
+            "answer_token_ids_including_eos": [16, 16, 151645],
+        }
+    ]
+    # 120 + max(8, 3) = 128: exactly at the boundary, accepted.
+    runner.check_target_bucket_fit(fitting)
+    # Calibration-style rows carry no answer suffix; the ceiling still applies.
+    runner.check_target_bucket_fit([{"id": "row-cal", "input_ids": [0] * 120}])
+    over = [
+        {
+            "id": "row-over",
+            "input_ids": [0] * 121,
+            "answer_token_ids_including_eos": [16, 151645],
+        }
+    ]
+    with pytest.raises(ValueError, match="row-over.*exceeds the pinned target bucket 128"):
+        runner.check_target_bucket_fit(over)
+
+
+def test_manifest_records_target_bucket_policy(tmp_path):
+    inputs = [{"id": "row", "input_ids": [3, 4], "group_id": "g"}]
+    manifest = runner.build_manifest(
+        {}, _lock_file(tmp_path), inputs, None, {"layer": 1}, {}
+    )
+    assert manifest["target_bucket"] == 128
+    assert manifest["target_padding_policy"] == (
+        "all target forwards right-padded to fixed length 128 for kernel-shape "
+        "pinning on sm_121; masked pads contribute exactly zero (bitwise-proven); "
+        "pinned regime established 2026-09-21 pre-pilot after the first pilot "
+        "attempt's identity-gate failure; supersedes the unpadded "
+        "smoke/calibration runs"
+    )
+    assert manifest["greedy_identity_gate"] == (
+        "exact greedy equality required; divergence accepted only with measured "
+        "within-bound prefix drift at the divergence step (same frozen "
+        "SUFFIX_DRIFT_BOUND and 2026-09-21 justification); repaired pre-pilot "
+        "after the first pilot attempt failed this gate on variant "
+        "pilot-0000-A-x with no conditions executed; no pilot/validation "
+        "outcomes inspected"
+    )
+
+
+def test_smoke_rows_record_greedy_identity_backstop(
+    tmp_path, monkeypatch, model_factory, tokenizer, metadata_factory
+):
+    """Fixture orchestration only: pinned gates record exact, summaries count."""
+    plan = build_plan(TINY_COUNTS)
+    inputs = _inputs(plan.groups["smoke"])
+    monkeypatch.setattr(runner, "load_model", _stub_load_model(model_factory))
+    monkeypatch.setattr(
+        runner, "Verbalizer", _stub_verbalizer(["Fixture only"] * len(inputs))
+    )
+    save_file({"weight": torch.eye(16)}, tmp_path / "value_head.safetensors")
+    run = RunDirectory(tmp_path / "smoke")
+    rows = runner.execute_smoke(
+        run,
+        {role: tmp_path for role in ("target", "av", "ar")},
+        {role: tokenizer for role in ("target", "av", "ar")},
+        metadata_factory("av"),
+        metadata_factory("ar"),
+        inputs,
+        "cpu",
+        {},
+        {},
+    )
+    for row in rows:
+        assert row["identity"]["greedy"]["status"] == "exact"
+        assert row["p0_p1_greedy_gate"]["status"] == "exact"
+        assert "target_bucket_padding" in row["payload_bytes"]
+    summary = summarize({"inputs": inputs}, rows)
+    assert summary["greedy_identity"] == {
+        "identity_stage": {"exact": 8, "drift_diverged": 0},
+        "behavior_stage": {"exact": 8, "drift_diverged": 0},
+    }
+
+
+def test_pilot_rows_record_greedy_backstop_counts(
+    tmp_path, monkeypatch, model_factory, tokenizer, metadata_factory
+):
+    """Pilot-stage rows carry the same pinned backstop evidence as smoke."""
+    plan, groups, pilot_inputs, run, fit, median_record, rows = _run_pilot_fixture(
+        tmp_path, monkeypatch, model_factory, tokenizer, metadata_factory
+    )
+    for row in rows:
+        assert row["identity"]["greedy"]["status"] == "exact"
+        assert row["p0_p1_greedy_gate"]["status"] == "exact"
+    manifest = {
+        "inputs": pilot_inputs,
+        "stage": "pilot",
+        "frozen_thresholds": FROZEN_THRESHOLDS,
+    }
+    summary = summarize(manifest, rows)
+    assert summary["greedy_identity"] == {
+        "identity_stage": {"exact": 16, "drift_diverged": 0},
+        "behavior_stage": {"exact": 16, "drift_diverged": 0},
+    }

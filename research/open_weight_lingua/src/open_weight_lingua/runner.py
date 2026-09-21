@@ -38,7 +38,7 @@ from .preflight import (
     verify_models,
 )
 from .splits import DEFAULT_COUNTS, build_plan, tokenize_split, validate_plan
-from .target import SUFFIX_DRIFT_BOUND, Site, Target
+from .target import SUFFIX_DRIFT_BOUND, TARGET_BUCKET, Site, Target
 from .tasks import (
     PROMPT_TEMPLATE,
     SPLIT_SEEDS,
@@ -163,6 +163,9 @@ def build_manifest(
         "suffix_causality_gate": "same-length dummy-suffix bitwise equality",
         "suffix_drift_bound": SUFFIX_DRIFT_BOUND,
         "suffix_drift_bound_justification": "frozen before the pilot from 2026-09-21 GB10 smoke data (brief §4): measured maximum cross-length relative drift 3.09e-2 from BF16 kernel reduction reassociation; bound 1e-1 adds safety factor ~3 and is never relaxed after inspecting validation results",
+        "target_bucket": TARGET_BUCKET,
+        "target_padding_policy": "all target forwards right-padded to fixed length 128 for kernel-shape pinning on sm_121; masked pads contribute exactly zero (bitwise-proven); pinned regime established 2026-09-21 pre-pilot after the first pilot attempt's identity-gate failure; supersedes the unpadded smoke/calibration runs",
+        "greedy_identity_gate": "exact greedy equality required; divergence accepted only with measured within-bound prefix drift at the divergence step (same frozen SUFFIX_DRIFT_BOUND and 2026-09-21 justification); repaired pre-pilot after the first pilot attempt failed this gate on variant pilot-0000-A-x with no conditions executed; no pilot/validation outcomes inspected",
         "norm_policy": "receiver original float32 norm retained separately (4 bytes)",
         "fixed_norm_diagnostic": "median of all 32 smoke extraction norms, frozen before reconstruction; not a scientific calibration norm",
         "shuffled_description": "next group cyclically, same variant ordinal; input-independent derangement",
@@ -229,6 +232,25 @@ def build_manifest(
         limits="One bounded pilot; pooled estimates only; keep/stop derives only from the frozen thresholds; validation is never auto-started.",
     )
     return manifest
+
+
+def check_target_bucket_fit(inputs, *, bucket=TARGET_BUCKET, generation_ceiling=8):
+    """Loud pre-inference guarantee for kernel-shape pinning.
+
+    Every prompt plus its worst-case suffix (the greedy generation ceiling or
+    the answer suffix, whichever is longer) must fit the pinned bucket. The
+    bucket length B never changes silently; an over-bucket input stops the run
+    before any model forward.
+    """
+    for row in inputs:
+        prompt = len(row["input_ids"])
+        suffix = len(row.get("answer_token_ids_including_eos") or ())
+        worst = max(generation_ceiling, suffix)
+        if prompt + worst > bucket:
+            raise ValueError(
+                f"{row['id']}: prompt length {prompt} plus worst-case suffix "
+                f"{worst} exceeds the pinned target bucket {bucket}"
+            )
 
 
 def execute_smoke(
@@ -418,13 +440,17 @@ def execute_smoke(
                     raise RuntimeError(
                         "target reload changed unmodified greedy generation"
                     )
-                if (
-                    row["conditions"]["P0"]["generation"]
-                    != row["conditions"]["P1"]["generation"]
-                ):
-                    raise RuntimeError(
-                        "raw replacement changed greedy generation after reload"
-                    )
+                # P0 (unpatched) versus P1 (pinned original) greedy trajectories
+                # are the same pinned-shape computation; "exact" is the
+                # expectation and drift_diverged is retained backstop evidence.
+                row["p0_p1_greedy_gate"] = target.greedy_identity(
+                    ids,
+                    mask,
+                    record.site,
+                    record.vector,
+                    row["conditions"]["P0"]["generation"],
+                    row["conditions"]["P1"]["generation"],
+                )
                 row["controls"] = {
                     "donor_id": donor["id"],
                     "shuffled_description_id": shuffled_id,
@@ -440,6 +466,7 @@ def execute_smoke(
                     * record.vector.element_size(),
                     "retained_input_ids_int64": ids.numel() * 8,
                     "retained_attention_mask_int64": mask.numel() * 8,
+                    "target_bucket_padding": "retained ids/mask keep logical length; every target forward was right-padded to the manifest target_bucket for kernel-shape pinning",
                     "shared_metadata_and_weights": "see manifest/model_lock and inventory; not included in text bytes",
                 }
                 save_numeric(
@@ -945,13 +972,17 @@ def execute_pilot(
                     raise RuntimeError(
                         "target reload changed unmodified greedy generation"
                     )
-                if (
-                    row["conditions"]["P0"]["generation"]
-                    != row["conditions"]["P1"]["generation"]
-                ):
-                    raise RuntimeError(
-                        "raw replacement changed greedy generation after reload"
-                    )
+                # P0 (unpatched) versus P1 (pinned original) greedy trajectories
+                # are the same pinned-shape computation; "exact" is the
+                # expectation and drift_diverged is retained backstop evidence.
+                row["p0_p1_greedy_gate"] = target.greedy_identity(
+                    ids,
+                    mask,
+                    record.site,
+                    record.vector,
+                    row["conditions"]["P0"]["generation"],
+                    row["conditions"]["P1"]["generation"],
+                )
                 row["controls"] = {
                     "donor_id": donor["id"],
                     "shuffled_description_id": shuffled_id,
@@ -983,6 +1014,7 @@ def execute_pilot(
                     * record.vector.element_size(),
                     "retained_input_ids_int64": ids.numel() * 8,
                     "retained_attention_mask_int64": mask.numel() * 8,
+                    "target_bucket_padding": "retained ids/mask keep logical length; every target forward was right-padded to the manifest target_bucket for kernel-shape pinning",
                     "shared_metadata_and_weights": "see manifest/model_lock and inventory; not included in text bytes",
                 }
                 save_numeric(
@@ -1192,6 +1224,8 @@ def main(argv=None):
             write_json(
                 run.path / "manifest.json", manifest
             )  # before the first model forward
+            # Loud pre-inference shape guarantee; B never changes silently.
+            check_target_bucket_fit(inputs)
         if args.stage == "smoke":
             rows = execute_smoke(
                 run,

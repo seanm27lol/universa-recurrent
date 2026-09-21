@@ -3,12 +3,14 @@ import torch
 from transformers.modeling_outputs import BaseModelOutput
 from open_weight_lingua.target import (
     SUFFIX_DRIFT_BOUND,
+    TARGET_BUCKET,
     ActivationRecord,
     Target,
     Site,
     block_hook,
     last_nonpadding,
     output_tensor,
+    pad_to_bucket,
     replace_output,
 )
 
@@ -198,10 +200,195 @@ def test_dummy_suffix_token_resolution(model_factory, tokenizer, monkeypatch):
 
     monkeypatch.setattr(target, "capture", recording_capture)
     target.score_answer(ids, mask, record.site, "19", record.vector)
-    assert calls[0][-3:] == [11, 19, 2]
+    # Padded contract (TARGET_BUCKET): the suffix is written into the pad
+    # slots right after the 3-token prefix, not appended at the sequence end.
+    assert len(calls[0]) == TARGET_BUCKET
+    assert calls[0][3:6] == [11, 19, 2]
     # TinyTokenizer has no pad token; the dummy falls back to EOS.
-    assert calls[1][-3:] == [2, 2, 2]
+    assert calls[1][3:6] == [2, 2, 2]
     calls.clear()
     tokenizer.pad_token_id = 7
     target.score_answer(ids, mask, record.site, "19", record.vector)
-    assert calls[1][-3:] == [7, 7, 7]
+    assert calls[1][3:6] == [7, 7, 7]
+
+
+def test_pad_to_bucket_pads_and_overflows_loudly():
+    ids = torch.tensor([[3, 4, 5]])
+    mask = torch.tensor([[1, 1, 1]])
+    padded_ids, padded_mask = pad_to_bucket(ids, mask)
+    assert padded_ids.shape == padded_mask.shape == (1, TARGET_BUCKET)
+    assert padded_ids[0, :3].tolist() == [3, 4, 5]
+    assert not padded_ids[0, 3:].any() and not padded_mask[0, 3:].any()
+    same_ids, same_mask = pad_to_bucket(
+        torch.zeros(1, TARGET_BUCKET, dtype=torch.long),
+        torch.ones(1, TARGET_BUCKET, dtype=torch.long),
+    )
+    assert same_ids.shape == (1, TARGET_BUCKET) and same_mask.sum() == TARGET_BUCKET
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        pad_to_bucket(torch.zeros(1, TARGET_BUCKET + 1, dtype=torch.long),
+                      torch.ones(1, TARGET_BUCKET + 1, dtype=torch.long))
+    with pytest.raises(ValueError, match="matching batch/sequence"):
+        pad_to_bucket(torch.zeros(2, 3, dtype=torch.long), ids)
+
+
+def test_padded_and_unpadded_forwards_agree(model_factory, tokenizer):
+    """Padded contract: pads are exactly masked out, so real-position logits
+    match an unpadded forward at fp32-CPU tolerance with identical argmax."""
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    with torch.inference_mode():
+        unpadded = target.model(
+            input_ids=ids, attention_mask=mask, use_cache=False
+        ).logits
+    padded = target.forward(ids, mask)
+    assert padded.shape[1] == TARGET_BUCKET
+    assert torch.allclose(
+        unpadded.float(), padded[0, :3].unsqueeze(0).float(), atol=1e-5, rtol=1e-5
+    )
+    assert torch.equal(unpadded.argmax(-1), padded[0, :3].argmax(-1).unsqueeze(0))
+
+
+def test_greedy_and_scores_semantically_unchanged_on_bucket(model_factory, tokenizer):
+    """Bucketed greedy/score_answer reproduce the unpadded computation."""
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    # Hand-rolled unpadded greedy, mirroring the pre-bucket logic.
+    work_ids, work_mask = ids.clone(), mask.clone()
+    unpadded_tokens = []
+    with torch.inference_mode():
+        for _ in range(8):
+            logits = target.model(
+                input_ids=work_ids, attention_mask=work_mask, use_cache=False
+            ).logits
+            token = int(logits[0, -1].argmax())
+            unpadded_tokens.append(token)
+            if token == tokenizer.eos_token_id:
+                break
+            work_ids = torch.cat((work_ids, work_ids.new_tensor([[token]])), dim=1)
+            work_mask = torch.cat((work_mask, work_mask.new_ones((1, 1))), dim=1)
+    bucketed = target.greedy(ids, mask, record.site)
+    assert bucketed["token_ids"] == unpadded_tokens
+    score = target.score_answer(ids, mask, record.site, "19", record.vector)
+    with torch.inference_mode():
+        extended = torch.cat((ids, ids.new_tensor([[11, 19, 2]])), dim=1)
+        extended_mask = torch.cat((mask, mask.new_ones((1, 3))), dim=1)
+        unpadded_logits = target.model(
+            input_ids=extended, attention_mask=extended_mask, use_cache=False
+        ).logits
+    from open_weight_lingua.metrics import sequence_log_probability
+
+    reference = sequence_log_probability(unpadded_logits, 3, [11, 19, 2])
+    assert score["log_probability"] == pytest.approx(reference, abs=1e-4)
+    assert score["suffix_drift_relative"] == 0.0
+
+
+def test_site_correct_with_pads_present(model_factory, tokenizer):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    site = Site(1, 2)
+    logical = target.capture(ids, mask, site)
+    padded_ids, padded_mask = pad_to_bucket(ids, mask)
+    prepadded = target.capture(padded_ids, padded_mask, site)
+    # Same bucket shape and content: the capture is invariant and bitwise.
+    assert torch.equal(logical.vector, prepadded.vector)
+    assert prepadded.token_ids == padded_ids[0].tolist()
+    assert prepadded.attention_mask == padded_mask[0].tolist()
+    # Site validation still reads the mask: padding positions are rejected.
+    with pytest.raises(ValueError, match="padding"):
+        target.capture(padded_ids, padded_mask, Site(1, 3))
+
+
+def test_over_bucket_input_fails_loudly(model_factory, tokenizer):
+    target = Target(model_factory(), tokenizer)
+    long_ids = torch.zeros(1, TARGET_BUCKET + 1, dtype=torch.long)
+    long_mask = torch.ones(1, TARGET_BUCKET + 1, dtype=torch.long)
+    site = Site(1, 2)
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        target.forward(long_ids, long_mask)
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        target.forward(long_ids, long_mask, site, noop=True)
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        target.capture(long_ids, long_mask, site)
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        target.greedy(long_ids, long_mask, site)
+    with pytest.raises(ValueError, match="exceeds the pinned bucket"):
+        target.score_answer(
+            long_ids, long_mask, site, "19", torch.zeros(16)
+        )
+
+
+def test_dummy_suffix_gate_is_bitwise_on_bucket(model_factory, tokenizer, monkeypatch):
+    """Under pinning the causality gate and the drift backstop measure zero."""
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    seen = []
+    real_capture = target.capture
+
+    def spying_capture(*args, **kwargs):
+        observed = real_capture(*args, **kwargs)
+        seen.append(observed.vector)
+        return observed
+
+    monkeypatch.setattr(target, "capture", spying_capture)
+    score = target.score_answer(ids, mask, record.site, "19", record.vector)
+    assert torch.equal(seen[0], seen[1])  # real versus dummy suffix, bitwise
+    assert score["suffix_drift_relative"] == 0.0
+
+
+def test_greedy_identity_exact_records_status(model_factory, tokenizer):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    _, checks, _ = target.identity_gate(ids, mask, Site(1, 2))
+    assert checks["greedy"]["status"] == "exact"
+    assert checks["greedy"]["bitwise_equal"]
+    assert "evidence" not in checks["greedy"]
+
+
+def test_greedy_identity_within_bound_drift_records_divergence(
+    model_factory, tokenizer, monkeypatch
+):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    trajectories = iter(
+        (
+            {"text": "19", "token_ids": [11, 19, 2], "terminated": True},
+            {"text": "18", "token_ids": [11, 18, 2], "terminated": True},
+        )
+    )
+    monkeypatch.setattr(target, "greedy", lambda *a, **k: next(trajectories))
+
+    def kernel_noise_capture(capture_ids, capture_mask, site, *, check_index=True):
+        return _fake_record(record.vector * 1.01, capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", kernel_noise_capture)
+    outcome = target.greedy_identity(ids, mask, record.site, record.vector)
+    assert outcome["status"] == "drift_diverged"
+    evidence = outcome["evidence"]
+    assert evidence["divergence_step"] == 1
+    assert evidence["p0_token_ids"] == [11, 19, 2]
+    assert evidence["p1_token_ids"] == [11, 18, 2]
+    assert evidence["drift_relative"] == pytest.approx(0.01, rel=1e-3)
+    assert evidence["drift_relative"] <= SUFFIX_DRIFT_BOUND
+
+
+def test_greedy_identity_beyond_bound_raises(model_factory, tokenizer, monkeypatch):
+    target = Target(model_factory(), tokenizer)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    record = target.capture(ids, mask, Site(1, 2))
+    trajectories = iter(
+        (
+            {"text": "19", "token_ids": [11, 19, 2], "terminated": True},
+            {"text": "18", "token_ids": [11, 18, 2], "terminated": True},
+        )
+    )
+    monkeypatch.setattr(target, "greedy", lambda *a, **k: next(trajectories))
+
+    def wrong_class_capture(capture_ids, capture_mask, site, *, check_index=True):
+        return _fake_record(torch.zeros_like(record.vector), capture_ids, capture_mask, site)
+
+    monkeypatch.setattr(target, "capture", wrong_class_capture)
+    with pytest.raises(RuntimeError, match="beyond the frozen pre-pilot bound"):
+        target.greedy_identity(ids, mask, record.site, record.vector)
