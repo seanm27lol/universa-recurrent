@@ -109,6 +109,10 @@ observed, and no tolerance was relaxed.
 
 ## Phase Two pilot outcome and phase closeout (2026-09-21)
 
+**This phase is closed.** Read the [findings](phase_two_results.md) and
+[technical closeout](phase_two_technical_report.md) before interpreting the
+ledger entries above.
+
 The pinned 128-group pilot (`pilot-20260921T235825Z-6164d210`, manifest
 sha256 `cb3ec24f…`, auditor PASS) completed and the frozen decision rule
 returned **STOP**. The phase closes with this documented bounded negative

@@ -44,10 +44,16 @@ prediction result is not a speedup or total-memory saving.
 
 ## Research history and reproducibility
 
-Phase Two now has an isolated [Qwen/NLA engineering scaffold](research/open_weight_lingua/README.md)
-for testing whether language can preserve one selected activation. Its CPU fixture
-tests are software checks; released-model smoke, pilot and validation results are
-not yet available. This does not reopen or extend the completed Phase-One claims.
+Phase Two asked whether a language description of one Qwen2.5-7B-Instruct
+activation, reconstructed through the released NLA pair, preserves behavior and
+supports targeted text edits. The pinned 128-group pilot completed with decision
+**STOP**: description-route preservation failed the frozen 5-point loss bound,
+edit coverage was 0/128 so the edit hypothesis is untested, and the projected
+validation cost exceeded the eight-hour budget. The phase is closed; the locked
+validation was not run. This does not reopen or extend the completed Phase-One
+claims. **[Phase-two findings](docs/phase_two_results.md)** ·
+[technical closeout report](docs/phase_two_technical_report.md) ·
+[implementation README](research/open_weight_lingua/README.md).
 
 The existing experiment scripts remain available to reproduce results; they are
 not a new required run list. The [roadmap](docs/roadmap.md) marks this experimental
@@ -158,6 +164,7 @@ Historical source and results stay in their original projects:
 | Question | Document |
 |---|---|
 | What did the experiments establish? | [Phase-one findings](docs/phase_one_results.md) |
+| What did the Phase Two pilot establish? | [Phase-two findings](docs/phase_two_results.md) |
 | Where do I start? | [Beginner walkthrough](docs/start_here.md) |
 | Why separate estimates from claims? | [Dual outputs](docs/dual_outputs.md) |
 | What does v2 do? | [Multiple hypotheses](docs/neural_v2.md) |
