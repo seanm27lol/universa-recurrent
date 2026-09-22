@@ -138,14 +138,21 @@ A new, separate measurement on the **reused** pilot split: does a description
 *difference* — the pilot's saved AR directions (arm 1) or frozen oracle
 templates through the live AR (arm 2) — steer behavior under the NLA paper's
 reconstructed-difference recipe (`h′ = h + α·‖h‖·Δ/‖Δ‖`)? Frozen protocol:
-[protocols/steering_assay_brief.md](../research/open_weight_lingua/protocols/steering_assay_brief.md).
-This does not reopen the closed phase; the pilot's recorded outcomes stand.
+[protocols/steering_assay_brief.md](../research/open_weight_lingua/protocols/steering_assay_brief.md);
+outcome report:
+[reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md).
+This did not reopen the closed phase; the pilot's recorded outcomes stand.
+The single frozen run (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS)
+COMPLETED with a negative result, and the assay is closed per its stopping
+rule (one run; no follow-up sweeps).
 
 | Statement | Status | Evidence and boundary |
 |---|---|---|
-| The steering assay has been run on the released models | NOT RUN | Protocol, code, tests and audit support implemented; the single frozen run awaits execution |
-| The assay's success criteria are fixed | Frozen pre-run (design choices) | α grid {−1, 0.5, 1, 2}; at α=1: flip-to-B ≥ 0.30, y-integrity ≥ 0.90, control moved-x < 0.10; whole-group bootstrap 3,000 resamples, seed 205100 |
-| Oracle template text is read-out semantics | FALSE | Oracle texts are hand-written intervention instruments asserting counterfactual values; arm-1 AV descriptions are known from the pilot to assert no current values; any effect is a difference-space measurement, credited to the paper's recipe |
+| The steering assay has been run on the released models | COMPLETE; negative result | Run steering-20260922T160432Z-d3b9e4d7: 128/128 groups, 256 receiver rows, auditor PASS, wall 6,114 s; manifest `git_head` aabcef5, plan hash ff060012… (reused pilot split) |
+| The assay's success criteria are fixed | Frozen pre-run (design choices), never weakened post-outcome | α grid {−1, 0.5, 1, 2}; at α=1: flip-to-B ≥ 0.30, y-integrity ≥ 0.90, control moved-x < 0.10; whole-group bootstrap 3,000 resamples, seed 205100 |
+| Any arm shows targeted steering at α=1 | NOT SUPPORTED at this checkpoint/task/site | All three arms failed every frozen criterion: av_difference flip 0.0781 / integrity 0.5703 / control-moved 0.4453; oracle_terse 0.0313 / 0.4219 / 0.4844; oracle_structured 0.0234 / 0.3594 / 0.5625; `successful_arms: []`. Intended deltas flip 2–8% while disturbing the unaffected answer in 43–64%; controls move x as much as intended deltas; higher α buys disruption, not targeting |
+| Description-difference L shifts are specific to the intended variable | Not supported | Steered mean L (logP(B)−logP(A)) moves toward B vs P0's −16.08 (av@1 −9.29, terse@1 −9.00, structured@1 −7.15), but matched controls shift comparably (control@1 −10.16 / −11.23 / −9.88) — an indiscriminate push, not targeted control |
+| This result refutes NLA steering generally, or establishes a semantic conclusion | FALSE | One checkpoint, one task family, one site; behavioral measurement only. The NLA authors' poetry-planning steering used a different, stronger model, site and task; oracle texts were intervention instruments; no semantic claim in either direction |
 | The steering machinery works on tiny fixtures | Tested locally | Delta unit-scaling, patch composition, template determinism and hashes, controls wiring, ITT encoding, manifest locking, audit replay and tamper detection on random Qwen fixtures; never labeled released-model results |
 
 ## Completed phase-one findings (2026-09-16)

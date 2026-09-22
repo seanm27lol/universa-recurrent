@@ -29,6 +29,17 @@ competitive under the stated budget, not evidence that language is useless.
 [Milestone 2 checks, repairs and the pilot outcome](reports/milestone_two.md);
 [human pilot decision record](protocols/pilot_decision.md).
 
+**Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
+One frozen reconstructed-difference steering run
+(`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
+split: all three arms failed every frozen criterion — intended description
+deltas flip the target answer in 2–8% of groups while disturbing the control
+answer in 43–64%, no better than wrong-variable controls. At this site/task
+the recipe is non-specific disruption, not targeted control. The assay is
+closed per its one-run stopping rule. Details:
+[steering assay report](reports/steering_assay.md);
+[frozen protocol](protocols/steering_assay_brief.md).
+
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
 directions without task labels and freezes the calibration median norm. A
