@@ -41,8 +41,8 @@ is published as a template with every outcome field pending.
 | The frozen text editor classifies and minimally edits explicit current-value statements | Implemented and fixture-tested | Three frozen forms, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only replacement; agreement with the reference program recorded separately and never gating an edit; rule version and sha256 enter the manifest |
 | Pilot decision statistics resample whole groups | Implemented and fixture-tested | 3,000 bootstrap resamples at a fixed seed; one-sided 95% upper/lower estimates for the §8 rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | Calibration and pilot stages run from one CLI | Implemented, fixture-level | `--stage smoke|calibration|pilot` with smoke unchanged; pilot requires `--calibration-fit`; `run_calibration.sh`/`run_pilot.sh` follow the smoke script pattern; real-model execution NOT RUN |
-| The 256-group released-model calibration fit exists | SUPERSEDED: an unpadded fit exists; pinned re-baseline PENDING RERUN | Unpadded run calibration-20260921T221636Z-63a6be98 COMPLETE (fit identity `74eca5c2…`, frozen median norm 98.430) but predates kernel-shape pinning; superseded as the pilot input — see the next section |
-| The 128-group pilot outcome and keep/stop decision exist | NOT RUN; first attempt FAILED before any condition | Attempt pilot-20260921T222056Z-69535f26 died in `Target.identity_gate` on variant pilot-0000-A-x with no conditions executed and no outcomes inspected; decision fields in `completion.json`/`report.md` and the pilot decision document remain PENDING the pinned rerun |
+| The 256-group released-model calibration fit exists | COMPLETE (pinned re-baseline) | Pinned run calibration-20260921T235017Z-fd111b21, auditor PASS, 1024/1024 extractions, fit identity `37af38ff…`, frozen median norm 98.8137; supersedes the unpadded run calibration-20260921T221636Z-63a6be98 |
+| The 128-group pilot outcome and keep/stop decision exist | COMPLETE (pinned run); decision STOP | Pinned run pilot-20260921T235825Z-6164d210, 128/128 groups, auditor PASS; unmet criteria `p2_accuracy_loss` and `edit_eligible_groups`; first attempt pilot-20260921T222056Z-69535f26 preserved as an explicitly failed pre-conditions run |
 | The 512-group locked validation exists | NOT RUN; not implemented | No validation stage in the CLI; the pilot reports a projected cost against the eight-hour budget and never auto-starts it |
 | P4 is an optimal compression baseline, or generic reconstruction already matches language | FALSE as framed | The condition is no-more-than-budget under a declared byte rule; the comparison is a pilot question, not a premise |
 | Frozen-rule edits establish discovered variable semantics in the activation | NOT CLAIMED | The parser matches frozen surface forms only; a statement's truth never gates its editability |
@@ -100,12 +100,33 @@ the drift class by construction.
 | Unpadded cross-length prefix-site drift on the pilot distribution stays within the frozen 1e-1 bound | FALSE (falsified 2026-09-21, pre-pilot, gate measurements only) | pilot-0000-A-x 2.58e-1 at the divergence step and ~0.26 at every append +1…+5; pilot-0000-A-y 0.144–0.165; pilot-0001-A-x 0.019 (+1) then 0.122–0.127; the smoke's 336 samples (max 3.55e-2) under-sampled a prompt-conditioned tail; fp32 collapses all of it to ~3.2e-6 |
 | The first pilot attempt produced condition outcomes or a decision | FALSE; failed run preserved explicitly | Run pilot-20260921T222056Z-69535f26 died in the identity stage on variant 1; its decision/summary fields are degenerate artifacts of a dead run, not measurements |
 | Kernel-shape pinning removes the cross-length drift class by construction | Implemented and fixture-tested; real-model gate check PASSED on pilot-0000-A-x | Every target forward right-padded to `TARGET_BUCKET = 128` (masked pads exactly zero, bitwise-proven; same-shape forwards bitwise deterministic on this backend); greedy/scoring write into masked pad slots; loud pre-inference fit check (max prompt 79 + 8 generation + 3 suffix = 90 ≤ 128); `SUFFIX_DRIFT_BOUND` kept frozen as an untouched backstop; the greedy identity comparison is a recorded exact/drift_diverged backstop counted in summaries, never a decision input. Gate check (pinned code, this variant plus two more): identity gates bitwise, greedy "exact", `suffix_drift_relative` exactly 0.0 — details in reports/milestone_two.md |
-| The pinned re-baseline runs (smoke, calibration, pilot) exist | NOT RUN; PENDING | Unpadded smoke-20260921T211151Z-a4e4a038 and calibration-20260921T221636Z-63a6be98 are superseded engineering evidence; the three-stage rerun sequence and new run IDs are recorded in reports/milestone_two.md after execution |
+| The pinned re-baseline runs (smoke, calibration, pilot) exist | COMPLETE | smoke-20260921T233021Z-cbe4057e (8/8 groups, drift exactly 0.0 over 336 samples, greedy backstop exact 32/32 both stages, auditor PASS); calibration-20260921T235017Z-fd111b21 (auditor PASS); pilot-20260921T235825Z-6164d210 (128/128 groups, greedy backstop exact 512/512 both stages, auditor PASS); unpadded runs retained as superseded engineering evidence |
 
 The bounded stopping rule is unchanged: one pilot, at most one locked
 validation, then a write-up even on failure. This pre-pilot repeatability
 repair inspected gate internals only; no pilot or validation outcomes were
 observed, and no tolerance was relaxed.
+
+## Phase Two pilot outcome and phase closeout (2026-09-21)
+
+The pinned 128-group pilot (`pilot-20260921T235825Z-6164d210`, manifest
+sha256 `cb3ec24f…`, auditor PASS) completed and the frozen decision rule
+returned **STOP**. The phase closes with this documented bounded negative
+result; the locked validation is NOT RUN (stop decision, and independently
+the projected validation cost 49,253 s ≈ 13.7 h exceeds the 28,800 s budget).
+The human record is
+[protocols/pilot_decision.md](../research/open_weight_lingua/protocols/pilot_decision.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The pinned pilot executed all 128 groups with every gate green | COMPLETE, auditor PASS | 128/128 groups successful, 0 failed/skipped; identity gates bitwise on all 512 variants; greedy identity backstop exact 512/512 in both stages; every suffix-drift measurement exactly 0.0 under kernel-shape pinning |
+| The site can affect the intended measurement (pilot gate 1) | Supported | P5 norm-matched random direction changed 508/512 greedy generations (accuracy 0.006, KL 11.75); raw donor KL 0.173 with 39/512 changed; P0 accuracy 0.8105 ≥ 0.80 floor |
+| The language route preserves behavior within the frozen 5-point bound (gate 2) | NOT SUPPORTED at this task/site | P2 accuracy loss versus P0: point 34.4 pp, one-sided 95% upper 41.4 pp > 5 pp limit (P2 0.564 vs P0 0.811, KL 2.71); P2−P3 correct-answer log-prob lower +3.80 > 0 (met) — the description-derived direction is on-task but not preserving |
+| Frozen-rule editing is feasible at this task/site (gate 3) | NOT SUPPORTED; edit hypothesis UNTESTED | 0/128 groups eligible (floor 32); exclusions all "absent" (x: 127 absent/1 eligible, y: 128 absent); the single eligible receiver parse stated a value disagreeing with the reference (recorded, never gating). Zero coverage means limited explicit-variable coverage here, not that descriptions lack editable semantics; no manual ground-truth description is presented as discovered semantics |
+| Generic PCA reconstruction is competitive under the stated byte budget | Observed, descriptive only | P4 accuracy 0.803 vs P0 0.811 (loss upper 3.13 pp, KL 0.0157, P0-agreement 0.967) against P2 0.564. Per brief §12 this may be read as "generic reconstruction is competitive under the stated budget"; the upgrade to "language is useless for interpretability" is prohibited and not claimed |
+| P2's residual accuracy relies on the retained four-byte norm channel | Not supported | Calibration-median-norm diagnostic matches P2 (0.561 vs 0.564; KL 2.72 vs 2.71) |
+| The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
+| The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
 ## Completed phase-one findings (2026-09-16)
 

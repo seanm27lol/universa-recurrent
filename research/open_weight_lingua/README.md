@@ -13,15 +13,21 @@ using its paired reconstructor (AR), and measures the effect of replacing that
 vector. A paired program changes the first assignment to `x = 4`; the answer for
 `x` changes while the answer for `y` stays fixed.
 
-**Status: Milestone 2 implementation, tested locally with tiny random
-fixtures, and the repaired runner has COMPLETED the eight-group real-model
-engineering smoke (run `smoke-20260921T211151Z-a4e4a038`, independent auditor
-PASS). Released-model calibration/pilot/validation: NOT RUN.** The real
-checkpoint metadata and tokenizers have been checked, and all 41.41 GB of
-pinned artifacts passed hash verification. The smoke is an engineering gate,
-not a scientific result, and its eight groups do not authorize a pilot
-decision. [Milestone 1 checks and commands](reports/milestone_one.md);
-[Milestone 2 checks and commands](reports/milestone_two.md).
+**Status: Milestone 2 complete and the phase closed. The pinned 128-group
+real-model pilot COMPLETED (run `pilot-20260921T235825Z-6164d210`, independent
+auditor PASS) with decision STOP: P2 preservation and edit-eligibility gates
+unmet, and the projected validation cost exceeds the eight-hour budget. Per
+the brief's stopping rule the locked validation is NOT RUN and stays
+unimplemented in this runner.** The pinned smoke
+(`smoke-20260921T233021Z-cbe4057e`) and calibration
+(`calibration-20260921T235017Z-fd111b21`) re-baselines also COMPLETED with
+auditor PASS. The pilot is a bounded negative result: language-route
+preservation failed the frozen 5-point loss bound, edit coverage was 0/128 so
+the edit hypothesis is untested, and the generic P4 baseline stayed near P0 —
+competitive under the stated budget, not evidence that language is useless.
+[Milestone 1 checks and commands](reports/milestone_one.md);
+[Milestone 2 checks, repairs and the pilot outcome](reports/milestone_two.md);
+[human pilot decision record](protocols/pilot_decision.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
@@ -239,9 +245,12 @@ language versus generic reconstruction. If frozen-rule edit coverage or
 intervention sensitivity is inadequate, the brief requires closing with
 preservation-only results and marking the edit hypothesis untested or
 unsupported. There is no SGLang/Transformers backend-equivalence claim. The
-primary real-model identity and AV/AR checks have now passed once inside the
-eight-group engineering smoke, and every released-model calibration/pilot
-outcome remains **NOT RUN**.
+primary real-model identity and AV/AR checks passed in the eight-group
+engineering smoke, and the pinned calibration and 128-group pilot have now
+completed (decision **stop**; see the
+[pilot decision document](protocols/pilot_decision.md)). The locked 512-group
+validation remains **NOT RUN** — permanently for this phase, per the stopping
+rule and the over-budget projection.
 [Compatibility/source audit](reports/source_compatibility.md),
 [original supplied brief](protocols/phase_two_brief.md),
 [pilot decision document](protocols/pilot_decision.md),
