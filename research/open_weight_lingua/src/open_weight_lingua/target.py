@@ -1,9 +1,11 @@
-"""Capture and replace one Qwen block-output vector, with no KV cache.
+"""Capture and replace one block-output vector, with no KV cache.
 
 A full forward pass is recomputed. All other prompt states remain available;
 this is neither whole-state replacement nor a fast pause/resume engine.
 Every target forward is right-padded to the fixed TARGET_BUCKET length so
 GEMM shapes never vary with sequence length (kernel-shape pinning).
+Architecture-specific facts (model_type markers, block-list paths) come from
+the audited registry in architectures.py; anything outside it fails closed.
 """
 
 from contextlib import contextmanager
@@ -11,6 +13,7 @@ from dataclasses import dataclass
 import copy
 import torch
 
+from .architectures import decoder_layers, layers_dotted_path
 from .metrics import answer_tokens, sequence_log_probability
 
 SUFFIX_DRIFT_BOUND = 1e-1
@@ -133,12 +136,11 @@ def replace_output(output, tensor):
 
 
 def validate_site(model, ids, mask, site):
-    if model.config.model_type != "qwen2":
-        raise ValueError("only the audited Qwen2 architecture is supported")
+    layers = decoder_layers(model)  # fails closed on unaudited architectures
     if ids.ndim != 2 or ids.shape != mask.shape:
         raise ValueError("IDs and mask must have matching batch/sequence dimensions")
     last_nonpadding(mask, site.row)
-    if not 0 <= site.layer < len(model.model.layers):
+    if not 0 <= site.layer < len(layers):
         raise ValueError("layer outside model")
     if not 0 <= site.position < ids.shape[1] or mask[site.row, site.position] != 1:
         raise ValueError("patch position is padding or outside prompt")
@@ -172,7 +174,7 @@ def block_hook(model, site, *, replacement=None, captures=None, audit=False):
                 raise RuntimeError("patch changed an unintended token")
         return replace_output(output, patched)
 
-    handle = model.model.layers[site.layer].register_forward_hook(hook)
+    handle = decoder_layers(model)[site.layer].register_forward_hook(hook)
     try:
         yield
     finally:
@@ -210,7 +212,7 @@ class Target:
     @torch.inference_mode()
     def capture(self, ids, mask, site: Site, *, check_index=True) -> ActivationRecord:
         validate_site(self.model, ids, mask, site)
-        if site.layer == len(self.model.model.layers) - 1 and check_index:
+        if site.layer == len(decoder_layers(self.model)) - 1 and check_index:
             raise ValueError(
                 "last block hidden-state entry includes final norm; unsupported index check"
             )
@@ -235,7 +237,7 @@ class Target:
             site,
             ids[site.row].tolist(),
             mask[site.row].tolist(),
-            f"model.layers.{site.layer}",
+            f"{layers_dotted_path(self.model)}.{site.layer}",
             site.layer + 1,
         )
 

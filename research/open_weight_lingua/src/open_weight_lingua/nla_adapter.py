@@ -15,6 +15,7 @@ import torch
 import yaml
 from safetensors.torch import load_file
 
+from .architectures import decoder_layers, stack_config, text_config_dict, text_stack
 from .geometry import unit_direction
 
 
@@ -55,22 +56,23 @@ def load_metadata(directory: Path, role: str, target_config: dict) -> Metadata:
         _require(
             type(width) is int and type(layer) is int, "width/layer must be integers"
         )
+        target_text = text_config_dict(target_config)
         _require(
-            cfg["model_type"] == target_config["model_type"] == "qwen2",
-            "Qwen2 required",
+            cfg["model_type"] == target_text["model_type"],
+            "NLA backbone/target text-stack architecture mismatch",
         )
         _require(
-            width == cfg["hidden_size"] == target_config["hidden_size"],
+            width == cfg["hidden_size"] == target_text["hidden_size"],
             "metadata width mismatch",
         )
         _require(
-            0 <= layer < target_config["num_hidden_layers"] - 1,
+            0 <= layer < target_text["num_hidden_layers"] - 1,
             "extraction layer mismatch",
         )
         native_dtype = cfg.get("dtype", cfg.get("torch_dtype"))
         _require(native_dtype == "bfloat16", "released NLA weights must remain BF16")
         expected_layers = (
-            layer + 1 if role == "ar" else target_config["num_hidden_layers"]
+            layer + 1 if role == "ar" else target_text["num_hidden_layers"]
         )
         _require(cfg["num_hidden_layers"] == expected_layers, "backbone depth mismatch")
         if role == "ar":
@@ -203,9 +205,8 @@ class Verbalizer:
     def __init__(self, model, tokenizer, metadata: Metadata):
         _require(metadata.role == "av", "AV metadata required")
         _require(
-            model.config.model_type == "qwen2"
-            and model.config.hidden_size == metadata.width
-            and len(model.model.layers) == metadata.layers,
+            stack_config(model).hidden_size == metadata.width
+            and len(decoder_layers(model)) == metadata.layers,
             "AV model/metadata mismatch",
         )
         self.model = model.eval().requires_grad_(False)
@@ -217,7 +218,10 @@ class Verbalizer:
         _require(vector.shape == (self.metadata.width,), "AV vector width mismatch")
         embedding = self.model.get_input_embeddings()
         ids = torch.tensor([self.prompt_ids], device=embedding.weight.device)
-        # Qwen's embedding scale is exactly one. Do the injection math in fp32.
+        # The architecture's own embedding scaling (exactly one for Qwen2,
+        # sqrt(hidden) applied inside the lookup for Gemma3) is part of the
+        # lookup; the injected slot replaces one post-lookup row, matching the
+        # pinned upstream injection convention. Do the injection math in fp32.
         embeds = embedding(ids).float().clone()
         embeds[0, self.position] = (
             unit_direction(vector).to(embeds.device) * self.metadata.injection_scale
@@ -293,10 +297,10 @@ def load_value_head(path: Path, width: int, dtype, device):
 class Reconstructor:
     def __init__(self, backbone, tokenizer, metadata: Metadata, head_path: Path):
         _require(metadata.role == "ar", "AR metadata required")
+        stack = text_stack(backbone)
         _require(
-            backbone.config.model_type == "qwen2"
-            and backbone.config.hidden_size == metadata.width
-            and len(backbone.model.layers) == metadata.layer + 1 == metadata.layers,
+            stack_config(backbone).hidden_size == metadata.width
+            and len(stack.layers) == metadata.layer + 1 == metadata.layers,
             "AR backbone width/depth mismatch",
         )
         parameter = next(backbone.parameters())
@@ -305,7 +309,7 @@ class Reconstructor:
             head_path, metadata.width, parameter.dtype, parameter.device
         )
         backbone.lm_head = torch.nn.Identity()
-        backbone.model.norm = torch.nn.Identity()
+        stack.norm = torch.nn.Identity()
         self.model = backbone.eval().requires_grad_(False)
         self.tokenizer, self.metadata = tokenizer, metadata
         ar_prompt(tokenizer, metadata, "tokenizer preflight")
@@ -315,7 +319,7 @@ class Reconstructor:
         """Return AR's direction-bearing vector; no source norm/activation input."""
         ids = ar_prompt(self.tokenizer, self.metadata, description)
         device = next(self.model.parameters()).device
-        out = self.model.model(
+        out = text_stack(self.model)(
             input_ids=torch.tensor([ids], device=device), use_cache=False
         )
         vector = self.head(out.last_hidden_state[0, -1]).float().cpu()

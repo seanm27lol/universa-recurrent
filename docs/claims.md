@@ -132,6 +132,24 @@ The human record is
 | The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
 | The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
+## Phase Two second-family port readiness (Gemma-3, 2026-09-22)
+
+The closed Phase Two pipeline was ported to a second model family on the
+`gemma3-port` worktree branch: google/gemma-3-12b-it plus the released
+kitft/nla-gemma3-12b-L32-av/ar pair, behind a small audited architecture
+registry. This is engineering-readiness work on the same machinery, not a
+reopening of the closed phase and not a result on released Gemma weights.
+See [reports/gemma3_port_readiness.md](../research/open_weight_lingua/reports/gemma3_port_readiness.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The pipeline resolves the Gemma-3 family without changing the Qwen2 path | Implemented and fixture-tested | Registry-driven hook paths/widths/depths; all 128 pre-existing tests pass unchanged plus 21 new tiny-random-Gemma3 fixture tests (149 total); the Qwen lock is byte-untouched and no Qwen manifest field changes |
+| The Gemma-3 NLA pair's metadata conventions match the pipeline's checks | Source-audited and tokenizer-tested | Real fetched schema-2 sidecars (width 3840, extraction block 32, AV injection scale 80000.0, AR suffix tokens) parsed by the production loader; the public AV/AR tokenizers pass the production av/ar prompt checks including the live Gemma BOS rule |
+| The L32 capture site interacts with Gemma-3 interleaved attention | Analyzed and fixture-exercised | Block 32 is a sliding-window block (window 1024, full attention at every 6th index, verified from the fetched configs); the pinned 128-token bucket is always inside the window, so masked pads stay exactly zero and the causality gates are unaffected |
+| The new lock pins the Gemma-3 sources | Partially complete by construction | Exact revisions, sizes and LFS sha256 for every weight shard and both LFS tokenizer files; all public small files hashed from downloads; the gated target's ten small non-LFS files carry pending hashes and `read_lock` fails closed until `scripts/complete_gemma3_lock.py` fills them after license acceptance |
+| Any released-Gemma forward, identity gate, AV description, AR direction or behavioral measurement exists | NOT RUN | google/gemma-3-12b-it is license-gated (manual acceptance) and no HF token is configured on this machine; smoke/calibration/pilot commands are documented but blocked |
+| A Gemma-3 pilot would assess the frozen Phase Two thresholds or edit coverage | NOT ESTABLISHED | Those thresholds were locked for the Qwen phase; the termination-convention difference (`<end_of_turn>` 106 alongside `<eos>` 1) is a documented watch item for the first real smoke, not a decided protocol change |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
