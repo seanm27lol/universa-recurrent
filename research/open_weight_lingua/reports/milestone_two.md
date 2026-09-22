@@ -110,6 +110,9 @@ stage only, not a pilot throughput estimate):
 * Released-model **calibration and pilot are NOT RUN**. `baseline_fit_identity`
   is unfilled, every pilot decision field is PENDING PILOT RUN, and locked
   validation is not implemented in this runner.
+  *(Superseded 2026-09-21: see the addendum — the pinned calibration and pilot
+  COMPLETED, decision STOP, and locked validation remains NOT RUN per the
+  stopping rule.)*
 * PyTorch's CUDA 13 wheel still warns about GB10 capability 12.1 versus its
   listed maximum 12.0. The completed smoke shows this exact workload ran once
   on this stack; the warning stands, and the calibration/pilot runs must
@@ -145,7 +148,7 @@ Git status at handoff, grouped:
 | Suffix-causality repair and stage machinery (modified) | `src/open_weight_lingua/target.py`, `runner.py`, `artifacts.py`, `audit.py` |
 | New Milestone 2 modules (untracked) | `src/open_weight_lingua/splits.py`, `controls.py`, `text_edits.py`, `stats.py` |
 | Tests (one modified, five new) | `tests/test_target.py`; `tests/test_splits.py`, `test_controls.py`, `test_text_edits.py`, `test_stats.py`, `test_pilot_stages.py` |
-| Configs/protocols/scripts (new) | `configs/pilot.yaml`, `protocols/pilot_decision.md` (PENDING PILOT RUN template), `scripts/run_calibration.sh`, `scripts/run_pilot.sh` |
+| Configs/protocols/scripts (new) | `configs/pilot.yaml`, `protocols/pilot_decision.md` (filled 2026-09-21 with the pinned pilot outcome: STOP), `scripts/run_calibration.sh`, `scripts/run_pilot.sh` |
 | Handoff | this report |
 
 All paths above live under `research/open_weight_lingua/` except
@@ -193,7 +196,8 @@ byte-budget accounting; frozen-rule edit eligibility/coverage on the 128 pilot
 groups; the §8 pilot-usability, preservation and edit-floor thresholds; every
 bootstrap decision statistic on real models; pilot-stage stage times and
 memory; and the projected validation cost. The smoke says nothing about any
-of these.
+of these. *(Superseded 2026-09-21: all of the above were measured by the
+pinned calibration and pilot — see the addendum's pilot outcome section.)*
 
 ## Addendum 2026-09-21 — first pilot attempt failed at the identity gate; kernel-shape pinning repair (pre-pilot)
 
@@ -303,17 +307,88 @@ The unpadded runs `smoke-20260921T211151Z-a4e4a038` and
 `calibration-20260921T221636Z-63a6be98` remain valid measurements of the
 unpinned regime and are retained, but as pilot inputs they are superseded:
 the pinned regime changes every target forward's numerics at BF16-noise
-scale, so smoke, calibration and the pilot must all rerun on the pinned
-code. New run IDs (to be filled by the operator after execution, replacing
-each `PENDING RERUN` marker):
+scale, so smoke, calibration and the pilot all reran on the pinned code
+(commit `a3b4b4903ad3a9def4fe3e96faed7723c0ed749d`). Executed run IDs:
 
-* Pinned smoke: **PENDING RERUN** —
-  `bash research/open_weight_lingua/scripts/run_smoke.sh --cache /home/seanjazm27/projects/universa-recurrent-git/research/open_weight_lingua/model-cache`
-* Pinned calibration: **PENDING RERUN** —
-  `bash research/open_weight_lingua/scripts/run_calibration.sh --cache /home/seanjazm27/projects/universa-recurrent-git/research/open_weight_lingua/model-cache`
-* Pinned pilot (consumes the pinned calibration fit): **PENDING RERUN** —
-  `bash research/open_weight_lingua/scripts/run_pilot.sh --cache /home/seanjazm27/projects/universa-recurrent-git/research/open_weight_lingua/model-cache --calibration-fit research/open_weight_lingua/runs/<pinned-calibration-run-dir>`
+* Pinned smoke: `smoke-20260921T233021Z-cbe4057e` — **COMPLETE**, 8/8 groups,
+  auditor PASS; every `suffix_drift_relative` exactly 0.0 (336 samples);
+  greedy identity backstop `exact` 32/32 in both stages; P0 26/32.
+* Pinned calibration: `calibration-20260921T235017Z-fd111b21` — **COMPLETE**,
+  auditor PASS; 1024/1024 extractions; fit identity
+  `37af38fff3df81e016279582b20f179040196c23a84e24d2c9e8d2f8848fec79`;
+  frozen median norm 98.8137; same plan hash `ff060012…` as the unpadded run.
+* Pinned pilot (consumed the pinned calibration fit):
+  `pilot-20260921T235825Z-6164d210` — **COMPLETE**, 128/128 groups successful,
+  0 failed/skipped, auditor PASS; greedy identity backstop `exact` 512/512 in
+  both stages. Outcome below.
 
-The bounded stopping rule is unchanged: one pilot, at most one locked
-validation, then a write-up even on failure. The pilot decision document
-fields remain PENDING PILOT RUN.
+### Pinned pilot outcome (2026-09-21): decision STOP
+
+All denominators are the 512 planned prompt variants (128 groups × 4),
+intention-to-test; uncertainty from the frozen whole-group bootstrap (3,000
+resamples, seed 203100). The human-readable record is
+[protocols/pilot_decision.md](../protocols/pilot_decision.md); the
+machine-readable counterpart is the run's `completion.json`/`report.md`.
+
+Per-condition metrics (exact answers, accuracy, mean valid next-token KL,
+P0-agreement):
+
+| Condition | Exact /512 | Accuracy | KL | P0-agreement |
+|---|---:|---:|---:|---:|
+| P0 unmodified | 415 | 0.811 | 0.0 | 1.000 |
+| P1 original reinserted (adapter gate) | 415 | 0.811 | 0.0 | 1.000 |
+| P2 own description → AR + original norm | 289 | 0.564 | 2.71 | 0.615 |
+| P3 other group's description | 137 | 0.268 | 7.38 | 0.299 |
+| P4 PCA baseline (no-more-than-budget) | 411 | 0.803 | 0.0157 | 0.967 |
+| P5 norm-matched random | 3 | 0.006 | 11.75 | 0.008 |
+| Raw donor | 402 | 0.785 | 0.173 | 0.924 |
+| Calibration-median-norm diagnostic | 287 | 0.561 | 2.72 | 0.611 |
+
+Frozen decision statistics: P2 accuracy loss versus P0 point 34.4 pp,
+one-sided 95% upper 41.4 pp (limit 5 pp → **not met**); P2−P3 correct-answer
+log probability point +4.60, lower +3.80 (positive → met); P4 loss point
+0.78 pp, upper 3.13 pp (descriptive); editing effect **untested** (no
+eligible groups).
+
+| Frozen criterion | Value | Met |
+|---|---|:--:|
+| Unmodified accuracy ≥ 0.80 | 0.8105 | yes |
+| Intervention sensitivity present | P5 changed 508/512 generations (KL 11.75); donor KL 0.173 | yes |
+| P2 loss upper ≤ 5 pp | 41.4 pp | **no** |
+| P2−P3 log-prob lower > 0 | +3.80 | yes |
+| Edit-eligible groups ≥ 32 | 0 / 128 | **no** |
+
+**Decision: STOP** (unmet: `p2_accuracy_loss`, `edit_eligible_groups`).
+
+Edit coverage: 0/128 groups eligible under frozen rule v1.0.0 (sha256
+`e1560d7e…`); exclusions `absent` 128, `ambiguous` 0 — receiver parses: `x`
+absent 127 / eligible 1, `y` absent 128. This is limited explicit-variable
+coverage at this task and site under the frozen rule; the edit hypothesis is
+**UNTESTED**, and no manual ground-truth description is presented as
+discovered semantics (brief §12).
+
+Interpretation guardrails (brief §12): P4's near-P0 preservation against
+P2's language-route loss may be read as "generic reconstruction is
+competitive under the stated budget" — **not** as "language is useless for
+all interpretability". The calibration-median-norm diagnostic matching P2
+(0.561 vs 0.564, KL 2.72 vs 2.71) shows P2's residual accuracy does not rely
+on the retained four-byte norm channel. P0 0.8105 just clears the 0.80
+usability floor; recorded as measured.
+
+Projected validation cost from measured pilot stage times (identity 856.9 s,
+AV 7,892.5 s, AR 106.0 s, behavior 3,084.3 s; 112,032 forward calls; wall
+11,980.8 s): 512-group validation 47,759.3 s plus 256-group calibration
+1,494.2 s = **49,253.5 s ≈ 13.7 h > 28,800 s budget** (`within_budget:
+false`) — an estimate for a scope decision, not a duration promise.
+
+**Stopping-rule closure.** Per brief §11 the phase closes here: one bounded
+pilot executed and documented, the decision is stop, and independently the
+projected validation cost exceeds the budget. The locked validation is **NOT
+RUN** and remains not implemented in this runner; no new checkpoint, site,
+layer, task, or architecture follows the negative pilot. All three pinned
+runs pass the independent auditor (saved-count/KL/statistics replay; the
+auditor does not authenticate execution).
+
+The bounded stopping rule was: one pilot, at most one locked
+validation, then a write-up even on failure. The pilot decision document is
+filled; the phase is closed with a documented bounded negative result.
