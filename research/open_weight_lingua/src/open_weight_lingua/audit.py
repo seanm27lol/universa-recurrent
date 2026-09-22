@@ -15,8 +15,20 @@ from .stats import (
     LogProbPair,
     block_estimates,
     editing_effect,
+    group_bootstrap,
     paired_accuracy_loss,
     paired_logprob_difference,
+)
+from .steering import (
+    ALPHA_GRID,
+    EXPECTED_ROW_CONDITIONS,
+    STEERING_ARMS,
+    STEERING_CONDITIONS,
+    STEERING_FROZEN,
+    STEERING_STAGE,
+    TEMPLATES,
+    condition_key,
+    template_sha256,
 )
 from .tasks import VARIABLES
 from .text_edits import RULE_SHA256, RULE_VERSION, parse
@@ -590,6 +602,298 @@ def _summarize_pilot(manifest: dict, rows: list[dict]) -> dict:
     }
 
 
+def _steering_roles(expected):
+    """Per group: the affected-query and integrity-row ids (side-A receivers)."""
+    roles = {}
+    for name, row in expected.items():
+        slot = "affected" if row["affected"] else "other"
+        roles.setdefault(row["group_id"], {})[slot] = name
+    for group, pair in roles.items():
+        if set(pair) != {"affected", "other"}:
+            raise ValueError(
+                f"{group}: steering manifest rows must pair affected/other queries"
+            )
+    return roles
+
+
+def _steering_condition_metrics(
+    expected, actual, group_ids, roles, condition, alpha, *, resamples, seed
+):
+    """Per-condition ITT rates and whole-group bootstrap intervals.
+
+    A group's x-row answer flips toward B only on an exact, terminated match
+    to the counterfactual answer; y integrity is agreement with the same run's
+    P0 y-row generation. Failed or missing conditions count against flip and
+    integrity and count as moved; L and KL are valid-case measurements with
+    exclusions counted, never fabricated.
+    """
+    key = condition_key(condition, alpha)
+    flip, retained, moved, intact = [], [], [], []
+    preferences, kl_x, kl_y = [], [], []
+    x_valid = y_valid = 0
+    for group in group_ids:
+        x_id, y_id = roles[group]["affected"], roles[group]["other"]
+        x_row, y_row = actual.get(x_id, {}), actual.get(y_id, {})
+        x_measured = x_row.get("conditions", {}).get(key, {})
+        y_measured = y_row.get("conditions", {}).get(key, {})
+        x_ok, y_ok = (
+            x_measured.get("status") == "ok",
+            y_measured.get("status") == "ok",
+        )
+        x_valid += x_ok
+        y_valid += y_ok
+        x_p0 = x_row.get("conditions", {}).get("P0", {})
+        y_p0 = y_row.get("conditions", {}).get("P0", {})
+        x_p0_text = (
+            x_p0.get("generation", {}).get("text")
+            if x_p0.get("status") == "ok"
+            else None
+        )
+        y_p0_text = (
+            y_p0.get("generation", {}).get("text")
+            if y_p0.get("status") == "ok"
+            else None
+        )
+        generation = x_measured.get("generation", {}) if x_ok else {}
+        text = generation.get("text")
+        flip.append(
+            int(
+                x_ok
+                and generation.get("terminated")
+                and exact_integer(text, expected[x_id]["counterfactual_answer"])
+            )
+        )
+        retained.append(
+            int(
+                x_ok
+                and generation.get("terminated")
+                and exact_integer(text, expected[x_id]["answer"])
+            )
+        )
+        moved.append(int(not x_ok or x_p0_text is None or text != x_p0_text))
+        y_text = y_measured.get("generation", {}).get("text") if y_ok else None
+        intact.append(int(y_ok and y_p0_text is not None and y_text == y_p0_text))
+        if x_ok:
+            scores = x_measured.get("answer_scores", {})
+            original, counterfactual = (
+                expected[x_id]["answer"],
+                expected[x_id]["counterfactual_answer"],
+            )
+            if original in scores and counterfactual in scores:
+                preferences.append(
+                    scores[counterfactual]["log_probability"]
+                    - scores[original]["log_probability"]
+                )
+            kl_x.append(x_measured["next_token_kl"])
+        if y_ok:
+            kl_y.append(y_measured["next_token_kl"])
+    total = len(group_ids)
+
+    def rate_entry(values):
+        interval = group_bootstrap(
+            values, statistics.fmean, resamples=resamples, seed=seed
+        )
+        return {
+            "count": int(sum(values)),
+            "rate": statistics.fmean(values),
+            "interval": asdict(interval),
+        }
+
+    if preferences:
+        preference_record = {
+            "valid": len(preferences),
+            "excluded": total - len(preferences),
+            "mean": statistics.fmean(preferences),
+            "interval": asdict(
+                group_bootstrap(
+                    preferences, statistics.fmean, resamples=resamples, seed=seed
+                )
+            ),
+        }
+    else:
+        preference_record = {
+            "status": "not_computable",
+            "reason": "no group has complete original/counterfactual answer log probabilities",
+            "valid": 0,
+            "excluded": total,
+            "mean": None,
+        }
+    return {
+        "condition": condition,
+        "alpha": alpha,
+        "groups": total,
+        "x_row_valid": x_valid,
+        "x_row_failed_or_missing": total - x_valid,
+        "y_row_valid": y_valid,
+        "y_row_failed_or_missing": total - y_valid,
+        "flip_to_B": rate_entry(flip),
+        "retained_A": rate_entry(retained),
+        "moved_x": rate_entry(moved),
+        "y_intact": rate_entry(intact),
+        "L": preference_record,
+        "mean_valid_next_token_kl_x": statistics.fmean(kl_x) if kl_x else None,
+        "mean_valid_next_token_kl_y": statistics.fmean(kl_y) if kl_y else None,
+    }
+
+
+def _steering_decision(per_condition, frozen):
+    """Evaluate the frozen steering criteria; design choices, never weakened."""
+    at = frozen["evaluation_alpha"]
+    arms = {}
+    for arm, spec in STEERING_ARMS.items():
+        measured = per_condition.get(condition_key(spec["condition"], at))
+        control = per_condition.get(condition_key(spec["control"], at))
+        negative = per_condition.get(condition_key(spec["condition"], -1.0))
+        flip_rate = measured["flip_to_B"]["rate"] if measured else None
+        intact_rate = measured["y_intact"]["rate"] if measured else None
+        moved_rate = control["moved_x"]["rate"] if control else None
+        negative_flip = negative["flip_to_B"]["rate"] if negative else None
+        criteria = {
+            "c1_flip_to_B": {
+                "value": flip_rate,
+                "threshold": frozen["flip_to_B_threshold"],
+                "alpha": at,
+                "met": flip_rate is not None
+                and flip_rate >= frozen["flip_to_B_threshold"],
+            },
+            "c2_y_integrity": {
+                "value": intact_rate,
+                "threshold": frozen["y_integrity_threshold"],
+                "alpha": at,
+                "met": intact_rate is not None
+                and intact_rate >= frozen["y_integrity_threshold"],
+            },
+            "c3_control_specificity": {
+                "control": spec["control"],
+                "value": moved_rate,
+                "threshold": frozen["control_moved_threshold"],
+                "alpha": at,
+                "met": moved_rate is not None
+                and moved_rate < frozen["control_moved_threshold"],
+            },
+            "c4_direction_check": {
+                "value_negative": negative_flip,
+                "value_evaluation": flip_rate,
+                "gating": False,
+                "met": negative_flip is not None
+                and flip_rate is not None
+                and negative_flip <= flip_rate,
+            },
+        }
+        arms[arm] = {
+            "condition": spec["condition"],
+            "control": spec["control"],
+            "criteria": criteria,
+            "success": all(
+                criteria[name]["met"]
+                for name in (
+                    "c1_flip_to_B",
+                    "c2_y_integrity",
+                    "c3_control_specificity",
+                )
+            ),
+        }
+    return {
+        "frozen_criteria": frozen,
+        "arms": arms,
+        "successful_arms": [arm for arm, record in arms.items() if record["success"]],
+        "rule": frozen["success_rule"],
+        "honesty": "steering outcomes are behavioral measurements on one "
+        "checkpoint, one task family, and one site; they are not semantic "
+        "proofs, and oracle texts are intervention instruments, never "
+        "read-out semantics",
+    }
+
+
+def _summarize_steering(manifest: dict, rows: list[dict]) -> dict:
+    expected, actual = _expected_actual(manifest, rows)
+    group_ids, members = _group_members(expected)
+    roles = _steering_roles(expected)
+    frozen = manifest.get("steering_frozen", STEERING_FROZEN)
+    resamples, seed = frozen["bootstrap_resamples"], frozen["bootstrap_seed"]
+    completed, failed, skipped = [], [], []
+    for group in group_ids:
+        ids = [roles[group]["affected"], roles[group]["other"]]
+        if not any(_attempted(actual, name) for name in ids):
+            skipped.append(group)
+        elif all(
+            name in actual
+            and all(
+                actual[name].get("conditions", {}).get(c, {}).get("status") == "ok"
+                for c in EXPECTED_ROW_CONDITIONS
+            )
+            for name in ids
+        ):
+            completed.append(group)
+        else:
+            failed.append(group)
+    per_condition = {}
+    for condition in STEERING_CONDITIONS:
+        for alpha in ALPHA_GRID:
+            key = condition_key(condition, alpha)
+            per_condition[key] = (
+                _steering_condition_metrics(
+                    expected,
+                    actual,
+                    group_ids,
+                    roles,
+                    condition,
+                    alpha,
+                    resamples=resamples,
+                    seed=seed,
+                )
+                if group_ids
+                else {"condition": condition, "alpha": alpha, "groups": 0,
+                      "status": "not_computable", "reason": "no steering groups"}
+            )
+    reference = {}
+    for condition in ("P0", "P1"):
+        valid = sum(
+            actual.get(name, {}).get("conditions", {}).get(condition, {}).get("status")
+            == "ok"
+            for name in expected
+        )
+        reference[condition] = {
+            "valid": int(valid),
+            "failed_or_missing": len(expected) - int(valid),
+        }
+    cross = {
+        "pilot_p0_generation": {"matches": 0, "differs": 0, "missing": 0},
+        "original_vector_bitwise": {"equal": 0, "different": 0, "missing": 0},
+    }
+    for name in expected:
+        record = actual.get(name, {}).get("cross_run", {})
+        agree = record.get("p0_generation_matches_pilot")
+        cross["pilot_p0_generation"][
+            "matches" if agree else "differs" if agree is False else "missing"
+        ] += 1
+        equal = record.get("original_vector_bitwise_equal_pilot")
+        cross["original_vector_bitwise"][
+            "equal" if equal else "different" if equal is False else "missing"
+        ] += 1
+    return {
+        "stage": STEERING_STAGE,
+        "groups": len(group_ids),
+        "executed_rows": len(expected),
+        "successful_groups": completed,
+        "failed_groups": failed,
+        "skipped_groups": skipped,
+        "greedy_identity": _greedy_identity_counts(actual),
+        "reference_conditions": reference,
+        "cross_run": cross,
+        "per_condition": per_condition,
+        "decision": _steering_decision(per_condition, frozen),
+        "encoding": "failed or missing steered generations count against flip "
+        "and integrity and count as moved (intention-to-test over all groups); "
+        "L excludes groups with incomplete answer scores and counts the "
+        "exclusions; KL is reported over valid cases only and is never "
+        "fabricated for failed conditions",
+        "scope": "One steering run on the reused pilot split. Behavioral "
+        "measurements only; no semantic claim; the closed pilot's recorded "
+        "outcomes stand unchanged.",
+    }
+
+
 def summarize(manifest: dict, rows: list[dict]) -> dict:
     stage = manifest.get("stage", "engineering_smoke")
     if stage == "engineering_smoke":
@@ -598,6 +902,8 @@ def summarize(manifest: dict, rows: list[dict]) -> dict:
         return _summarize_calibration(manifest, rows)
     if stage == "pilot":
         return _summarize_pilot(manifest, rows)
+    if stage == STEERING_STAGE:
+        return _summarize_steering(manifest, rows)
     raise ValueError(f"unknown manifest stage: {stage}")
 
 
@@ -650,6 +956,36 @@ def audit_run(path):
             "baseline_fit_identity": fit.identity,
             "limits": "Replays extraction counts, the median norm, and the pinned fit "
             "identity; cannot replay target forwards or the fitting environment.",
+        }
+    if stage == STEERING_STAGE:
+        if manifest.get("steering_frozen") != STEERING_FROZEN:
+            raise ValueError(
+                "manifest frozen steering criteria differ from the audited code"
+            )
+        recorded_templates = manifest.get("oracle_templates", {})
+        if set(recorded_templates) != set(TEMPLATES):
+            raise ValueError("manifest must record exactly the frozen oracle styles")
+        for style, entry in recorded_templates.items():
+            if entry.get("text") != TEMPLATES[style]:
+                raise ValueError(
+                    "manifest oracle template text differs from the frozen code"
+                )
+            if entry.get("sha256") != template_sha256(entry["text"]):
+                raise ValueError("manifest oracle template hash does not reproduce")
+        completion = json.loads((path / "completion.json").read_text())
+        if completion.get("decision") != calculated["decision"]:
+            raise ValueError(
+                "completion decision does not reproduce from saved results"
+            )
+        return {
+            "status": "PASS",
+            "groups": calculated["groups"],
+            "stage": stage,
+            "limits": "Replays saved counts, next-token KL, the frozen statistics "
+            "and the decision, and verifies the manifest's frozen criteria and "
+            "oracle templates against the audited code; cannot replay AR or "
+            "target forwards, and cannot re-read the pilot run (only its "
+            "recorded hashes are checked into the manifest).",
         }
     completion = json.loads((path / "completion.json").read_text())
     if completion.get("decision") != calculated["decision"]:

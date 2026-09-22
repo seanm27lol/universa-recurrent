@@ -132,6 +132,22 @@ The human record is
 | The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
 | The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
+## Post-Phase-Two steering assay (2026-09-22)
+
+A new, separate measurement on the **reused** pilot split: does a description
+*difference* — the pilot's saved AR directions (arm 1) or frozen oracle
+templates through the live AR (arm 2) — steer behavior under the NLA paper's
+reconstructed-difference recipe (`h′ = h + α·‖h‖·Δ/‖Δ‖`)? Frozen protocol:
+[protocols/steering_assay_brief.md](../research/open_weight_lingua/protocols/steering_assay_brief.md).
+This does not reopen the closed phase; the pilot's recorded outcomes stand.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The steering assay has been run on the released models | NOT RUN | Protocol, code, tests and audit support implemented; the single frozen run awaits execution |
+| The assay's success criteria are fixed | Frozen pre-run (design choices) | α grid {−1, 0.5, 1, 2}; at α=1: flip-to-B ≥ 0.30, y-integrity ≥ 0.90, control moved-x < 0.10; whole-group bootstrap 3,000 resamples, seed 205100 |
+| Oracle template text is read-out semantics | FALSE | Oracle texts are hand-written intervention instruments asserting counterfactual values; arm-1 AV descriptions are known from the pilot to assert no current values; any effect is a difference-space measurement, credited to the paper's recipe |
+| The steering machinery works on tiny fixtures | Tested locally | Delta unit-scaling, patch composition, template determinism and hashes, controls wiring, ITT encoding, manifest locking, audit replay and tamper detection on random Qwen fixtures; never labeled released-model results |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
