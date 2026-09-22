@@ -1,0 +1,260 @@
+{
+  "license": "Apache-2.0",
+  "models": {
+    "ar": {
+      "download_bytes": 16871717079,
+      "files": {
+        "NOTICE": {
+          "bytes": 97,
+          "sha256": "66f856d7da72797f528fca46b7c80634ab481f917bfe020960e123d84b19f75f"
+        },
+        "README.md": {
+          "bytes": 3240,
+          "sha256": "19451a83417eaa70477afd47ee5f0d58dd16daf1e09b1f8db778cfe5aeaface2"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+        },
+        "config.json": {
+          "bytes": 1761,
+          "sha256": "d89e3a538daeedf376f0319ea56caffe502ce9dcc4afae4d7798211dc630e1b4"
+        },
+        "generation_config.json": {
+          "bytes": 132,
+          "sha256": "74bae8d04e6963b973b9152d244a0331a35c58bb9451fedf12717a8e8ea759d2"
+        },
+        "model-00001-of-00004.safetensors": {
+          "bytes": 4915892992,
+          "sha256": "1f6a4435cb023a3ce96a88138c5f248a54b1f3d814707078df6a423180965203"
+        },
+        "model-00002-of-00004.safetensors": {
+          "bytes": 4931294472,
+          "sha256": "0462bcfbe665045975f728ef02635dcf0839306d38482529c6ae772949f367f1"
+        },
+        "model-00003-of-00004.safetensors": {
+          "bytes": 4931294528,
+          "sha256": "47b59778c90ff1e9dc314e630e949fd52f9dd1dbab22dec009f62618d8e29863"
+        },
+        "model-00004-of-00004.safetensors": {
+          "bytes": 2029159024,
+          "sha256": "df9a43668ced42ef1e120b0692a4d808460f36ffccd9ba8c8b9d7781a6ccbc7d"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 36153,
+          "sha256": "d69d33a9fc1fafa65f3a9aba4c503522a9dd55db57a9fa9204b5fad3bba3369e"
+        },
+        "nla_meta.yaml": {
+          "bytes": 1239,
+          "sha256": "6dcb8053b43f1b7118e0d8d0dbeb215d9408b781d8bd450f712cfeadcc6cf53b"
+        },
+        "special_tokens_map.json": {
+          "bytes": 662,
+          "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397"
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1155391,
+          "sha256": "6d9609991487040859a00f0b3dafcd96c9fa876d9d0a068beab651ab40a20b1b"
+        },
+        "value_head.safetensors": {
+          "bytes": 29491288,
+          "sha256": "a102c4c71c684afb5a85708247bc8379a5af5c0f7159032b6574a90599d4748c"
+        }
+      },
+      "license": "gemma",
+      "repo_id": "kitft/nla-gemma3-12b-L32-ar",
+      "revision": "3d6901d8243182d642af9dea452ca91549a94615"
+    },
+    "av": {
+      "download_bytes": 23571432021,
+      "files": {
+        "NOTICE": {
+          "bytes": 97,
+          "sha256": "66f856d7da72797f528fca46b7c80634ab481f917bfe020960e123d84b19f75f"
+        },
+        "README.md": {
+          "bytes": 3237,
+          "sha256": "a45c4223cfd34f3b624be45bc298cbc2363fdc8c36407f369baa8c7a5adb1c1f"
+        },
+        "added_tokens.json": {
+          "bytes": 35,
+          "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+        },
+        "config.json": {
+          "bytes": 2200,
+          "sha256": "893b004424a5dca2bb4c2edbab79af67d842048ad79f5afafbe0a29e0748e4b7"
+        },
+        "generation_config.json": {
+          "bytes": 151,
+          "sha256": "7779b6f9f8da699aca8028478254727515c01d7e0c55690f78e2f14ea7700340"
+        },
+        "model-00001-of-00005.safetensors": {
+          "bytes": 4915892992,
+          "sha256": "1675b0df08f8317d0f926f0f3567a1353075f510e5316d5b6c35cf9e1419011d"
+        },
+        "model-00002-of-00005.safetensors": {
+          "bytes": 4931294472,
+          "sha256": "2d6c0853f8545378ad0d9a2b987f073951b2e676b80ee5655dcec72799d3815d"
+        },
+        "model-00003-of-00005.safetensors": {
+          "bytes": 4931294528,
+          "sha256": "f74c28b5073ffe600727e8c91587928ab96e455e071809d7acbdb28ea2e2646f"
+        },
+        "model-00004-of-00005.safetensors": {
+          "bytes": 4931294528,
+          "sha256": "440f5625f633db1433c1f1da24ebf97a6b3ae5fe84d1de0e6cbb7c5e3005eae5"
+        },
+        "model-00005-of-00005.safetensors": {
+          "bytes": 3822364808,
+          "sha256": "c0b3b9b392ad1b4ad2c88d0fc008e93e0cde36861a21663f4e7afed5d48a0ca5"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 52588,
+          "sha256": "a523856badee97de852b2d7cc85e5690a7080fadf6b6710d8b91566ffa45adbf"
+        },
+        "nla_meta.yaml": {
+          "bytes": 1162,
+          "sha256": "e88238977af889a535ee9578ace47784545d6195dd27695e1354b700c17726a6"
+        },
+        "special_tokens_map.json": {
+          "bytes": 662,
+          "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397"
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer.model": {
+          "bytes": 4689074,
+          "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1155387,
+          "sha256": "983c80895e7b188911f5ccfbb4f780a4e73fb3131ed2080a3e847ef8623cfdca"
+        }
+      },
+      "license": "gemma",
+      "repo_id": "kitft/nla-gemma3-12b-L32-av",
+      "revision": "7aec22599e8a9cd533564868999b443fcc963cf4"
+    },
+    "target": {
+      "download_bytes": 24414161479,
+      "files": {
+        "README.md": {
+          "bytes": 25126,
+          "sha256": null
+        },
+        "added_tokens.json": {
+          "bytes": 35,
+          "sha256": null
+        },
+        "chat_template.json": {
+          "bytes": 1615,
+          "sha256": null
+        },
+        "config.json": {
+          "bytes": 916,
+          "sha256": null
+        },
+        "generation_config.json": {
+          "bytes": 215,
+          "sha256": null
+        },
+        "model-00001-of-00005.safetensors": {
+          "bytes": 4979902192,
+          "sha256": "4847447e92599833e8dbaa3067cd201c3bb5c052efa91f11ba891e43234f7832"
+        },
+        "model-00002-of-00005.safetensors": {
+          "bytes": 4931296592,
+          "sha256": "891bd54eed03cba9ee1e705533a02a8217fcc29f356e4a1f53e5fd0d178883ad"
+        },
+        "model-00003-of-00005.safetensors": {
+          "bytes": 4931296656,
+          "sha256": "7cee411d9d57324e50ce064a192cc5a858276d508611b12fc599e0c9767112e0"
+        },
+        "model-00004-of-00005.safetensors": {
+          "bytes": 4931296656,
+          "sha256": "8bc75a29a730c9e743cad013feda3b0991a913fafe787c58a1c6e20afad97723"
+        },
+        "model-00005-of-00005.safetensors": {
+          "bytes": 4601000928,
+          "sha256": "ed14bd4908c98fed9f61e8cd410167e0846de9abd78e0452ab092072e5d9252d"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 108605,
+          "sha256": null
+        },
+        "preprocessor_config.json": {
+          "bytes": 570,
+          "sha256": null
+        },
+        "processor_config.json": {
+          "bytes": 70,
+          "sha256": null
+        },
+        "special_tokens_map.json": {
+          "bytes": 662,
+          "sha256": null
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer.model": {
+          "bytes": 4689074,
+          "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1156999,
+          "sha256": null
+        }
+      },
+      "gated": "manual",
+      "license": "gemma",
+      "repo_id": "google/gemma-3-12b-it",
+      "revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80"
+    }
+  },
+  "resolved_at": "2026-09-22T15:02:19.436338+00:00",
+  "schema_version": 1,
+  "sources": {
+    "kitft/natural_language_autoencoders": {
+      "files": {
+        "docs/inference.md": {
+          "sha256": "c9049b3cc648c48ea2f3a1e2744a032ea8feb918e42f4303ab6527527388fd74",
+          "url": "https://raw.githubusercontent.com/kitft/natural_language_autoencoders/0577769b55ad4fdd96d159e983361b97fa4e7331/docs/inference.md"
+        },
+        "nla/datagen/extractors.py": {
+          "sha256": "969788bad370407ee82d687c0ef0ae0447a7b91f67b1614aa04914855bd7bb7b",
+          "url": "https://raw.githubusercontent.com/kitft/natural_language_autoencoders/0577769b55ad4fdd96d159e983361b97fa4e7331/nla/datagen/extractors.py"
+        }
+      },
+      "revision": "0577769b55ad4fdd96d159e983361b97fa4e7331"
+    },
+    "kitft/nla-inference": {
+      "files": {
+        "LICENSE": {
+          "sha256": "b7f9570613fb5abf78ca1693a277d71e3c4f00025d3a777dcbd847cf776fdd86",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/LICENSE"
+        },
+        "README.md": {
+          "sha256": "e9b4e7bb0c4ef96b1cce82bdcdf783d2bc0fdf021b5ed79a9c408d9280a3e4c5",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/README.md"
+        },
+        "nla_inference.py": {
+          "sha256": "45cbf64489dc8f1daa8c9e98fe4dd4e881e4fd743fd783d6128c070cc0677f26",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/nla_inference.py"
+        }
+      },
+      "revision": "38b802a33d1d317f21b6825a9116f388c2141f86"
+    }
+  }
+}

@@ -29,6 +29,22 @@ competitive under the stated budget, not evidence that language is useless.
 [Milestone 2 checks, repairs and the pilot outcome](reports/milestone_two.md);
 [human pilot decision record](protocols/pilot_decision.md).
 
+### Second-family port status (Gemma-3)
+
+The pipeline now also resolves the google/gemma-3-12b-it +
+kitft/nla-gemma3-12b-L32-av/ar family through a small audited architecture
+registry ([architectures.py](src/open_weight_lingua/architectures.py)); the
+Qwen2 path is unchanged (all 128 pre-existing tests still pass, plus 21 new
+Gemma-3 fixture tests on tiny random models — software checks, never
+released-model measurements). The new lock is `configs/model-lock-gemma3-12b.json`;
+`configs/model-lock.json` is untouched. Real Gemma runs are **BLOCKED**:
+google/gemma-3-12b-it is license-gated, so the lock's ten small gated files
+carry pending hashes that `read_lock` refuses until a maintainer accepts the
+Gemma terms and runs `scripts/complete_gemma3_lock.py` with `HF_TOKEN` set.
+Interleaved-attention analysis for the L32 site, memory math and the exact
+unblock commands are in
+[reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
+
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
 directions without task labels and freezes the calibration median norm. A
@@ -161,6 +177,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | Small implementation | What to look for |
 |---|---|
 | [tasks.py](src/open_weight_lingua/tasks.py) | Explicit interpreter, paired-answer integrity, deterministic groups, canonical-program and tokenized-prompt exclusions |
+| [architectures.py](src/open_weight_lingua/architectures.py) | Audited per-family registry: config markers, block-list paths, pinned width/depth/extraction block, embedding-scale convention; anything unregistered fails closed |
 | [target.py](src/open_weight_lingua/target.py) | Block output versus `hidden_states[layer+1]`, one site, native restoration, exception-safe hooks, suffix causality via a same-length dummy-suffix bitwise gate plus a frozen pre-pilot cross-length drift bound; every target forward right-padded to the fixed 128-token bucket (`TARGET_BUCKET`) for kernel-shape pinning, with greedy/scoring writing into masked pad slots |
 | [nla_adapter.py](src/open_weight_lingua/nla_adapter.py) | Exact loaded metadata/templates, marker context, cache-free AV embedding injection, required AR value head, no final norm |
 | [geometry.py](src/open_weight_lingua/geometry.py) | Direction and retained norm stay separate; nonfinite/near-zero rejection |

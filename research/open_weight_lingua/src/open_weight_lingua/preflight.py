@@ -10,22 +10,20 @@ import shutil
 import time
 import torch
 
+from .architectures import spec_for_model_type, spec_for_repos, text_config_dict
 from .artifacts import sha256_file
 from .nla_adapter import ar_prompt, av_prompt, check_pair, load_metadata
-
-EXPECTED_REPOS = {
-    "target": "Qwen/Qwen2.5-7B-Instruct",
-    "av": "kitft/nla-qwen2.5-7b-L20-av",
-    "ar": "kitft/nla-qwen2.5-7b-L20-ar",
-}
 
 
 def read_lock(path):
     lock = json.loads(Path(path).read_text())
-    if lock.get("schema_version") != 1 or set(lock["models"]) != set(EXPECTED_REPOS):
+    if lock.get("schema_version") != 1 or not isinstance(lock.get("models"), dict):
         raise ValueError("unsupported source lock")
+    spec = spec_for_repos(
+        {role: entry.get("repo_id") for role, entry in lock["models"].items()}
+    )
     for role, entry in lock["models"].items():
-        if entry["repo_id"] != EXPECTED_REPOS[role] or not re.fullmatch(
+        if entry["repo_id"] != spec.repos[role] or not re.fullmatch(
             r"[0-9a-f]{40}", entry["revision"]
         ):
             raise ValueError("wrong model or non-immutable model revision")
@@ -41,13 +39,22 @@ def read_lock(path):
             required.add("value_head.safetensors")
         if not required <= entry["files"].keys():
             raise ValueError("source lock is missing required artifacts")
+        pending = []
         for name, file in entry["files"].items():
-            if PurePosixPath(name).name != name or not re.fullmatch(
-                r"[0-9a-f]{64}", file["sha256"]
-            ):
+            if PurePosixPath(name).name != name:
+                raise ValueError("unsafe artifact path or missing hash")
+            if file["sha256"] is None:
+                pending.append(name)
+            elif not re.fullmatch(r"[0-9a-f]{64}", file["sha256"]):
                 raise ValueError("unsafe artifact path or missing hash")
             if type(file["bytes"]) is not int or file["bytes"] < 1:
                 raise ValueError("invalid artifact size")
+        if pending:
+            raise ValueError(
+                "source lock has unresolved gated-file hashes "
+                f"({role}: {', '.join(sorted(pending))}); accept the repository "
+                "terms, set HF_TOKEN, and run scripts/complete_gemma3_lock.py"
+            )
         if entry["download_bytes"] != sum(f["bytes"] for f in entry["files"].values()):
             raise ValueError("source-lock byte total mismatch")
     for entry in lock["sources"].values():
@@ -181,17 +188,23 @@ def inspect_metadata(paths):
     from transformers import AutoTokenizer
 
     target_config = json.loads((paths["target"] / "config.json").read_text())
+    text_config = text_config_dict(target_config)
+    spec = spec_for_model_type(target_config["model_type"])
     if (
-        target_config["hidden_size"],
-        target_config["num_hidden_layers"],
-        target_config["model_type"],
-    ) != (3584, 28, "qwen2"):
-        raise ValueError("target differs from audited Qwen2.5-7B configuration")
+        text_config["hidden_size"],
+        text_config["num_hidden_layers"],
+        text_config["model_type"],
+    ) != (spec.hidden_size, spec.num_hidden_layers, spec.text_model_type):
+        raise ValueError(
+            f"target differs from the audited {spec.family} configuration"
+        )
     av = load_metadata(paths["av"], "av", target_config)
     ar = load_metadata(paths["ar"], "ar", target_config)
     check_pair(av, ar)
-    if av.layer != 20:
-        raise ValueError("released pair differs from audited block 20")
+    if av.layer != spec.extraction_layer:
+        raise ValueError(
+            f"released pair differs from the audited block {spec.extraction_layer}"
+        )
     tokenizers = {
         role: AutoTokenizer.from_pretrained(
             str(path), local_files_only=True, trust_remote_code=False

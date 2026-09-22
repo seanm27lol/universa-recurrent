@@ -18,6 +18,7 @@ import uuid
 import torch
 
 from .artifacts import RunDirectory, save_numeric, sha256_file, write_json
+from .architectures import ARCH_SPECS
 from .audit import (
     FROZEN_THRESHOLDS,
     MEDIAN_RECORD_FORMAT,
@@ -65,6 +66,20 @@ MODEL_STAGES = (
     "ar_load_and_reconstruct",
     "target_reload_and_behavior",
 )
+
+
+def target_layers_dotted_path(lock):
+    """The hooked block-list path on the loaded target, from the lock's family.
+
+    Test manifests built without a resolved lock keep the original wording.
+    """
+    repos = {
+        role: entry.get("repo_id") for role, entry in lock.get("models", {}).items()
+    }
+    for spec in ARCH_SPECS.values():
+        if dict(spec.repos) == repos:
+            return ".".join((*spec.target_stack_path, "layers"))
+    return "model.layers"
 
 
 def release_models():
@@ -149,7 +164,7 @@ def build_manifest(
         "target_template": PROMPT_TEMPLATE,
         "metadata": metadata,
         "software": report,
-        "site": f"model.layers.{metadata['layer']} output; last non-padding assistant-prefix token",
+        "site": f"{target_layers_dotted_path(lock)}.{metadata['layer']} output; last non-padding assistant-prefix token",
         "backend": "local-transformers-eager-no-cache",
         "dtype": "bfloat16",
         "av_decoding": {
