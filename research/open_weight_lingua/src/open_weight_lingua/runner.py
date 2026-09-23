@@ -38,6 +38,7 @@ from .preflight import (
     verify_models,
 )
 from .splits import DEFAULT_COUNTS, build_plan, tokenize_split, validate_plan
+from . import vllm_backend
 from .target import SUFFIX_DRIFT_BOUND, TARGET_BUCKET, Site, Target
 from .tasks import (
     PROMPT_TEMPLATE,
@@ -126,6 +127,8 @@ def build_manifest(
     fit=None,
     fit_sidecar_sha256=None,
     calibration_median=None,
+    av_backend="eager",
+    ar_backend="eager",
 ):
     try:
         head = subprocess.check_output(
@@ -151,6 +154,8 @@ def build_manifest(
         "software": report,
         "site": f"model.layers.{metadata['layer']} output; last non-padding assistant-prefix token",
         "backend": "local-transformers-eager-no-cache",
+        "av_backend": av_backend,
+        "ar_backend": ar_backend,
         "dtype": "bfloat16",
         "av_decoding": {
             "greedy": True,
@@ -184,6 +189,15 @@ def build_manifest(
         ],
         "limits": "No scientific success threshold assessed; single-vector intervention retains original context.",
     }
+    if "vllm" in (av_backend, ar_backend):
+        manifest["vllm_backend"] = {
+            "worker": report.get("vllm_worker"),
+            "cross_backend_equivalence": (
+                "NOT CLAIMED: vllm outputs are a distinct measurement backend; "
+                "equivalence is measured by scripts/check_vllm_equivalence.sh, "
+                "and a gate FAIL forbids mixing vllm outputs into eager-regime evidence"
+            ),
+        }
     if stage == "smoke":
         return manifest
     manifest.update(
@@ -253,9 +267,211 @@ def check_target_bucket_fit(inputs, *, bucket=TARGET_BUCKET, generation_ceiling=
             )
 
 
+def _av_stage(run, rows, activations, descriptions, *, backend, paths, tokenizers, av_meta, device, timings, calls):
+    """One AV pass over every row; eager in-process or the vLLM subprocess."""
+    with stage(timings, "av_load_and_generate", device):
+        if backend == "vllm":
+            records, completion = vllm_backend.verbalize_batch(
+                av_path=paths["av"],
+                av_meta=av_meta,
+                tokenizer=tokenizers["av"],
+                vectors={
+                    row["id"]: activations[row["id"]].vector for row in rows
+                },
+            )
+            write_json(run.path / "av_vllm_worker.json", completion)
+            calls["av"] = completion["model_forward_calls"]
+            for row in rows:
+                row["description"] = records[row["id"]]
+                row["av_seconds"] = completion["rows"][row["id"]]["seconds"]
+                if records[row["id"]]["status"] == "ok":
+                    descriptions[row["id"]] = records[row["id"]]["description"]
+                print(
+                    f"  AV: {row['id']} {records[row['id']]['status']}", flush=True
+                )
+            return
+        av = Verbalizer(
+            load_model(paths["av"], "av", device), tokenizers["av"], av_meta
+        )
+        handle = count_forwards(av.model, calls, "av")
+        for row in rows:
+            start = time.perf_counter()
+            try:
+                result = av.verbalize(activations[row["id"]].vector)
+                row["description"] = asdict(result)
+                if result.status == "ok":
+                    descriptions[row["id"]] = result.description
+            except (ValueError, RuntimeError) as error:
+                row["description"] = {"status": "failed", "error": str(error)}
+            row["av_seconds"] = time.perf_counter() - start
+            print(f"  AV: {row['id']} {row['description']['status']}", flush=True)
+        handle.remove()
+        del av
+        release_models()
+
+
+def _ar_reconstruction_row(row, vector, activations, run):
+    directions_entry = {
+        "status": "ok",
+        **direction_metrics(activations[row["id"]].vector, vector),
+    }
+    save_numeric(
+        run.path / "raw" / f"{row['id']}-direction.safetensors",
+        {"ar_direction": vector},
+    )
+    return directions_entry
+
+
+def _ar_stage(run, rows, activations, descriptions, directions, *, backend, paths, tokenizers, ar_meta, device, timings, calls, edit_plans=None, edited_directions=None, wrong_directions=None):
+    """One AR pass over descriptions (plus pilot edit texts); eager or vLLM."""
+    with stage(timings, "ar_load_and_reconstruct", device):
+        if backend == "vllm":
+            items = [
+                (row["id"], descriptions[row["id"]])
+                for row in rows
+                if row["id"] in descriptions
+            ]
+            edit_items = []
+            for group_id, plan in (edit_plans or {}).items():
+                if plan.get("edited_description") is not None:
+                    edit_items.append((f"{group_id}#edited", plan["edited_description"]))
+                wrong_text = plan["wrong_variable"].get("edited_description")
+                if wrong_text is not None:
+                    edit_items.append((f"{group_id}#wrong_variable", wrong_text))
+            if items or edit_items:
+                vectors, completion = vllm_backend.reconstruct_batch(
+                    ar_path=paths["ar"],
+                    ar_meta=ar_meta,
+                    tokenizer=tokenizers["ar"],
+                    head_path=paths["ar"] / "value_head.safetensors",
+                    items=[*items, *edit_items],
+                )
+                write_json(run.path / "ar_vllm_worker.json", completion)
+                calls["ar"] = completion["model_forward_calls"]
+                row_stats = completion["rows"]
+            else:
+                vectors, row_stats = {}, {}
+            edit_lookup = dict(edit_items)
+            for row in rows:
+                if row["id"] not in descriptions:
+                    row["reconstruction"] = {
+                        "status": "skipped",
+                        "reason": "AV description unavailable",
+                    }
+                    continue
+                stats = row_stats.get(row["id"], {})
+                if row["id"] in vectors:
+                    directions[row["id"]] = vectors[row["id"]]
+                    row["reconstruction"] = _ar_reconstruction_row(
+                        row, vectors[row["id"]], activations, run
+                    )
+                else:
+                    row["reconstruction"] = {
+                        "status": "failed",
+                        "error": stats.get("error", "worker returned no direction"),
+                    }
+                row["ar_seconds"] = stats.get("seconds")
+            for group_id, plan in (edit_plans or {}).items():
+                receiver_id = plan["receiver_id"]
+                for label, store in (
+                    ("edited", edited_directions),
+                    ("wrong_variable", wrong_directions),
+                ):
+                    key = f"{group_id}#{label}"
+                    if key not in edit_lookup:
+                        continue
+                    stats = row_stats.get(key, {})
+                    if key in vectors:
+                        store[group_id] = vectors[key]
+                        plan[f"{label}_reconstruction"] = {
+                            "status": "ok",
+                            **direction_metrics(
+                                activations[receiver_id].vector, vectors[key]
+                            ),
+                        }
+                        save_numeric(
+                            run.path
+                            / "raw"
+                            / f"{receiver_id}-{label}-direction.safetensors",
+                            {"ar_direction": vectors[key]},
+                        )
+                    else:
+                        plan[f"{label}_reconstruction"] = {
+                            "status": "failed",
+                            "error": stats.get("error", "worker returned no direction"),
+                        }
+                    plan[f"{label}_reconstruction"]["seconds"] = stats.get("seconds")
+            return
+        ar = Reconstructor(
+            load_model(paths["ar"], "ar", device),
+            tokenizers["ar"],
+            ar_meta,
+            paths["ar"] / "value_head.safetensors",
+        )
+        handle = count_forwards(ar.model, calls, "ar")
+        for row in rows:
+            if row["id"] not in descriptions:
+                row["reconstruction"] = {
+                    "status": "skipped",
+                    "reason": "AV description unavailable",
+                }
+                continue
+            start = time.perf_counter()
+            try:
+                vector = ar.reconstruct(descriptions[row["id"]])
+                directions[row["id"]] = vector
+                row["reconstruction"] = _ar_reconstruction_row(
+                    row, vector, activations, run
+                )
+            except (ValueError, RuntimeError) as error:
+                row["reconstruction"] = {"status": "failed", "error": str(error)}
+            row["ar_seconds"] = time.perf_counter() - start
+        for group_id, edit_plan in (edit_plans or {}).items():
+            receiver_id = edit_plan["receiver_id"]
+            attempts = []
+            if edit_plan.get("edited_description") is not None:
+                attempts.append(
+                    ("edited", edit_plan["edited_description"], edited_directions)
+                )
+            wrong_text = edit_plan["wrong_variable"].get("edited_description")
+            if wrong_text is not None:
+                attempts.append(
+                    ("wrong_variable", wrong_text, wrong_directions)
+                )
+            for label, text, store in attempts:
+                start = time.perf_counter()
+                try:
+                    vector = ar.reconstruct(text)
+                    store[group_id] = vector
+                    edit_plan[f"{label}_reconstruction"] = {
+                        "status": "ok",
+                        **direction_metrics(
+                            activations[receiver_id].vector, vector
+                        ),
+                    }
+                    save_numeric(
+                        run.path
+                        / "raw"
+                        / f"{receiver_id}-{label}-direction.safetensors",
+                        {"ar_direction": vector},
+                    )
+                except (ValueError, RuntimeError) as error:
+                    edit_plan[f"{label}_reconstruction"] = {
+                        "status": "failed",
+                        "error": str(error),
+                    }
+                edit_plan[f"{label}_reconstruction"]["seconds"] = (
+                    time.perf_counter() - start
+                )
+        handle.remove()
+        del ar
+        release_models()
+
+
 def execute_smoke(
-    run, paths, tokenizers, av_meta, ar_meta, inputs, device, timings, calls
+    run, paths, tokenizers, av_meta, ar_meta, inputs, device, timings, calls, backends=None
 ):
+    backends = backends or {"av": "eager", "ar": "eager"}
     rows = [
         {"id": row["id"], "group_id": row["group_id"], "conditions": {}}
         for row in inputs
@@ -304,58 +520,33 @@ def execute_smoke(
             del target
             release_models()
         median_norm = statistics.median(record.norm for record in activations.values())
-        with stage(timings, "av_load_and_generate", device):
-            av = Verbalizer(
-                load_model(paths["av"], "av", device), tokenizers["av"], av_meta
-            )
-            handle = count_forwards(av.model, calls, "av")
-            for row in rows:
-                start = time.perf_counter()
-                try:
-                    result = av.verbalize(activations[row["id"]].vector)
-                    row["description"] = asdict(result)
-                    if result.status == "ok":
-                        descriptions[row["id"]] = result.description
-                except (ValueError, RuntimeError) as error:
-                    row["description"] = {"status": "failed", "error": str(error)}
-                row["av_seconds"] = time.perf_counter() - start
-                print(f"  AV: {row['id']} {row['description']['status']}", flush=True)
-            handle.remove()
-            del av
-            release_models()
-        with stage(timings, "ar_load_and_reconstruct", device):
-            ar = Reconstructor(
-                load_model(paths["ar"], "ar", device),
-                tokenizers["ar"],
-                ar_meta,
-                paths["ar"] / "value_head.safetensors",
-            )
-            handle = count_forwards(ar.model, calls, "ar")
-            for row in rows:
-                if row["id"] not in descriptions:
-                    row["reconstruction"] = {
-                        "status": "skipped",
-                        "reason": "AV description unavailable",
-                    }
-                    continue
-                start = time.perf_counter()
-                try:
-                    vector = ar.reconstruct(descriptions[row["id"]])
-                    directions[row["id"]] = vector
-                    row["reconstruction"] = {
-                        "status": "ok",
-                        **direction_metrics(activations[row["id"]].vector, vector),
-                    }
-                    save_numeric(
-                        run.path / "raw" / f"{row['id']}-direction.safetensors",
-                        {"ar_direction": vector},
-                    )
-                except (ValueError, RuntimeError) as error:
-                    row["reconstruction"] = {"status": "failed", "error": str(error)}
-                row["ar_seconds"] = time.perf_counter() - start
-            handle.remove()
-            del ar
-            release_models()
+        _av_stage(
+            run,
+            rows,
+            activations,
+            descriptions,
+            backend=backends["av"],
+            paths=paths,
+            tokenizers=tokenizers,
+            av_meta=av_meta,
+            device=device,
+            timings=timings,
+            calls=calls,
+        )
+        _ar_stage(
+            run,
+            rows,
+            activations,
+            descriptions,
+            directions,
+            backend=backends["ar"],
+            paths=paths,
+            tokenizers=tokenizers,
+            ar_meta=ar_meta,
+            device=device,
+            timings=timings,
+            calls=calls,
+        )
         with stage(timings, "target_reload_and_behavior", device):
             target = Target(
                 load_model(paths["target"], "target", device), tokenizers["target"]
@@ -705,8 +896,10 @@ def execute_pilot(
     device,
     timings,
     calls,
+    backends=None,
 ):
     """One pilot over all conditions; same site/hook path and gates as smoke."""
+    backends = backends or {"av": "eager", "ar": "eager"}
     rows = [
         {"id": row["id"], "group_id": row["group_id"], "conditions": {}}
         for row in inputs
@@ -757,25 +950,19 @@ def execute_pilot(
             handle.remove()
             del target
             release_models()
-        with stage(timings, "av_load_and_generate", device):
-            av = Verbalizer(
-                load_model(paths["av"], "av", device), tokenizers["av"], av_meta
-            )
-            handle = count_forwards(av.model, calls, "av")
-            for row in rows:
-                start = time.perf_counter()
-                try:
-                    result = av.verbalize(activations[row["id"]].vector)
-                    row["description"] = asdict(result)
-                    if result.status == "ok":
-                        descriptions[row["id"]] = result.description
-                except (ValueError, RuntimeError) as error:
-                    row["description"] = {"status": "failed", "error": str(error)}
-                row["av_seconds"] = time.perf_counter() - start
-                print(f"  AV: {row['id']} {row['description']['status']}", flush=True)
-            handle.remove()
-            del av
-            release_models()
+        _av_stage(
+            run,
+            rows,
+            activations,
+            descriptions,
+            backend=backends["av"],
+            paths=paths,
+            tokenizers=tokenizers,
+            av_meta=av_meta,
+            device=device,
+            timings=timings,
+            calls=calls,
+        )
         edit_plans = {
             group.group_id: _edit_plan(
                 group,
@@ -783,76 +970,23 @@ def execute_pilot(
             )
             for group in groups.values()
         }
-        with stage(timings, "ar_load_and_reconstruct", device):
-            ar = Reconstructor(
-                load_model(paths["ar"], "ar", device),
-                tokenizers["ar"],
-                ar_meta,
-                paths["ar"] / "value_head.safetensors",
-            )
-            handle = count_forwards(ar.model, calls, "ar")
-            for row in rows:
-                if row["id"] not in descriptions:
-                    row["reconstruction"] = {
-                        "status": "skipped",
-                        "reason": "AV description unavailable",
-                    }
-                    continue
-                start = time.perf_counter()
-                try:
-                    vector = ar.reconstruct(descriptions[row["id"]])
-                    directions[row["id"]] = vector
-                    row["reconstruction"] = {
-                        "status": "ok",
-                        **direction_metrics(activations[row["id"]].vector, vector),
-                    }
-                    save_numeric(
-                        run.path / "raw" / f"{row['id']}-direction.safetensors",
-                        {"ar_direction": vector},
-                    )
-                except (ValueError, RuntimeError) as error:
-                    row["reconstruction"] = {"status": "failed", "error": str(error)}
-                row["ar_seconds"] = time.perf_counter() - start
-            for group_id, edit_plan in edit_plans.items():
-                receiver_id = edit_plan["receiver_id"]
-                attempts = []
-                if edit_plan.get("edited_description") is not None:
-                    attempts.append(
-                        ("edited", edit_plan["edited_description"], edited_directions)
-                    )
-                wrong_text = edit_plan["wrong_variable"].get("edited_description")
-                if wrong_text is not None:
-                    attempts.append(
-                        ("wrong_variable", wrong_text, wrong_directions)
-                    )
-                for label, text, store in attempts:
-                    start = time.perf_counter()
-                    try:
-                        vector = ar.reconstruct(text)
-                        store[group_id] = vector
-                        edit_plan[f"{label}_reconstruction"] = {
-                            "status": "ok",
-                            **direction_metrics(
-                                activations[receiver_id].vector, vector
-                            ),
-                        }
-                        save_numeric(
-                            run.path
-                            / "raw"
-                            / f"{receiver_id}-{label}-direction.safetensors",
-                            {"ar_direction": vector},
-                        )
-                    except (ValueError, RuntimeError) as error:
-                        edit_plan[f"{label}_reconstruction"] = {
-                            "status": "failed",
-                            "error": str(error),
-                        }
-                    edit_plan[f"{label}_reconstruction"]["seconds"] = (
-                        time.perf_counter() - start
-                    )
-            handle.remove()
-            del ar
-            release_models()
+        _ar_stage(
+            run,
+            rows,
+            activations,
+            descriptions,
+            directions,
+            backend=backends["ar"],
+            paths=paths,
+            tokenizers=tokenizers,
+            ar_meta=ar_meta,
+            device=device,
+            timings=timings,
+            calls=calls,
+            edit_plans=edit_plans,
+            edited_directions=edited_directions,
+            wrong_directions=wrong_directions,
+        )
         with stage(timings, "target_reload_and_behavior", device):
             target = Target(
                 load_model(paths["target"], "target", device), tokenizers["target"]
@@ -1110,6 +1244,19 @@ def parse_args(argv=None):
         action="store_true",
         help="explicitly download only the locked model artifacts",
     )
+    parser.add_argument(
+        "--av-backend",
+        choices=("eager", "vllm"),
+        default="eager",
+        help="AV description backend; vllm is an opt-in distinct measurement backend "
+        "(requires the .venv-vllm worker; no vllm/eager equivalence is claimed)",
+    )
+    parser.add_argument(
+        "--ar-backend",
+        choices=("eager", "vllm"),
+        default="eager",
+        help="AR reconstruction backend; same opt-in vllm constraints as --av-backend",
+    )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args(argv)
     if args.stage == "pilot" and args.calibration_fit is None:
@@ -1134,6 +1281,7 @@ def main(argv=None):
         )
     run = RunDirectory(args.run_dir)
     started, timings, calls = time.perf_counter(), {}, {}
+    backends = {"av": args.av_backend, "ar": args.ar_backend}
     status, error, report, manifest = "FAILED", None, {}, None
     plan, fit, median_record, rows = None, None, None, []
     try:
@@ -1148,6 +1296,10 @@ def main(argv=None):
             report["deterministic_algorithms"] = (
                 torch.are_deterministic_algorithms_enabled()
             )
+            if "vllm" in backends.values():
+                if not args.device.startswith("cuda"):
+                    raise ValueError("the vllm backend requires the cuda device")
+                report["vllm_worker"] = vllm_backend.probe_worker()
         lock = read_lock(args.lock)
         paths = model_paths(
             lock,
@@ -1170,7 +1322,8 @@ def main(argv=None):
                         tokenizers["target"], row["answer"]
                     )
                 manifest = build_manifest(
-                    lock, args.lock, inputs, generation_stats, metadata, report
+                    lock, args.lock, inputs, generation_stats, metadata, report,
+                    av_backend=backends["av"], ar_backend=backends["ar"],
                 )
             else:
                 plan = build_plan(_group_counts(args.group_counts_json))
@@ -1220,6 +1373,8 @@ def main(argv=None):
                     calibration_median=median_record["median_norm"]
                     if median_record
                     else None,
+                    av_backend=backends["av"],
+                    ar_backend=backends["ar"],
                 )
             write_json(
                 run.path / "manifest.json", manifest
@@ -1237,6 +1392,7 @@ def main(argv=None):
                 args.device,
                 timings,
                 calls,
+                backends,
             )
         elif args.stage == "calibration":
             rows, fit, median_record = execute_calibration(
@@ -1264,6 +1420,7 @@ def main(argv=None):
                 args.device,
                 timings,
                 calls,
+                backends,
             )
         summary = summarize(manifest, rows)
         status = (
