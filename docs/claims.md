@@ -132,6 +132,25 @@ The human record is
 | The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
 | The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
+## Phase Two vLLM backend (2026-09-22)
+
+An opt-in vLLM 0.30.0 backend for the AV/AR stages of the
+[open_weight_lingua runner](../research/open_weight_lingua/README.md): a pinned
+worker venv (`.venv-vllm`, separate because vllm pins transformers 5.x against
+the pipeline's 4.57.6), a subprocess worker replicating the eager recipe
+(marker context, injection scale, recompute-per-pass greedy decode, identity
+final norm, external value head), runner flags `--av-backend`/`--ar-backend`
+(default `eager`), and a measured equivalence gate
+(`scripts/check_vllm_equivalence.sh`). Target capture/patch stays eager; vLLM
+has no public mid-block capture/replacement API for it.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The vLLM worker reproduces the eager AV/AR recipe mechanics | Implemented and fixture-tested | CPU tests cover job validation, EmbedsPrompt construction, value-head math, checkpoint-inventory proof, and gate comparison logic; the worker never imports the pipeline package |
+| vLLM AV/AR outputs are interchangeable with eager outputs | GATE FAIL (measured 2026-09-22) | Gate replay of the pinned smoke bundle (`smoke-20260921T233021Z-cbe4057e`, models re-hash-verified): AV greedy continuations 0/32 token-identical (median first divergence at token 10.5; all rows still status-ok paraphrases; eager top-2 logit margin at a sample divergence measured 0.125 — near-tie argmax flips under different BF16 kernels); AR direction cosine min 0.8097 / median 0.99953 / max 0.99979, norm-relative error up to 5.85%. Both bars missed, so vllm is a distinct measurement backend: it stays non-default and its outputs may not be mixed into eager-regime evidence |
+| The target model runs under vLLM | FALSE | Target capture, patching, kernel-shape pinning and behavioral scoring remain eager Transformers; only the AV/AR adapters have an opt-in vllm path |
+| A faster vLLM decode implies any scientific claim | FALSE | The gate's recompute-per-pass AV discipline makes decode caching unusable by construction (measured 559.5 s for 4,564 forwards vs 522.4 s eager — no speedup on this workload); the phase-two pilot outcome (STOP) is unchanged, and this backend adds no validation result |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

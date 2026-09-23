@@ -97,6 +97,59 @@ The same hashes are enforced for path overrides. The runner never resolves
 `main`. `scripts/resolve_sources.py` is an explicit maintainer operation for a
 **new** lock; it refuses to overwrite the current one.
 
+## Optional vLLM backend for the AV/AR stages (opt-in)
+
+The AV and AR stages can run on a pinned vLLM worker instead of the default
+eager Transformers path. Everything else stays eager: target capture/patch is
+the pipeline's hook-based core, and vLLM exposes no public mid-block capture or
+per-token replacement API for it.
+
+**The worker is a separate Python environment.** vllm==0.30.0 pins torch 2.13.x
+and transformers 5.x, which hard-conflict with the pipeline's pinned
+transformers 4.57.6, so it can never be co-installed in `.venv-phase2`.
+`scripts/setup_vllm_worker.sh` builds `research/open_weight_lingua/.venv-vllm`
+(gitignored) with the pin and records its own lock listing; it never touches
+`.venv-phase2`. The runner shells out to that interpreter
+(`OWL_VLLM_PYTHON` overrides the default path); the parent process keeps lock
+verification, tokenization conventions, and the row/evidence schema, while
+`src/open_weight_lingua/vllm_worker.py` replicates the AV/AR recipe (marker
+context, injection scale, templates, removed final norm, terminal-token value
+head) inside the worker.
+
+```bash
+bash research/open_weight_lingua/scripts/setup_vllm_worker.sh
+bash research/open_weight_lingua/scripts/run_smoke.sh --av-backend vllm --ar-backend vllm
+```
+
+`--av-backend`/`--ar-backend` default to `eager`. The manifest records the
+selected backends plus the worker's pinned versions. The worker sets
+`VLLM_USE_FLASHINFER_SAMPLER=0` (the FlashInfer sampler JIT cannot build with
+this machine's CUDA 12.0 nvcc) and prefers `VLLM_BATCH_INVARIANT=1`;
+`gpu_memory_utilization` is a fraction of TOTAL unified memory, so account for
+other residents. vLLM has no `use_cache=False`; the worker reproduces the eager
+recompute-per-pass semantics with a fresh prefix-cache-disabled request per
+generated token, so on this workload vLLM's cached-decode speed does not apply
+(measured: no wall-time speedup at batch 1).
+
+**vLLM output is a different backend's measurement.** Like SGLang before it,
+no vllm/eager equivalence is claimed without a measured gate.
+`scripts/check_vllm_equivalence.sh` replays a completed eager run's saved
+activations through the vLLM AV and its saved descriptions through the vLLM AR,
+then compares: AV greedy continuations must be 100% token-identical per row,
+and AR direction cosine must be at least 0.9999 on every row with the
+norm-relative error distribution declared. The gate writes machine-readable
+PASS/FAIL plus the measured distributions.
+
+**Measured gate result (2026-09-22, this machine, against the pinned smoke
+bundle): FAIL.** AV: 0/32 rows token-identical (median first divergence at
+token 10.5; both backends still emit status-ok descriptions; a sampled
+divergence sits on an eager top-2 logit margin of 0.125 — near-tie argmax flips
+under different BF16 kernels). AR: direction cosine min 0.8097 / median 0.99953
+/ max 0.99979; norm-relative error up to 5.85%. Per the gate's own rule, the
+vllm backend stays non-default and its outputs may not be mixed into
+eager-regime evidence. See the
+[claim ledger](../../docs/claims.md#phase-two-vllm-backend-2026-09-22).
+
 ## Run the calibration and pilot stages
 
 Planned sample counts, not measurements: calibration uses 256 groups / 1,024
@@ -163,6 +216,9 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [tasks.py](src/open_weight_lingua/tasks.py) | Explicit interpreter, paired-answer integrity, deterministic groups, canonical-program and tokenized-prompt exclusions |
 | [target.py](src/open_weight_lingua/target.py) | Block output versus `hidden_states[layer+1]`, one site, native restoration, exception-safe hooks, suffix causality via a same-length dummy-suffix bitwise gate plus a frozen pre-pilot cross-length drift bound; every target forward right-padded to the fixed 128-token bucket (`TARGET_BUCKET`) for kernel-shape pinning, with greedy/scoring writing into masked pad slots |
 | [nla_adapter.py](src/open_weight_lingua/nla_adapter.py) | Exact loaded metadata/templates, marker context, cache-free AV embedding injection, required AR value head, no final norm |
+| [vllm_worker.py](src/open_weight_lingua/vllm_worker.py) | Standalone opt-in vLLM AV/AR worker (separate pinned venv): job validation, EmbedsPrompt injection, recompute-per-pass greedy decode, identity final norm plus external value head, hashed outputs |
+| [vllm_backend.py](src/open_weight_lingua/vllm_backend.py) | Parent-side subprocess bridge: worker resolution/probe, job construction, completion and hash checks, decode cross-check with the pipeline tokenizer |
+| [vllm_equivalence.py](src/open_weight_lingua/vllm_equivalence.py) | The measured gate: AV token identity and AR cosine/norm distributions against a completed eager run; machine-readable PASS/FAIL |
 | [geometry.py](src/open_weight_lingua/geometry.py) | Direction and retained norm stay separate; nonfinite/near-zero rejection |
 | [metrics.py](src/open_weight_lingua/metrics.py) | Strict integer output, multi-token answer plus EOS scoring, float32 full-vocabulary KL |
 | [splits.py](src/open_weight_lingua/splits.py) | Five deterministic disjoint splits (smoke → calibration → pilot → two validation blocks), carried exclusion inventories, plan hash over every group identity |
@@ -244,7 +300,12 @@ optimal compression baseline, and by itself it establishes nothing about
 language versus generic reconstruction. If frozen-rule edit coverage or
 intervention sensitivity is inadequate, the brief requires closing with
 preservation-only results and marking the edit hypothesis untested or
-unsupported. There is no SGLang/Transformers backend-equivalence claim. The
+unsupported. There is no SGLang/Transformers backend-equivalence claim, and no
+vLLM/Transformers equivalence claim either: the opt-in vLLM AV/AR backend
+failed the measured equivalence gate against the pinned smoke bundle
+(2026-09-22; distribution in the
+[claim ledger](../../docs/claims.md#phase-two-vllm-backend-2026-09-22)) and is
+labeled a distinct measurement backend. The
 primary real-model identity and AV/AR checks passed in the eight-group
 engineering smoke, and the pinned calibration and 128-group pilot have now
 completed (decision **stop**; see the
