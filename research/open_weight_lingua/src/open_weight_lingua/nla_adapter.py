@@ -211,6 +211,26 @@ class Verbalizer:
         )
         self.model = model.eval().requires_grad_(False)
         self.tokenizer, self.metadata = tokenizer, metadata
+        # Stop convention of the pinned upstream recipe (kitft/nla-inference
+        # 38b802a, _sglang_generate): the sampling parameters carry no stop
+        # override — {"temperature": 1.0, "max_new_tokens": 200,
+        # "skip_special_tokens": False} — so the server stops at the
+        # checkpoint's declared eos set from generation_config.json. The
+        # released Gemma AV declares [1, 106] (<eos> and <end_of_turn>); the
+        # Qwen AV declares its single eos. Reproduce the declared set from the
+        # loaded model; fall back to the tokenizer's eos only when the
+        # checkpoint declares none.
+        eos_token_ids = getattr(model.generation_config, "eos_token_id", None)
+        if eos_token_ids is None:
+            eos_token_ids = tokenizer.eos_token_id
+        if isinstance(eos_token_ids, int):
+            eos_token_ids = [eos_token_ids]
+        _require(
+            bool(eos_token_ids)
+            and all(type(token_id) is int for token_id in eos_token_ids),
+            "AV stop-token convention missing",
+        )
+        self.stop_ids = frozenset(eos_token_ids)
         self.prompt_ids, self.position = av_prompt(tokenizer, metadata)
 
     @torch.inference_mode()
@@ -252,7 +272,7 @@ class Verbalizer:
             )
             token = int(out.logits[0, -1].argmax())
             generated.append(token)
-            if token == self.tokenizer.eos_token_id:
+            if token in self.stop_ids:
                 break
         raw = self.tokenizer.decode(generated, skip_special_tokens=False)
         matches = list(
@@ -260,7 +280,7 @@ class Verbalizer:
         )
         if (
             len(generated) == max_new_tokens
-            and generated[-1] != self.tokenizer.eos_token_id
+            and generated[-1] not in self.stop_ids
         ):
             status, description = "truncated", None
         elif (
