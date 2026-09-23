@@ -41,7 +41,9 @@ class Metadata:
     layers: int
 
 
-def load_metadata(directory: Path, role: str, target_config: dict) -> Metadata:
+def load_metadata(
+    directory: Path, role: str, target_config: dict, *, serving_dtype=None
+) -> Metadata:
     """Read actual sidecars; missing/contradictory fields stop execution."""
     directory = Path(directory)
     try:
@@ -70,7 +72,15 @@ def load_metadata(directory: Path, role: str, target_config: dict) -> Metadata:
             "extraction layer mismatch",
         )
         native_dtype = cfg.get("dtype", cfg.get("torch_dtype"))
-        _require(native_dtype == "bfloat16", "released NLA weights must remain BF16")
+        # Released pairs are BF16-native. A non-BF16 release (the 27B AV ships
+        # float32) requires an explicit, justified serving cast declared in the
+        # lock (read_lock validates the declaration); never an implicit cast.
+        if native_dtype != "bfloat16":
+            _require(
+                serving_dtype == "bfloat16",
+                f"released NLA weights declare {native_dtype}; serving them BF16 "
+                "requires the lock's serving_dtype declaration",
+            )
         expected_layers = (
             layer + 1 if role == "ar" else target_text["num_hidden_layers"]
         )

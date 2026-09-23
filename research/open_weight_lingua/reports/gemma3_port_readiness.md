@@ -337,3 +337,109 @@ one task family, interpreted under the frozen thresholds only; the
 preservation pass under the failed usability floor is weak evidence by design
 and is not upgraded here. Locked validation remains NOT RUN and unimplemented
 for both families.
+
+## Gemma-3-27B family (2026-09-23)
+
+The same machinery now resolves a third family: the 27B stack (62 blocks,
+width 5376) with the released kitft/nla-gemma3-27b-L41-av/ar pair (extraction
+block 41). The 70B option was excluded with evidence: the
+kitft/Llama-3.3-70B-NLA-L53-av artifact totals 141.12 GB by its API inventory
+(verified 2026-09-23) against this machine's 121 GB physical unified memory —
+it cannot load here at any serving precision we pin, so no 70B lock exists.
+
+### Lock and provenance
+
+`configs/model-lock-gemma3-12b.json` is untouched; the new lock is
+`configs/model-lock-gemma3-27b.json` (schema_version 1, same shape):
+
+| Role | Repository | Revision | Locked bytes |
+|---|---|---|---:|
+| target | `unsloth/gemma-3-27b-it` (public mirror) | `7a5a3053dbd5d1d58e48159e87b9df2fc545a49a` | 54,904,370,574 |
+| av | `kitft/nla-gemma3-27b-L41-av` (public) | `4e721238131ffb8348cff260fe81b8b34a270a0d` | 108,076,787,842 |
+| ar | `kitft/nla-gemma3-27b-L41-ar` (public) | `aa2f29723c4807caf5f665dac004998df71b7cfb` | 37,599,890,120 |
+
+Total 200,581,048,536 bytes (186.8 GiB). All three repos carry
+`license: gemma`; Gemma Terms of Use apply to the user regardless of download
+source (the HF gate is an access mechanism, not the license itself). As with
+the 12B family, the official google/gemma-3-27b-it @
+`005ad3404e59d6023443cb575daa05336842228a` is gated-manual (anonymous 401 on
+2026-09-23); its metadata rides under `official_source`, and **all twelve
+weight shards plus both tokenizer blobs carry identical LFS sha256 in both
+repos' API records** (14 files byte-identical by content addressing). The
+divergent small files are the mirror's own pinned bytes (`unsloth_fixed:
+true`, same field pattern as the 12B mirror); its `chat_template.jinja` is
+byte-identical to the shared NLA template and its `tokenizer.model`
+byte-identical to the shared blob (`cmp`-verified).
+
+### Real 27B sidecar fields (fetched 2026-09-23, quoted)
+
+AV `nla_meta.yaml`: `schema_version: 2`, `role: av`, `stage: rl`,
+`d_model: 5376`, `extraction_layer_index: 41`,
+`extraction: {injection_scale: 60000.0, mse_scale: 73.32121111929344}` —
+mse_scale is exactly √5376 — `tokens: {injection_char: ㈜,
+injection_token_id: 246566, injection_left_neighbor_id: 236813,
+injection_right_neighbor_id: 954, critic_suffix_ids: null}`. The AR sidecar
+matches pairwise and adds `critic_suffix_ids: [1005, 236813, 655, 6011,
+236813]` and `critic.extraction_layer_index: 41`. The prompt templates are
+byte-identical to the 12B pair's (asserted by test). The AV declares
+`injection_scale: 60000.0` — **not** the 12B pair's 80000.0; the runner reads
+the value from the sidecar, never from a family constant. AR config: 42 layers
+(= 41 + 1, the truncation convention), BF16-native. AV config: 62 layers,
+hidden 5376, **float32-native**.
+
+### The AV dtype deviation (documented, user-authorized, narrowed by the recipe)
+
+The pipeline's audit rule requires released NLA weights to remain BF16. The
+27B AV artifact is float32-native (108.08 GB): it cannot load into the ~65 GB
+available of the 121 GB unified pool, so **no local fp32 A/B comparison is
+possible and the cast is unauditable locally**. The user relaxed the
+native-precision rule for this family on 2026-09-23. The cast follows the
+pinned upstream recipe's own local defaults (kitft/nla-inference @
+`38b802a33d1d317f21b6825a9116f388c2141f86`):
+
+```python
+def load_embedding_only(
+    checkpoint_dir: str | Path,
+    dtype: torch.dtype = torch.bfloat16,
+) -> torch.nn.Embedding:
+```
+
+(the NLAClient's actor-side embedding lookup is explicitly bf16) and
+
+```python
+    def __init__(self, checkpoint_dir: str | Path, *,
+                 device: str = "cpu", dtype: torch.dtype = torch.bfloat16):
+        ...
+        backbone = AutoModelForCausalLM.from_pretrained(
+            str(checkpoint_dir), torch_dtype=dtype, trust_remote_code=True,
+        )
+```
+
+(the critic's local path defaults to bf16). The recipe's SGLang launch line
+sets no `--dtype` flag, deferring the actor's serving dtype to the server
+default. Our `load_model` has always loaded BF16; what changed is the audit:
+`read_lock` now validates an optional per-role `serving_dtype` declaration
+(BF16 only, justification note required), `load_metadata` accepts a
+non-BF16-native release only when that declaration is present, `load_model`
+logs the cast loudly, and every 27B manifest records `av_native_dtype:
+float32` / `av_serving_dtype: bfloat16`. Qwen and Gemma-12B manifests are
+unchanged (no such keys when no cast is declared).
+
+### L41 is a global block; the bucket still fits inside the window
+
+The 27B stack's `layer_types` (verified from the fetched AV config, asserted
+by test): `full_attention` at every 6th index — 5, 11, 17, 23, 29, 35, 41, 47,
+53, 59 — so **block 41 is a global (full-attention) block**, unlike the 12B
+family's local L32. The sliding window is 1024 on both families, so the pinned
+128-token bucket never truncates either way; the exact-causality gates are
+unchanged (and the 12B smoke/pilot measured every suffix drift exactly 0.0).
+
+### 27B memory math (planning numbers, not measurements)
+
+Served BF16, the largest active weight set is the AV at ~50.3 GiB (108.08 GB
+fp32 artifacts cast at load) or the target at ~51.1 GiB; the AR is ~35.0 GiB.
+Stages load one model at a time and release between stages. Against ~65 GB
+available of the 121 GB unified pool this fits with thin headroom — the load
+transient (fp32 shard read + bf16 copy) is the risk point, recorded via the
+runner's peak-allocation reporting. If the AV stage OOMs, that is a reported
+failure, not a cue to shrink the bucket or skip a gate.

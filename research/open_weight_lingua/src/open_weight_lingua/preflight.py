@@ -10,7 +10,7 @@ import shutil
 import time
 import torch
 
-from .architectures import spec_for_model_type, spec_for_repos, text_config_dict
+from .architectures import spec_for_config, spec_for_repos, text_config_dict
 from .artifacts import sha256_file
 from .nla_adapter import ar_prompt, av_prompt, check_pair, load_metadata
 
@@ -39,6 +39,11 @@ def read_lock(path):
             required.add("value_head.safetensors")
         if not required <= entry["files"].keys():
             raise ValueError("source lock is missing required artifacts")
+        if "serving_dtype" in entry and (
+            entry["serving_dtype"] != "bfloat16"
+            or not entry.get("serving_dtype_note")
+        ):
+            raise ValueError("unsupported or unjustified serving dtype cast")
         pending = []
         for name, file in entry["files"].items():
             if PurePosixPath(name).name != name:
@@ -184,12 +189,16 @@ def compatibility(device="cpu"):
     return report
 
 
-def inspect_metadata(paths):
+def inspect_metadata(paths, lock=None):
     from transformers import AutoTokenizer
 
+    serving_dtypes = {
+        role: entry.get("serving_dtype")
+        for role, entry in (lock or {}).get("models", {}).items()
+    }
     target_config = json.loads((paths["target"] / "config.json").read_text())
     text_config = text_config_dict(target_config)
-    spec = spec_for_model_type(target_config["model_type"])
+    spec = spec_for_config(target_config)
     if (
         text_config["hidden_size"],
         text_config["num_hidden_layers"],
@@ -198,8 +207,12 @@ def inspect_metadata(paths):
         raise ValueError(
             f"target differs from the audited {spec.family} configuration"
         )
-    av = load_metadata(paths["av"], "av", target_config)
-    ar = load_metadata(paths["ar"], "ar", target_config)
+    av = load_metadata(
+        paths["av"], "av", target_config, serving_dtype=serving_dtypes.get("av")
+    )
+    ar = load_metadata(
+        paths["ar"], "ar", target_config, serving_dtype=serving_dtypes.get("ar")
+    )
     check_pair(av, ar)
     if av.layer != spec.extraction_layer:
         raise ValueError(
@@ -213,28 +226,46 @@ def inspect_metadata(paths):
     }
     av_ids, position = av_prompt(tokenizers["av"], av)
     ar_ids = ar_prompt(tokenizers["ar"], ar, "tokenizer preflight")
-    return (
-        tokenizers,
-        av,
-        ar,
-        {
-            "width": av.width,
-            "layer": av.layer,
-            "injection_scale": av.injection_scale,
-            "av_prompt_ids": av_ids,
-            "av_injection_position": position,
-            "ar_probe_ids": ar_ids,
-            "ar_layers": ar.layers,
-            "ar_suffix_ids": list(ar.suffix_ids),
-            "av_template": av.av_template,
-            "ar_template": ar.ar_template,
-        },
-    )
+    metadata = {
+        "width": av.width,
+        "layer": av.layer,
+        "injection_scale": av.injection_scale,
+        "av_prompt_ids": av_ids,
+        "av_injection_position": position,
+        "ar_probe_ids": ar_ids,
+        "ar_layers": ar.layers,
+        "ar_suffix_ids": list(ar.suffix_ids),
+        "av_template": av.av_template,
+        "ar_template": ar.ar_template,
+    }
+    if serving_dtypes.get("av"):
+        # Lock-declared serving cast; the released artifact's native precision
+        # and the cast both go into the manifest (the full note is in the lock).
+        av_config = json.loads((paths["av"] / "config.json").read_text())
+        metadata["av_native_dtype"] = av_config.get(
+            "dtype", av_config.get("torch_dtype")
+        )
+        metadata["av_serving_dtype"] = serving_dtypes["av"]
+    return (tokenizers, av, ar, metadata)
 
 
 def load_model(path, role, device):
     from transformers import AutoModelForCausalLM
 
+    # The pipeline serves BF16. When the pinned checkpoint declares another
+    # native dtype (the 27B AV ships float32), the cast is lock-declared; log
+    # it loudly rather than letting from_pretrained cast silently.
+    config_path = Path(path) / "config.json"
+    declared = None
+    if config_path.is_file():
+        config = json.loads(config_path.read_text())
+        declared = config.get("dtype", config.get("torch_dtype"))
+    if declared is not None and declared != "bfloat16":
+        print(
+            f"  Serving dtype cast: {role} checkpoint declares {declared}; "
+            "loading BF16 per the lock's serving_dtype declaration",
+            flush=True,
+        )
     model, info = AutoModelForCausalLM.from_pretrained(
         str(path),
         local_files_only=True,
@@ -271,7 +302,7 @@ def main(argv=None):
     report["verified_bytes"] = verify_models(
         lock, paths, metadata_only=args.metadata_only
     )
-    _, _, _, report["metadata"] = inspect_metadata(paths)
+    _, _, _, report["metadata"] = inspect_metadata(paths, lock)
     report["real_model_inference"] = "NOT RUN"
     print(json.dumps(report, indent=2))
 
