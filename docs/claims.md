@@ -132,14 +132,16 @@ The human record is
 | The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
 | The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
-## Phase Two second-family port readiness (Gemma-3, 2026-09-22)
+## Phase Two second-family port and replication (Gemma-3, 2026-09-22/23)
 
 The closed Phase Two pipeline was ported to a second model family on the
-`gemma3-port` worktree branch: Gemma-3-12B-it plus the released
+`gemma3-port` worktree branch — Gemma-3-12B-it plus the released
 kitft/nla-gemma3-12b-L32-av/ar pair, behind a small audited architecture
-registry. This is engineering-readiness work on the same machinery, not a
-reopening of the closed phase and not a result on released Gemma weights.
-See [reports/gemma3_port_readiness.md](../research/open_weight_lingua/reports/gemma3_port_readiness.md).
+registry — and the replication ran to its bounded end: smoke, calibration and
+one 128-group pilot, decision STOP. This does not reopen the closed phase's
+findings and adds no validation stage. See
+[reports/gemma3_port_readiness.md](../research/open_weight_lingua/reports/gemma3_port_readiness.md)
+and [reports/gemma3_pilot.md](../research/open_weight_lingua/reports/gemma3_pilot.md).
 
 | Statement | Status | Evidence and boundary |
 |---|---|---|
@@ -150,7 +152,10 @@ See [reports/gemma3_port_readiness.md](../research/open_weight_lingua/reports/ge
 | The mirror target tokenizer/template match the NLA pair's conventions | Verified on the real pinned files | tokenizer.model byte-identical to the AV blob (`cmp`); chat_template.jinja byte-identical to the AV/AR file and equal in text to chat_template.json and the embedded tokenizer_config template; BOS-first chat prompts, shared boundary token 107, answer round-trips with eos 106 |
 | The target and NLA pair agree on one termination token | FALSE, documented and repaired by recipe fidelity | Mirror target tokenizer declares eos = `<end_of_turn>` (106); the AV/AR declare `<eos>` (1). The first smoke confirmed the AV emits 106 after its answer; the adapter now stops at the checkpoint's declared eos set ([1, 106] for the released Gemma AV), matching the pinned upstream recipe's no-override convention |
 | Any released-Gemma forward, identity gate, AV description, AR direction or behavioral measurement exists | COMPLETE for the engineering smoke only | First attempt smoke-20260923T025530Z-1ec606fa preserved explicitly (all 32 AV descriptions `truncated`: the released AV emits `<end_of_turn>` 106 after a well-formed explanation and the eos-1-only stop ran a 106/107 loop to the 200-token ceiling). Repair follows the pinned recipe (kitft/nla-inference 38b802a: `sp = {"temperature": 1.0, "max_new_tokens": 200, "skip_special_tokens": False}` — no stop override, so the checkpoint's declared eos set `[1, 106]` from the hash-pinned generation_config.json governs); `Verbalizer` now reads the stop set from the loaded model's generation_config, with five regression tests including the loop case and the unchanged single-eos Qwen convention. Repaired run smoke-20260923T034330Z-4bc7e34a: 8/8 groups, auditor PASS, identity gates bitwise 32/32, greedy backstop exact 64/64 across both stages, all suffix drifts exactly 0.0, all 32 descriptions ok; AR round-trip cosine 0.982–0.994 (median 0.988). Smoke-stage P0 0.5312 and P2 0.6562 / P3 0.3750 / P5 0.0 are 32-variant engineering numbers, not pilot outcomes; no scientific threshold assessed |
-| A Gemma-3 pilot would assess the frozen Phase Two thresholds or edit coverage | NOT ESTABLISHED | Those thresholds were locked for the Qwen phase; applying them to Gemma is a new pilot decision, and locked validation remains unimplemented for both families; Gemma calibration and pilot NOT RUN |
+| A Gemma-3 pilot would assess the frozen Phase Two thresholds or edit coverage | ASSESSED under the frozen thresholds; decision STOP | Pilot pilot-20260923T043613Z-f7e71d7b, 128/128 groups, auditor PASS: unmodified accuracy 0.5195 < 0.80 floor (unmet), sensitivity present, P2 accuracy-loss upper 3.91 pp ≤ 5 pp (met), P2−P3 log-prob lower +2.61 > 0 (met), edit-eligible groups 0/128 (unmet; the edit hypothesis is now untested on BOTH families under the unchanged rule v1.0.0); projected validation cost 75,348 s vs the 28,800 s budget, independently over budget |
+| Gemma preservation passing means language reconstruction preserves behavior on a usable task | FALSE as framed; prohibited upgrade | The P0 usability floor exists so preservation numbers mean something; at 0.52 unmodified accuracy the pass is weak assay evidence — P2 tracks P0 at 0.854 agreement including its errors. This does not establish preservation on a usable task, for either family; on Qwen the task was usable (P0 0.811) and preservation failed (loss upper 41.4 pp) |
+| The L32-of-48/12B versus L20-of-28/7B contrast has a known cause | NOT ESTABLISHED | Site, size, family and NLA-pair training all differ; the contrast is explicitly labeled speculation for a future phase, not a finding |
+| Locked validation on the Gemma family exists | NOT RUN; remains unimplemented | Stop decision plus over-budget projection; the runner never auto-starts validation; the Gemma replication is closed after one pilot, same stopping rule as Qwen |
 
 ## Completed phase-one findings (2026-09-16)
 

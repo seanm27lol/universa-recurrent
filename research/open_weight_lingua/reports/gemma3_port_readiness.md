@@ -1,14 +1,22 @@
-# Gemma-3 second-family port readiness — 2026-09-22/23
+# Gemma-3 second-family port — COMPLETE (pilot outcome recorded) — 2026-09-23
 
 For `x = 3; y = 8; x = x + 2`, the reference answer for `x` is 5. The Qwen2.5-7B
 pipeline asked whether a released NLA description can reconstruct one activation
 direction well enough to preserve that measured behavior; this page records the
 port of the same engineering gate to a second family — Gemma-3-12B-it with the
 released kitft Gemma-3 NLA pair — and exactly what is and is not established.
-**Update 2026-09-23: the eight-group engineering smoke COMPLETED on the real
-mirror-sourced weights (run `smoke-20260923T034330Z-4bc7e34a`, independent
-auditor PASS) after one documented decoding-convention repair. Calibration and
-pilot remain NOT RUN.**
+
+**Status: the replication is COMPLETE and CLOSED. Smoke
+(`smoke-20260923T034330Z-4bc7e34a`), calibration
+(`calibration-20260923T042912Z-d0e9499f`) and the 128-group pilot
+(`pilot-20260923T043613Z-f7e71d7b`) all COMPLETE with independent auditor PASS.
+Pilot decision: STOP — unmodified accuracy 0.5195 below the 0.80 floor and 0/128
+edit-eligible groups, while the preservation criteria passed under that
+unusable-task caveat. The outcome, the cross-family contrast and the honesty
+guards are in [gemma3_pilot.md](gemma3_pilot.md); locked validation was never
+started and stays unimplemented.** The runbook below is retained as the
+operational record of the port; the port itself is proven end to end on the
+real mirror-sourced weights.
 
 ## What is ported and CPU-tested
 
@@ -244,24 +252,27 @@ across all variants of four real smoke groups (lengths 40–53, bucket-fit PASS)
 round-tripping. The AV/AR checks from the first revision (marker/neighbor
 positions, AR suffix, live BOS) are unchanged and still pass.
 
-## Stage commands (smoke COMPLETE 2026-09-23; calibration/pilot NOT RUN)
+## Stage commands (smoke, calibration and pilot all COMPLETE 2026-09-23)
 
 From the worktree root (`/home/seanjazm27/projects/universa-recurrent-gemma`),
 with the hash-verified model cache already populated (see below):
 
 ```bash
-# smoke (8 groups / 32 variants; runs the CPU suite first) — COMPLETE:
+# smoke (8 groups / 32 variants) — COMPLETE:
 # runs/smoke-20260923T034330Z-4bc7e34a, auditor PASS, 8/8 groups
 bash research/open_weight_lingua/scripts/run_smoke.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache
 
-# calibration (256 groups; fits the P4 baseline, freezes the median norm) — NOT RUN
+# calibration (256 groups) — COMPLETE:
+# runs/calibration-20260923T042912Z-d0e9499f, auditor PASS,
+# fit identity 7e60a59773c7b6bc…, frozen median norm 54,441.53
 bash research/open_weight_lingua/scripts/run_calibration.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache
 
-# pilot (128 groups; locked validation remains unimplemented) — NOT RUN
+# pilot (128 groups) — COMPLETE with decision STOP:
+# runs/pilot-20260923T043613Z-f7e71d7b, auditor PASS, 128/128 groups
 bash research/open_weight_lingua/scripts/run_pilot.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache \
@@ -316,15 +327,13 @@ numbers.
 
 ## Limits
 
-This is an engineering port plus one engineering smoke on the real
-mirror-sourced weights. The Qwen2.5-7B results and lock are unchanged. The
-mirror's weight bytes are LFS-identical to the official repo's listed hashes;
-the four divergent small files are the mirror's own and are pinned as such — a
-future official-access reconciliation may swap them. The Gemma smoke measured
-engineering gates only (identity, causality, sensitivity controls, AV/AR
-round-trip health): its P0 accuracy (0.5312) and P2/P3 contrast are 32-variant
-smoke numbers, not pilot outcomes, and no scientific threshold was assessed
-against them. Gemma calibration and pilot are NOT RUN; the frozen pilot
-thresholds were locked for the Qwen phase and applying them to Gemma is a new
-pilot decision; the locked validation stage remains unimplemented in this
-runner for both families.
+This is an engineering port plus one closed smoke → calibration → pilot
+replication on the real mirror-sourced weights. The Qwen2.5-7B results and lock
+are unchanged. The mirror's weight bytes are LFS-identical to the official
+repo's listed hashes; the four divergent small files are the mirror's own and
+are pinned as such — a future official-access reconciliation may swap them. The
+pilot's numbers are pooled 128-group engineering measurements at one site on
+one task family, interpreted under the frozen thresholds only; the
+preservation pass under the failed usability floor is weak evidence by design
+and is not upgraded here. Locked validation remains NOT RUN and unimplemented
+for both families.

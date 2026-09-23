@@ -46,9 +46,17 @@ the user regardless of download source; the HF gate is an access mechanism, not
 the license itself.** The eight-group Gemma smoke **COMPLETED**
 (`runs/smoke-20260923T034330Z-4bc7e34a`, auditor PASS) after one documented
 decoding-convention repair (AV stop set now follows the released checkpoint's
-declared eos ids, per the pinned upstream recipe); Gemma calibration and pilot
-are NOT RUN. Interleaved-attention analysis for the L32 site, the repair record,
-memory math and the stage commands are in
+declared eos ids, per the pinned upstream recipe), and the replication ran to
+its bounded end: calibration `calibration-20260923T042912Z-d0e9499f` and the
+128-group pilot `pilot-20260923T043613Z-f7e71d7b` (auditor PASS), decision
+**STOP** — on Gemma-3-12B the task was not usable (P0 0.520 < 0.80) while the
+preservation criterion passed (loss upper 3.91 pp), the mirror image of Qwen's
+usable-task preservation failure; the preservation pass is weak assay evidence
+under the failed usability floor and is not upgraded. Locked validation NOT
+RUN on either family. The outcome and honesty guards:
+[reports/gemma3_pilot.md](reports/gemma3_pilot.md). Interleaved-attention
+analysis for the L32 site, the repair record, memory math and the stage
+commands:
 [reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
