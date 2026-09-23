@@ -1,14 +1,14 @@
-# Gemma-3 second-family port readiness — 2026-09-22
+# Gemma-3 second-family port readiness — 2026-09-22/23
 
 For `x = 3; y = 8; x = x + 2`, the reference answer for `x` is 5. The Qwen2.5-7B
 pipeline asked whether a released NLA description can reconstruct one activation
 direction well enough to preserve that measured behavior; this page records the
 port of the same engineering gate to a second family — Gemma-3-12B-it with the
 released kitft Gemma-3 NLA pair — and exactly what is and is not established.
-**Update 2026-09-22 (second revision): the target now pins the public unsloth
-mirror, all artifacts fetch and hash-verify through the pipeline's own path, and
-fixture/tokenizer/config checks are green. Real-weight GPU stages remain
-NOT RUN — they are handed off with the exact commands below.**
+**Update 2026-09-23: the eight-group engineering smoke COMPLETED on the real
+mirror-sourced weights (run `smoke-20260923T034330Z-4bc7e34a`, independent
+auditor PASS) after one documented decoding-convention repair. Calibration and
+pilot remain NOT RUN.**
 
 ## What is ported and CPU-tested
 
@@ -138,20 +138,76 @@ Divergence is confined to four small files (mirror vs official API sizes):
   nothing in the mirror's additions alters the text-stack fields the pipeline
   audits, and the runner never reads generation defaults.
 - `generation_config.json`: `eos_token_id: [1, 106]`, sampling defaults —
-  unused by this pipeline (greedy argmax, explicit tokenizer EOS).
+  unused by this pipeline (greedy argmax, explicit stop set).
 - `special_tokens_map.json` / `tokenizer_config.json`: the mirror declares
   `eos_token: <end_of_turn>`; the AV/AR pair declares `eos_token: <eos>`.
   Consequence: per role, `tokenizer.eos_token_id` is 106 for the target and 1
   for the NLA pair. The pipeline reads the per-role tokenizer, so target
   greedy/scoring terminates on `<end_of_turn>` — the native gemma-it turn
-  terminator — while the AV/AR paths follow the released NLA convention. This
-  is self-consistent within each role and resolves the previously flagged
-  target-side termination concern in favor of the -it convention. **Remaining
-  watch item (unchanged, AV side only):** our local AV reader stops at
-  `eos_token_id` 1 (`<eos>`), while the AV's own `generation_config.json`
-  allows [1, 106]; if the released AV prefers 106 at turn end, descriptions
-  would read as truncated. The first smoke's AV status counts measure this;
-  do not silently patch decoding.
+  terminator.
+
+### The watch item fired and was repaired by recipe fidelity (2026-09-23)
+
+The first real smoke (`smoke-20260923T025530Z-1ec606fa`, preserved with
+`completion.json: COMPLETE_WITH_FAILURES`) passed all 32 identity gates and
+executed every stage, but all 32 AV descriptions came back `truncated`: the
+released AV produced a well-formed `<explanation>…</explanation>` answer and
+then `<end_of_turn>` (106), which the adapter did not recognize as a stop (it
+stopped only at `tokenizer.eos_token_id` 1), so generation ran on as an
+alternating 106/107 loop to the 200-token ceiling and the parse reported no
+complete description. Saved raw evidence, row smoke-0000-A-x: exactly one open
+and one close tag with real content, followed by the loop.
+
+The pinned upstream recipe (kitft/nla-inference @
+`38b802a33d1d317f21b6825a9116f388c2141f86`, `nla_inference.py`) declares the
+convention the adapter now reproduces:
+
+```python
+sp = {"temperature": 1.0, "max_new_tokens": 200,
+      "skip_special_tokens": False}
+```
+
+— no stop override: the SGLang server stops at the checkpoint's declared eos
+set, which for the released Gemma AV is `eos_token_id: [1, 106]` (verified in
+the fetched, hash-pinned `generation_config.json`). `Verbalizer` now reads the
+stop set from the loaded model's `generation_config.eos_token_id` (falling
+back to the tokenizer's eos only when the checkpoint declares none, and
+failing closed when neither exists). The Qwen AV declares its single eos
+(151645), so the Qwen stop behavior is byte-identical; five new regression
+tests pin the 106 stop, the loop-terminating case, the unchanged truncation
+status when no stop is emitted, the missing-convention failure, and the
+unchanged single-eos Qwen convention.
+
+Extraction follows the upstream rule — `EXPLANATION_RE =
+re.compile(r"<explanation>\s*(.*?)\s*</explanation>", re.DOTALL)` with
+`m.group(1).strip()` on the first match — with the pipeline's pre-existing
+strengthening kept: exactly one tag pair is required and missing/duplicated
+tags are recorded as `invalid_explanation_tags` failures instead of
+upstream's warn-and-return-raw fallback (the adapter documents no retries and
+no text selection; on the repaired generations both rules agree).
+
+The rerun (`smoke-20260923T034330Z-4bc7e34a`, auditor PASS) completed 8/8
+groups with all 32 descriptions `ok`. One verbatim Gemma AV description
+(smoke-0000-A-x, site L32, generated 139 tokens ending in `<end_of_turn>`):
+
+> Structured arithmetic puzzle format: answer output follows a pattern of
+> showing the result of a subtraction operation involving integer values.
+>
+> The phrase "answer is 10" establishes a numeric answer, implying the
+> solution involves the remaining value after subtracting 1 from 12.
+
+Smoke-stage engineering numbers (32 variants, 8 groups — NOT a scientific
+result and not a pilot input): identity gates bitwise on all variants, greedy
+identity backstop exact 32/32 in both stages, every suffix-drift measurement
+exactly 0.0 under kernel-shape pinning. P0 accuracy 0.5312 (17/32; below the
+pilot-usability floor locked for the Qwen phase — an early-signal observation,
+as on the Qwen smoke). P2 0.6562 (mean next-token KL vs P0 4.4e-4), P3 0.3750
+(KL 4.63), P5 0.0 (KL 23.6), donor KL 0.041; AR round-trip cosine 0.982–0.994
+(median 0.988); original site norms 50.5k–59.4k (median 54.3k), consistent
+with the √d-inflated residual scale behind the 80,000 injection scale.
+Forward calls: 4,433 AV (vs the 6,400 ceiling), 32 AR, 2,258 target; stage
+times 944.7 s AV / 185.0 s target-identity / 106.6 s AR / 446.0 s
+target-behavior; GPU peak allocated 23.81 GiB — comfortably inside the pool.
 
 Hash provenance otherwise unchanged from the Qwen lock's policy: weight shards
 carry the Hub API's LFS sha256 (verified against the downloaded bytes by
@@ -188,23 +244,24 @@ across all variants of four real smoke groups (lengths 40–53, bucket-fit PASS)
 round-tripping. The AV/AR checks from the first revision (marker/neighbor
 positions, AR suffix, live BOS) are unchanged and still pass.
 
-## Exact commands for the real stages (hand-off; not run here)
+## Stage commands (smoke COMPLETE 2026-09-23; calibration/pilot NOT RUN)
 
 From the worktree root (`/home/seanjazm27/projects/universa-recurrent-gemma`),
 with the hash-verified model cache already populated (see below):
 
 ```bash
-# smoke (8 groups / 32 variants; runs the CPU suite first)
+# smoke (8 groups / 32 variants; runs the CPU suite first) — COMPLETE:
+# runs/smoke-20260923T034330Z-4bc7e34a, auditor PASS, 8/8 groups
 bash research/open_weight_lingua/scripts/run_smoke.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache
 
-# calibration (256 groups; fits the P4 baseline, freezes the median norm)
+# calibration (256 groups; fits the P4 baseline, freezes the median norm) — NOT RUN
 bash research/open_weight_lingua/scripts/run_calibration.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache
 
-# pilot (128 groups; locked validation remains unimplemented)
+# pilot (128 groups; locked validation remains unimplemented) — NOT RUN
 bash research/open_weight_lingua/scripts/run_pilot.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
   --cache research/open_weight_lingua/model-cache \
@@ -259,13 +316,15 @@ numbers.
 
 ## Limits
 
-This is an engineering port with fixture-level, metadata-level and
-download-verification evidence. The Qwen2.5-7B results and lock are unchanged.
-The mirror's weight bytes are LFS-identical to the official repo's listed
-hashes; the four divergent small files are the mirror's own and are pinned as
-such — a future official-access reconciliation may swap them. Real
-released-Gemma forwards, the identity gate, AV explanations, AR directions,
-behavioral preservation, and any scientific read of a Gemma pilot are all
-NOT RUN. The frozen pilot thresholds were locked for the Qwen phase; applying
-them to Gemma is a new pilot decision, and the locked validation stage remains
-unimplemented in this runner for both families.
+This is an engineering port plus one engineering smoke on the real
+mirror-sourced weights. The Qwen2.5-7B results and lock are unchanged. The
+mirror's weight bytes are LFS-identical to the official repo's listed hashes;
+the four divergent small files are the mirror's own and are pinned as such — a
+future official-access reconciliation may swap them. The Gemma smoke measured
+engineering gates only (identity, causality, sensitivity controls, AV/AR
+round-trip health): its P0 accuracy (0.5312) and P2/P3 contrast are 32-variant
+smoke numbers, not pilot outcomes, and no scientific threshold was assessed
+against them. Gemma calibration and pilot are NOT RUN; the frozen pilot
+thresholds were locked for the Qwen phase and applying them to Gemma is a new
+pilot decision; the locked validation stage remains unimplemented in this
+runner for both families.

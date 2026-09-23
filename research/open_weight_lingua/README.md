@@ -34,7 +34,7 @@ competitive under the stated budget, not evidence that language is useless.
 The pipeline now also resolves the Gemma-3-12B-it + kitft/nla-gemma3-12b-L32-av/ar
 family through a small audited architecture registry
 ([architectures.py](src/open_weight_lingua/architectures.py)); the Qwen2 path is
-unchanged (all 128 pre-existing tests still pass, plus 21 Gemma-3 fixture tests
+unchanged (all 128 pre-existing tests still pass, plus 26 Gemma-3 fixture tests
 on tiny random models — software checks, never released-model measurements). The
 lock is `configs/model-lock-gemma3-12b.json`; `configs/model-lock.json` is
 untouched. The official google/gemma-3-12b-it is gated-manual (anonymous 401),
@@ -43,8 +43,12 @@ tokenizer blobs carry identical LFS sha256 in both repos' API records
 (byte-identical content), and the divergence is confined to four small config
 files documented in the lock's `provenance` field. **Gemma Terms of Use apply to
 the user regardless of download source; the HF gate is an access mechanism, not
-the license itself.** Interleaved-attention analysis for the L32 site, memory
-math and the exact run commands are in
+the license itself.** The eight-group Gemma smoke **COMPLETED**
+(`runs/smoke-20260923T034330Z-4bc7e34a`, auditor PASS) after one documented
+decoding-convention repair (AV stop set now follows the released checkpoint's
+declared eos ids, per the pinned upstream recipe); Gemma calibration and pilot
+are NOT RUN. Interleaved-attention analysis for the L32 site, the repair record,
+memory math and the stage commands are in
 [reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only

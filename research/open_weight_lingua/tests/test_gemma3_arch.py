@@ -373,6 +373,115 @@ def test_av_prompt_and_ar_prompt_gemma_conventions(tmp_path, gemma_tokenizer):
         ar_prompt(gemma_tokenizer, replace(ar, suffix_ids=(1,)), "x")
 
 
+def _scripted_forward(script, vocab, calls):
+    """A forward emitting the scripted tokens in order via argmax."""
+    from types import SimpleNamespace
+
+    def forward(**kwargs):
+        token = script[min(len(calls), len(script) - 1)]
+        calls.append(kwargs)
+        logits = torch.zeros((1, kwargs["inputs_embeds"].shape[1], vocab))
+        logits[:, -1, token] = 1
+        return SimpleNamespace(logits=logits)
+
+    return forward
+
+
+def test_av_stops_at_declared_end_of_turn(gemma_tokenizer, monkeypatch):
+    """The released Gemma AV declares eos [1, 106] in generation_config.json.
+
+    The 2026-09-23 smoke (run smoke-20260923T025530Z-1ec606fa) showed the
+    eos-1-only stop running a 106/107 loop to the 200-token ceiling with the
+    real description already complete upstream of it. The pinned recipe passes
+    no stop override; the declared set is the stop set.
+    """
+    model = tiny_causal_lm(layers=6, vocab_size=262208)
+    model.generation_config.eos_token_id = [1, 106]
+    av = Verbalizer(model, gemma_tokenizer, tiny_metadata("av"))
+    assert av.stop_ids == frozenset({1, 106})
+    calls = []
+    monkeypatch.setattr(
+        model, "forward", _scripted_forward([40, 41, 106], 262208, calls)
+    )
+    monkeypatch.setattr(
+        gemma_tokenizer,
+        "decode",
+        lambda ids, **kwargs: "<explanation>x is currently 5</explanation><106>",
+    )
+    result = av.verbalize(torch.ones(16))
+    assert result.status == "ok"
+    assert result.description == "x is currently 5"
+    assert result.token_ids == [40, 41, 106]
+    assert len(calls) == 3  # stopped at the declared 106, not the 200 ceiling
+
+
+def test_av_106_107_loop_terminates_at_first_106(gemma_tokenizer, monkeypatch):
+    """The failure mode from the saved smoke evidence now stops immediately."""
+    model = tiny_causal_lm(layers=6, vocab_size=262208)
+    model.generation_config.eos_token_id = [1, 106]
+    av = Verbalizer(model, gemma_tokenizer, tiny_metadata("av"))
+    calls = []
+    monkeypatch.setattr(
+        model,
+        "forward",
+        _scripted_forward([50, 106, 107, 106, 107], 262208, calls),
+    )
+    monkeypatch.setattr(
+        gemma_tokenizer,
+        "decode",
+        lambda ids, **kwargs: "<explanation>five</explanation>",
+    )
+    result = av.verbalize(torch.ones(16))
+    assert result.token_ids == [50, 106]
+    assert len(calls) == 2
+    assert result.status == "ok"
+
+
+def test_av_truncated_status_when_no_stop_emitted(gemma_tokenizer, monkeypatch):
+    model = tiny_causal_lm(layers=6, vocab_size=262208)
+    model.generation_config.eos_token_id = [1, 106]
+    av = Verbalizer(model, gemma_tokenizer, tiny_metadata("av"))
+    calls = []
+    monkeypatch.setattr(model, "forward", _scripted_forward([7, 8, 9], 262208, calls))
+    result = av.verbalize(torch.ones(16), max_new_tokens=3)
+    assert result.status == "truncated"
+    assert result.description is None
+    assert result.token_ids == [7, 8, 9]
+    assert len(calls) == 3
+
+
+def test_av_missing_stop_convention_fails_closed(gemma_tokenizer):
+    model = tiny_causal_lm(layers=6, vocab_size=262208)
+    model.generation_config.eos_token_id = None
+    gemma_tokenizer.eos_token_id = None
+    with pytest.raises(ValueError, match="stop-token"):
+        Verbalizer(model, gemma_tokenizer, tiny_metadata("av"))
+
+
+def test_qwen_av_stop_convention_unchanged(
+    model_factory, tokenizer, metadata_factory, monkeypatch
+):
+    """The Qwen path keeps the fixture's single declared eos and nothing else."""
+    model = model_factory()
+    av = Verbalizer(model, tokenizer, metadata_factory())
+    assert av.stop_ids == frozenset({2})
+    calls = []
+    monkeypatch.setattr(model, "forward", _scripted_forward([5, 6, 2], 32, calls))
+    monkeypatch.setattr(
+        tokenizer, "decode", lambda ids, **kwargs: "<explanation>five</explanation>"
+    )
+    result = av.verbalize(torch.ones(16))
+    assert result.status == "ok"
+    assert result.token_ids == [5, 6, 2]
+    assert len(calls) == 3
+    # A token that is not the declared eos never stops the Qwen path.
+    calls.clear()
+    monkeypatch.setattr(model, "forward", _scripted_forward([5, 6], 32, calls))
+    result = av.verbalize(torch.ones(16), max_new_tokens=2)
+    assert result.status == "truncated"
+    assert result.token_ids == [5, 6]
+
+
 def test_ar_reconstructor_on_gemma3_text_stack(tmp_path, gemma_tokenizer):
     model = tiny_causal_lm(layers=2, vocab_size=262208)
     meta = tiny_metadata("ar")
