@@ -1176,7 +1176,7 @@ def main(argv=None):
                 report["fetch"] = {"new_artifact_bytes": 0, "requested": False}
             report["verified_artifact_bytes"] = verify_models(lock, paths)
         with stage(timings, "metadata_and_task_preprocessing", "cpu"):
-            tokenizers, av_meta, ar_meta, metadata = inspect_metadata(paths)
+            tokenizers, av_meta, ar_meta, metadata = inspect_metadata(paths, lock)
             if args.stage == "smoke":
                 groups, generation_stats = generate_groups("smoke", 8)
                 inputs = tokenize_groups(groups, tokenizers["target"])

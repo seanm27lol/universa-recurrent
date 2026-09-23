@@ -31,6 +31,7 @@ from open_weight_lingua.architectures import (
     ARCH_SPECS,
     decoder_layers,
     layers_dotted_path,
+    spec_for_config,
     spec_for_model_type,
     spec_for_repos,
     text_config_dict,
@@ -53,6 +54,7 @@ from open_weight_lingua.tasks import generate_groups, tokenize_groups
 FIXTURES = Path(__file__).parent / "fixtures/upstream"
 PROJECT = Path(__file__).parents[1]
 GEMMA_LOCK = PROJECT / "configs/model-lock-gemma3-12b.json"
+GEMMA27_LOCK = PROJECT / "configs/model-lock-gemma3-27b.json"
 QWEN_LOCK = PROJECT / "configs/model-lock.json"
 
 # Real released sidecar values (kitft/nla-gemma3-12b-L32-*, pinned in the lock).
@@ -265,13 +267,23 @@ def test_l32_is_a_local_attention_block():
 
 def test_architecture_registry_fails_closed():
     assert spec_for_model_type("qwen2").family == "qwen2.5-7b"
-    assert spec_for_model_type("gemma3").family == "gemma3-12b"
-    assert spec_for_model_type("gemma3_text").family == "gemma3-12b"
+    # Both Gemma-3 sizes share the gemma3/gemma3_text markers: the bare
+    # model_type is ambiguous and fails closed; width/depth disambiguate.
+    for shared in ("gemma3", "gemma3_text"):
+        with pytest.raises(ValueError, match="ambiguous"):
+            spec_for_model_type(shared)
     for bad in (None, "llama", "gemma2"):
         with pytest.raises(ValueError, match="unsupported architecture"):
             spec_for_model_type(bad)
+    twelve = json.loads((FIXTURES / "gemma3-target-config.json").read_text())
+    twentyseven = json.loads((FIXTURES / "gemma3-27b-target-config.json").read_text())
+    assert spec_for_config(twelve).family == "gemma3-12b"
+    assert spec_for_config(twentyseven).family == "gemma3-27b"
     assert (
         spec_for_repos(dict(ARCH_SPECS["gemma3-12b"].repos)).family == "gemma3-12b"
+    )
+    assert (
+        spec_for_repos(dict(ARCH_SPECS["gemma3-27b"].repos)).family == "gemma3-27b"
     )
     with pytest.raises(ValueError, match="non-immutable"):
         spec_for_repos(
@@ -606,3 +618,142 @@ def test_load_model_tiny_gemma3_ar_checkpoint(tmp_path):
     assert type(loaded).__name__ == "Gemma3ForCausalLM"
     with pytest.raises(ValueError, match="does not load completely"):
         load_model(tmp_path, "av", "cpu")
+
+
+# --- Gemma-3-27B family (kitft/nla-gemma3-27b-L41-*, unsloth mirror target) ---
+
+GEMMA27 = {
+    "width": 5376,
+    "layers": 62,
+    "extraction_layer": 41,
+    "injection_scale": 60000.0,
+}
+
+
+def gemma27_target_config():
+    """The pinned 27B mirror target config (official bytes gated, as for 12B)."""
+    return json.loads((FIXTURES / "gemma3-27b-target-config.json").read_text())
+
+
+def load_27b_metadata_from_fixture(tmp_path, role, **kwargs):
+    for name in ("config.json", "nla_meta.yaml"):
+        shutil.copyfile(FIXTURES / f"gemma3-27b-{role}-{name}", tmp_path / name)
+    return load_metadata(tmp_path, role, gemma27_target_config(), **kwargs)
+
+
+def test_27b_real_sidecar_metadata(tmp_path):
+    """Real fetched 27B sidecars: width 5376, block 41, injection scale 60000."""
+    av = load_27b_metadata_from_fixture(tmp_path, "av", serving_dtype="bfloat16")
+    ar = load_27b_metadata_from_fixture(tmp_path, "ar")
+    check_pair(av, ar)
+    assert (av.width, av.layer) == (GEMMA27["width"], GEMMA27["extraction_layer"])
+    assert av.injection_scale == GEMMA27["injection_scale"]
+    assert av.mse_scale == pytest.approx(math.sqrt(5376))
+    assert (av.injection_id, av.left_id, av.right_id) == (
+        INJECTION_ID,
+        LEFT_ID,
+        RIGHT_ID,
+    )
+    assert ar.suffix_ids == AR_SUFFIX_IDS
+    assert ar.layers == 42  # truncation convention: extraction block plus one
+    # Same templates as the 12B pair (asserted against the 12B fixtures).
+    av12 = yaml.safe_load((FIXTURES / "gemma3-av-nla_meta.yaml").read_text())
+    assert av.av_template == av12["prompt_templates"]["av"]
+    assert av.ar_template == av12["prompt_templates"]["ar"]
+
+
+def test_27b_av_fp32_native_requires_the_declared_serving_cast(tmp_path):
+    """The 27B AV ships float32; serving it BF16 must be lock-declared."""
+    for name in ("config.json", "nla_meta.yaml"):
+        shutil.copyfile(FIXTURES / f"gemma3-27b-av-{name}", tmp_path / name)
+    with pytest.raises(ValueError, match="serving_dtype"):
+        load_metadata(tmp_path, "av", gemma27_target_config())
+    av = load_metadata(
+        tmp_path, "av", gemma27_target_config(), serving_dtype="bfloat16"
+    )
+    assert av.width == GEMMA27["width"]
+
+
+def test_27b_l41_is_a_global_attention_block():
+    """Contrast with the 12B family: the 27B extraction block is global.
+
+    The 62-block stack has full_attention at every 6th index (5..59), so 41 is
+    global; the window is 1024, wider than the pinned 128-token bucket.
+    """
+    av = json.loads((FIXTURES / "gemma3-27b-av-config.json").read_text())
+    layer_types = av["layer_types"]
+    assert len(layer_types) == av["num_hidden_layers"] == 62
+    full = [i for i, kind in enumerate(layer_types) if kind == "full_attention"]
+    assert full == [5, 11, 17, 23, 29, 35, 41, 47, 53, 59]
+    assert layer_types[41] == "full_attention"
+    assert av["sliding_window"] == 1024 > TARGET_BUCKET
+    ar = json.loads((FIXTURES / "gemma3-27b-ar-config.json").read_text())
+    assert len(ar["layer_types"]) == ar["num_hidden_layers"] == 42
+    assert ar["layer_types"][41] == "full_attention"
+
+
+def test_27b_lock_validation():
+    lock = read_lock(GEMMA27_LOCK)
+    target, av, ar = (lock["models"][role] for role in ("target", "av", "ar"))
+    assert target["repo_id"] == "unsloth/gemma-3-27b-it"
+    assert target["source"] == "mirror"
+    assert "Gemma Terms of Use" in target["provenance"]
+    official = target["official_source"]
+    assert official["repo_id"] == "google/gemma-3-27b-it"
+    assert official["gated"] == "manual"
+    # Weight shards and tokenizer blobs are LFS-identical to the official pin.
+    shared = [
+        name
+        for name, file in official["files"].items()
+        if file["sha256"] is not None
+    ]
+    assert len(shared) == 14  # twelve shards + tokenizer.json + tokenizer.model
+    for name in shared:
+        assert target["files"][name]["sha256"] == official["files"][name]["sha256"]
+    assert av["serving_dtype"] == "bfloat16"
+    assert "float32" in av["serving_dtype_note"]
+    assert "serving_dtype" not in ar  # the AR is BF16-native
+    assert lock["sources"] == json.loads(QWEN_LOCK.read_text())["sources"]
+    assert (
+        spec_for_repos(
+            {role: entry["repo_id"] for role, entry in lock["models"].items()}
+        ).family
+        == "gemma3-27b"
+    )
+    # 27B fixtures are byte-identical to the locked files.
+    for role, entry in (("av", av), ("ar", ar), ("target", target)):
+        for name in ("config.json", "nla_meta.yaml"):
+            fixture = FIXTURES / f"gemma3-27b-{role}-{name}"
+            if fixture.exists():
+                assert sha256_file(fixture) == entry["files"][name]["sha256"]
+
+
+def test_serving_dtype_declaration_rule_in_read_lock(tmp_path):
+    lock = json.loads(GEMMA27_LOCK.read_text())
+    # A cast without a justification note fails; so does a non-BF16 cast.
+    del lock["models"]["av"]["serving_dtype_note"]
+    path = tmp_path / "lock.json"
+    path.write_text(json.dumps(lock))
+    with pytest.raises(ValueError, match="serving dtype"):
+        read_lock(path)
+
+
+def test_load_model_logs_the_lock_declared_cast(tmp_path, capsys):
+    """An fp32-native fixture checkpoint loads BF16 with a loud log line."""
+    model = tiny_causal_lm(layers=2)
+    model.config.save_pretrained(tmp_path)
+    save_file(
+        {
+            key: value
+            for key, value in model.state_dict().items()
+            if key not in ("model.norm.weight", "lm_head.weight")
+        },
+        tmp_path / "model.safetensors",
+    )
+    config = json.loads((tmp_path / "config.json").read_text())
+    # The released 27B AV declares dtype float32 explicitly; mirror that.
+    config["dtype"] = "float32"
+    (tmp_path / "config.json").write_text(json.dumps(config))
+    loaded = load_model(tmp_path, "ar", "cpu")
+    assert next(loaded.parameters()).dtype == torch.bfloat16
+    assert "Serving dtype cast" in capsys.readouterr().out

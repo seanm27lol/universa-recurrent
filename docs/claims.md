@@ -157,6 +157,19 @@ and [reports/gemma3_pilot.md](../research/open_weight_lingua/reports/gemma3_pilo
 | The L32-of-48/12B versus L20-of-28/7B contrast has a known cause | NOT ESTABLISHED | Site, size, family and NLA-pair training all differ; the contrast is explicitly labeled speculation for a future phase, not a finding |
 | Locked validation on the Gemma family exists | NOT RUN; remains unimplemented | Stop decision plus over-budget projection; the runner never auto-starts validation; the Gemma replication is closed after one pilot, same stopping rule as Qwen |
 
+### Gemma-3-27B extension (2026-09-23)
+
+The user authorized running the kitft/nla-gemma3-27b-L41 pair (extraction
+block 41 of 62, width 5376) with the unsloth/gemma-3-27b-it mirror target.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The 27B sources are pinned in a new lock | Implemented; fetch-verified bytes pending the smoke record | configs/model-lock-gemma3-27b.json: mirror target @ 7a5a3053… (twelve shards + both tokenizer blobs LFS-identical to the gated official's API record; divergent small files pinned as the mirror's own), AV @ 4e721238… (108.08 GB), AR @ aa2f2972… (37.60 GB); the sidecar fields are the real fetched values (injection_scale 60000.0, mse_scale √5376, block 41, AR 42 layers) — never extrapolated from the 12B pair |
+| The 27B AV is served at its released precision | FALSE — documented deviation, user-authorized | The released AV is float32-native (108.08 GB) and cannot load in the ~65 GB available of the 121 GB pool; it is served BF16 per the lock's justified serving_dtype declaration, following the pinned recipe's own bf16 local defaults (load_embedding_only and NLACritic both default dtype=torch.bfloat16; the SGLang launch sets no --dtype). No local fp32 A/B comparison is possible; the cast is unauditable locally and recorded in the lock, manifests, report and this ledger |
+| The 70B NLA pair is runnable on this machine | FALSE, with evidence | kitft/Llama-3.3-70B-NLA-L53-av totals 141.12 GB by its API file inventory (verified 2026-09-23) against 121 GB physical unified memory; no pinned serving precision fits, so no 70B lock exists |
+| Block 41 of the 27B stack shares the 12B site's local-attention character | FALSE (different character, documented) | 27B block 41 is a full-attention (global) block (full at every 6th index of 62); the 12B block 32 is sliding-window local. Both windows (1024) exceed the pinned 128-token bucket, so the exact-causality gates are unaffected |
+| Any 27B real-model smoke exists | (updated when the run completes) | (see the run record) |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

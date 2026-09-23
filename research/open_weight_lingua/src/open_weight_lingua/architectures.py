@@ -91,18 +91,91 @@ ARCH_SPECS = {
         text_stack_path=("model",),
         scaled_embedding=True,
     ),
+    "gemma3-27b": ArchSpec(
+        family="gemma3-27b",
+        repos={
+            # Same mirror arrangement as the 12B family: the official
+            # google/gemma-3-27b-it is gated-manual; the twelve weight shards
+            # and both tokenizer blobs are LFS-identical between the mirror
+            # and the official API records.
+            "target": "unsloth/gemma-3-27b-it",
+            "av": "kitft/nla-gemma3-27b-L41-av",
+            "ar": "kitft/nla-gemma3-27b-L41-ar",
+        },
+        target_model_type="gemma3",
+        text_model_type="gemma3_text",
+        hidden_size=5376,
+        num_hidden_layers=62,
+        # Unlike the 12B family's local L32, block 41 of the 62-block stack is
+        # a full-attention (global) block: layer_types has full_attention at
+        # every 6th index (5, 11, ..., 59), so 41 is global (verified from the
+        # fetched AV config on 2026-09-23; window 1024 > TARGET_BUCKET).
+        extraction_layer=41,
+        target_stack_path=("model", "language_model"),
+        text_stack_path=("model",),
+        scaled_embedding=True,
+    ),
 }
 
 
+def _model_type_paths() -> dict:
+    """model_type -> block-list path on the loaded model, collision-checked.
+
+    Families may share a model_type (both Gemma-3 sizes mark the wrapper
+    gemma3 and the text stack gemma3_text) only because they share the path.
+    """
+    paths = {}
+    for spec in ARCH_SPECS.values():
+        for model_type, path in (
+            (spec.target_model_type, spec.target_stack_path),
+            (spec.text_model_type, spec.text_stack_path),
+        ):
+            if model_type in paths and paths[model_type] != path:
+                raise RuntimeError(f"registry path collision on {model_type!r}")
+            paths[model_type] = path
+    return paths
+
+
 def spec_for_model_type(model_type) -> ArchSpec:
-    """The one audited spec matching a target or text-stack model_type."""
+    """The one audited spec matching a model_type; ambiguous markers fail.
+
+    Gemma-3 sizes share their model_type markers, so family facts (width,
+    depth, extraction block) must be resolved with spec_for_config instead.
+    """
     matches = [
         spec
         for spec in ARCH_SPECS.values()
         if model_type in (spec.target_model_type, spec.text_model_type)
     ]
     if model_type is None or len(matches) != 1:
-        raise ValueError(f"unsupported architecture for this pipeline: {model_type!r}")
+        raise ValueError(
+            f"unsupported architecture or ambiguous model_type for this "
+            f"pipeline: {model_type!r}"
+        )
+    return matches[0]
+
+
+def spec_for_config(config: dict) -> ArchSpec:
+    """The unique audited family for a raw config: model_type, then — when
+    families share the marker (the two Gemma-3 sizes) — text width/depth."""
+    text_config = text_config_dict(config)
+    matches = [
+        spec
+        for spec in ARCH_SPECS.values()
+        if config["model_type"] in (spec.target_model_type, spec.text_model_type)
+    ]
+    if len(matches) > 1:
+        shape = (text_config["hidden_size"], text_config["num_hidden_layers"])
+        matches = [
+            spec
+            for spec in matches
+            if (spec.hidden_size, spec.num_hidden_layers) == shape
+        ]
+    if len(matches) != 1:
+        raise ValueError(
+            "no audited family matches this configuration: "
+            f"{config['model_type']!r}"
+        )
     return matches[0]
 
 
@@ -115,10 +188,11 @@ def spec_for_repos(repos: dict) -> ArchSpec:
 
 
 def _stack_path(model) -> tuple:
-    spec = spec_for_model_type(getattr(model.config, "model_type", None))
-    if model.config.model_type == spec.target_model_type:
-        return spec.target_stack_path
-    return spec.text_stack_path
+    paths = _model_type_paths()
+    model_type = getattr(model.config, "model_type", None)
+    if model_type not in paths:
+        raise ValueError(f"unsupported architecture for this pipeline: {model_type!r}")
+    return paths[model_type]
 
 
 def text_stack(model):
@@ -148,7 +222,11 @@ def layers_dotted_path(model) -> str:
 def stack_config(model):
     """The config object carrying hidden_size/depth for the loaded model."""
     config = model.config
-    spec_for_model_type(getattr(config, "model_type", None))
+    if getattr(config, "model_type", None) not in _model_type_paths():
+        raise ValueError(
+            f"unsupported architecture for this pipeline: "
+            f"{getattr(config, 'model_type', None)!r}"
+        )
     text_config = getattr(config, "text_config", None)
     return text_config if text_config is not None else config
 
@@ -162,8 +240,14 @@ def text_config_dict(config: dict) -> dict:
     metadata/config failure.
     """
     model_type = config["model_type"]
-    spec = spec_for_model_type(model_type)
-    if model_type == spec.target_model_type != spec.text_model_type:
+    wrapped = {
+        spec.target_model_type
+        for spec in ARCH_SPECS.values()
+        if spec.target_model_type != spec.text_model_type
+    }
+    if model_type not in _model_type_paths():
+        raise ValueError(f"unsupported architecture for this pipeline: {model_type!r}")
+    if model_type in wrapped:
         nested = config["text_config"]
         if not isinstance(nested, dict):
             raise ValueError("target config text_config is not a mapping")
