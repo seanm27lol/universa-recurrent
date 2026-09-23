@@ -135,7 +135,7 @@ The human record is
 ## Phase Two second-family port readiness (Gemma-3, 2026-09-22)
 
 The closed Phase Two pipeline was ported to a second model family on the
-`gemma3-port` worktree branch: google/gemma-3-12b-it plus the released
+`gemma3-port` worktree branch: Gemma-3-12B-it plus the released
 kitft/nla-gemma3-12b-L32-av/ar pair, behind a small audited architecture
 registry. This is engineering-readiness work on the same machinery, not a
 reopening of the closed phase and not a result on released Gemma weights.
@@ -143,12 +143,14 @@ See [reports/gemma3_port_readiness.md](../research/open_weight_lingua/reports/ge
 
 | Statement | Status | Evidence and boundary |
 |---|---|---|
-| The pipeline resolves the Gemma-3 family without changing the Qwen2 path | Implemented and fixture-tested | Registry-driven hook paths/widths/depths; all 128 pre-existing tests pass unchanged plus 21 new tiny-random-Gemma3 fixture tests (149 total); the Qwen lock is byte-untouched and no Qwen manifest field changes |
+| The pipeline resolves the Gemma-3 family without changing the Qwen2 path | Implemented and fixture-tested | Registry-driven hook paths/widths/depths; all 128 pre-existing tests pass unchanged plus 21 Gemma-3 fixture tests (149 total); the Qwen lock is byte-untouched and no Qwen manifest field changes |
 | The Gemma-3 NLA pair's metadata conventions match the pipeline's checks | Source-audited and tokenizer-tested | Real fetched schema-2 sidecars (width 3840, extraction block 32, AV injection scale 80000.0, AR suffix tokens) parsed by the production loader; the public AV/AR tokenizers pass the production av/ar prompt checks including the live Gemma BOS rule |
 | The L32 capture site interacts with Gemma-3 interleaved attention | Analyzed and fixture-exercised | Block 32 is a sliding-window block (window 1024, full attention at every 6th index, verified from the fetched configs); the pinned 128-token bucket is always inside the window, so masked pads stay exactly zero and the causality gates are unaffected |
-| The new lock pins the Gemma-3 sources | Partially complete by construction | Exact revisions, sizes and LFS sha256 for every weight shard and both LFS tokenizer files; all public small files hashed from downloads; the gated target's ten small non-LFS files carry pending hashes and `read_lock` fails closed until `scripts/complete_gemma3_lock.py` fills them after license acceptance |
-| Any released-Gemma forward, identity gate, AV description, AR direction or behavioral measurement exists | NOT RUN | google/gemma-3-12b-it is license-gated (manual acceptance) and no HF token is configured on this machine; smoke/calibration/pilot commands are documented but blocked |
-| A Gemma-3 pilot would assess the frozen Phase Two thresholds or edit coverage | NOT ESTABLISHED | Those thresholds were locked for the Qwen phase; the termination-convention difference (`<end_of_turn>` 106 alongside `<eos>` 1) is a documented watch item for the first real smoke, not a decided protocol change |
+| The Gemma-3 sources are pinned and fetch-verified | COMPLETE for the mirror-sourced lock; official small files UNVERIFIABLE | The official google/gemma-3-12b-it @ 96b6f1ec… is gated-manual (anonymous 401); the target pins the public unsloth mirror @ 9478e665… instead, and its weight shards/tokenizer blobs carry identical LFS sha256 in both repos' API records (byte-identical); four small config files diverge and are pinned as the mirror's own bytes with the official metadata recorded alongside. All 64,857,314,351 bytes downloaded through `preflight.fetch_models` and re-hashed by `verify_models` (PASS per role; 2026-09-22). Gemma Terms of Use apply to the user regardless of download source; the HF gate is an access mechanism, not the license itself. Reconciliation against the official revision remains pending gated access |
+| The mirror target tokenizer/template match the NLA pair's conventions | Verified on the real pinned files | tokenizer.model byte-identical to the AV blob (`cmp`); chat_template.jinja byte-identical to the AV/AR file and equal in text to chat_template.json and the embedded tokenizer_config template; BOS-first chat prompts, shared boundary token 107, answer round-trips with eos 106 |
+| The target and NLA pair agree on one termination token | FALSE, documented | Mirror target tokenizer declares eos = `<end_of_turn>` (106); the AV/AR declare `<eos>` (1). Per-role tokenizers keep the pipeline self-consistent; the AV-side stop convention is a documented watch item for the first smoke, not a silently patched behavior |
+| Any released-Gemma forward, identity gate, AV description, AR direction or behavioral measurement exists | NOT RUN | Real GPU stages are handed off with exact commands; nothing beyond fixture/meta-device/load-config checks has executed |
+| A Gemma-3 pilot would assess the frozen Phase Two thresholds or edit coverage | NOT ESTABLISHED | Those thresholds were locked for the Qwen phase; applying them to Gemma is a new pilot decision, and locked validation remains unimplemented for both families |
 
 ## Completed phase-one findings (2026-09-16)
 

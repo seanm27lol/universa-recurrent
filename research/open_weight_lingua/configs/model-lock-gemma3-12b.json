@@ -146,27 +146,31 @@
       "revision": "7aec22599e8a9cd533564868999b443fcc963cf4"
     },
     "target": {
-      "download_bytes": 24414161479,
+      "download_bytes": 24414165251,
       "files": {
         "README.md": {
           "bytes": 25126,
-          "sha256": null
+          "sha256": "bcd00f0d73a59772e5cac6a98519e8f5eca15f1354cd3889c916e45ba16d8c2e"
         },
         "added_tokens.json": {
           "bytes": 35,
-          "sha256": null
+          "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
         },
         "chat_template.json": {
           "bytes": 1615,
-          "sha256": null
+          "sha256": "fe16baf728db49457cde32802cd7efc0ac8a7a9877dbe22fe3322b2d9dc6ccd9"
         },
         "config.json": {
-          "bytes": 916,
-          "sha256": null
+          "bytes": 1660,
+          "sha256": "8b94af769e10ed3e1ddf9d101db08844bb8f9ac5d60f16c72bb2070ccba941a1"
         },
         "generation_config.json": {
-          "bytes": 215,
-          "sha256": null
+          "bytes": 210,
+          "sha256": "031fdd1faee68cf7e0cafd12203a08f51f86abd82877a401fc8dafad7b2f7b5c"
         },
         "model-00001-of-00005.safetensors": {
           "bytes": 4979902192,
@@ -190,19 +194,19 @@
         },
         "model.safetensors.index.json": {
           "bytes": 108605,
-          "sha256": null
+          "sha256": "788cc42a1a92835df62d9a3791f47105f63504c7c404637a73288e9b11bc7b82"
         },
         "preprocessor_config.json": {
           "bytes": 570,
-          "sha256": null
+          "sha256": "f688d6bb20c5017601c4011de7ca656da8485b540b05013efdaf986c0fcc918d"
         },
         "processor_config.json": {
           "bytes": 70,
-          "sha256": null
+          "sha256": "3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53"
         },
         "special_tokens_map.json": {
-          "bytes": 662,
-          "sha256": null
+          "bytes": 670,
+          "sha256": "45a857d8a2495d0be30a5d2d6de03278195eb028b6e0b8efc248bfa697d65f05"
         },
         "tokenizer.json": {
           "bytes": 33384568,
@@ -213,17 +217,93 @@
           "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
         },
         "tokenizer_config.json": {
-          "bytes": 1156999,
-          "sha256": null
+          "bytes": 1158492,
+          "sha256": "8925eabb556c1897ca1bed405f0612e735a56afcd4d77e76eb90fd771e706f9c"
         }
       },
-      "gated": "manual",
       "license": "gemma",
-      "repo_id": "google/gemma-3-12b-it",
-      "revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80"
+      "official_source": {
+        "files": {
+          "README.md": {
+            "bytes": 25126,
+            "sha256": null
+          },
+          "added_tokens.json": {
+            "bytes": 35,
+            "sha256": null
+          },
+          "chat_template.json": {
+            "bytes": 1615,
+            "sha256": null
+          },
+          "config.json": {
+            "bytes": 916,
+            "sha256": null
+          },
+          "generation_config.json": {
+            "bytes": 215,
+            "sha256": null
+          },
+          "model-00001-of-00005.safetensors": {
+            "bytes": 4979902192,
+            "sha256": "4847447e92599833e8dbaa3067cd201c3bb5c052efa91f11ba891e43234f7832"
+          },
+          "model-00002-of-00005.safetensors": {
+            "bytes": 4931296592,
+            "sha256": "891bd54eed03cba9ee1e705533a02a8217fcc29f356e4a1f53e5fd0d178883ad"
+          },
+          "model-00003-of-00005.safetensors": {
+            "bytes": 4931296656,
+            "sha256": "7cee411d9d57324e50ce064a192cc5a858276d508611b12fc599e0c9767112e0"
+          },
+          "model-00004-of-00005.safetensors": {
+            "bytes": 4931296656,
+            "sha256": "8bc75a29a730c9e743cad013feda3b0991a913fafe787c58a1c6e20afad97723"
+          },
+          "model-00005-of-00005.safetensors": {
+            "bytes": 4601000928,
+            "sha256": "ed14bd4908c98fed9f61e8cd410167e0846de9abd78e0452ab092072e5d9252d"
+          },
+          "model.safetensors.index.json": {
+            "bytes": 108605,
+            "sha256": null
+          },
+          "preprocessor_config.json": {
+            "bytes": 570,
+            "sha256": null
+          },
+          "processor_config.json": {
+            "bytes": 70,
+            "sha256": null
+          },
+          "special_tokens_map.json": {
+            "bytes": 662,
+            "sha256": null
+          },
+          "tokenizer.json": {
+            "bytes": 33384568,
+            "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+          },
+          "tokenizer.model": {
+            "bytes": 4689074,
+            "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+          },
+          "tokenizer_config.json": {
+            "bytes": 1156999,
+            "sha256": null
+          }
+        },
+        "gated": "manual",
+        "repo_id": "google/gemma-3-12b-it",
+        "revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80"
+      },
+      "provenance": "Target weights and tokenizer are pinned from the public unsloth mirror. The official google/gemma-3-12b-it @ 96b6f1eccf38110c56df3a15bffe176da04bfd80 is gated-manual (anonymous fetches returned HTTP 401 on 2026-09-22), so its small non-LFS files could not be byte-verified; the five weight shards and both tokenizer blobs carry identical LFS sha256 in both repos' API records, so those bytes are shared and verified against the listed hashes. The mirror config.json/generation_config.json/special_tokens_map.json/tokenizer_config.json differ in bytes from the official listing (e.g. config.json 1660 B vs 916 B; unsloth_fixed: true); see reports/gemma3_port_readiness.md for the field-level diff. Gemma Terms of Use apply to the user regardless of download source; the HF gate is an access mechanism, not the license itself. If gated access is later obtained, re-verify against the official revision and reconcile.",
+      "repo_id": "unsloth/gemma-3-12b-it",
+      "revision": "9478e665381f42974aa06177b019352fb6291876",
+      "source": "mirror"
     }
   },
-  "resolved_at": "2026-09-22T15:02:19.436338+00:00",
+  "resolved_at": "2026-09-23T02:06:31.812539+00:00",
   "schema_version": 1,
   "sources": {
     "kitft/natural_language_autoencoders": {

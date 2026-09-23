@@ -67,14 +67,21 @@ ARCH_SPECS = {
     "gemma3-12b": ArchSpec(
         family="gemma3-12b",
         repos={
-            "target": "google/gemma-3-12b-it",
+            # The official google/gemma-3-12b-it is gated-manual (anonymous
+            # HTTP 401, 2026-09-22); the target pins the public unsloth mirror
+            # instead. The five weight shards and both tokenizer blobs carry
+            # identical LFS sha256 in both repos' API records (byte-identical
+            # content); the divergence is confined to four small config files.
+            # The lock records the official revision alongside for later
+            # reconciliation. Gemma Terms of Use apply regardless of source.
+            "target": "unsloth/gemma-3-12b-it",
             "av": "kitft/nla-gemma3-12b-L32-av",
             "ar": "kitft/nla-gemma3-12b-L32-ar",
         },
-        # google/gemma-3-12b-it ships Gemma3ForConditionalGeneration: the
-        # text stack sits under model.language_model. The released NLA pair
-        # is text-only Gemma3ForCausalLM (model_type gemma3_text), where the
-        # stack is model, exactly like Qwen2ForCausalLM.
+        # The target ships Gemma3ForConditionalGeneration: the text stack sits
+        # under model.language_model. The released NLA pair is text-only
+        # Gemma3ForCausalLM (model_type gemma3_text), where the stack is model,
+        # exactly like Qwen2ForCausalLM.
         target_model_type="gemma3",
         text_model_type="gemma3_text",
         hidden_size=3840,
