@@ -1,17 +1,17 @@
-"""One-time completion of the pending Gemma-3 lock after license acceptance.
+"""One-time completion of a pending Gemma-3 lock after license acceptance.
 
-configs/model-lock-gemma3-12b.json ships with exact revisions, sizes and
-HF-API LFS hashes for every file, but google/gemma-3-12b-it is gated behind
-manual license acceptance: the sha256 of its ten small non-LFS files cannot
-be resolved without an authenticated download, so those entries carry null
-hashes and read_lock refuses the lock (fail closed — nothing runs on
-unverified sources). Once the maintainer has accepted the Gemma terms at
-https://huggingface.co/google/gemma-3-12b-it and exported HF_TOKEN, this
-script downloads exactly the pending files at the pinned revision, hashes
-them, and writes the completed lock back over the same path. It refuses to
-touch any lock that is already complete, changes nothing but null hash
-fields, and proves the result by passing the completed lock through
-read_lock before replacing the file.
+Historical context: the first Gemma-3 lock pinned the gated official
+google/gemma-3-12b-it with null hashes for its ten small non-LFS files, and
+read_lock refused it (fail closed — nothing runs on unverified sources). The
+shipped configs/model-lock-gemma3-12b.json now pins the public unsloth mirror
+instead and is complete, so this script refuses it ("already complete"). It
+remains the reconciliation tool for a future official-sourced lock: once a
+maintainer has accepted the Gemma terms at
+https://huggingface.co/google/gemma-3-12b-it and exported HF_TOKEN, a pending
+official lock's null target hashes can be filled from authenticated downloads
+at the pinned revision here, cross-checked against the recorded sizes, and the
+completed lock is written back over the same path only after it passes
+read_lock. Nothing but null hash fields is ever changed.
 """
 
 import argparse

@@ -3,11 +3,11 @@
 The Gemma-shaped fixture models are random-weight software checks, like the
 Qwen fixtures — nothing here is a measurement on the released Gemma-3 or NLA
 weights. The nla_meta/config fixtures under fixtures/upstream/gemma3-* are
-byte-identical copies of the public kitft sidecars and configs pinned in
-configs/model-lock-gemma3-12b.json (asserted below). The gated target's
-config.json is intentionally NOT fixture-cloned: it cannot be fetched until
-the Gemma license is accepted, so the target text-stack shape is wrapped
-inline from the real fetched AV config instead.
+byte-identical copies of the public kitft sidecars/configs and the public
+unsloth mirror's target config.json, all pinned in
+configs/model-lock-gemma3-12b.json (asserted below). The official
+google/gemma-3-12b-it files are license-gated; the lock records their
+API-listed metadata alongside the mirror pin for later reconciliation.
 """
 
 from dataclasses import replace
@@ -151,20 +151,9 @@ def load_metadata_from_fixture(tmp_path, role):
 
 
 def gemma_target_config():
-    """Gated-target config shape, wrapped inline from the real AV config.
-
-    google/gemma-3-12b-it/config.json is license-gated; its text stack is the
-    same Gemma3-12B stack the public AV checkpoint carries (3840 wide, 48
-    blocks), so the fixture nests that real fetched text config under a
-    gemma3 multimodal wrapper exactly as Gemma3Config serializes it.
-    """
-    text_config = json.loads((FIXTURES / "gemma3-av-config.json").read_text())
-    return {
-        "architectures": ["Gemma3ForConditionalGeneration"],
-        "model_type": "gemma3",
-        "text_config": text_config,
-        "vision_config": {"model_type": "siglip_vision_model"},
-    }
+    """The pinned target config (unsloth mirror; the gated official config
+    could not be byte-verified — the lock records its API-listed metadata)."""
+    return json.loads((FIXTURES / "gemma3-target-config.json").read_text())
 
 
 def tiny_metadata(role="av", layers=6):
@@ -194,9 +183,11 @@ def test_real_sidecars_match_the_gemma_lock():
             assert (
                 sha256_file(fixture) == lock["models"][role]["files"][name]["sha256"]
             )
-    # The gated target config is pending; no fixture pretends otherwise.
-    assert lock["models"]["target"]["files"]["config.json"]["sha256"] is None
-    assert not (FIXTURES / "gemma3-target-config.json").exists()
+    # The target fixture is the pinned mirror's config.json, byte-identical.
+    assert (
+        sha256_file(FIXTURES / "gemma3-target-config.json")
+        == lock["models"]["target"]["files"]["config.json"]["sha256"]
+    )
 
 
 def test_real_released_gemma_metadata(tmp_path):
@@ -412,51 +403,57 @@ def test_answer_tokens_and_tokenize_groups_gemma_stub(gemma_tokenizer):
         assert row["attention_mask"] == [1] * len(row["input_ids"])
 
 
-def test_gemma_lock_pending_fails_closed_and_completion_passes(tmp_path):
+def test_gemma_mirror_lock_and_pending_still_fails_closed(tmp_path):
     lock = json.loads(GEMMA_LOCK.read_text())
     assert lock["schema_version"] == 1
     assert {entry["license"] for entry in lock["models"].values()} == {"gemma"}
-    assert lock["models"]["target"]["gated"] == "manual"
-    pending = [
-        name
-        for name, file in lock["models"]["target"]["files"].items()
-        if file["sha256"] is None
-    ]
-    assert sorted(pending) == [
-        "README.md",
-        "added_tokens.json",
-        "chat_template.json",
-        "config.json",
-        "generation_config.json",
-        "model.safetensors.index.json",
-        "preprocessor_config.json",
-        "processor_config.json",
-        "special_tokens_map.json",
-        "tokenizer_config.json",
-    ]
+    target = lock["models"]["target"]
+    assert target["repo_id"] == "unsloth/gemma-3-12b-it"
+    assert target["source"] == "mirror"
+    assert "Gemma Terms of Use" in target["provenance"]
+    # The gated official revision is recorded alongside for reconciliation;
+    # its small non-LFS files carry no hash (anonymous fetch is refused), its
+    # weight shards and tokenizer blobs share the mirror's LFS sha256.
+    official = target["official_source"]
+    assert official["repo_id"] == "google/gemma-3-12b-it"
+    assert official["gated"] == "manual"
+    assert len(official["revision"]) == 40
+    for name, file in official["files"].items():
+        if file["sha256"] is None:
+            assert name in {
+                "README.md",
+                "added_tokens.json",
+                "chat_template.json",
+                "config.json",
+                "generation_config.json",
+                "model.safetensors.index.json",
+                "preprocessor_config.json",
+                "processor_config.json",
+                "special_tokens_map.json",
+                "tokenizer_config.json",
+            }
+        elif name in target["files"]:
+            assert target["files"][name]["sha256"] == file["sha256"]
     for entry in lock["models"].values():
         assert entry["download_bytes"] == sum(
             file["bytes"] for file in entry["files"].values()
         )
         for file in entry["files"].values():
-            if file["sha256"] is not None:
-                assert len(file["sha256"]) == 64
-    # The pipeline's gate refuses the pending lock with the actionable path.
-    with pytest.raises(ValueError, match="unresolved gated-file hashes"):
-        read_lock(GEMMA_LOCK)
-    # A completed lock (every hash pinned) passes and resolves the family.
-    for file in lock["models"]["target"]["files"].values():
-        if file["sha256"] is None:
-            file["sha256"] = "0" * 64
-    completed = tmp_path / "completed-lock.json"
-    completed.write_text(json.dumps(lock))
-    resolved = read_lock(completed)
+            assert len(file["sha256"]) == 64
+    # The shipped mirror lock passes the gate and resolves the family.
+    resolved = read_lock(GEMMA_LOCK)
     assert (
         spec_for_repos(
             {role: entry["repo_id"] for role, entry in resolved["models"].items()}
         ).family
         == "gemma3-12b"
     )
+    # A null hash anywhere still fails closed with the actionable message.
+    tampered = tmp_path / "pending-lock.json"
+    lock["models"]["target"]["files"]["config.json"]["sha256"] = None
+    tampered.write_text(json.dumps(lock))
+    with pytest.raises(ValueError, match="unresolved gated-file hashes"):
+        read_lock(tampered)
     # The Qwen lock is untouched by the generalization and still resolves.
     qwen = read_lock(QWEN_LOCK)
     assert (
@@ -473,16 +470,17 @@ def test_complete_gemma3_lock_refuses_a_complete_lock(tmp_path):
     import subprocess
     import sys
 
-    completed = tmp_path / "lock.json"
-    completed.write_text(QWEN_LOCK.read_text())
     script = PROJECT / "scripts/complete_gemma3_lock.py"
-    result = subprocess.run(
-        [sys.executable, str(script), "--lock", str(completed)],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode != 0
-    assert "already complete" in result.stdout + result.stderr
+    for source in (QWEN_LOCK, GEMMA_LOCK):
+        completed = tmp_path / source.name
+        completed.write_text(source.read_text())
+        result = subprocess.run(
+            [sys.executable, str(script), "--lock", str(completed)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0
+        assert "already complete" in result.stdout + result.stderr
 
 
 def test_load_model_tiny_gemma3_ar_checkpoint(tmp_path):

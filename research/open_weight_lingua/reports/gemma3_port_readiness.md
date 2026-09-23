@@ -3,11 +3,12 @@
 For `x = 3; y = 8; x = x + 2`, the reference answer for `x` is 5. The Qwen2.5-7B
 pipeline asked whether a released NLA description can reconstruct one activation
 direction well enough to preserve that measured behavior; this page records the
-port of the same engineering gate to a second family — google/gemma-3-12b-it with
-the released kitft Gemma-3 NLA pair — and exactly what is and is not established.
-**No released-Gemma weight was downloaded and no real Gemma forward has run: the
-target repo is license-gated. Everything below is fixture/API/metadata evidence,
-not a released-model result.**
+port of the same engineering gate to a second family — Gemma-3-12B-it with the
+released kitft Gemma-3 NLA pair — and exactly what is and is not established.
+**Update 2026-09-22 (second revision): the target now pins the public unsloth
+mirror, all artifacts fetch and hash-verify through the pipeline's own path, and
+fixture/tokenizer/config checks are green. Real-weight GPU stages remain
+NOT RUN — they are handed off with the exact commands below.**
 
 ## What is ported and CPU-tested
 
@@ -16,51 +17,52 @@ not a released-model result.**
 markers, the attribute path from the loaded model to the decoder block list, the
 audited text-stack width/depth, the released extraction block, and the
 input-embedding scaling convention. `target.py`, `nla_adapter.py` and
-`preflight.py` now resolve those facts from the registry instead of asserting
-`qwen2`/`(3584, 28)`/`L20` literally; anything outside the registry fails closed.
-The Qwen2 entries resolve to the identical values as before, and the full
-pre-existing suite (128 tests) passes unchanged alongside the 21 new
-Gemma-3 tests (149 total; see `tests/test_gemma3_arch.py`, random tiny
+`preflight.py` resolve those facts from the registry instead of asserting
+`qwen2`/`(3584, 28)`/`L20` literally; anything outside the registry fails
+closed. The Qwen2 entries resolve to the identical values as before, and the
+full pre-existing suite (128 tests) passes unchanged alongside the 21 Gemma-3
+tests (149 total; `tests/test_gemma3_arch.py`, random tiny
 `Gemma3ForCausalLM`/`Gemma3ForConditionalGeneration` fixtures on CPU float32 —
 software checks, not measurements on released weights):
 
 - capture/patch/greedy/`score_answer` equivalence on the real Gemma-3 target
-  hook path `model.language_model.layers.N` (the conditional-generation
-  wrapper), including the hidden-state index check, the last-block rejection,
-  the same-length dummy-suffix bitwise causality gate, and
-  padded-bucket == unpadded logits/argmax with sliding-window layers present
-  (fixture window 64 < bucket 128, so the sliding path is genuinely exercised);
+  hook path `model.language_model.layers.N`, including the hidden-state index
+  check, the last-block rejection, the same-length dummy-suffix bitwise
+  causality gate, and padded-bucket == unpadded logits/argmax with
+  sliding-window layers present (fixture window 64 < bucket 128);
 - the embedding-scale convention: `Gemma3TextScaledWordEmbedding` multiplies
   rows by `sqrt(hidden)` inside the lookup, and `build_embeddings` overwrites
   one post-scale slot at exactly the sidecar `injection_scale`;
 - metadata validation against the real fetched sidecars (byte-identical
   fixtures, hash-tied to the lock), the AR depth rule (33 = 32 + 1), the live
   Gemma BOS check in `ar_prompt`, and the AR truncation convention loaded
-  through `preflight.load_model` (a checkpoint without `model.norm.weight` /
-  `lm_head.weight` loads for role `ar` and is rejected for role `av`);
-- lock validation: the shipped pending lock fails `read_lock` closed with an
-  actionable message; a completed copy passes and resolves the family; the
-  Qwen lock resolves the Qwen family.
+  through `preflight.load_model`;
+- lock validation: the mirror lock passes `read_lock` and resolves the family,
+  the official-revision metadata rides alongside, the weight shards/tokenizer
+  blobs are asserted byte-identical between the mirror pin and the official API
+  record, and a null hash anywhere still fails closed.
 
 `tasks.py` needed no changes (model-agnostic); its chat-template path is
-exercised with a Gemma-shaped stub tokenizer in the new tests.
+exercised with a Gemma-shaped stub tokenizer in the tests and with the real
+mirror tokenizer below.
 
 ## Architecture deltas verified (2026-09-22, from the fetched artifacts)
 
 | Fact | Qwen2.5-7B family | Gemma-3-12B family |
 |---|---|---|
-| Target class (transformers 4.57.6) | `Qwen2ForCausalLM` | `Gemma3ForConditionalGeneration` (`AutoModelForCausalLM` maps `gemma3` → this class; verified in the installed 4.57.6 auto-mapping) |
+| Target class (transformers 4.57.6) | `Qwen2ForCausalLM` | `Gemma3ForConditionalGeneration` (`AutoModelForCausalLM` maps `gemma3` → this class; meta-device `from_config` on the pinned mirror config constructs the wrapper with 48 text layers at `model.language_model.layers` and a 27-layer SigLIP vision tower) |
 | Target block-list path | `model.model.layers` (28 blocks) | `model.model.language_model.layers` (48 blocks; verified by instantiation) |
-| NLA AV/AR class | `Qwen2ForCausalLM`, `model_type qwen2` | `Gemma3ForCausalLM`, `model_type gemma3_text` (from the fetched configs; text-only — the vision tower is not part of the NLA pair) |
-| Text width / depth | 3584 / 28 | 3840 / 48 (AV config; AR truncated to 33 = 32+1, matching the released extraction layer) |
+| NLA AV/AR class | `Qwen2ForCausalLM`, `model_type qwen2` | `Gemma3ForCausalLM`, `model_type gemma3_text` (text-only; no vision tower) |
+| Text width / depth | 3584 / 28 | 3840 / 48 (target text_config and AV config; AR truncated to 33 = 32+1) |
 | Extraction block | 20 (`hidden_states[21]`) | 32 (`hidden_states[33]`) |
 | Embedding scale | none (scale 1) | `sqrt(3840) = 61.96773353931867` inside the embedding lookup; matches sidecar `mse_scale` |
-| AV injection scale | 150.0 | 80000.0 — upstream `nla_inference.py` (pinned 38b802a) documents: "Qwen7B: 150. Gemma-3-12B: 80000 (√d embed scaling inflates residual norms)" |
-| Injection marker | ㈎ id 149705, neighbors 29/522 | ㈜ id 246566, neighbors 236813/954 (sidecar `tokens` block) |
-| AR terminal suffix | `[1318, 29, 366, 1708, 29]` | `[1005, 236813, 655, 6011, 236813]` (decodes to the `</text> <summary>` pieces) |
+| AV injection scale | 150.0 | 80000.0 — upstream `nla_inference.py` (pinned 38b802a): "Qwen7B: 150. Gemma-3-12B: 80000 (√d embed scaling inflates residual norms)" |
+| Injection marker | ㈎ id 149705, neighbors 29/522 | ㈜ id 246566, neighbors 236813/954 |
+| AR terminal suffix | `[1318, 29, 366, 1708, 29]` | `[1005, 236813, 655, 6011, 236813]` (the `</text> <summary>` pieces) |
 | AR value head | 3584×3584, 25,690,200 B | 3840×3840, 29,491,288 B (size consistent with BF16 square head) |
-| Tokenizer | BPE (`tokenizer.json`) | `GemmaTokenizerFast` from `tokenizer.json`; `tokenizer.model` (SentencePiece) ships in AV only and is not needed at runtime |
-| BOS/EOS/PAD | no BOS; EOS 151645 | BOS 2 live (`add_bos_token: true`); EOS 1 (`<eos>`); PAD 0 |
+| Tokenizer | BPE (`tokenizer.json`) | `GemmaTokenizerFast`; the same `tokenizer.json`/`tokenizer.model` blobs (LFS-identical) in all three repos |
+| BOS/EOS/PAD | no BOS; EOS 151645 | BOS 2 live (`add_bos_token: true`); EOS **differs by role — see below**; PAD 0 |
+| Checkpoint key naming | `model.layers.N…` | target: `language_model.model.layers.N…` + vision tower keys (renamed on load by the 4.57.6 `_checkpoint_conversion_mapping`); NLA pair: `model.layers.N…` |
 
 Quoted from the real fetched `kitft/nla-gemma3-12b-L32-av/raw/main/nla_meta.yaml`:
 `schema_version: 2`, `role: av`, `d_model: 3840`, `extraction_layer_index: 32`,
@@ -93,101 +95,151 @@ bucket to keep this honest. Had the bucket exceeded the window, late positions
 in local blocks could no longer see early prefix tokens; the runner's
 `check_target_bucket_fit` fails loudly long before that regime.
 
-## The new lock
+## The lock: mirror-sourced target, official metadata alongside
 
 `configs/model-lock-gemma3-12b.json` (schema_version 1, same shape as
 `configs/model-lock.json`, which is untouched):
 
 | Role | Repository | Revision | Locked bytes |
 |---|---|---|---:|
-| target | `google/gemma-3-12b-it` (**GATED — manual license**) | `96b6f1eccf38110c56df3a15bffe176da04bfd80` | 24,414,161,479 |
+| target | `unsloth/gemma-3-12b-it` (public mirror) | `9478e665381f42974aa06177b019352fb6291876` | 24,414,165,251 |
 | av | `kitft/nla-gemma3-12b-L32-av` (public) | `7aec22599e8a9cd533564868999b443fcc963cf4` | 23,571,432,021 |
 | ar | `kitft/nla-gemma3-12b-L32-ar` (public) | `3d6901d8243182d642af9dea452ca91549a94615` | 16,871,717,079 |
 
-Total 64,857,310,579 bytes (60.4 GiB). All three repos carry `license: gemma`
-in their card data — the Gemma license, not Apache-2.0; the NLA pair
-additionally ships Google's NOTICE.
+Total 64,857,314,351 bytes (60.4 GiB). All three repos carry `license: gemma`.
+**Gemma Terms of Use apply to the user regardless of download source; the HF
+gate is an access mechanism, not the license itself.**
 
-Hash provenance, stated plainly: every `.safetensors` shard and both LFS
-tokenizer files carry the Hub API's LFS sha256 (2026-09-22; not yet verified
-against downloaded weights, same caveat as the Qwen lock). Every non-LFS AV/AR
-file was downloaded and hashed locally. The AV `tokenizer.json` /
-`tokenizer.model` downloads were hashed locally and agree with the LFS
-metadata; all three repos reference the byte-identical tokenizer blobs. The
-pinned GitHub source files were re-downloaded and re-hashed; all five match the
-Qwen lock's `sources` block, which is carried over unchanged.
+Mirror provenance, stated plainly (the same text rides in the lock's
+`provenance` field): the official google/gemma-3-12b-it @
+`96b6f1eccf38110c56df3a15bffe176da04bfd80` is gated-manual; anonymous fetches
+returned HTTP 401 on 2026-09-22, so its small non-LFS files could not be
+byte-verified. The five weight shards and both tokenizer blobs carry identical
+LFS sha256 in both repos' own API records, so those 24.37 GB are byte-identical
+between mirror and official and are hash-verified on download. The mirror's
+`tokenizer.model` was additionally byte-compared against the already-fetched
+AV blob (`cmp`, identical); its `chat_template.jinja` is byte-identical to the
+AV/AR template file, and its `chat_template.json` and embedded
+`tokenizer_config.chat_template` carry the same template text. The target
+entry records the official revision, gating and API-listed file inventory
+under `official_source` for later reconciliation; if gated access is later
+obtained, re-verify against the official revision and reconcile.
 
-**Pending hashes:** the gated target's ten small non-LFS files (`config.json`,
-`tokenizer_config.json`, `chat_template.json`, `generation_config.json`,
-`special_tokens_map.json`, `added_tokens.json`, `preprocessor_config.json`,
-`processor_config.json`, `model.safetensors.index.json`, `README.md`) cannot be
-content-hashed without license acceptance; unauthenticated fetches return
-HTTP 401 (verified 2026-09-22), and public mirrors demonstrably diverge from
-the gated bytes in exactly these files (unsloth's `config.json` is 1,660 bytes
-vs Google's 916), so no hash is asserted for them. Their entries carry
-`"sha256": null` and exact pinned sizes; `read_lock` refuses the pending lock
-(fail closed — nothing runs on unverified sources) and names the completion
-command. `scripts/complete_gemma3_lock.py` performs the one-time completion:
-it downloads exactly the pending files at the pinned revision with the user's
-token, cross-checks sizes, fills only the null hashes, and rewrites the lock
-only after the completed version passes `read_lock`. It refuses to touch a
-lock that is already complete.
+Divergence is confined to four small files (mirror vs official API sizes):
+`config.json` 1,660 vs 916 B, `generation_config.json` 210 vs 215 B,
+`special_tokens_map.json` 670 vs 662 B, `tokenizer_config.json` 1,158,492 vs
+1,156,999 B. Field-level inspection of the mirror's versions:
 
-## Real-tokenizer validation already done (public artifacts, 2026-09-22)
+- `config.json`: standard `Gemma3ForConditionalGeneration` schema; text stack
+  3840/48, sliding window 1024 pattern 6, SigLIP 1152/27 vision tower — all
+  matching the audited registry entry — plus `"unsloth_fixed": true` and
+  top-level `eos_token_id: 106`. No quantization fields; `torch_dtype:
+  bfloat16`. The official 916 B file is terser (relies on library defaults);
+  nothing in the mirror's additions alters the text-stack fields the pipeline
+  audits, and the runner never reads generation defaults.
+- `generation_config.json`: `eos_token_id: [1, 106]`, sampling defaults —
+  unused by this pipeline (greedy argmax, explicit tokenizer EOS).
+- `special_tokens_map.json` / `tokenizer_config.json`: the mirror declares
+  `eos_token: <end_of_turn>`; the AV/AR pair declares `eos_token: <eos>`.
+  Consequence: per role, `tokenizer.eos_token_id` is 106 for the target and 1
+  for the NLA pair. The pipeline reads the per-role tokenizer, so target
+  greedy/scoring terminates on `<end_of_turn>` — the native gemma-it turn
+  terminator — while the AV/AR paths follow the released NLA convention. This
+  is self-consistent within each role and resolves the previously flagged
+  target-side termination concern in favor of the -it convention. **Remaining
+  watch item (unchanged, AV side only):** our local AV reader stops at
+  `eos_token_id` 1 (`<eos>`), while the AV's own `generation_config.json`
+  allows [1, 106]; if the released AV prefers 106 at turn end, descriptions
+  would read as truncated. The first smoke's AV status counts measure this;
+  do not silently patch decoding.
 
-Using the pinned AV/AR tokenizer files (ungated) through the pipeline's own
-`av_prompt` / `ar_prompt` / `answer_tokens` / `tokenize_groups`: AV prompt is
-108 tokens with the marker at position 93 flanked by 236813/954, BOS-first
-(Gemma's chat template includes `<bos>`); the AR prompt starts with BOS 2 and
-ends with the sidecar suffix; `answer_tokens` round-trips "0"/"5"/"19" with
-EOS 1; four real smoke groups tokenize to 40–53-token prompts with the shared
-boundary token 107 (`\n` after `<start_of_turn>model`), passing
-`check_target_bucket_fit`. The gated target's own `chat_template.json` (1,615
-bytes) differs in bytes from the AV/AR `chat_template.jinja` (1,532 bytes) and
-is verified only after unlock; `tokenize_groups` fails loudly if its
-source/donor boundary tokens ever disagree.
+Hash provenance otherwise unchanged from the Qwen lock's policy: weight shards
+carry the Hub API's LFS sha256 (verified against the downloaded bytes by
+`verify_models` on fetch); every non-LFS file of all three roles was downloaded
+and hashed locally this time (the mirror is public, so no hash is metadata-only
+except the five shards and `tokenizer.json`, whose LFS hashes are corroborated
+by the AV download's local hash). The pinned GitHub source files were
+re-downloaded and re-hashed; all five match the Qwen lock's `sources` block,
+which is carried over unchanged.
 
-**Watch item for the first real smoke (decide, don't silently fix):** the
-pipeline's termination convention is the tokenizer's single `eos_token_id`
-(1, `<eos>`). The released AV `generation_config.json` lists
-`eos_token_id: [1, 106]` — Gemma-it models also terminate turns with
-`<end_of_turn>` (106), and the gated target is expected to share that
-convention. Greedy generations that end at 106 instead of 1 count as
-unterminated (intention-to-test incorrect), which could depress measured P0
-accuracy and verbalizer stop behavior on Gemma relative to Qwen. The
-convention is deliberately unchanged from the audited pipeline; the smoke
-stage's P0 accuracy and AV status counts are the measurement that decides
-whether a protocol amendment is needed.
+## Sanity checks on the mirror weights without the official bytes
 
-## Exact commands once the token exists
+- Index/shard consistency: `model.safetensors.index.json` lists 1,065 tensors
+  across exactly the five pinned shards; 48 text layers, complete SigLIP tower
+  and projector; payload total 24,374,650,080 B consistent with the shard file
+  sizes; tensor names follow the wrapper layout the pinned transformers renames
+  on load.
+- Total bytes: mirror target 24,414,165,251 vs official API listing
+  24,414,161,479 — delta 3,772 B, exactly the four divergent small files; the
+  weight shards and tokenizer blobs are LFS-identical.
+- Dtype: `config.json` declares `torch_dtype: bfloat16`; per-tensor dtype is
+  re-checked from the downloaded shard headers after fetch (see below).
+- Load far enough to report its config: `AutoConfig` parse plus a meta-device
+  `AutoModelForCausalLM.from_config` on the pinned files yields
+  `Gemma3ForConditionalGeneration` with 48 text layers at the registry path —
+  no weights materialized.
 
-Prerequisite blocker: a human must accept the terms at
-https://huggingface.co/google/gemma-3-12b-it and export `HF_TOKEN` for an
-account with access. Then, from the worktree root
-(`/home/seanjazm27/projects/universa-recurrent-gemma`):
+## Tokenizer/template checks with the real (mirror) files
+
+`GemmaTokenizerFast` assembled from the pinned mirror files: BOS 2 first on
+chat prompts, boundary token 107 (`\n` after `<start_of_turn>model`) shared
+across all variants of four real smoke groups (lengths 40–53, bucket-fit PASS),
+`answer_tokens("19")` → `[236770, 236819, 106]` = "1", "9", `<end_of_turn>`,
+round-tripping. The AV/AR checks from the first revision (marker/neighbor
+positions, AR suffix, live BOS) are unchanged and still pass.
+
+## Exact commands for the real stages (hand-off; not run here)
+
+From the worktree root (`/home/seanjazm27/projects/universa-recurrent-gemma`),
+with the hash-verified model cache already populated (see below):
 
 ```bash
-# 0. one-time: fill the ten pending gated hashes (uses HF_TOKEN), proving the
-#    completed lock passes read_lock before it replaces the file
-.venv-phase2/bin/python research/open_weight_lingua/scripts/complete_gemma3_lock.py
-
-# 1. smoke (creates/syncs .venv-phase2, runs the CPU suite, fetches + verifies
-#    the pinned artifacts, runs 8 groups / 32 variants)
+# smoke (8 groups / 32 variants; runs the CPU suite first)
 bash research/open_weight_lingua/scripts/run_smoke.sh \
-  --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json --fetch-models
+  --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
+  --cache research/open_weight_lingua/model-cache
 
-# 2. calibration (256 groups; fits the P4 baseline, freezes the median norm)
+# calibration (256 groups; fits the P4 baseline, freezes the median norm)
 bash research/open_weight_lingua/scripts/run_calibration.sh \
-  --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json
+  --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
+  --cache research/open_weight_lingua/model-cache
 
-# 3. pilot (128 groups; the locked-validation stage remains unimplemented here)
+# pilot (128 groups; locked validation remains unimplemented)
 bash research/open_weight_lingua/scripts/run_pilot.sh \
   --lock research/open_weight_lingua/configs/model-lock-gemma3-12b.json \
+  --cache research/open_weight_lingua/model-cache \
   --calibration-fit research/open_weight_lingua/runs/<calibration-run>/baseline_fit.safetensors
 ```
 
-(If `.venv-phase2` does not exist yet in this worktree, step 0 can use any
-Python with `huggingface_hub`; step 1 creates it via `uv sync --locked`.)
+`--cache` is the runner's default (`research/open_weight_lingua/model-cache`);
+it is spelled out here for clarity. The completion script
+(`scripts/complete_gemma3_lock.py`) is no longer on the run path — it refuses
+the now-complete mirror lock and remains only as the reconciliation tool for a
+future official-sourced lock.
+
+## Fetch and verification record
+
+Fetch ran through the pipeline's own path
+(`python -m open_weight_lingua.preflight --lock configs/model-lock-gemma3-12b.json
+--cache model-cache --fetch-models --device cpu`) on 2026-09-22:
+`fetch_models` downloaded only the pinned files at the pinned revisions
+(64,857,314,351 new bytes in 2,124 s), `verify_models` re-hashed every byte
+against the lock (PASS), and `inspect_metadata` passed on the real artifacts
+(width 3840, extraction block 32, injection scale 80000.0, AR 33 layers, AR
+suffix `[1005, 236813, 655, 6011, 236813]`, AV prompt 108 tokens with the
+marker at position 93).
+
+| Role | Verified bytes | Result |
+|---|---:|---|
+| target | 24,414,165,251 | PASS (sha256 + size, every file) |
+| av | 23,571,432,021 | PASS (sha256 + size, every file) |
+| ar | 16,871,717,079 | PASS (sha256 + size, every file) |
+
+Post-fetch shard inspection (headers via `safe_open`, no weight
+materialization): every tensor in all 14 shards is BF16; per-role tensor
+payloads match the index `total_size` exactly (target 1,065 tensors / 5 shards
+including the SigLIP tower, 12.19 B parameters total; AV 626 / 5; AR 430 / 4);
+block 32 contributes its 13 tensors in each role's index.
 
 ## Memory and storage planning (planning numbers, not measurements)
 
@@ -207,11 +259,13 @@ numbers.
 
 ## Limits
 
-This is an engineering port with fixture-level and metadata-level evidence.
-The Qwen2.5-7B results and lock are unchanged. The pending-hash completion,
-the real identity gate, AV explanations, AR directions, behavioral
-preservation, the termination-convention watch item above, and any scientific
-read of a Gemma pilot are all NOT RUN. The frozen pilot thresholds were locked
-for the Qwen phase; applying them to Gemma is a new pilot decision, and the
-locked validation stage remains unimplemented in this runner for both
-families.
+This is an engineering port with fixture-level, metadata-level and
+download-verification evidence. The Qwen2.5-7B results and lock are unchanged.
+The mirror's weight bytes are LFS-identical to the official repo's listed
+hashes; the four divergent small files are the mirror's own and are pinned as
+such — a future official-access reconciliation may swap them. Real
+released-Gemma forwards, the identity gate, AV explanations, AR directions,
+behavioral preservation, and any scientific read of a Gemma pilot are all
+NOT RUN. The frozen pilot thresholds were locked for the Qwen phase; applying
+them to Gemma is a new pilot decision, and the locked validation stage remains
+unimplemented in this runner for both families.

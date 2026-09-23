@@ -31,18 +31,20 @@ competitive under the stated budget, not evidence that language is useless.
 
 ### Second-family port status (Gemma-3)
 
-The pipeline now also resolves the google/gemma-3-12b-it +
-kitft/nla-gemma3-12b-L32-av/ar family through a small audited architecture
-registry ([architectures.py](src/open_weight_lingua/architectures.py)); the
-Qwen2 path is unchanged (all 128 pre-existing tests still pass, plus 21 new
-Gemma-3 fixture tests on tiny random models — software checks, never
-released-model measurements). The new lock is `configs/model-lock-gemma3-12b.json`;
-`configs/model-lock.json` is untouched. Real Gemma runs are **BLOCKED**:
-google/gemma-3-12b-it is license-gated, so the lock's ten small gated files
-carry pending hashes that `read_lock` refuses until a maintainer accepts the
-Gemma terms and runs `scripts/complete_gemma3_lock.py` with `HF_TOKEN` set.
-Interleaved-attention analysis for the L32 site, memory math and the exact
-unblock commands are in
+The pipeline now also resolves the Gemma-3-12B-it + kitft/nla-gemma3-12b-L32-av/ar
+family through a small audited architecture registry
+([architectures.py](src/open_weight_lingua/architectures.py)); the Qwen2 path is
+unchanged (all 128 pre-existing tests still pass, plus 21 Gemma-3 fixture tests
+on tiny random models — software checks, never released-model measurements). The
+lock is `configs/model-lock-gemma3-12b.json`; `configs/model-lock.json` is
+untouched. The official google/gemma-3-12b-it is gated-manual (anonymous 401),
+so the target pins the public unsloth mirror: the five weight shards and both
+tokenizer blobs carry identical LFS sha256 in both repos' API records
+(byte-identical content), and the divergence is confined to four small config
+files documented in the lock's `provenance` field. **Gemma Terms of Use apply to
+the user regardless of download source; the HF gate is an access mechanism, not
+the license itself.** Interleaved-attention analysis for the L32 site, memory
+math and the exact run commands are in
 [reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
