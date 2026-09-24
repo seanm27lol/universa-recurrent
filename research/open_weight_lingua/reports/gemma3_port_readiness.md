@@ -434,12 +434,60 @@ family's local L32. The sliding window is 1024 on both families, so the pinned
 128-token bucket never truncates either way; the exact-causality gates are
 unchanged (and the 12B smoke/pilot measured every suffix drift exactly 0.0).
 
-### 27B memory math (planning numbers, not measurements)
+### 27B smoke outcome (COMPLETE) and the OOM diagnosis
 
-Served BF16, the largest active weight set is the AV at ~50.3 GiB (108.08 GB
-fp32 artifacts cast at load) or the target at ~51.1 GiB; the AR is ~35.0 GiB.
-Stages load one model at a time and release between stages. Against ~65 GB
-available of the 121 GB unified pool this fits with thin headroom — the load
-transient (fp32 shard read + bf16 copy) is the risk point, recorded via the
-runner's peak-allocation reporting. If the AV stage OOMs, that is a reported
-failure, not a cue to shrink the bucket or skip a gate.
+**Smoke COMPLETE: `runs/smoke-20260923T231748Z-068d59ba` (8/8 groups,
+independent auditor PASS).** Three earlier attempts are preserved explicitly:
+`smoke-20260923T195955Z-e90ad8b5` and `smoke-20260923T201748Z-1687a778` were
+kernel-OOM-killed at AV shard 22/22 (manifest + partial raw evidence retained;
+no completion record exists because the reaper killed the process outright);
+`smoke-20260923T220025Z-762d65f6` ran end to end but returned all 32
+descriptions `truncated` (COMPLETE_WITH_FAILURES) — a real bug in the new
+loader, fixed below.
+
+Measured root cause of the OOMs (probes in `/tmp/owl27_memprobe/`, kept as
+local scratch): the working hypothesis — that the identity stage's target
+memory is not released — is **refuted** by measurement: after the target
+forward, `del` + `release_models()` returns the pool to baseline
+(MemAvailable 68.5 → 67.4 GiB, cuda allocated/reserved 0/0). The real culprit
+was the fp32-native AV's stock load path: the bf16 cast accumulates the whole
+model as ~47 GiB of *anonymous* CPU memory (not reclaimable mmap), and
+`model.to("cuda")` then needs a second ~50 GiB while that copy persists
+(probe pid 2783525 OOM-killed 16:53:51 with anon-rss 46.9 GiB plus repeated
+NVRM `OUT_OF_MEMORY` allocation failures; a per-module move with gc +
+`malloc_trim` fared identically, pid 2815239 at 17:25:11). The fix is a
+streaming loader used only for a lock-declared serving cast on cuda
+(`preflight._load_cast_checkpoint_to_device`): the model is built on the meta
+device, materialized uninitialized on the GPU, and filled tensor-by-tensor
+from the mmap'd shards — no whole-model CPU copy ever exists. With it, the AV
+loads in 33 s at cuda 50.4 GiB allocated / 53.3 reserved with 14.9 GiB still
+available mid-stage. The loader keeps the pipeline's strict key/shape contract
+(unexpected keys, missing keys beyond the tied/AR-allowed set, and shape
+mismatches all raise), rebuilds the config-derived non-persistent buffers
+(embed_scale, both rotary `inv_freq`), and merges the checkpoint's
+`generation_config.json` exactly like `from_pretrained` — missing that merge
+shrank the AV stop set to {1} and caused the truncated-description run; the
+fixture suite now proves the streamed model bitwise-identical to stock
+(state dicts *with dtypes*, logits, and the declared eos set) on a tiny
+fp32-declared checkpoint.
+
+27B smoke headline numbers (32 variants, 8 groups — engineering gates, not
+scientific results): identity gates bitwise 32/32; greedy backstop exact 32/32
+in both stages; all 336 suffix-drift measurements exactly 0.0; P0 12/32
+(0.3750), P1 identical, P2 10/32 (0.3125, agreement 0.625, KL 4.1e-7), P3
+14/32 (0.4375, KL 4.24), P5 0/32 (KL 13.5), donor 8/32 (KL 4.8e-8),
+smoke_median_norm 9/32; AR round-trip cosine 0.9678–0.9891 (median 0.9827);
+site norms median 42.2k. AV 4,757 forwards in 2,027.8 s; identity 419.8 s; AR
+252.7 s; behavior 1,343.7 s; runner wall clock 4,314.8 s; GPU peak allocated
+53.06 GiB; process max RSS 9.69 GiB. One verbatim 27B AV description
+(smoke-0000-A-x, 149 tokens, terminating at `<end_of_turn>`):
+
+> Structured arithmetic solution pattern: a mathematical problem answer
+> showing a calculated value, establishing a numeric answer for a specific
+> arithmetic expression in a homework/quiz context.
+
+27B calibration and pilot are NOT RUN (the user drives those after reviewing
+this smoke). The dtype deviation remains exactly as recorded: the released AV
+is float32-native, served BF16, and no local fp32 A/B is possible — the
+smoke's gates all passed under the cast, but the cast's effect on generation
+quality is not separable from model behavior on this machine.

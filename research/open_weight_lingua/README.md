@@ -59,6 +59,13 @@ analysis for the L32 site, the repair record, memory math and the stage
 commands:
 [reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
 
+A third family is registered the same way: Gemma-3-27B (kitft/nla-gemma3-27b-L41-av/ar,
+extraction block 41 of 62) with lock `configs/model-lock-gemma3-27b.json`. Its
+smoke **COMPLETED** (`runs/smoke-20260923T231748Z-068d59ba`, auditor PASS,
+8/8 groups) after two measured OOM failures led to a streaming loader for the
+lock-declared fp32→BF16 AV serving cast (fixture-proven bitwise-identical to
+stock loading); 27B calibration and pilot are NOT RUN.
+
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
 directions without task labels and freezes the calibration median norm. A

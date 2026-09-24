@@ -757,3 +757,76 @@ def test_load_model_logs_the_lock_declared_cast(tmp_path, capsys):
     loaded = load_model(tmp_path, "ar", "cpu")
     assert next(loaded.parameters()).dtype == torch.bfloat16
     assert "Serving dtype cast" in capsys.readouterr().out
+
+
+def test_streaming_cast_loader_matches_stock_bitwise(tmp_path):
+    """The fp32-cast streaming loader is bitwise-identical to the stock path.
+
+    Saves a tiny fp32-native gemma3_text checkpoint (the 27B AV's declared
+    dtype), then compares the streamed load against stock
+    from_pretrained(torch_dtype=bfloat16): identical state dicts and identical
+    logits, which pins the per-tensor cast and the rebuilt config-derived
+    buffers (embed_scale, both rotary inv_freq) together.
+    """
+    from open_weight_lingua.preflight import _load_cast_checkpoint_to_device
+
+    model = tiny_causal_lm(layers=6)  # 5 sliding + 1 full, both rotary modules
+    config = json.loads(model.config.to_json_string())
+    config["dtype"] = "float32"
+    config["torch_dtype"] = None
+    (tmp_path / "config.json").write_text(json.dumps(config))
+    # The checkpoint's generation_config carries the real stop set ([1, 106]
+    # on the released 27B AV); the loader must merge it like from_pretrained.
+    (tmp_path / "generation_config.json").write_text(
+        json.dumps({"bos_token_id": 2, "eos_token_id": [1, 106], "pad_token_id": 0})
+    )
+    save_file(
+        {
+            key: value
+            for key, value in model.state_dict().items()
+            if key != "lm_head.weight"  # tied, as in the released checkpoints
+        },
+        tmp_path / "model.safetensors",
+    )
+    stock = load_model(tmp_path, "av", "cpu")
+    streamed = _load_cast_checkpoint_to_device(tmp_path, "av", "cpu")
+    stock_state = dict(stock.state_dict())
+    streamed_state = dict(streamed.state_dict())
+    assert stock_state.keys() == streamed_state.keys()
+    for key in stock_state:
+        # torch.equal is dtype-agnostic; the served dtype is part of the contract.
+        assert stock_state[key].dtype == streamed_state[key].dtype
+        assert torch.equal(
+            stock_state[key], streamed_state[key]
+        ), f"state mismatch: {key}"
+    ids = torch.tensor([[3, 4, 5]])
+    with torch.inference_mode():
+        reference = stock(input_ids=ids, use_cache=False).logits
+        observed = streamed(input_ids=ids, use_cache=False).logits
+    assert torch.equal(reference, observed)
+    assert next(streamed.parameters()).dtype == torch.bfloat16
+    assert streamed.generation_config.eos_token_id == [1, 106]
+
+
+def test_streaming_cast_loader_strict_on_keys(tmp_path):
+    from open_weight_lingua.preflight import _load_cast_checkpoint_to_device
+
+    model = tiny_causal_lm(layers=2)
+    config = json.loads(model.config.to_json_string())
+    config["dtype"] = "float32"
+    (tmp_path / "config.json").write_text(json.dumps(config))
+    state = {
+        key: value
+        for key, value in model.state_dict().items()
+        if key not in ("lm_head.weight", "model.norm.weight")
+    }
+    save_file(state, tmp_path / "model.safetensors")
+    # role "av" permits no missing keys beyond tied ones.
+    with pytest.raises(ValueError, match="missing keys"):
+        _load_cast_checkpoint_to_device(tmp_path, "av", "cpu")
+    loaded = _load_cast_checkpoint_to_device(tmp_path, "ar", "cpu")
+    assert type(loaded).__name__ == "Gemma3ForCausalLM"
+    bad = {**state, "model.extra.weight": torch.zeros(16)}
+    save_file(bad, tmp_path / "model.safetensors")
+    with pytest.raises(ValueError, match="unexpected key"):
+        _load_cast_checkpoint_to_device(tmp_path, "ar", "cpu")
