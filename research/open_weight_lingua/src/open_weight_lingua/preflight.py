@@ -249,6 +249,116 @@ def inspect_metadata(paths, lock=None):
     return (tokenizers, av, ar, metadata)
 
 
+def _load_cast_checkpoint_to_device(path, role, device):
+    """Stream a non-BF16-native checkpoint straight onto the device.
+
+    Why this exists (measured 2026-09-23 on the GB10, probes in
+    /tmp/owl27_memprobe): the fp32-native 27B AV loaded via the stock path —
+    CPU materialization plus ``model.to("cuda")`` — was OOM-killed twice at
+    shard 22/22 with ~47 GiB of anonymous CPU RSS (the whole bf16-cast copy)
+    coexisting with the growing GPU copy; per-module moves with gc/malloc_trim
+    did not drain it. Here the model is built on the meta device, materialized
+    uninitialized on the target device, and filled tensor-by-tensor from the
+    mmap'd shards (reclaimable file-backed reads, one BF16 cast copy at a
+    time), so no whole-model CPU copy ever exists. Fixture-proven
+    bitwise-identical to stock from_pretrained + cast, including the
+    config-derived non-persistent buffers, which are never in the checkpoint
+    and are rebuilt from the config below. gemma3_text only; anything else
+    fails closed.
+    """
+    import copy as copy_module
+
+    from safetensors import safe_open
+    from transformers import AutoConfig, AutoModelForCausalLM
+    from transformers.models.gemma3.modeling_gemma3 import Gemma3RotaryEmbedding
+
+    config = AutoConfig.from_pretrained(str(path), local_files_only=True)
+    if config.model_type != "gemma3_text":
+        raise ValueError(
+            f"the streaming serving cast is implemented for gemma3_text only, "
+            f"not {config.model_type!r}"
+        )
+    config._attn_implementation = "eager"
+    # Match stock from_pretrained(torch_dtype=bf16), which sets the served
+    # dtype on the config before building: parameters must be built BF16, not
+    # built fp32 and cast on fill.
+    config.dtype = torch.bfloat16
+    config.torch_dtype = torch.bfloat16
+    with torch.device("meta"):
+        model = AutoModelForCausalLM.from_config(config)
+    # Match stock from_pretrained, which merges the checkpoint's
+    # generation_config.json into the loaded model (the released 27B AV
+    # declares eos [1, 106] there and eos 1 in config.json; losing the merge
+    # silently shrinks the AV stop set — root cause of the 27B smoke's
+    # truncated descriptions).
+    from transformers import GenerationConfig
+
+    try:
+        model.generation_config = GenerationConfig.from_pretrained(str(path))
+    except OSError:
+        model.generation_config = GenerationConfig.from_model_config(model.config)
+    model.to_empty(device=device)
+    state = dict(model.state_dict())
+    index_path = Path(path) / "model.safetensors.index.json"
+    if index_path.is_file():
+        weight_map = json.loads(index_path.read_text())["weight_map"]
+        shards = sorted(set(weight_map.values()))
+    else:
+        shards = ["model.safetensors"]
+    loaded = set()
+    with torch.no_grad():
+        for shard in shards:
+            with safe_open(str(Path(path) / shard), framework="pt") as stream:
+                for key in stream.keys():
+                    if key not in state:
+                        raise ValueError(
+                            f"{role} checkpoint has unexpected key {key}"
+                        )
+                    tensor = stream.get_tensor(key)
+                    if not tensor.is_floating_point():
+                        raise ValueError(f"non-floating checkpoint tensor {key}")
+                    target = state[key]
+                    if tensor.shape != target.shape:
+                        raise ValueError(f"checkpoint shape mismatch on {key}")
+                    target.copy_(tensor.to(torch.bfloat16))
+                    del tensor
+                    loaded.add(key)
+    tied = set(getattr(model, "_tied_weights_keys", None) or ())
+    allowed_missing = (
+        {"lm_head.weight", "model.norm.weight"} if role == "ar" else set()
+    ) | tied
+    missing = set(state) - loaded - allowed_missing
+    if missing:
+        raise ValueError(f"{role} checkpoint missing keys: {sorted(missing)}")
+    model.tie_weights()
+    # Config-derived, non-persistent buffers are never checkpointed; the
+    # meta-built copies hold garbage until rebuilt here. Fail closed if a
+    # future checkpoint layout adds anything beyond this known set.
+    derived = {name for name, _ in model.named_buffers()} - loaded
+    expected_derived = {
+        "model.embed_tokens.embed_scale",
+        "model.rotary_emb.inv_freq",
+        "model.rotary_emb_local.inv_freq",
+    }
+    if derived != expected_derived:
+        raise ValueError(f"unexpected non-checkpoint buffers: {sorted(derived)}")
+    model.model.rotary_emb = Gemma3RotaryEmbedding(config=config, device=device)
+    local_config = copy_module.deepcopy(config)
+    local_config.rope_theta = config.rope_local_base_freq
+    local_config.rope_scaling = {"rope_type": "default"}
+    model.model.rotary_emb_local = Gemma3RotaryEmbedding(
+        config=local_config, device=device
+    )
+    # from_pretrained casts this buffer to the served dtype; match that or the
+    # embedding multiply promotes the residual stream to float32.
+    model.model.embed_tokens.embed_scale = torch.tensor(
+        config.hidden_size**0.5,
+        dtype=state["model.embed_tokens.weight"].dtype,
+        device=device,
+    )
+    return model.eval().requires_grad_(False)
+
+
 def load_model(path, role, device):
     from transformers import AutoModelForCausalLM
 
@@ -266,6 +376,8 @@ def load_model(path, role, device):
             "loading BF16 per the lock's serving_dtype declaration",
             flush=True,
         )
+        if str(device).startswith("cuda"):
+            return _load_cast_checkpoint_to_device(path, role, device)
     model, info = AutoModelForCausalLM.from_pretrained(
         str(path),
         local_files_only=True,
