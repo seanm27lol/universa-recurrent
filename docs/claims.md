@@ -1,5 +1,179 @@
 # Claim ledger
 
+## Phase Two Milestone 1 (2026-09-21)
+
+An isolated [Qwen/NLA engineering implementation](../research/open_weight_lingua/README.md)
+transfers the preserve/intervene/measure procedure to one learned activation.
+[Source audit](../research/open_weight_lingua/reports/source_compatibility.md) and
+[local verification](../research/open_weight_lingua/reports/milestone_one.md) distinguish
+implemented interfaces from released-model evidence.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| One block-output vector can be captured and reinserted without changing the fixture computation | Tested locally with tiny random Qwen models | Native BF16 equality, hidden-state indexing, single-site mutation, hook cleanup, padding and repeated-input tests; not a released-Qwen result |
+| Released NLA metadata/tokenizer conventions are resolved | Source-audited and tokenizer-tested | Immutable model/source lock; actual AV marker/neighbors and AR suffix/depth checked |
+| The local AV adapter distinguishes different injected embeddings | Tested locally with fixtures | Cache-free A/B/A calls with identical token IDs; no SGLang equivalence or real AV quality claim |
+| AR reconstruction uses the trained value head and omits final normalization | Implemented and fixture-tested | Required safe head loading, shape/dtype validation and final-block test; released AR weights not loaded |
+| Text alone reconstructs the complete native activation | NOT CLAIMED | Direction reconstruction restores a separately retained four-byte original norm; all remaining prompt context persists |
+| The pinned environment runs on this GB10 | Partially checked | Installation, imports and basic BF16 kernel passed; capability warning remains; full real-model smoke NOT RUN |
+| The eight-group runner produces auditable evidence | Fixture-tested | Safe numeric files, all-group accounting, reports-only inventory and independent saved-count/KL replay; no execution authentication |
+| Language preserves or specifically edits real Qwen behavior | NOT ESTABLISHED | Released-weight smoke NOT RUN; pilot, calibration/PCA, text-edit coverage and locked validation are later milestones |
+| This is a recurrent-depth experiment, a new NLA method, or a whole-state compression result | FALSE | Conventional transformer; external pretrained NLA pair; one selected-token patch |
+
+The bounded scientific stopping rule remains one pilot and at most one locked
+validation, followed by a write-up even on failure. Neither stage is executable
+from this Milestone 1 runner. Phase One's conclusions below are unchanged.
+
+## Phase Two Milestone 2 (2026-09-21)
+
+Milestone 2 adds the grouped split plan, the P4 calibration-fitted PCA
+baseline, the frozen text editor, group-bootstrap decision statistics and the
+calibration/pilot runner stages to the same
+[isolated implementation](../research/open_weight_lingua/README.md). Smoke
+behavior is unchanged, and the
+[pilot decision document](../research/open_weight_lingua/protocols/pilot_decision.md)
+is published as a template with every outcome field pending.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The five-split plan (smoke, calibration, pilot, two validation blocks) is deterministic and disjoint | Implemented and fixture-tested | Fixed split order, namespaces and seeds; carried canonical-program and tokenized-prompt exclusion inventories; plan hash over every group identity; disjointness is textual and no released-model data exists yet |
+| The P4 baseline is fitted on pooled, unlabeled calibration unit directions with a declared byte-budget rank | Implemented and fixture-tested | PCA mean/basis, rank `min(fitted_rank, floor(text_bytes/2))`, float16 coefficients, shared mean/basis bytes reported separately, sha256 fit identity for the manifest; no task labels and no norm restoration inside the fit |
+| The frozen text editor classifies and minimally edits explicit current-value statements | Implemented and fixture-tested | Three frozen forms, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only replacement; agreement with the reference program recorded separately and never gating an edit; rule version and sha256 enter the manifest |
+| Pilot decision statistics resample whole groups | Implemented and fixture-tested | 3,000 bootstrap resamples at a fixed seed; one-sided 95% upper/lower estimates for the §8 rules; absolute log-probability contrasts only, no fraction-recovered ratios |
+| Calibration and pilot stages run from one CLI | Implemented, fixture-level | `--stage smoke|calibration|pilot` with smoke unchanged; pilot requires `--calibration-fit`; `run_calibration.sh`/`run_pilot.sh` follow the smoke script pattern; real-model execution NOT RUN |
+| The 256-group released-model calibration fit exists | COMPLETE (pinned re-baseline) | Pinned run calibration-20260921T235017Z-fd111b21, auditor PASS, 1024/1024 extractions, fit identity `37af38ff…`, frozen median norm 98.8137; supersedes the unpadded run calibration-20260921T221636Z-63a6be98 |
+| The 128-group pilot outcome and keep/stop decision exist | COMPLETE (pinned run); decision STOP | Pinned run pilot-20260921T235825Z-6164d210, 128/128 groups, auditor PASS; unmet criteria `p2_accuracy_loss` and `edit_eligible_groups`; first attempt pilot-20260921T222056Z-69535f26 preserved as an explicitly failed pre-conditions run |
+| The 512-group locked validation exists | NOT RUN; not implemented | No validation stage in the CLI; the pilot reports a projected cost against the eight-hour budget and never auto-starts it |
+| P4 is an optimal compression baseline, or generic reconstruction already matches language | FALSE as framed | The condition is no-more-than-budget under a declared byte rule; the comparison is a pilot question, not a premise |
+| Frozen-rule edits establish discovered variable semantics in the activation | NOT CLAIMED | The parser matches frozen surface forms only; a statement's truth never gates its editability |
+| Any scientific threshold (80% P0 floor, 5-point P2 loss bound, 32-group edit floor) has been assessed | NOT YET | These are design choices to lock before validation; pilot outcomes are pending |
+
+The bounded stopping rule is unchanged: one pilot, at most one locked
+validation, then a write-up even on failure. A negative pilot does not trigger
+checkpoint shopping; a repaired source/API bug permits only a regression test
+plus a visibly versioned rerun of the affected pilot (brief §11).
+
+## GB10 real-model smoke: suffix-causality repair (2026-09-21)
+
+The first released-model smoke (run smoke-20260921T185833Z-c264a184, raw
+measurements in the retained suffix-probe results) passed fetch, all 32
+identity gates bitwise, and every AV/AR call, then failed teacher-forced
+scoring: the old `allclose(1e-5)` comparison of the prefix-site vector before
+and after appending an answer suffix is unattainable whenever the GEMM
+reduction order changes with sequence length. The check was re-derived from
+the smoke measurements and frozen before the pilot, not relaxed after
+inspecting results.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| An appended answer suffix cannot change the causal prefix activation at equal sequence length | Proven bitwise on released Qwen2.5-7B-Instruct | Eight same-length pairs with different suffix content bitwise identical (GB10 BF16 and CPU fp32); `score_answer` now enforces a tolerance-free same-length dummy-suffix bitwise equality gate, so a genuine content leak fails while kernel noise cannot |
+| Cross-length BF16 drift at the prefix site is bounded kernel noise under a frozen justified bound | Measured on smoke data; bound frozen pre-pilot; coverage **FALSIFIED on the pilot distribution** 2026-09-21 (pre-pilot, no outcomes inspected) | Maximum relative L2 drift 3.09e-2 across 20 cross-length appends (cuBLAS kernel re-selection on sm_121; CPU fp32 collapses to ~4e-6; answer argmax stable 20/20); `SUFFIX_DRIFT_BOUND = 1e-1`, safety factor ≈3 over the measured maximum, justified per brief §4, recorded in the manifest and in per-score `suffix_drift_relative` evidence. Falsification preserved explicitly: pilot-0000-A-x measured 2.58e-1 (a prompt-conditioned heavy tail the smoke sample missed; fp32 collapses it to ~3.2e-6, so noise, not leak). The bound stays frozen as an untouched backstop and was never re-fitted to pilot data; the operative fix is kernel-shape pinning — see the next section |
+| The smoke rerun with the repaired gate exists | COMPLETE (engineering smoke) | Run smoke-20260921T211151Z-a4e4a038 on the repaired code: 8/8 groups successful, independent auditor PASS, drift evidence max 3.55e-2 across 336 samples inside the frozen 1e-1 bound; measured P0 25/32 (0.781), P1 gate bitwise, P2 18/32 (0.562, KL 1.41), P3 15/32 (KL 4.63), P5 0/32 (KL 10.49), donor KL 0.098. Eight smoke groups are engineering data, not a scientific result: P0 0.781 sits below the 80% pilot-usability floor, an early signal for the pilot decision — not a smoke failure and not a pilot outcome; calibration/pilot remain NOT RUN |
+| The causality gate or the drift measurements establish anything about the semantic content of activations | FALSE | The gate discriminates a causal leak from kernel-reduction noise only; no interpretation, faithfulness, or semantics claim |
+
+## GB10 first pilot attempt: identity-gate failure and kernel-shape pinning (2026-09-21)
+
+After the unpadded calibration completed (run
+calibration-20260921T221636Z-63a6be98), the first pilot attempt (run
+pilot-20260921T222056Z-69535f26, preserved with `completion.json: FAILED`)
+died in `Target.identity_gate` on the first variant, pilot-0000-A-x ("raw
+restoration changed greedy answer"), before any condition ran: 1 failed
+group, 127 skipped, no pilot or validation outcomes inspected. Gate-level
+diagnosis on the same variant (local scratch probes `/tmp/owl_greedy_probe/`,
+not committed): the unpatched and pinned greedy paths diverge at generation
+step 2 in a near-tie argmax flip (unpatched EOS margin 0.75; pinned "\n"
+margin 0.375), and the unpadded prefix site at that sequence differs from
+the pinned vector by 2.58e-1 relative — 2.6× the frozen 1e-1 bound and 7×
+the smoke maximum. The drift is deterministic (same-length bitwise), appears
+at every append length +1…+5 (0.26 on pilot-0000-A-x; 0.12–0.16 on two more
+variants, all above the bound at answer-suffix lengths), grows from 6.3e-2
+already at the block-0 output, and collapses to ~3.2e-6 in fp32 — pure
+kernel-reselection noise with a prompt-conditioned heavy tail, not a
+semantic leak, but outside the smoke-fitted bound's cover. `score_answer`'s
+bound would have been exceeded in the behavior stage as well. Re-fitting the
+bound to pilot data was rejected (a tolerance fitted to the distribution
+that broke it, with weaker bug discrimination); the repair instead removes
+the drift class by construction.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Unpadded cross-length prefix-site drift on the pilot distribution stays within the frozen 1e-1 bound | FALSE (falsified 2026-09-21, pre-pilot, gate measurements only) | pilot-0000-A-x 2.58e-1 at the divergence step and ~0.26 at every append +1…+5; pilot-0000-A-y 0.144–0.165; pilot-0001-A-x 0.019 (+1) then 0.122–0.127; the smoke's 336 samples (max 3.55e-2) under-sampled a prompt-conditioned tail; fp32 collapses all of it to ~3.2e-6 |
+| The first pilot attempt produced condition outcomes or a decision | FALSE; failed run preserved explicitly | Run pilot-20260921T222056Z-69535f26 died in the identity stage on variant 1; its decision/summary fields are degenerate artifacts of a dead run, not measurements |
+| Kernel-shape pinning removes the cross-length drift class by construction | Implemented and fixture-tested; real-model gate check PASSED on pilot-0000-A-x | Every target forward right-padded to `TARGET_BUCKET = 128` (masked pads exactly zero, bitwise-proven; same-shape forwards bitwise deterministic on this backend); greedy/scoring write into masked pad slots; loud pre-inference fit check (max prompt 79 + 8 generation + 3 suffix = 90 ≤ 128); `SUFFIX_DRIFT_BOUND` kept frozen as an untouched backstop; the greedy identity comparison is a recorded exact/drift_diverged backstop counted in summaries, never a decision input. Gate check (pinned code, this variant plus two more): identity gates bitwise, greedy "exact", `suffix_drift_relative` exactly 0.0 — details in reports/milestone_two.md |
+| The pinned re-baseline runs (smoke, calibration, pilot) exist | COMPLETE | smoke-20260921T233021Z-cbe4057e (8/8 groups, drift exactly 0.0 over 336 samples, greedy backstop exact 32/32 both stages, auditor PASS); calibration-20260921T235017Z-fd111b21 (auditor PASS); pilot-20260921T235825Z-6164d210 (128/128 groups, greedy backstop exact 512/512 both stages, auditor PASS); unpadded runs retained as superseded engineering evidence |
+
+The bounded stopping rule is unchanged: one pilot, at most one locked
+validation, then a write-up even on failure. This pre-pilot repeatability
+repair inspected gate internals only; no pilot or validation outcomes were
+observed, and no tolerance was relaxed.
+
+## Phase Two pilot outcome and phase closeout (2026-09-21)
+
+**This phase is closed.** Read the [findings](phase_two_results.md) and
+[technical closeout](phase_two_technical_report.md) before interpreting the
+ledger entries above.
+
+The pinned 128-group pilot (`pilot-20260921T235825Z-6164d210`, manifest
+sha256 `cb3ec24f…`, auditor PASS) completed and the frozen decision rule
+returned **STOP**. The phase closes with this documented bounded negative
+result; the locked validation is NOT RUN (stop decision, and independently
+the projected validation cost 49,253 s ≈ 13.7 h exceeds the 28,800 s budget).
+The human record is
+[protocols/pilot_decision.md](../research/open_weight_lingua/protocols/pilot_decision.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The pinned pilot executed all 128 groups with every gate green | COMPLETE, auditor PASS | 128/128 groups successful, 0 failed/skipped; identity gates bitwise on all 512 variants; greedy identity backstop exact 512/512 in both stages; every suffix-drift measurement exactly 0.0 under kernel-shape pinning |
+| The site can affect the intended measurement (pilot gate 1) | Supported | P5 norm-matched random direction changed 508/512 greedy generations (accuracy 0.006, KL 11.75); raw donor KL 0.173 with 39/512 changed; P0 accuracy 0.8105 ≥ 0.80 floor |
+| The language route preserves behavior within the frozen 5-point bound (gate 2) | NOT SUPPORTED at this task/site | P2 accuracy loss versus P0: point 34.4 pp, one-sided 95% upper 41.4 pp > 5 pp limit (P2 0.564 vs P0 0.811, KL 2.71); P2−P3 correct-answer log-prob lower +3.80 > 0 (met) — the description-derived direction is on-task but not preserving |
+| Frozen-rule editing is feasible at this task/site (gate 3) | NOT SUPPORTED; edit hypothesis UNTESTED | 0/128 groups eligible (floor 32); exclusions all "absent" (x: 127 absent/1 eligible, y: 128 absent); the single eligible receiver parse stated a value disagreeing with the reference (recorded, never gating). Zero coverage means limited explicit-variable coverage here, not that descriptions lack editable semantics; no manual ground-truth description is presented as discovered semantics |
+| Generic PCA reconstruction is competitive under the stated byte budget | Observed, descriptive only | P4 accuracy 0.803 vs P0 0.811 (loss upper 3.13 pp, KL 0.0157, P0-agreement 0.967) against P2 0.564. Per brief §12 this may be read as "generic reconstruction is competitive under the stated budget"; the upgrade to "language is useless for interpretability" is prohibited and not claimed |
+| P2's residual accuracy relies on the retained four-byte norm channel | Not supported | Calibration-median-norm diagnostic matches P2 (0.561 vs 0.564; KL 2.72 vs 2.71) |
+| The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
+| The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
+
+## Post-Phase-Two steering assay (2026-09-22)
+
+A new, separate measurement on the **reused** pilot split: does a description
+*difference* — the pilot's saved AR directions (arm 1) or frozen oracle
+templates through the live AR (arm 2) — steer behavior under the NLA paper's
+reconstructed-difference recipe (`h′ = h + α·‖h‖·Δ/‖Δ‖`)? Frozen protocol:
+[protocols/steering_assay_brief.md](../research/open_weight_lingua/protocols/steering_assay_brief.md);
+outcome report:
+[reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md).
+This did not reopen the closed phase; the pilot's recorded outcomes stand.
+The single frozen run (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS)
+COMPLETED with a negative result, and the assay is closed per its stopping
+rule (one run; no follow-up sweeps).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The steering assay has been run on the released models | COMPLETE; negative result | Run steering-20260922T160432Z-d3b9e4d7: 128/128 groups, 256 receiver rows, auditor PASS, wall 6,114 s; manifest `git_head` aabcef5, plan hash ff060012… (reused pilot split) |
+| The assay's success criteria are fixed | Frozen pre-run (design choices), never weakened post-outcome | α grid {−1, 0.5, 1, 2}; at α=1: flip-to-B ≥ 0.30, y-integrity ≥ 0.90, control moved-x < 0.10; whole-group bootstrap 3,000 resamples, seed 205100 |
+| Any arm shows targeted steering at α=1 | NOT SUPPORTED at this checkpoint/task/site | All three arms failed every frozen criterion: av_difference flip 0.0781 / integrity 0.5703 / control-moved 0.4453; oracle_terse 0.0313 / 0.4219 / 0.4844; oracle_structured 0.0234 / 0.3594 / 0.5625; `successful_arms: []`. Intended deltas flip 2–8% while disturbing the unaffected answer in 43–64%; controls move x as much as intended deltas; higher α buys disruption, not targeting |
+| Description-difference L shifts are specific to the intended variable | Not supported | Steered mean L (logP(B)−logP(A)) moves toward B vs P0's −16.08 (av@1 −9.29, terse@1 −9.00, structured@1 −7.15), but matched controls shift comparably (control@1 −10.16 / −11.23 / −9.88) — an indiscriminate push, not targeted control |
+| This result refutes NLA steering generally, or establishes a semantic conclusion | FALSE | One checkpoint, one task family, one site; behavioral measurement only. The NLA authors' poetry-planning steering used a different, stronger model, site and task; oracle texts were intervention instruments; no semantic claim in either direction |
+| The steering machinery works on tiny fixtures | Tested locally | Delta unit-scaling, patch composition, template determinism and hashes, controls wiring, ITT encoding, manifest locking, audit replay and tamper detection on random Qwen fixtures; never labeled released-model results |
+
+## Phase Two vLLM backend (2026-09-22)
+
+An opt-in vLLM 0.30.0 backend for the AV/AR stages of the
+[open_weight_lingua runner](../research/open_weight_lingua/README.md): a pinned
+worker venv (`.venv-vllm`, separate because vllm pins transformers 5.x against
+the pipeline's 4.57.6), a subprocess worker replicating the eager recipe
+(marker context, injection scale, recompute-per-pass greedy decode, identity
+final norm, external value head), runner flags `--av-backend`/`--ar-backend`
+(default `eager`), and a measured equivalence gate
+(`scripts/check_vllm_equivalence.sh`). Target capture/patch stays eager; vLLM
+has no public mid-block capture/replacement API for it.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The vLLM worker reproduces the eager AV/AR recipe mechanics | Implemented and fixture-tested | CPU tests cover job validation, EmbedsPrompt construction, value-head math, checkpoint-inventory proof, and gate comparison logic; the worker never imports the pipeline package |
+| vLLM AV/AR outputs are interchangeable with eager outputs | GATE FAIL (measured 2026-09-22) | Gate replay of the pinned smoke bundle (`smoke-20260921T233021Z-cbe4057e`, models re-hash-verified): AV greedy continuations 0/32 token-identical (median first divergence at token 10.5; all rows still status-ok paraphrases; eager top-2 logit margin at a sample divergence measured 0.125 — near-tie argmax flips under different BF16 kernels); AR direction cosine min 0.8097 / median 0.99953 / max 0.99979, norm-relative error up to 5.85%. Both bars missed, so vllm is a distinct measurement backend: it stays non-default and its outputs may not be mixed into eager-regime evidence |
+| The target model runs under vLLM | FALSE | Target capture, patching, kernel-shape pinning and behavioral scoring remain eager Transformers; only the AV/AR adapters have an opt-in vllm path |
+| A faster vLLM decode implies any scientific claim | FALSE | The gate's recompute-per-pass AV discipline makes decode caching unusable by construction (measured 559.5 s for 4,564 forwards vs 522.4 s eager — no speedup on this workload); the phase-two pilot outcome (STOP) is unchanged, and this backend adds no validation result |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

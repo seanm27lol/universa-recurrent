@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-weight-lingua"
+version = "0.1.0"
+description = "Phase Two engineering gate for one Qwen/NLA pair"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "torch==2.10.0+cu130",
+  "transformers==4.57.6",
+  "huggingface-hub==0.36.0",
+  "safetensors==0.7.0",
+  "numpy==2.2.6",
+  "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest==8.4.2"]
+
+[project.scripts]
+owl-smoke = "open_weight_lingua.runner:main"
+owl-preflight = "open_weight_lingua.preflight:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
