@@ -141,6 +141,7 @@ def build_manifest(
     fit=None,
     fit_sidecar_sha256=None,
     calibration_median=None,
+    answer_convention="raw",
 ):
     try:
         head = subprocess.check_output(
@@ -188,6 +189,7 @@ def build_manifest(
         "P4": "NOT IMPLEMENTED: Milestone 2 calibration-fitted PCA",
         "edits": "NOT IMPLEMENTED: Milestone 2",
         "answer_tokenization": "separate canonical integer IDs plus EOS, append without retokenizing prefix",
+        "answer_convention": answer_convention,
         "metrics": [
             "exact_answer",
             "answer_agreement",
@@ -1126,6 +1128,14 @@ def parse_args(argv=None):
         help="explicitly download only the locked model artifacts",
     )
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--answer-convention",
+        choices=("raw", "rstrip"),
+        default="raw",
+        help="answer-comparison instrument recorded in the manifest; raw is the "
+        "frozen closed-pilot convention, rstrip is the frozen 2026-09-27 Gemma "
+        "amendment (protocols/gemma_answer_convention.md)",
+    )
     args = parser.parse_args(argv)
     if args.stage == "pilot" and args.calibration_fit is None:
         parser.error(
@@ -1185,7 +1195,13 @@ def main(argv=None):
                         tokenizers["target"], row["answer"]
                     )
                 manifest = build_manifest(
-                    lock, args.lock, inputs, generation_stats, metadata, report
+                    lock,
+                    args.lock,
+                    inputs,
+                    generation_stats,
+                    metadata,
+                    report,
+                    answer_convention=args.answer_convention,
                 )
             else:
                 plan = build_plan(_group_counts(args.group_counts_json))
@@ -1235,6 +1251,7 @@ def main(argv=None):
                     calibration_median=median_record["median_norm"]
                     if median_record
                     else None,
+                    answer_convention=args.answer_convention,
                 )
             write_json(
                 run.path / "manifest.json", manifest

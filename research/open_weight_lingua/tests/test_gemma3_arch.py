@@ -830,3 +830,83 @@ def test_streaming_cast_loader_strict_on_keys(tmp_path):
     save_file(bad, tmp_path / "model.safetensors")
     with pytest.raises(ValueError, match="unexpected key"):
         _load_cast_checkpoint_to_device(tmp_path, "ar", "cpu")
+
+
+# --- Frozen 2026-09-27 answer-convention amendment (protocols/gemma_answer_convention.md) ---
+
+
+def test_answer_convention_helper_rules():
+    from open_weight_lingua.metrics import answer_text_matches, exact_integer
+
+    assert exact_integer("11", "11")  # frozen path untouched
+    assert not exact_integer("11\n", "11")
+    assert answer_text_matches("11\n", "11", "rstrip")
+    assert answer_text_matches("11\n\n\t ", "11", "rstrip")  # whole trailing tail
+    assert not answer_text_matches(" 11", "11", "rstrip")  # leading stays a failure
+    assert not answer_text_matches("1 1", "11", "rstrip")  # internal stays a failure
+    assert not answer_text_matches("011", "11", "rstrip")  # leading zeros fail
+    assert not answer_text_matches("12", "11", "rstrip")
+    assert answer_text_matches("11\n", "11", "raw") is False
+    with pytest.raises(ValueError, match="unknown answer convention"):
+        answer_text_matches("11", "11", "strip-everything")
+
+
+def _convention_smoke_summary(manifest_extra, generation_text):
+    """One group through audit.summarize with a declared convention."""
+    from open_weight_lingua.audit import summarize
+
+    inputs = [
+        {
+            "id": f"g0-A-{variable}",
+            "group_id": "g0",
+            "side": "A",
+            "variable": variable,
+            "answer": "11",
+        }
+        for variable in ("x", "y")
+    ] + [
+        {
+            "id": f"g0-B-{variable}",
+            "group_id": "g0",
+            "side": "B",
+            "variable": variable,
+            "answer": "12",
+        }
+        for variable in ("x", "y")
+    ]
+    generation = {
+        "text": generation_text,
+        "token_ids": [1],
+        "terminated": True,
+    }
+    rows = []
+    for row in inputs:
+        rows.append(
+            {
+                "id": row["id"],
+                "conditions": {
+                    condition: {
+                        "status": "ok",
+                        "generation": generation,
+                        "next_token_kl": 0.0,
+                        "answer_scores": {
+                            row["answer"]: {"log_probability": -0.1}
+                        },
+                    }
+                    for condition in ("P0", "P2", "P3", "P5", "donor", "smoke_median_norm")
+                },
+            }
+        )
+    return summarize({"inputs": inputs, **manifest_extra}, rows)
+
+
+def test_rstrip_convention_changes_only_the_answer_comparison():
+    # Closed-run manifests lack the key and replay under raw.
+    raw = _convention_smoke_summary({}, "11\n")
+    assert raw["metrics"]["P0"]["exact_answers"] == 0
+    amended = _convention_smoke_summary({"answer_convention": "rstrip"}, "11\n")
+    # A/B sides answer differently; the lens rescues only the two A-side rows.
+    assert amended["metrics"]["P0"]["exact_answers"] == 2
+    assert amended["metrics"]["P0"]["agreement_with_P0_all_variants"] == 1.0
+    bad = _convention_smoke_summary({"answer_convention": "rstrip"}, "11 x")
+    assert bad["metrics"]["P0"]["exact_answers"] == 0
