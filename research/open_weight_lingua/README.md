@@ -64,7 +64,13 @@ extraction block 41 of 62) with lock `configs/model-lock-gemma3-27b.json`. Its
 smoke **COMPLETED** (`runs/smoke-20260923T231748Z-068d59ba`, auditor PASS,
 8/8 groups) after two measured OOM failures led to a streaming loader for the
 lock-declared fp32→BF16 AV serving cast (fixture-proven bitwise-identical to
-stock loading); 27B calibration and pilot are NOT RUN.
+stock loading), and the replication closed with pilot
+`pilot-20260926T185550Z-d085d53c` (auditor PASS), decision **STOP** — task not
+usable at P0 0.254 with the preservation criteria met under the floor-effect
+caveat. Three closed pilots, one assay: usable task fails preservation (Qwen),
+unusable tasks pass it with the caveat (both Gemma pairs), and the edit
+interface is absent everywhere. Details:
+[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit

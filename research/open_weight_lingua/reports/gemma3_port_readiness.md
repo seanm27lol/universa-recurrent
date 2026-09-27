@@ -486,8 +486,12 @@ site norms median 42.2k. AV 4,757 forwards in 2,027.8 s; identity 419.8 s; AR
 > showing a calculated value, establishing a numeric answer for a specific
 > arithmetic expression in a homework/quiz context.
 
-27B calibration and pilot are NOT RUN (the user drives those after reviewing
-this smoke). The dtype deviation remains exactly as recorded: the released AV
-is float32-native, served BF16, and no local fp32 A/B is possible — the
-smoke's gates all passed under the cast, but the cast's effect on generation
-quality is not separable from model behavior on this machine.
+**The 27B replication has since run to its bounded end: calibration
+`calibration-20260926T183645Z-c3374c27` (fit 784594e89f6c315b…, frozen median
+41,629.3) and the 128-group pilot `pilot-20260926T185550Z-d085d53c`, both
+auditor PASS, decision STOP** — unmodified accuracy 0.2539 < 0.80 and 0/128
+edit-eligible groups unmet, with the preservation criteria met under the
+floor-effect caveat documented in
+[gemma3_27b_pilot.md](gemma3_27b_pilot.md), alongside the three-family
+comparison. Locked validation NOT RUN and unimplemented on all three
+families.
