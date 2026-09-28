@@ -26,6 +26,30 @@ establish discovery of new spaces, transport between spaces, opaque-neuron
 semantics or unrestricted natural-language reconstruction. A future phase would
 need its own task, baselines, budget and stopping rule.
 
+## Phase-two status: complete, decision STOP
+
+The open-weight transfer experiment closed on 2026-09-21 after its bounded
+128-group pilot. A language description of one Qwen2.5-7B-Instruct
+residual-stream vector, reconstructed through the released NLA pair, did not
+preserve behavior within the frozen 5-percentage-point loss bound (P2 loss
+upper estimate 41.4 pp); the frozen text-edit rule found 0/128 eligible
+groups, so the edit hypothesis is untested; and the projected validation cost
+(≈13.7 h) exceeded the eight-hour budget. Per the stopping rule the locked
+validation was not run. See the [important findings](phase_two_results.md) and
+[technical report](phase_two_technical_report.md).
+
+| Completed part | What survived evaluation |
+|---|---|
+| Engineering smoke, calibration, pilot | All pinned runs COMPLETE with independent auditor PASS |
+| Site sensitivity | Donor/random-direction controls show the site can affect the intended measurement |
+| Language-route preservation | Not supported at the frozen bound; the description direction is on-task (beats the wrong-description control) but not preserving |
+| Targeted text edits | Untested: zero explicit current-value coverage under the frozen rule |
+| Numerics on GB10 | Same-length bitwise causality gate and kernel-shape pinning; the falsified pre-pilot drift bound is preserved on record |
+
+**No more GPU runs are required for this phase.** A negative pilot does not
+trigger checkpoint, site, layer or task shopping; a future phase would need
+its own brief, budget and stopping rule.
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
