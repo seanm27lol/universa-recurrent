@@ -40,6 +40,49 @@ closed per its one-run stopping rule. Details:
 [steering assay report](reports/steering_assay.md);
 [frozen protocol](protocols/steering_assay_brief.md).
 
+### Second-family port status (Gemma-3)
+
+The pipeline now also resolves the Gemma-3-12B-it + kitft/nla-gemma3-12b-L32-av/ar
+family through a small audited architecture registry
+([architectures.py](src/open_weight_lingua/architectures.py)); the Qwen2 path is
+unchanged (all 128 pre-existing tests still pass, plus 26 Gemma-3 fixture tests
+on tiny random models — software checks, never released-model measurements). The
+lock is `configs/model-lock-gemma3-12b.json`; `configs/model-lock.json` is
+untouched. The official google/gemma-3-12b-it is gated-manual (anonymous 401),
+so the target pins the public unsloth mirror: the five weight shards and both
+tokenizer blobs carry identical LFS sha256 in both repos' API records
+(byte-identical content), and the divergence is confined to four small config
+files documented in the lock's `provenance` field. **Gemma Terms of Use apply to
+the user regardless of download source; the HF gate is an access mechanism, not
+the license itself.** The eight-group Gemma smoke **COMPLETED**
+(`runs/smoke-20260923T034330Z-4bc7e34a`, auditor PASS) after one documented
+decoding-convention repair (AV stop set now follows the released checkpoint's
+declared eos ids, per the pinned upstream recipe), and the replication ran to
+its bounded end: calibration `calibration-20260923T042912Z-d0e9499f` and the
+128-group pilot `pilot-20260923T043613Z-f7e71d7b` (auditor PASS), decision
+**STOP** — on Gemma-3-12B the task was not usable (P0 0.520 < 0.80) while the
+preservation criterion passed (loss upper 3.91 pp), the mirror image of Qwen's
+usable-task preservation failure; the preservation pass is weak assay evidence
+under the failed usability floor and is not upgraded. Locked validation NOT
+RUN on either family. The outcome and honesty guards:
+[reports/gemma3_pilot.md](reports/gemma3_pilot.md). Interleaved-attention
+analysis for the L32 site, the repair record, memory math and the stage
+commands:
+[reports/gemma3_port_readiness.md](reports/gemma3_port_readiness.md).
+
+A third family is registered the same way: Gemma-3-27B (kitft/nla-gemma3-27b-L41-av/ar,
+extraction block 41 of 62) with lock `configs/model-lock-gemma3-27b.json`. Its
+smoke **COMPLETED** (`runs/smoke-20260923T231748Z-068d59ba`, auditor PASS,
+8/8 groups) after two measured OOM failures led to a streaming loader for the
+lock-declared fp32→BF16 AV serving cast (fixture-proven bitwise-identical to
+stock loading), and the replication closed with pilot
+`pilot-20260926T185550Z-d085d53c` (auditor PASS), decision **STOP** — task not
+usable at P0 0.254 with the preservation criteria met under the floor-effect
+caveat. Three closed pilots, one assay: usable task fails preservation (Qwen),
+unusable tasks pass it with the caveat (both Gemma pairs), and the edit
+interface is absent everywhere. Details:
+[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md).
+
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
 directions without task labels and freezes the calibration median norm. A
@@ -225,6 +268,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | Small implementation | What to look for |
 |---|---|
 | [tasks.py](src/open_weight_lingua/tasks.py) | Explicit interpreter, paired-answer integrity, deterministic groups, canonical-program and tokenized-prompt exclusions |
+| [architectures.py](src/open_weight_lingua/architectures.py) | Audited per-family registry: config markers, block-list paths, pinned width/depth/extraction block, embedding-scale convention; anything unregistered fails closed |
 | [target.py](src/open_weight_lingua/target.py) | Block output versus `hidden_states[layer+1]`, one site, native restoration, exception-safe hooks, suffix causality via a same-length dummy-suffix bitwise gate plus a frozen pre-pilot cross-length drift bound; every target forward right-padded to the fixed 128-token bucket (`TARGET_BUCKET`) for kernel-shape pinning, with greedy/scoring writing into masked pad slots |
 | [nla_adapter.py](src/open_weight_lingua/nla_adapter.py) | Exact loaded metadata/templates, marker context, cache-free AV embedding injection, required AR value head, no final norm |
 | [vllm_worker.py](src/open_weight_lingua/vllm_worker.py) | Standalone opt-in vLLM AV/AR worker (separate pinned venv): job validation, EmbedsPrompt injection, recompute-per-pass greedy decode, identity final norm plus external value head, hashed outputs |

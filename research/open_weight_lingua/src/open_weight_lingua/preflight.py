@@ -10,22 +10,20 @@ import shutil
 import time
 import torch
 
+from .architectures import spec_for_config, spec_for_repos, text_config_dict
 from .artifacts import sha256_file
 from .nla_adapter import ar_prompt, av_prompt, check_pair, load_metadata
-
-EXPECTED_REPOS = {
-    "target": "Qwen/Qwen2.5-7B-Instruct",
-    "av": "kitft/nla-qwen2.5-7b-L20-av",
-    "ar": "kitft/nla-qwen2.5-7b-L20-ar",
-}
 
 
 def read_lock(path):
     lock = json.loads(Path(path).read_text())
-    if lock.get("schema_version") != 1 or set(lock["models"]) != set(EXPECTED_REPOS):
+    if lock.get("schema_version") != 1 or not isinstance(lock.get("models"), dict):
         raise ValueError("unsupported source lock")
+    spec = spec_for_repos(
+        {role: entry.get("repo_id") for role, entry in lock["models"].items()}
+    )
     for role, entry in lock["models"].items():
-        if entry["repo_id"] != EXPECTED_REPOS[role] or not re.fullmatch(
+        if entry["repo_id"] != spec.repos[role] or not re.fullmatch(
             r"[0-9a-f]{40}", entry["revision"]
         ):
             raise ValueError("wrong model or non-immutable model revision")
@@ -41,13 +39,27 @@ def read_lock(path):
             required.add("value_head.safetensors")
         if not required <= entry["files"].keys():
             raise ValueError("source lock is missing required artifacts")
+        if "serving_dtype" in entry and (
+            entry["serving_dtype"] != "bfloat16"
+            or not entry.get("serving_dtype_note")
+        ):
+            raise ValueError("unsupported or unjustified serving dtype cast")
+        pending = []
         for name, file in entry["files"].items():
-            if PurePosixPath(name).name != name or not re.fullmatch(
-                r"[0-9a-f]{64}", file["sha256"]
-            ):
+            if PurePosixPath(name).name != name:
+                raise ValueError("unsafe artifact path or missing hash")
+            if file["sha256"] is None:
+                pending.append(name)
+            elif not re.fullmatch(r"[0-9a-f]{64}", file["sha256"]):
                 raise ValueError("unsafe artifact path or missing hash")
             if type(file["bytes"]) is not int or file["bytes"] < 1:
                 raise ValueError("invalid artifact size")
+        if pending:
+            raise ValueError(
+                "source lock has unresolved gated-file hashes "
+                f"({role}: {', '.join(sorted(pending))}); accept the repository "
+                "terms, set HF_TOKEN, and run scripts/complete_gemma3_lock.py"
+            )
         if entry["download_bytes"] != sum(f["bytes"] for f in entry["files"].values()):
             raise ValueError("source-lock byte total mismatch")
     for entry in lock["sources"].values():
@@ -177,21 +189,35 @@ def compatibility(device="cpu"):
     return report
 
 
-def inspect_metadata(paths):
+def inspect_metadata(paths, lock=None):
     from transformers import AutoTokenizer
 
+    serving_dtypes = {
+        role: entry.get("serving_dtype")
+        for role, entry in (lock or {}).get("models", {}).items()
+    }
     target_config = json.loads((paths["target"] / "config.json").read_text())
+    text_config = text_config_dict(target_config)
+    spec = spec_for_config(target_config)
     if (
-        target_config["hidden_size"],
-        target_config["num_hidden_layers"],
-        target_config["model_type"],
-    ) != (3584, 28, "qwen2"):
-        raise ValueError("target differs from audited Qwen2.5-7B configuration")
-    av = load_metadata(paths["av"], "av", target_config)
-    ar = load_metadata(paths["ar"], "ar", target_config)
+        text_config["hidden_size"],
+        text_config["num_hidden_layers"],
+        text_config["model_type"],
+    ) != (spec.hidden_size, spec.num_hidden_layers, spec.text_model_type):
+        raise ValueError(
+            f"target differs from the audited {spec.family} configuration"
+        )
+    av = load_metadata(
+        paths["av"], "av", target_config, serving_dtype=serving_dtypes.get("av")
+    )
+    ar = load_metadata(
+        paths["ar"], "ar", target_config, serving_dtype=serving_dtypes.get("ar")
+    )
     check_pair(av, ar)
-    if av.layer != 20:
-        raise ValueError("released pair differs from audited block 20")
+    if av.layer != spec.extraction_layer:
+        raise ValueError(
+            f"released pair differs from the audited block {spec.extraction_layer}"
+        )
     tokenizers = {
         role: AutoTokenizer.from_pretrained(
             str(path), local_files_only=True, trust_remote_code=False
@@ -200,28 +226,158 @@ def inspect_metadata(paths):
     }
     av_ids, position = av_prompt(tokenizers["av"], av)
     ar_ids = ar_prompt(tokenizers["ar"], ar, "tokenizer preflight")
-    return (
-        tokenizers,
-        av,
-        ar,
-        {
-            "width": av.width,
-            "layer": av.layer,
-            "injection_scale": av.injection_scale,
-            "av_prompt_ids": av_ids,
-            "av_injection_position": position,
-            "ar_probe_ids": ar_ids,
-            "ar_layers": ar.layers,
-            "ar_suffix_ids": list(ar.suffix_ids),
-            "av_template": av.av_template,
-            "ar_template": ar.ar_template,
-        },
+    metadata = {
+        "width": av.width,
+        "layer": av.layer,
+        "injection_scale": av.injection_scale,
+        "av_prompt_ids": av_ids,
+        "av_injection_position": position,
+        "ar_probe_ids": ar_ids,
+        "ar_layers": ar.layers,
+        "ar_suffix_ids": list(ar.suffix_ids),
+        "av_template": av.av_template,
+        "ar_template": ar.ar_template,
+    }
+    if serving_dtypes.get("av"):
+        # Lock-declared serving cast; the released artifact's native precision
+        # and the cast both go into the manifest (the full note is in the lock).
+        av_config = json.loads((paths["av"] / "config.json").read_text())
+        metadata["av_native_dtype"] = av_config.get(
+            "dtype", av_config.get("torch_dtype")
+        )
+        metadata["av_serving_dtype"] = serving_dtypes["av"]
+    return (tokenizers, av, ar, metadata)
+
+
+def _load_cast_checkpoint_to_device(path, role, device):
+    """Stream a non-BF16-native checkpoint straight onto the device.
+
+    Why this exists (measured 2026-09-23 on the GB10, probes in
+    /tmp/owl27_memprobe): the fp32-native 27B AV loaded via the stock path —
+    CPU materialization plus ``model.to("cuda")`` — was OOM-killed twice at
+    shard 22/22 with ~47 GiB of anonymous CPU RSS (the whole bf16-cast copy)
+    coexisting with the growing GPU copy; per-module moves with gc/malloc_trim
+    did not drain it. Here the model is built on the meta device, materialized
+    uninitialized on the target device, and filled tensor-by-tensor from the
+    mmap'd shards (reclaimable file-backed reads, one BF16 cast copy at a
+    time), so no whole-model CPU copy ever exists. Fixture-proven
+    bitwise-identical to stock from_pretrained + cast, including the
+    config-derived non-persistent buffers, which are never in the checkpoint
+    and are rebuilt from the config below. gemma3_text only; anything else
+    fails closed.
+    """
+    import copy as copy_module
+
+    from safetensors import safe_open
+    from transformers import AutoConfig, AutoModelForCausalLM
+    from transformers.models.gemma3.modeling_gemma3 import Gemma3RotaryEmbedding
+
+    config = AutoConfig.from_pretrained(str(path), local_files_only=True)
+    if config.model_type != "gemma3_text":
+        raise ValueError(
+            f"the streaming serving cast is implemented for gemma3_text only, "
+            f"not {config.model_type!r}"
+        )
+    config._attn_implementation = "eager"
+    # Match stock from_pretrained(torch_dtype=bf16), which sets the served
+    # dtype on the config before building: parameters must be built BF16, not
+    # built fp32 and cast on fill.
+    config.dtype = torch.bfloat16
+    config.torch_dtype = torch.bfloat16
+    with torch.device("meta"):
+        model = AutoModelForCausalLM.from_config(config)
+    # Match stock from_pretrained, which merges the checkpoint's
+    # generation_config.json into the loaded model (the released 27B AV
+    # declares eos [1, 106] there and eos 1 in config.json; losing the merge
+    # silently shrinks the AV stop set — root cause of the 27B smoke's
+    # truncated descriptions).
+    from transformers import GenerationConfig
+
+    try:
+        model.generation_config = GenerationConfig.from_pretrained(str(path))
+    except OSError:
+        model.generation_config = GenerationConfig.from_model_config(model.config)
+    model.to_empty(device=device)
+    state = dict(model.state_dict())
+    index_path = Path(path) / "model.safetensors.index.json"
+    if index_path.is_file():
+        weight_map = json.loads(index_path.read_text())["weight_map"]
+        shards = sorted(set(weight_map.values()))
+    else:
+        shards = ["model.safetensors"]
+    loaded = set()
+    with torch.no_grad():
+        for shard in shards:
+            with safe_open(str(Path(path) / shard), framework="pt") as stream:
+                for key in stream.keys():
+                    if key not in state:
+                        raise ValueError(
+                            f"{role} checkpoint has unexpected key {key}"
+                        )
+                    tensor = stream.get_tensor(key)
+                    if not tensor.is_floating_point():
+                        raise ValueError(f"non-floating checkpoint tensor {key}")
+                    target = state[key]
+                    if tensor.shape != target.shape:
+                        raise ValueError(f"checkpoint shape mismatch on {key}")
+                    target.copy_(tensor.to(torch.bfloat16))
+                    del tensor
+                    loaded.add(key)
+    tied = set(getattr(model, "_tied_weights_keys", None) or ())
+    allowed_missing = (
+        {"lm_head.weight", "model.norm.weight"} if role == "ar" else set()
+    ) | tied
+    missing = set(state) - loaded - allowed_missing
+    if missing:
+        raise ValueError(f"{role} checkpoint missing keys: {sorted(missing)}")
+    model.tie_weights()
+    # Config-derived, non-persistent buffers are never checkpointed; the
+    # meta-built copies hold garbage until rebuilt here. Fail closed if a
+    # future checkpoint layout adds anything beyond this known set.
+    derived = {name for name, _ in model.named_buffers()} - loaded
+    expected_derived = {
+        "model.embed_tokens.embed_scale",
+        "model.rotary_emb.inv_freq",
+        "model.rotary_emb_local.inv_freq",
+    }
+    if derived != expected_derived:
+        raise ValueError(f"unexpected non-checkpoint buffers: {sorted(derived)}")
+    model.model.rotary_emb = Gemma3RotaryEmbedding(config=config, device=device)
+    local_config = copy_module.deepcopy(config)
+    local_config.rope_theta = config.rope_local_base_freq
+    local_config.rope_scaling = {"rope_type": "default"}
+    model.model.rotary_emb_local = Gemma3RotaryEmbedding(
+        config=local_config, device=device
     )
+    # from_pretrained casts this buffer to the served dtype; match that or the
+    # embedding multiply promotes the residual stream to float32.
+    model.model.embed_tokens.embed_scale = torch.tensor(
+        config.hidden_size**0.5,
+        dtype=state["model.embed_tokens.weight"].dtype,
+        device=device,
+    )
+    return model.eval().requires_grad_(False)
 
 
 def load_model(path, role, device):
     from transformers import AutoModelForCausalLM
 
+    # The pipeline serves BF16. When the pinned checkpoint declares another
+    # native dtype (the 27B AV ships float32), the cast is lock-declared; log
+    # it loudly rather than letting from_pretrained cast silently.
+    config_path = Path(path) / "config.json"
+    declared = None
+    if config_path.is_file():
+        config = json.loads(config_path.read_text())
+        declared = config.get("dtype", config.get("torch_dtype"))
+    if declared is not None and declared != "bfloat16":
+        print(
+            f"  Serving dtype cast: {role} checkpoint declares {declared}; "
+            "loading BF16 per the lock's serving_dtype declaration",
+            flush=True,
+        )
+        if str(device).startswith("cuda"):
+            return _load_cast_checkpoint_to_device(path, role, device)
     model, info = AutoModelForCausalLM.from_pretrained(
         str(path),
         local_files_only=True,
@@ -258,7 +414,7 @@ def main(argv=None):
     report["verified_bytes"] = verify_models(
         lock, paths, metadata_only=args.metadata_only
     )
-    _, _, _, report["metadata"] = inspect_metadata(paths)
+    _, _, _, report["metadata"] = inspect_metadata(paths, lock)
     report["real_model_inference"] = "NOT RUN"
     print(json.dumps(report, indent=2))
 

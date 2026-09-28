@@ -18,6 +18,7 @@ import uuid
 import torch
 
 from .artifacts import RunDirectory, save_numeric, sha256_file, write_json
+from .architectures import ARCH_SPECS
 from .audit import (
     FROZEN_THRESHOLDS,
     MEDIAN_RECORD_FORMAT,
@@ -66,6 +67,20 @@ MODEL_STAGES = (
     "ar_load_and_reconstruct",
     "target_reload_and_behavior",
 )
+
+
+def target_layers_dotted_path(lock):
+    """The hooked block-list path on the loaded target, from the lock's family.
+
+    Test manifests built without a resolved lock keep the original wording.
+    """
+    repos = {
+        role: entry.get("repo_id") for role, entry in lock.get("models", {}).items()
+    }
+    for spec in ARCH_SPECS.values():
+        if dict(spec.repos) == repos:
+            return ".".join((*spec.target_stack_path, "layers"))
+    return "model.layers"
 
 
 def release_models():
@@ -129,6 +144,7 @@ def build_manifest(
     calibration_median=None,
     av_backend="eager",
     ar_backend="eager",
+    answer_convention="raw",
 ):
     try:
         head = subprocess.check_output(
@@ -152,7 +168,7 @@ def build_manifest(
         "target_template": PROMPT_TEMPLATE,
         "metadata": metadata,
         "software": report,
-        "site": f"model.layers.{metadata['layer']} output; last non-padding assistant-prefix token",
+        "site": f"{target_layers_dotted_path(lock)}.{metadata['layer']} output; last non-padding assistant-prefix token",
         "backend": "local-transformers-eager-no-cache",
         "av_backend": av_backend,
         "ar_backend": ar_backend,
@@ -178,6 +194,7 @@ def build_manifest(
         "P4": "NOT IMPLEMENTED: Milestone 2 calibration-fitted PCA",
         "edits": "NOT IMPLEMENTED: Milestone 2",
         "answer_tokenization": "separate canonical integer IDs plus EOS, append without retokenizing prefix",
+        "answer_convention": answer_convention,
         "metrics": [
             "exact_answer",
             "answer_agreement",
@@ -1258,6 +1275,14 @@ def parse_args(argv=None):
         help="AR reconstruction backend; same opt-in vllm constraints as --av-backend",
     )
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--answer-convention",
+        choices=("raw", "rstrip"),
+        default="raw",
+        help="answer-comparison instrument recorded in the manifest; raw is the "
+        "frozen closed-pilot convention, rstrip is the frozen 2026-09-27 Gemma "
+        "amendment (protocols/gemma_answer_convention.md)",
+    )
     args = parser.parse_args(argv)
     if args.stage == "pilot" and args.calibration_fit is None:
         parser.error(
@@ -1313,7 +1338,7 @@ def main(argv=None):
                 report["fetch"] = {"new_artifact_bytes": 0, "requested": False}
             report["verified_artifact_bytes"] = verify_models(lock, paths)
         with stage(timings, "metadata_and_task_preprocessing", "cpu"):
-            tokenizers, av_meta, ar_meta, metadata = inspect_metadata(paths)
+            tokenizers, av_meta, ar_meta, metadata = inspect_metadata(paths, lock)
             if args.stage == "smoke":
                 groups, generation_stats = generate_groups("smoke", 8)
                 inputs = tokenize_groups(groups, tokenizers["target"])
@@ -1322,8 +1347,15 @@ def main(argv=None):
                         tokenizers["target"], row["answer"]
                     )
                 manifest = build_manifest(
-                    lock, args.lock, inputs, generation_stats, metadata, report,
-                    av_backend=backends["av"], ar_backend=backends["ar"],
+                    lock,
+                    args.lock,
+                    inputs,
+                    generation_stats,
+                    metadata,
+                    report,
+                    av_backend=backends["av"],
+                    ar_backend=backends["ar"],
+                    answer_convention=args.answer_convention,
                 )
             else:
                 plan = build_plan(_group_counts(args.group_counts_json))
@@ -1375,6 +1407,7 @@ def main(argv=None):
                     else None,
                     av_backend=backends["av"],
                     ar_backend=backends["ar"],
+                    answer_convention=args.answer_convention,
                 )
             write_json(
                 run.path / "manifest.json", manifest
