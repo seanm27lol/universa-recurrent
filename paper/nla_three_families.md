@@ -23,7 +23,8 @@ sources:
 
 **A frozen-protocol evaluation of released NLA pairs on three open-weight models**
 
-seanm27lol · [universa-recurrent](https://github.com/seanm27lol/universa-recurrent)
+Sean Mahdavian · ORCID <https://orcid.org/0009-0000-8432-7825> ·
+[universa-recurrent](https://github.com/seanm27lol/universa-recurrent)
 
 *Draft, not peer reviewed. Every number below comes from a committed report and
 is checked against it by `tests/test_paper_numbers.py`.*
