@@ -6,17 +6,20 @@ direction well enough to preserve that measured behavior; this page records the
 port of the same engineering gate to a second family — Gemma-3-12B-it with the
 released kitft Gemma-3 NLA pair — and exactly what is and is not established.
 
-**Status: the replication is COMPLETE and CLOSED. Smoke
-(`smoke-20260923T034330Z-4bc7e34a`), calibration
-(`calibration-20260923T042912Z-d0e9499f`) and the 128-group pilot
-(`pilot-20260923T043613Z-f7e71d7b`) all COMPLETE with independent auditor PASS.
-Pilot decision: STOP — unmodified accuracy 0.5195 below the 0.80 floor and 0/128
-edit-eligible groups, while the preservation criteria passed under that
-unusable-task caveat. The outcome, the cross-family contrast and the honesty
-guards are in [gemma3_pilot.md](gemma3_pilot.md); locked validation was never
-started and stays unimplemented.** The runbook below is retained as the
-operational record of the port; the port itself is proven end to end on the
-real mirror-sourced weights.
+**Status: the replication is COMPLETE and CLOSED, and a corrected-instrument
+confirmation pilot has run. Smoke (`smoke-20260923T034330Z-4bc7e34a`),
+calibration (`calibration-20260923T042912Z-d0e9499f`) and the 128-group pilot
+(`pilot-20260923T043613Z-f7e71d7b`) all COMPLETE with independent auditor PASS;
+the closed pilot's STOP stands (frozen instrument). The usability failure was
+later traced to the instrument, not the model (trailing-newline rejections;
+taxonomy in [post_hoc_answer_lens.md](post_hoc_answer_lens.md)), and the frozen
+amendment (`protocols/gemma_answer_convention.md`, commit `8ec15cb`) preceded
+the confirmation pilot `pilot-20260927T202455Z-f5ec3892` (auditor PASS): P0
+0.9512 (usable) and P2-loss upper 10.16 pp > 5 pp (preservation now fails on a
+usable task) — decision STOP on preservation and edit grounds. Locked
+validation was never started and stays unimplemented.** The runbook below is
+retained as the operational record of the port; the port itself is proven end
+to end on the real mirror-sourced weights.
 
 ## What is ported and CPU-tested
 
