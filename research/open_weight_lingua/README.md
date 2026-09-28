@@ -45,7 +45,7 @@ closed per its one-run stopping rule. Details:
 The pipeline now also resolves the Gemma-3-12B-it + kitft/nla-gemma3-12b-L32-av/ar
 family through a small audited architecture registry
 ([architectures.py](src/open_weight_lingua/architectures.py)); the Qwen2 path is
-unchanged (all 128 pre-existing tests still pass, plus 26 Gemma-3 fixture tests
+unchanged (all 128 pre-existing tests still pass, plus 36 Gemma-3 fixture tests
 on tiny random models — software checks, never released-model measurements). The
 lock is `configs/model-lock-gemma3-12b.json`; `configs/model-lock.json` is
 untouched. The official google/gemma-3-12b-it is gated-manual (anonymous 401),
@@ -62,9 +62,14 @@ its bounded end: calibration `calibration-20260923T042912Z-d0e9499f` and the
 128-group pilot `pilot-20260923T043613Z-f7e71d7b` (auditor PASS), decision
 **STOP** — on Gemma-3-12B the task was not usable (P0 0.520 < 0.80) while the
 preservation criterion passed (loss upper 3.91 pp), the mirror image of Qwen's
-usable-task preservation failure; the preservation pass is weak assay evidence
-under the failed usability floor and is not upgraded. Locked validation NOT
-RUN on either family. The outcome and honesty guards:
+usable-task preservation failure. The usability failure was later proven to be
+an instrument artifact (the model answers `N\n<end_of_turn>`; the frozen
+no-strip metric rejected 228/512 rows, 221 with the correct value), so after
+the frozen amendment (`protocols/gemma_answer_convention.md`) the confirmation
+pilot `pilot-20260927T202455Z-f5ec3892` (auditor PASS) ran under `rstrip`: P0
+0.9512 (usable) and P2-loss upper 10.16 pp > 5 pp — preservation fails on a
+usable task, as on Qwen; decision STOP. The closed pilot's frozen outcome is
+preserved and not relabeled. Locked validation NOT RUN on any family. The outcome and honesty guards:
 [reports/gemma3_pilot.md](reports/gemma3_pilot.md). Interleaved-attention
 analysis for the L32 site, the repair record, memory math and the stage
 commands:
