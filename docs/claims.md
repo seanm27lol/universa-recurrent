@@ -217,6 +217,23 @@ block 41 of 62, width 5376) with the unsloth/gemma-3-27b-it mirror target.
 | Language reconstruction preserves behavior on a usable task, for any family | NOT ESTABLISHED anywhere | Three closed pilots, one assay: Qwen2.5-7B/L20 usable task (P0 0.811) with preservation FAILED (loss upper 41.4 pp); Gemma-12B/L32 and Gemma-27B/L41 preservation criteria met (loss upper 3.91/2.34 pp, P2−P3 lower +2.61/+1.84) under unusable tasks (P0 0.520/0.254). The edit interface is absent on all three (0/128 each; edit hypothesis untested everywhere) |
 | Bigger models preserve activations better | FALSE as framed; prohibited upgrade | The 12B→27B pass-margin reading is confounded by floor effects at P0 0.254 and by the 27B AV's BF16 serving cast (float32-native, unauditable locally — no fp32 A/B possible on this machine). Whether site depth, model size, family, or the NLA pair's training drives the Gemma pairs' preservation strength is speculation for a future phase, not a finding; no validation ran on any family and all three phases are closed |
 
+### Post-hoc answer lens and frozen answer-convention amendment (2026-09-27)
+
+A descriptive re-read of the closed pilots' saved generations, with trailing
+ASCII whitespace stripped once before the unchanged exact-integer rule. It
+changes no frozen outcome: thresholds and instruments are frozen per phase, and
+the STOP decision on each family stands. See
+[reports/post_hoc_answer_lens.md](../research/open_weight_lingua/reports/post_hoc_answer_lens.md)
+and [protocols/gemma_answer_convention.md](../research/open_weight_lingua/protocols/gemma_answer_convention.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The Gemma usability-gate failures reflect the model's computation | FALSE (instrument artifact) | Gemma-3-12B pilot taxonomy: 228/512 variants rejected for trailing whitespace, 221 of them with the correct value after stripping; the mirror target answers digits + newline + `<end_of_turn>`. The Qwen pilot has zero whitespace-affected rows |
+| Under the lens, every family exceeds the 5 pp preservation limit | Observed post hoc; descriptive only | Lens P2 accuracy-loss one-sided upper: Qwen2.5-7B 41.41, Gemma-3-12B 10.16, Gemma-3-27B 6.25 pp. Recomputed from saved generations with the frozen bootstrap; not a new frozen outcome |
+| The frozen-metric Gemma "preservation passes" show the language route works on Gemma | FALSE | They were floor effects of the format rejections; under the lens the Gemma tasks become usable (P0 0.951 / 0.965) and preservation fails |
+| An answer-convention amendment exists for future runs | Frozen 2026-09-27, before the Gemma-12B confirmation pilot | `--answer-convention rstrip`; the default stays `raw`, byte-identical to the closed pilots' instrument, and remains the convention for Qwen runs |
+| A Gemma-12B confirmation pilot under the amendment has been run | NOT RECORDED in this repository | Its numbers would supersede the lens preview; until recorded, the lens values stay descriptive |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
