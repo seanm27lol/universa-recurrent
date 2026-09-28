@@ -7,9 +7,11 @@ a rule your answer has to obey, can you estimate the answer *inside* that rule, 
 hand back a record that someone else can check without trusting you?
 
 It starts with a five-pipe example that runs in about a minute on a laptop. From
-there it goes to learned recurrent models (phase one) and to descriptions of one
-real language model's internal activations (phase two). Both phases are closed,
-and their negative results are kept on purpose.
+there it goes to learned recurrent models (phase one) and to English descriptions
+of the internal activations of three open-weight language models (phase two).
+Both phases are closed, and their negative results are kept on purpose. The main
+research result is written up as a
+**[paper draft](paper/nla_three_families.md)**.
 
 ## A concrete example: five pipes, three sensors
 
@@ -226,7 +228,7 @@ speedup or total-memory saving.
 [technical closeout report](docs/phase_one_technical_report.md) ·
 [machine-readable summary and provenance](experiments/results/phase_one_20260916.json)
 
-### Phase two: describing a real model's activation in words (closed)
+### Phase two: describing model activations in words (closed)
 
 Give Qwen2.5-7B-Instruct a tiny program (`x = 3`, `y = 8`, `x = x + 2`, "What is
 x?"). Capture one internal vector before it answers, describe it in English with a
@@ -243,6 +245,17 @@ validation cost exceeded the eight-hour budget. The phase is closed; the locked
 validation was not run. This does not reopen or extend the completed Phase-One
 claims.
 
+The same frozen assay was then ported to Gemma-3-12B and Gemma-3-27B, one pilot
+each, both decision **STOP**. Both failed the usability gate, and a failure
+taxonomy traced that to the answer metric: the Gemma target ends its answers with
+a newline, which the frozen metric rejects. A post-hoc re-read with trailing
+whitespace stripped makes both Gemma tasks usable and shows every family exceeding
+the 5-point preservation limit (upper bounds 41.41, 10.16 and 6.25 points). The
+edit interface was absent on all three families (0/128 each). The re-read is
+descriptive; a confirmation run under the frozen metric amendment is not yet
+recorded.
+[Ledger entry](docs/claims.md#post-hoc-answer-lens-and-frozen-answer-convention-amendment-2026-09-27).
+
 Two follow-up measurements were each run once and closed, both negative:
 
 - **Steering assay (2026-09-22).** Can the *difference* between two descriptions
@@ -258,7 +271,8 @@ Two follow-up measurements were each run once and closed, both negative:
   as 0.8097. It stays non-default, and its outputs are not mixed into eager-path
   evidence. [Ledger entry](docs/claims.md#phase-two-vllm-backend-2026-09-22).
 
-**[Phase-two findings](docs/phase_two_results.md)** ·
+**[Paper draft: the three-family evaluation](paper/nla_three_families.md)** ·
+[Phase-two findings (Qwen)](docs/phase_two_results.md) ·
 [technical closeout report](docs/phase_two_technical_report.md) ·
 [implementation README](research/open_weight_lingua/README.md)
 
@@ -291,7 +305,7 @@ ones that failed.
 | See the full mathematics and guarantees | [Mathematics](docs/mathematics.md), [Lingua records](docs/lingua.md) |
 | Understand the neural versions | [v1 recurrence](docs/neural_recurrence.md), [v2 multiple hypotheses](docs/neural_v2.md), [dual outputs](docs/dual_outputs.md), [architecture](docs/architecture.md) |
 | Know what phase one established | [Findings](docs/phase_one_results.md), [technical report](docs/phase_one_technical_report.md) |
-| Know what phase two established | [Findings](docs/phase_two_results.md), [technical report](docs/phase_two_technical_report.md), [implementation](research/open_weight_lingua/README.md) |
+| Know what phase two established | [Paper draft](paper/nla_three_families.md), [Qwen findings](docs/phase_two_results.md), [technical report](docs/phase_two_technical_report.md), [implementation](research/open_weight_lingua/README.md) |
 | See every claim and its status | [Claim ledger](docs/claims.md) |
 | See what is closed and what is not planned | [Roadmap](docs/roadmap.md) |
 | See what a release checked | [0.5.0 audit](docs/release_audit_0.5.0.md) |

@@ -9,6 +9,25 @@ def exact_integer(text: str, expected: str) -> bool:
     return bool(re.fullmatch(r"(?:0|[1-9][0-9]*)", text)) and text == expected
 
 
+ANSWER_CONVENTIONS = ("raw", "rstrip")
+
+
+def answer_text_matches(text: str, expected: str, convention: str) -> bool:
+    """The answer-comparison step under a declared convention.
+
+    "raw" is the frozen convention (exact_integer as-is, used by every closed
+    run). "rstrip" is the frozen 2026-09-27 Gemma amendment
+    (protocols/gemma_answer_convention.md): strip trailing ASCII whitespace
+    once, then the same canonical-integer fullmatch; leading/internal
+    whitespace, commentary and leading zeros remain failures.
+    """
+    if convention == "raw":
+        return exact_integer(text, expected)
+    if convention == "rstrip":
+        return exact_integer(text.rstrip(), expected)
+    raise ValueError(f"unknown answer convention: {convention!r}")
+
+
 def answer_tokens(tokenizer, answer: str) -> list[int]:
     """Continuation is separately tokenized answer bytes, followed by EOS.
 
