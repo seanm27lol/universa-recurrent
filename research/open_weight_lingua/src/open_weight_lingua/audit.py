@@ -8,7 +8,7 @@ import statistics
 
 from .artifacts import load_numeric, sha256_file
 from .controls import load_fit
-from .metrics import exact_integer, next_token_kl
+from .metrics import ANSWER_CONVENTIONS, answer_text_matches, exact_integer, next_token_kl
 from .stats import (
     DEFAULT_RESAMPLES,
     EditingRecord,
@@ -62,7 +62,39 @@ FROZEN_THRESHOLDS = {
 }
 
 
+def _answer_convention(manifest: dict) -> str:
+    """The run's declared answer-comparison convention; "raw" when absent.
+
+    Closed pilots' manifests predate the field and replay under "raw", so
+    their saved summaries reproduce exactly.
+    """
+    convention = manifest.get("answer_convention", "raw")
+    if convention not in ANSWER_CONVENTIONS:
+        raise ValueError(f"unknown answer convention: {convention!r}")
+    return convention
+
+
+def _answers_match(generation: dict, answer: str, convention: str) -> bool:
+    return generation["terminated"] and answer_text_matches(
+        generation["text"], answer, convention
+    )
+
+
+def _generations_agree(generation: dict, baseline: dict | None, convention: str) -> bool:
+    """P0-agreement. Raw compares whole generation dicts (closed-run
+    behavior); rstrip normalizes the answer text by the declared lens."""
+    if baseline is None:
+        return False
+    if convention == "raw":
+        return generation == baseline
+    return (
+        generation["terminated"] == baseline["terminated"]
+        and generation["text"].rstrip() == baseline["text"].rstrip()
+    )
+
+
 def _expected_actual(manifest: dict, rows: list[dict]) -> tuple[dict, dict]:
+
     expected = {row["id"]: row for row in manifest["inputs"]}
     actual = {row["id"]: row for row in rows}
     if len(actual) != len(rows) or actual.keys() - expected.keys():
@@ -122,6 +154,7 @@ def _summarize_smoke(manifest: dict, rows: list[dict]) -> dict:
         else:
             failed.append(group)
     metrics = {}
+    convention = _answer_convention(manifest)
     for condition in CONDITIONS:
         valid, correct, agreement, divergence, log_probabilities = 0, 0, 0, [], []
         for name, expected_row in expected.items():
@@ -131,11 +164,9 @@ def _summarize_smoke(manifest: dict, rows: list[dict]) -> dict:
                 continue
             valid += 1
             generation = record["generation"]
-            correct += generation["terminated"] and exact_integer(
-                generation["text"], expected_row["answer"]
-            )
+            correct += _answers_match(generation, expected_row["answer"], convention)
             baseline = measured.get("P0", {}).get("generation", {})
-            agreement += generation == baseline
+            agreement += _generations_agree(generation, baseline, convention)
             divergence.append(record["next_token_kl"])
             log_probabilities.append(
                 record["answer_scores"][expected_row["answer"]]["log_probability"]
@@ -166,7 +197,7 @@ def _summarize_smoke(manifest: dict, rows: list[dict]) -> dict:
     }
 
 
-def _condition_metric(expected, actual, condition, denominator_ids):
+def _condition_metric(expected, actual, condition, denominator_ids, convention):
     """Per-condition counts; failed or missing rows stay in the denominator."""
     valid, correct, agreement, divergence, log_probabilities = 0, 0, 0, [], []
     for name in denominator_ids:
@@ -177,11 +208,9 @@ def _condition_metric(expected, actual, condition, denominator_ids):
             continue
         valid += 1
         generation = record["generation"]
-        correct += generation["terminated"] and exact_integer(
-            generation["text"], expected_row["answer"]
-        )
+        correct += _answers_match(generation, expected_row["answer"], convention)
         baseline = measured.get("P0", {}).get("generation", {})
-        agreement += generation == baseline
+        agreement += _generations_agree(generation, baseline, convention)
         divergence.append(record["next_token_kl"])
         log_probabilities.append(
             record["answer_scores"][expected_row["answer"]]["log_probability"]
@@ -310,14 +339,13 @@ def _edit_coverage(expected, actual, group_ids):
     return coverage, statuses
 
 
-def _group_correct(expected, actual, ids, condition) -> bool:
+def _group_correct(expected, actual, ids, condition, convention) -> bool:
     """A group is correct only when every variant answers exactly (ITT)."""
     for name in ids:
         record = actual.get(name, {}).get("conditions", {}).get(condition, {})
         generation = record.get("generation") if record.get("status") == "ok" else None
-        if not generation or not (
-            generation["terminated"]
-            and exact_integer(generation["text"], expected[name]["answer"])
+        if not generation or not _answers_match(
+            generation, expected[name]["answer"], convention
         ):
             return False
     return True
@@ -376,7 +404,7 @@ def _editing_records(expected, actual, group_ids, members, statuses):
     return records, excluded
 
 
-def _pilot_statistics(expected, actual, group_ids, members, statuses, thresholds):
+def _pilot_statistics(expected, actual, group_ids, members, statuses, thresholds, convention):
     resamples = thresholds["bootstrap_resamples"]
     seed = thresholds["bootstrap_seed"]
     encoding = (
@@ -402,13 +430,16 @@ def _pilot_statistics(expected, actual, group_ids, members, statuses, thresholds
             "encoding": encoding,
         }
     p0_correct = [
-        _group_correct(expected, actual, members[group], "P0") for group in group_ids
+        _group_correct(expected, actual, members[group], "P0", convention)
+        for group in group_ids
     ]
     p2_correct = [
-        _group_correct(expected, actual, members[group], "P2") for group in group_ids
+        _group_correct(expected, actual, members[group], "P2", convention)
+        for group in group_ids
     ]
     p4_correct = [
-        _group_correct(expected, actual, members[group], "P4") for group in group_ids
+        _group_correct(expected, actual, members[group], "P4", convention)
+        for group in group_ids
     ]
     p2_loss = paired_accuracy_loss(p0_correct, p2_correct, resamples=resamples, seed=seed)
     p4_loss = paired_accuracy_loss(p0_correct, p4_correct, resamples=resamples, seed=seed)
@@ -565,8 +596,11 @@ def _summarize_pilot(manifest: dict, rows: list[dict]) -> dict:
             completed.append(group)
         else:
             failed.append(group)
+    convention = _answer_convention(manifest)
     metrics = {
-        condition: _condition_metric(expected, actual, condition, list(expected))
+        condition: _condition_metric(
+            expected, actual, condition, list(expected), convention
+        )
         for condition in PILOT_BASE_CONDITIONS
     }
     for condition in EDIT_CONDITIONS:
@@ -576,12 +610,12 @@ def _summarize_pilot(manifest: dict, rows: list[dict]) -> dict:
             if condition in actual.get(name, {}).get("conditions", {})
         ]
         metrics[condition] = _condition_metric(
-            expected, actual, condition, attempted_ids
+            expected, actual, condition, attempted_ids, convention
         )
     coverage, statuses = _edit_coverage(expected, actual, group_ids)
     thresholds = manifest.get("frozen_thresholds", FROZEN_THRESHOLDS)
     statistics_record = _pilot_statistics(
-        expected, actual, group_ids, members, statuses, thresholds
+        expected, actual, group_ids, members, statuses, thresholds, convention
     )
     return {
         "groups": len(group_ids),

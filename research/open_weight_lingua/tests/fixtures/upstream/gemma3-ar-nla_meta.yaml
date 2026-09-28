@@ -1,0 +1,48 @@
+kind: nla_model
+schema_version: 2
+role: ar
+stage: sl
+d_model: 3840
+extraction:
+  injection_scale: null
+  mse_scale: 61.96773353931867
+tokens:
+  injection_char: ㈜
+  injection_token_id: 246566
+  injection_left_neighbor_id: 236813
+  injection_right_neighbor_id: 954
+  critic_suffix_ids:
+  - 1005
+  - 236813
+  - 655
+  - 6011
+  - 236813
+prompt_templates:
+  av: 'You are a meticulous AI researcher conducting an important investigation into
+    activation vectors from a language model. Your overall task is to describe the
+    semantic content of that activation vector.
+
+
+    We will pass the vector enclosed in <concept> tags into your context. You must
+    then produce an explanation for the vector, enclosed within <explanation> tags.
+    The explanation consists of 2-3 text snippets describing that vector.
+
+
+    Here is the vector:
+
+
+    <concept>{injection_char}</concept>
+
+
+    Please provide an explanation.'
+  ar: 'Summary of the following text: <text>{explanation}</text> <summary>'
+created_at: '2026-03-29T01:25:54.754896+00:00'
+created_by: nla.train_actor.NLAFSDPActor
+critic:
+  extraction_layer_index: 32
+training:
+  rollout_id: 3999
+  lr: 1.0e-05
+  loss_type: custom_loss
+  global_batch_size: 1024
+extraction_layer_index: 32

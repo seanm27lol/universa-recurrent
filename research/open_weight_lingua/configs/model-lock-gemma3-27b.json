@@ -1,0 +1,502 @@
+{
+  "license": "Apache-2.0",
+  "models": {
+    "ar": {
+      "download_bytes": 37599890120,
+      "files": {
+        "NOTICE": {
+          "bytes": 97,
+          "sha256": "66f856d7da72797f528fca46b7c80634ab481f917bfe020960e123d84b19f75f"
+        },
+        "README.md": {
+          "bytes": 3240,
+          "sha256": "c539cb075ed364699aab8e2980ed573ae3e6aadd2257122b2330ef5aafeaba1e"
+        },
+        "added_tokens.json": {
+          "bytes": 35,
+          "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+        },
+        "config.json": {
+          "bytes": 1980,
+          "sha256": "2ec50572074f314519f1be2dc430659cdec7f48c875d41e6fb27180c7b98c7a7"
+        },
+        "generation_config.json": {
+          "bytes": 132,
+          "sha256": "74bae8d04e6963b973b9152d244a0331a35c58bb9451fedf12717a8e8ea759d2"
+        },
+        "model-00001-of-00008.safetensors": {
+          "bytes": 4834190712,
+          "sha256": "68784f1611f99c874aba217bcee78daa85d7506c2dd7807ea26e87a83aaf73bb"
+        },
+        "model-00002-of-00008.safetensors": {
+          "bytes": 4954791768,
+          "sha256": "1c219a3478be3f30fd6f067727c0dab837697c95673b780d3a42285cb0d2fd27"
+        },
+        "model-00003-of-00008.safetensors": {
+          "bytes": 4954791816,
+          "sha256": "6ac92a48d4eea5aae3d0dda4b5b04c27238dfd86cb9db75b2d5fca6c6b10d9c4"
+        },
+        "model-00004-of-00008.safetensors": {
+          "bytes": 4954791848,
+          "sha256": "ce27e539a059235a8a43373428241fff9481b1d1e4019ec9b89a91086b7aa143"
+        },
+        "model-00005-of-00008.safetensors": {
+          "bytes": 4954791848,
+          "sha256": "857c97ec5b4369f668989107c91a41a6d0d975ce9da38e2c1ec70c6152687243"
+        },
+        "model-00006-of-00008.safetensors": {
+          "bytes": 4954791848,
+          "sha256": "6f5c84209c901803ee3d97d0a2079aa16404c85046c35b96422c0396f8d23d09"
+        },
+        "model-00007-of-00008.safetensors": {
+          "bytes": 4954791848,
+          "sha256": "58d2d86c7e9ecc71b9b91b99411eef2fea25ba3f09380ed73493e281285bfc05"
+        },
+        "model-00008-of-00008.safetensors": {
+          "bytes": 2939861664,
+          "sha256": "1c1338f9ebf5e1e69865a06eafb33dbcc4ad828d8fcba5121044c3fde6784b68"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 46000,
+          "sha256": "bcda0ac18d3e47a6a5b794540c9a7cca0231a74053795f59c6332444eafb3c6c"
+        },
+        "nla_meta.yaml": {
+          "bytes": 1221,
+          "sha256": "8ed382ff4404431b37e7a75c0b360272ff10ca1115b0d88fe0e075bc83433b97"
+        },
+        "special_tokens_map.json": {
+          "bytes": 662,
+          "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397"
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer.model": {
+          "bytes": 4689074,
+          "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1155387,
+          "sha256": "983c80895e7b188911f5ccfbb4f780a4e73fb3131ed2080a3e847ef8623cfdca"
+        },
+        "value_head.safetensors": {
+          "bytes": 57802840,
+          "sha256": "5ff4fc28e8a966a672eb1109de83a9c23e03ec2c9b5ce7baf803507a77e6ef50"
+        }
+      },
+      "license": "gemma",
+      "repo_id": "kitft/nla-gemma3-27b-L41-ar",
+      "revision": "aa2f29723c4807caf5f665dac004998df71b7cfb"
+    },
+    "av": {
+      "download_bytes": 108076787842,
+      "files": {
+        "NOTICE": {
+          "bytes": 97,
+          "sha256": "66f856d7da72797f528fca46b7c80634ab481f917bfe020960e123d84b19f75f"
+        },
+        "README.md": {
+          "bytes": 3237,
+          "sha256": "a3db9d83cfe55aec0b3dc9e7d72e8669f94780c6605760f0c3454938b7a973c0"
+        },
+        "added_tokens.json": {
+          "bytes": 35,
+          "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+        },
+        "chat_template.json": {
+          "bytes": 1615,
+          "sha256": "fe16baf728db49457cde32802cd7efc0ac8a7a9877dbe22fe3322b2d9dc6ccd9"
+        },
+        "config.json": {
+          "bytes": 2470,
+          "sha256": "f2ea93225cd21bd843e161a9b214f3b3734aa66099137f835d3e2b9de3a13944"
+        },
+        "generation_config.json": {
+          "bytes": 215,
+          "sha256": "fd9324becc53c4be610db39e13a613006f09fd6ef71a95fb6320dc33157490a3"
+        },
+        "model-00001-of-00022.safetensors": {
+          "bytes": 5638520968,
+          "sha256": "ce9e475b89ac2da195b9616f9d8eef48418fff0c766b052284e5e9977c5febb0"
+        },
+        "model-00002-of-00022.safetensors": {
+          "bytes": 4954787224,
+          "sha256": "ffefa15c409d8e283cd17881fd6830f34e602cd31b63c593f85f2081aed264cb"
+        },
+        "model-00003-of-00022.safetensors": {
+          "bytes": 4954787224,
+          "sha256": "aa3e35307b45c9ab99fcc75490c4f7932feee74a69c9a2f04246b433e8569aa1"
+        },
+        "model-00004-of-00022.safetensors": {
+          "bytes": 4954787224,
+          "sha256": "2fd30df5ddf920a29d0c56316a078ea2af78a70ea5827a7fb73ece207b15222c"
+        },
+        "model-00005-of-00022.safetensors": {
+          "bytes": 4954787248,
+          "sha256": "ac0d96cc7b154cf030e4a652c652ab1eaf797cddd63c93c13de89a6ad72e87c9"
+        },
+        "model-00006-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "3b621312a851e0ac0e8641cade213b0ec26efd0359b6d76c6190fcfddfc08ff2"
+        },
+        "model-00007-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "26ae00eb2947c2b7387217e03d79c8b09af653f5773fc98937cc955d0fb5181d"
+        },
+        "model-00008-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "08e0914911315d2fab3de075b29352974b40867992e1b8eed4b54df725e9e40f"
+        },
+        "model-00009-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "7a581052ba49b77291505217663a8d343b98d1055292ce600922130b26be69f1"
+        },
+        "model-00010-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "c73f23a9b2ba0c6b552ff84c57faa6355385f6252c82471573a128a9ea1e37d8"
+        },
+        "model-00011-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "0d9f6be10ac4978471481ffe48b42f23e0acd635e39abb0632f88e0d64bc41bf"
+        },
+        "model-00012-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "afe77e928aa2073c109cc8bb649821f5df5af188907de4595ba064c9303d443b"
+        },
+        "model-00013-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "d9dfe39fc7f3455782e7e3c69e0dbbf9065b2f6e2d82c89da7ce77c16a902de7"
+        },
+        "model-00014-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "d608318ebd3741ded64dfc253b839318e31466d6a057510c6baff2748c965df0"
+        },
+        "model-00015-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "089f5bffe02d362577d460cd2cd82bf9c10c8ad06fa600c3fee77a8c900cf413"
+        },
+        "model-00016-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "f5555f54ce687d16b8958c4ecc923c7d8df462392a171a1d1a43cbf58d3ac03b"
+        },
+        "model-00017-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "0ed6c8aa5c1c544e06b7cdfeae357d94264c432a3e0a712efa6f983afcfad37b"
+        },
+        "model-00018-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "30eef815300fa9088da5e50d1ec20e26e31e8e6a147bbd59d48cc32098eaaa26"
+        },
+        "model-00019-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "70b7e5ff13dc621815667ce4eaeef51ad93f80288c8a4331269df6cc521b64d4"
+        },
+        "model-00020-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "61b0645fe91d2e9a0e8ac854dba958c9cc23ae5883434c19d0f8d65fdcc5670a"
+        },
+        "model-00021-of-00022.safetensors": {
+          "bytes": 4954787264,
+          "sha256": "4f60b9dafdd0eb7603a88a49bab36b847b9d40e013323d44a1199a0b13eee8db"
+        },
+        "model-00022-of-00022.safetensors": {
+          "bytes": 3303213112,
+          "sha256": "0d315f5515bec6e1611490048808c7ce0a315491faeedfcdacd29fc62fa81e9f"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 67942,
+          "sha256": "a77fc3e90f196db8011b24f66cbe7b566d8abfa25a0bf72da3cbd084590316d8"
+        },
+        "nla_meta.yaml": {
+          "bytes": 1144,
+          "sha256": "a50126b290435efa3436eb6f5c586cd9117cf97bedd099336ed3116226a347f3"
+        },
+        "preprocessor_config.json": {
+          "bytes": 570,
+          "sha256": "f688d6bb20c5017601c4011de7ca656da8485b540b05013efdaf986c0fcc918d"
+        },
+        "processor_config.json": {
+          "bytes": 70,
+          "sha256": "3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53"
+        },
+        "special_tokens_map.json": {
+          "bytes": 662,
+          "sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397"
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer.model": {
+          "bytes": 4689074,
+          "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1155387,
+          "sha256": "983c80895e7b188911f5ccfbb4f780a4e73fb3131ed2080a3e847ef8623cfdca"
+        }
+      },
+      "license": "gemma",
+      "repo_id": "kitft/nla-gemma3-27b-L41-av",
+      "revision": "4e721238131ffb8348cff260fe81b8b34a270a0d",
+      "serving_dtype": "bfloat16",
+      "serving_dtype_note": "The released AV checkpoint is float32-native (config dtype float32; 108.04 GB). It is served BF16 (about 54 GB) because the 121 GB unified pool has ~65 GB available \u2014 the FP32 artifact cannot load here, so no local fp32 A/B comparison is possible and the cast is unauditable locally. This follows the pinned upstream recipe's own local defaults (kitft/nla-inference 38b802a: load_embedding_only(checkpoint_dir, dtype=torch.bfloat16); NLACritic(dtype: torch.dtype = torch.bfloat16) loading with torch_dtype=dtype); its SGLang launch line sets no --dtype flag. The native-released-precision audit rule is relaxed for this family by the user on 2026-09-23; every manifest records av_native_dtype and av_serving_dtype."
+    },
+    "target": {
+      "download_bytes": 54904370574,
+      "files": {
+        "README.md": {
+          "bytes": 24986,
+          "sha256": "58d98c4bdfce94b2eb3b22e9723d954059aaaa83db1e2251054e6893efb111b6"
+        },
+        "added_tokens.json": {
+          "bytes": 35,
+          "sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946"
+        },
+        "chat_template.jinja": {
+          "bytes": 1532,
+          "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+        },
+        "chat_template.json": {
+          "bytes": 1615,
+          "sha256": "fe16baf728db49457cde32802cd7efc0ac8a7a9877dbe22fe3322b2d9dc6ccd9"
+        },
+        "config.json": {
+          "bytes": 1661,
+          "sha256": "a7d75383e1089a270c376275ab413cb74052d24041677be7344179c2c5ac17f5"
+        },
+        "generation_config.json": {
+          "bytes": 210,
+          "sha256": "031fdd1faee68cf7e0cafd12203a08f51f86abd82877a401fc8dafad7b2f7b5c"
+        },
+        "model-00001-of-00012.safetensors": {
+          "bytes": 4854573696,
+          "sha256": "4da0290139f018bdea488b556c136d0f0ca4506fe5f5555cd97c0f6f2e886add"
+        },
+        "model-00002-of-00012.safetensors": {
+          "bytes": 4954792944,
+          "sha256": "bf17dbadf9c7cd696e4768639601c3300ea659e49f018000956078cefd475cdf"
+        },
+        "model-00003-of-00012.safetensors": {
+          "bytes": 4954792976,
+          "sha256": "c12b9d629d07b4583e19a467713f92b5c1ae8c9d7ef11faf1bdb91c4c7b59efc"
+        },
+        "model-00004-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "7171ed512e46c90cb579a58f66851bad09b028220422ceb1ae85080ab4ffb958"
+        },
+        "model-00005-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "9fb9667695749e55d808f407d78f18f80bd8ff999175c2c480cad7075ff5b2cf"
+        },
+        "model-00006-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "91ae339063266e0c12da89af8aa0cfdb3f9dc9bb1b4b2678863793a28026dbe7"
+        },
+        "model-00007-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "0497dda2b32df5d583caaffae35a96f3524a1e4305b850f4b1ce2e60fc354fe4"
+        },
+        "model-00008-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "9061b71b9cc82e187bd72c8f4594c5c1d900b0bc98c416d72902209514cf8ac4"
+        },
+        "model-00009-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "ebf2e19c3385d4b342e1517639293fe093ad793f41895862713e38603635c769"
+        },
+        "model-00010-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "d651ceb24678d80796a36f9a026f7178631b44e9d86f6f87e52093d915f702ad"
+        },
+        "model-00011-of-00012.safetensors": {
+          "bytes": 4954793016,
+          "sha256": "4a2de7fa772158381c7569a5699cadb9da3b06d92b802f54ac1c09f4a2c2e594"
+        },
+        "model-00012-of-00012.safetensors": {
+          "bytes": 462476696,
+          "sha256": "61f4d0c537a889d474396c6fb21ebb90946a64d70345403d47627ecb559e8e91"
+        },
+        "model.safetensors.index.json": {
+          "bytes": 126651,
+          "sha256": "71567cc4dcf16476da69af42108fb6b30b24f6cf49a4f71f9917da57715f74c5"
+        },
+        "preprocessor_config.json": {
+          "bytes": 570,
+          "sha256": "f688d6bb20c5017601c4011de7ca656da8485b540b05013efdaf986c0fcc918d"
+        },
+        "processor_config.json": {
+          "bytes": 70,
+          "sha256": "3ffd5f11778dc73e2b69b3c00535e4121e1badf7018136263cd17b5b34fbaa53"
+        },
+        "special_tokens_map.json": {
+          "bytes": 670,
+          "sha256": "45a857d8a2495d0be30a5d2d6de03278195eb028b6e0b8efc248bfa697d65f05"
+        },
+        "tokenizer.json": {
+          "bytes": 33384568,
+          "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+        },
+        "tokenizer.model": {
+          "bytes": 4689074,
+          "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+        },
+        "tokenizer_config.json": {
+          "bytes": 1158492,
+          "sha256": "8925eabb556c1897ca1bed405f0612e735a56afcd4d77e76eb90fd771e706f9c"
+        }
+      },
+      "license": "gemma",
+      "official_source": {
+        "files": {
+          "README.md": {
+            "bytes": 25123,
+            "sha256": null
+          },
+          "added_tokens.json": {
+            "bytes": 35,
+            "sha256": null
+          },
+          "chat_template.json": {
+            "bytes": 1615,
+            "sha256": null
+          },
+          "config.json": {
+            "bytes": 972,
+            "sha256": null
+          },
+          "generation_config.json": {
+            "bytes": 215,
+            "sha256": null
+          },
+          "model-00001-of-00012.safetensors": {
+            "bytes": 4854573696,
+            "sha256": "4da0290139f018bdea488b556c136d0f0ca4506fe5f5555cd97c0f6f2e886add"
+          },
+          "model-00002-of-00012.safetensors": {
+            "bytes": 4954792944,
+            "sha256": "bf17dbadf9c7cd696e4768639601c3300ea659e49f018000956078cefd475cdf"
+          },
+          "model-00003-of-00012.safetensors": {
+            "bytes": 4954792976,
+            "sha256": "c12b9d629d07b4583e19a467713f92b5c1ae8c9d7ef11faf1bdb91c4c7b59efc"
+          },
+          "model-00004-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "7171ed512e46c90cb579a58f66851bad09b028220422ceb1ae85080ab4ffb958"
+          },
+          "model-00005-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "9fb9667695749e55d808f407d78f18f80bd8ff999175c2c480cad7075ff5b2cf"
+          },
+          "model-00006-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "91ae339063266e0c12da89af8aa0cfdb3f9dc9bb1b4b2678863793a28026dbe7"
+          },
+          "model-00007-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "0497dda2b32df5d583caaffae35a96f3524a1e4305b850f4b1ce2e60fc354fe4"
+          },
+          "model-00008-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "9061b71b9cc82e187bd72c8f4594c5c1d900b0bc98c416d72902209514cf8ac4"
+          },
+          "model-00009-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "ebf2e19c3385d4b342e1517639293fe093ad793f41895862713e38603635c769"
+          },
+          "model-00010-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "d651ceb24678d80796a36f9a026f7178631b44e9d86f6f87e52093d915f702ad"
+          },
+          "model-00011-of-00012.safetensors": {
+            "bytes": 4954793016,
+            "sha256": "4a2de7fa772158381c7569a5699cadb9da3b06d92b802f54ac1c09f4a2c2e594"
+          },
+          "model-00012-of-00012.safetensors": {
+            "bytes": 462476696,
+            "sha256": "61f4d0c537a889d474396c6fb21ebb90946a64d70345403d47627ecb559e8e91"
+          },
+          "model.safetensors.index.json": {
+            "bytes": 126651,
+            "sha256": null
+          },
+          "preprocessor_config.json": {
+            "bytes": 570,
+            "sha256": null
+          },
+          "processor_config.json": {
+            "bytes": 70,
+            "sha256": null
+          },
+          "special_tokens_map.json": {
+            "bytes": 662,
+            "sha256": null
+          },
+          "tokenizer.json": {
+            "bytes": 33384568,
+            "sha256": "4667f2089529e8e7657cfb6d1c19910ae71ff5f28aa7ab2ff2763330affad795"
+          },
+          "tokenizer.model": {
+            "bytes": 4689074,
+            "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"
+          },
+          "tokenizer_config.json": {
+            "bytes": 1156999,
+            "sha256": null
+          }
+        },
+        "gated": "manual",
+        "repo_id": "google/gemma-3-27b-it",
+        "revision": "005ad3404e59d6023443cb575daa05336842228a"
+      },
+      "provenance": "Target weights and tokenizer are pinned from the public unsloth mirror. The official google/gemma-3-27b-it @ 005ad3404e59d6023443cb575daa05336842228a is gated-manual (anonymous fetches returned HTTP 401 on 2026-09-23), so its small non-LFS files could not be byte-verified; the twelve weight shards and both tokenizer blobs carry identical LFS sha256 in both repos' API records, so those bytes are shared and verified against the listed hashes. The mirror config.json/generation_config.json/special_tokens_map.json/tokenizer_config.json differ in bytes from the official listing (unsloth_fixed: true); see reports/gemma3_port_readiness.md for the field-level notes. Gemma Terms of Use apply to the user regardless of download source; the HF gate is an access mechanism, not the license itself. If gated access is later obtained, re-verify against the official revision and reconcile.",
+      "repo_id": "unsloth/gemma-3-27b-it",
+      "revision": "7a5a3053dbd5d1d58e48159e87b9df2fc545a49a",
+      "source": "mirror"
+    }
+  },
+  "resolved_at": "2026-09-23T18:12:38.485360+00:00",
+  "schema_version": 1,
+  "sources": {
+    "kitft/natural_language_autoencoders": {
+      "files": {
+        "docs/inference.md": {
+          "sha256": "c9049b3cc648c48ea2f3a1e2744a032ea8feb918e42f4303ab6527527388fd74",
+          "url": "https://raw.githubusercontent.com/kitft/natural_language_autoencoders/0577769b55ad4fdd96d159e983361b97fa4e7331/docs/inference.md"
+        },
+        "nla/datagen/extractors.py": {
+          "sha256": "969788bad370407ee82d687c0ef0ae0447a7b91f67b1614aa04914855bd7bb7b",
+          "url": "https://raw.githubusercontent.com/kitft/natural_language_autoencoders/0577769b55ad4fdd96d159e983361b97fa4e7331/nla/datagen/extractors.py"
+        }
+      },
+      "revision": "0577769b55ad4fdd96d159e983361b97fa4e7331"
+    },
+    "kitft/nla-inference": {
+      "files": {
+        "LICENSE": {
+          "sha256": "b7f9570613fb5abf78ca1693a277d71e3c4f00025d3a777dcbd847cf776fdd86",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/LICENSE"
+        },
+        "README.md": {
+          "sha256": "e9b4e7bb0c4ef96b1cce82bdcdf783d2bc0fdf021b5ed79a9c408d9280a3e4c5",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/README.md"
+        },
+        "nla_inference.py": {
+          "sha256": "45cbf64489dc8f1daa8c9e98fe4dd4e881e4fd743fd783d6128c070cc0677f26",
+          "url": "https://raw.githubusercontent.com/kitft/nla-inference/38b802a33d1d317f21b6825a9116f388c2141f86/nla_inference.py"
+        }
+      },
+      "revision": "38b802a33d1d317f21b6825a9116f388c2141f86"
+    }
+  }
+}
