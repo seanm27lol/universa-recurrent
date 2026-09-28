@@ -13,6 +13,7 @@ sources:
   research/open_weight_lingua/protocols/gemma_answer_convention.md
   research/open_weight_lingua/reports/gemma3_pilot.md
   research/open_weight_lingua/reports/gemma3_27b_pilot.md
+  research/open_weight_lingua/reports/gemma3_12b_confirmation.md
   research/open_weight_lingua/reports/post_hoc_answer_lens.md
   research/open_weight_lingua/reports/steering_assay.md
   research/open_weight_lingua/reports/nla_ecosystem_notes.md
@@ -22,7 +23,8 @@ sources:
 
 **A frozen-protocol evaluation of released NLA pairs on three open-weight models**
 
-seanm27lol · [universa-recurrent](https://github.com/seanm27lol/universa-recurrent)
+Sean Mahdavian · ORCID <https://orcid.org/0009-0000-8432-7825> ·
+[universa-recurrent](https://github.com/seanm27lol/universa-recurrent)
 
 *Draft, not peer reviewed. Every number below comes from a committed report and
 is checked against it by `tests/test_paper_numbers.py`.*
@@ -47,8 +49,11 @@ The descriptions were clearly on-task (they beat a shuffled-description control
 on every family), but the frozen edit rule found no editable current-value
 statement in any group on any family (0/128 each), so the edit hypothesis is
 untested. Both Gemma families initially failed the usability gate because of an
-instrument artifact (a trailing newline); a post-hoc re-read with that newline
-stripped shows all three families exceeding the preservation limit. A separate
+instrument artifact (a trailing newline). A Gemma-3-12B confirmation pilot, run
+under a metric amendment frozen beforehand, made the task usable (P0 accuracy
+0.9512) and failed preservation (upper bound 10.16 points), so two families now
+fail preservation on usable tasks; a post-hoc re-read puts Gemma-3-27B over the
+limit as well. A separate
 steering assay and a serving-backend equivalence gate were also negative. We
 report these as bounded negative results for one task, one site per model and
 the released checkpoints, not as a verdict on NLAs in general.
@@ -93,7 +98,8 @@ test (Fraser-Taliente et al., 2026).
 4. **An instrument-failure case study** (§4.3): the Gemma usability failures
    were a trailing-newline artifact in the answer metric. It was caught post hoc
    and handled by freezing a metric amendment for a confirmation run, not by
-   relabeling closed runs.
+   relabeling closed runs. The confirmation run then reproduced the predicted
+   outcome exactly.
 
 ## 2. Background
 
@@ -194,25 +200,28 @@ that recomputes every decision and statistic from saved results.
 
 ## 4. Results
 
-All pilots completed 128/128 groups with auditor PASS. The decision on every
-family was **STOP**, and no validation stage was opened.
+Four pilots ran: one per family under the frozen metric, and one Gemma-3-12B
+confirmation pilot under the amended metric described in §4.3. All completed
+128/128 groups with auditor PASS. Every decision was **STOP**, and no validation
+stage was opened.
 
 ### 4.1 Outcomes against the frozen gates
 
-| | Qwen2.5-7B, block 20/28 | Gemma-3-12B, block 32/48 | Gemma-3-27B, block 41/62 |
-|---|---:|---:|---:|
-| P0 accuracy (frozen metric) | 0.811 | 0.520 | 0.254 |
-| Task usable (P0 ≥ 0.80) | yes | no | no |
-| P2 accuracy-loss upper (pp; limit 5) | 41.4 | 3.91 | 2.34 |
-| P2 − P3 log-prob lower (must be > 0) | +3.80 | +2.61 | +1.84 |
-| P2 agreement with P0 | 0.615 | 0.854 | 0.816 |
-| Edit-eligible groups (need 32) | 0/128 | 0/128 | 0/128 |
-| AV round-trip cosine (median) | 0.841 | 0.990 | 0.982 |
-| Projected validation cost (s; budget 28,800) | 49,253 | 75,348 | 181,295 |
-| Decision | STOP | STOP | STOP |
+| | Qwen2.5-7B, block 20/28 | Gemma-3-12B, block 32/48 | Gemma-3-27B, block 41/62 | Gemma-3-12B confirmation (amended metric) |
+|---|---:|---:|---:|---:|
+| P0 accuracy | 0.811 | 0.520 | 0.254 | 0.9512 |
+| Task usable (P0 ≥ 0.80) | yes | no | no | yes |
+| P2 accuracy-loss upper (pp; limit 5) | 41.4 | 3.91 | 2.34 | 10.16 |
+| P2 − P3 log-prob lower (must be > 0) | +3.80 | +2.61 | +1.84 | +2.607 |
+| P2 agreement with P0 | 0.615 | 0.854 | 0.816 | 0.945 |
+| Edit-eligible groups (need 32) | 0/128 | 0/128 | 0/128 | 0/128 |
+| AV round-trip cosine (median) | 0.841 | 0.990 | 0.982 | not reported |
+| Projected validation cost (s; budget 28,800) | 49,253 | 75,348 | 181,295 | 113,902 |
+| Decision | STOP | STOP | STOP | STOP |
 
-Read naively, the Gemma rows look like the language route *works* on Gemma
-(preservation met) and fails on Qwen. Section 4.3 shows why that reading is wrong.
+Read naively, the first three columns look like the language route *works* on
+Gemma (preservation met) and fails on Qwen. The fourth column, and Section 4.3,
+show why that reading is wrong.
 
 ### 4.2 Per-condition behavior
 
@@ -243,7 +252,7 @@ Three patterns hold on every family:
 On Qwen, P2's residual accuracy does not come from the retained norm: replacing
 it with the calibration median norm gives 0.5605 against 0.5645.
 
-### 4.3 An instrument failure, and what the corrected re-read shows
+### 4.3 An instrument failure, a corrected re-read, and a confirmation run
 
 Gemma-3-12B's P0 accuracy of 0.5195 was suspicious for a task this simple. A
 failure taxonomy of the saved generations found that the mirror-sourced target
@@ -253,38 +262,43 @@ correct value once the newline was removed. The Qwen pilot has zero
 whitespace-affected rows.
 
 The closed pilots were not relabeled: thresholds and instruments are frozen per
-phase, so the STOP decisions stand. Instead, a metric amendment (`rstrip`: strip
-trailing ASCII whitespace once, then apply the same exact-integer rule) was frozen
-*before* a planned Gemma-12B confirmation pilot. Separately, a post-hoc
-descriptive re-read of the saved generations under that lens gives:
+phase, so their STOP decisions stand. Instead, in three steps:
 
-| Family | P0 accuracy (lens) | P2 accuracy (lens) | P2 loss point / one-sided upper (pp) | Limit |
-|---|---:|---:|---:|---:|
-| Qwen2.5-7B | 0.8105 | 0.5645 | 34.38 / 41.41 | 5 |
-| Gemma-3-12B | 0.9512 | 0.9336 | 5.47 / 10.16 | 5 |
-| Gemma-3-27B | 0.9648 | 0.9531 | 2.34 / 6.25 | 5 |
+1. **Post-hoc re-read.** Saved generations were re-scored with trailing ASCII
+   whitespace stripped once before the same exact-integer rule. This previewed
+   what a corrected instrument would show, and is descriptive only.
+2. **Frozen amendment.** That `rstrip` convention was then frozen as a metric
+   amendment, *before* any confirmation forward pass. The default stays the
+   original `raw` convention, and the closed runs replay unchanged under it.
+3. **Confirmation pilot.** A fresh Gemma-3-12B pilot ran under the amendment,
+   with the same lock, the same 128 groups and the same calibration fit
+   (`pilot-20260927T202455Z-f5ec3892`, auditor PASS). All 512 P0 generations
+   were bitwise-identical to the closed pilot's: the instrument changed, not the
+   model. Every number matched the re-read's preview exactly.
 
-![Upper bound on P2 accuracy loss per family, frozen metric versus post-hoc lens, against the 5-point limit](figures/fig1_preservation_bounds.png)
+| Family | P0 accuracy | P2 accuracy | P2 loss point / one-sided upper (pp) | Limit | Status |
+|---|---:|---:|---:|---:|---|
+| Qwen2.5-7B | 0.8105 | 0.5645 | 34.38 / 41.41 | 5 | Frozen; no whitespace-affected rows, identical under either metric |
+| Gemma-3-12B | 0.9512 | 0.9336 | 5.47 / 10.16 | 5 | Frozen outcome of the confirmation pilot |
+| Gemma-3-27B | 0.9648 | 0.9531 | 2.34 / 6.25 | 5 | Post-hoc re-read only; no confirmation run |
+
+![Upper bound on P2 accuracy loss per family, closed-pilot metric versus trailing whitespace stripped, against the 5-point limit](figures/fig1_preservation_bounds.png)
 
 **Figure 1.** One-sided 95% upper bound on P2 accuracy loss versus P0. Under the
-frozen metric (decisions of record), the Gemma bounds sit under the limit only
-because the metric rejected most correct answers. Under the post-hoc lens, both
+closed pilots' metric, the Gemma bounds sit under the limit only because the
+metric rejected most correct answers. With trailing whitespace stripped, both
 Gemma tasks become usable (P0 0.951 and 0.965) and all three families exceed the
-5-point limit. The lens values are descriptive re-reads of saved generations,
-not new frozen outcomes.
+5-point limit. For Gemma-3-12B that value is the frozen outcome of the
+confirmation pilot; for Gemma-3-27B it is a post-hoc re-read of saved
+generations, not a frozen outcome.
 
 So the apparent Gemma preservation passes were floor effects of the format
-rejections. With the instrument corrected, the three families agree: the
-description route loses more than the frozen tolerance. The size of the loss
-differs a lot, from 41.41 points on Qwen to 6.25 on Gemma-3-27B, but three
-families cannot separate model size from site depth, family or the NLA pair's
-training, and the 27B AV was served with a BF16 cast that could not be audited
-locally.
-
-**Status of the confirmation run.** The amendment names a fresh Gemma-12B
-confirmation pilot under the `rstrip` convention, whose numbers would supersede
-the lens preview. Its results are not recorded in this repository at the time of
-writing.
+rejections. With a working instrument, Gemma-3-12B lands where Qwen landed:
+usable task, preservation failed, decided by a frozen run. Gemma-3-27B points the
+same way, though only descriptively. The size of the loss differs a lot, from
+41.41 points on Qwen to 6.25 on Gemma-3-27B, but three families cannot separate
+model size from site depth, family or the NLA pair's training, and the 27B AV
+was served with a BF16 cast that could not be audited locally.
 
 ### 4.4 The edit interface never appeared
 
@@ -338,9 +352,10 @@ decode caching.
 
 **What the evidence supports.** At the released sites, on this task, the English
 descriptions carry information the model uses (P2 beats P3 everywhere), but not
-enough to reproduce the model's behavior within a 5-point tolerance: decisively
-so on the usable Qwen task under the frozen metric, and on all three families
-under the post-hoc lens. A generic numerical reconstruction, given
+enough to reproduce the model's behavior within a 5-point tolerance. That is a
+frozen outcome on the two usable tasks, Qwen2.5-7B (decisively) and Gemma-3-12B
+under the amended metric, and a post-hoc reading on Gemma-3-27B. A generic
+numerical reconstruction, given
 no more bytes than the text, stays close to the unmodified model. The descriptions
 did not expose current variable values in an editable form, and description
 differences did not steer targeted behavior.
@@ -360,8 +375,10 @@ identity gate ruled that out. A faster backend could have silently changed the
 measurements; an equivalence gate caught it. A metric artifact made two families
 look like they preserved behavior; freezing thresholds per phase and freezing the
 fix as an amendment for a new run, rather than relabeling closed runs, kept the
-record honest. The negative results are only credible because each of those
-failure modes had a written rule before the outcome was seen.
+record honest. The re-read made a prediction, and the confirmation run under the
+frozen amendment tested it and reproduced it exactly. The negative results are
+only credible because each of those failure modes had a written rule before the
+outcome was seen.
 
 ## 6. Limitations
 
@@ -372,8 +389,12 @@ failure modes had a written rule before the outcome was seen.
   with four small configuration files differing.
 - The Gemma-3-27B AV (float32-native) was served with a BF16 cast to fit memory.
   That deviation is declared in the lock and could not be audited locally.
-- The lens results in §4.3 are post-hoc and descriptive. The planned confirmation
-  run under the frozen amendment is not recorded here.
+- Only Gemma-3-12B has a confirmation run under the amended metric. The
+  Gemma-3-27B corrected-metric result in §4.3 is a post-hoc re-read and stays
+  descriptive.
+- The amended metric strips trailing whitespace only. The teacher-forced
+  log-probability channel is unchanged and still scores a newline-free suffix
+  that the Gemma target does not prefer; this is recorded, not reconciled.
 - Behavioral measurements are engineering instruments, not semantic evidence. No
   claim is made about what the descriptions mean.
 
@@ -385,7 +406,7 @@ hash-pinned model locks, the frozen protocols, the runner, the independent
 auditor, per-run manifests and the reports quoted here. Its fixture test suite
 runs on CPU in CI, on tiny random models with no downloads. Real runs need one
 GPU host; measured pilot wall-clock times were 11,980.8 s (Qwen2.5-7B), 18,472.7 s
-(Gemma-3-12B) and 44,681.4 s (Gemma-3-27B).
+(Gemma-3-12B), 44,681.4 s (Gemma-3-27B) and 27,524 s (Gemma-3-12B confirmation).
 
 | Record | Where |
 |---|---|
@@ -393,6 +414,7 @@ GPU host; measured pilot wall-clock times were 11,980.8 s (Qwen2.5-7B), 18,472.7
 | Qwen pilot decision, gate by gate | [protocols/pilot_decision.md](../research/open_weight_lingua/protocols/pilot_decision.md) |
 | Gemma-3-12B and 27B pilots | [reports/gemma3_pilot.md](../research/open_weight_lingua/reports/gemma3_pilot.md), [reports/gemma3_27b_pilot.md](../research/open_weight_lingua/reports/gemma3_27b_pilot.md) |
 | Answer-metric amendment and lens | [protocols/gemma_answer_convention.md](../research/open_weight_lingua/protocols/gemma_answer_convention.md), [reports/post_hoc_answer_lens.md](../research/open_weight_lingua/reports/post_hoc_answer_lens.md) |
+| Gemma-3-12B confirmation pilot | [reports/gemma3_12b_confirmation.md](../research/open_weight_lingua/reports/gemma3_12b_confirmation.md) |
 | Steering assay | [reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md) |
 | Every claim and its status | [docs/claims.md](../docs/claims.md) |
 | Full technical report (Qwen) | [docs/phase_two_technical_report.md](../docs/phase_two_technical_report.md) |

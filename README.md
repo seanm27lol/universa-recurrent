@@ -251,9 +251,11 @@ taxonomy traced that to the answer metric: the Gemma target ends its answers wit
 a newline, which the frozen metric rejects. A post-hoc re-read with trailing
 whitespace stripped makes both Gemma tasks usable and shows every family exceeding
 the 5-point preservation limit (upper bounds 41.41, 10.16 and 6.25 points). The
-edit interface was absent on all three families (0/128 each). The re-read is
-descriptive; a confirmation run under the frozen metric amendment is not yet
-recorded.
+edit interface was absent on all three families (0/128 each). A Gemma-3-12B
+confirmation pilot, run under a metric amendment frozen beforehand, then
+reproduced the re-read exactly: usable task (P0 accuracy 0.9512), preservation
+failed (10.16 points), decision STOP. The Gemma-3-27B value remains a post-hoc
+re-read.
 [Ledger entry](docs/claims.md#post-hoc-answer-lens-and-frozen-answer-convention-amendment-2026-09-27).
 
 Two follow-up measurements were each run once and closed, both negative:
