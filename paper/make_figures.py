@@ -15,15 +15,18 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 LIMIT_PP = 5  # frozen gate 2: one-sided 95% upper P2 accuracy loss <= 5 pp
 
-# (family, frozen-metric upper bound, post-hoc lens upper bound), in pp.
+# (family, closed-pilot upper bound, whitespace-stripped upper bound), in pp.
 UPPER_BOUNDS = [
     # research/open_weight_lingua/reports/post_hoc_answer_lens.md (Qwen: identical under both)
     ("Qwen2.5-7B", 41.41, 41.41),
-    # reports/gemma3_pilot.md (frozen) and reports/post_hoc_answer_lens.md (lens)
+    # reports/gemma3_pilot.md (closed) and reports/gemma3_12b_confirmation.md (confirmation run)
     ("Gemma-3-12B", 3.906, 10.16),
-    # reports/gemma3_27b_pilot.md (frozen) and reports/post_hoc_answer_lens.md (lens)
+    # reports/gemma3_27b_pilot.md (closed) and reports/post_hoc_answer_lens.md (post-hoc only)
     ("Gemma-3-27B", 2.344, 6.25),
 ]
+# What the stripped value is, per family: shown on the bar so status is never color-alone.
+STRIPPED_STATUS = {"Qwen2.5-7B": "", "Gemma-3-12B": "confirmation run",
+                   "Gemma-3-27B": "post-hoc re-read"}
 
 # Reference palette slots 1 and 2 (validated: CVD dE 24.7, contrast >= 3:1 on #fcfcfb).
 FROZEN, LENS = "#2a78d6", "#eb6834"
@@ -41,12 +44,14 @@ def main(out: Path = Path(__file__).parent / "figures" / "fig1_preservation_boun
     families = [row[0] for row in UPPER_BOUNDS]
     for index, (family, frozen, lens) in enumerate(UPPER_BOUNDS):
         y = len(UPPER_BOUNDS) - 1 - index
-        for offset, value, color in ((height / 2 + gap, frozen, FROZEN),
-                                     (-(height / 2 + gap), lens, LENS)):
+        status = STRIPPED_STATUS[family]
+        for offset, value, color, note in ((height / 2 + gap, frozen, FROZEN, ""),
+                                           (-(height / 2 + gap), lens, LENS, status)):
             ax.barh(y + offset, value, height=height, color=color, edgecolor=SURFACE,
                     linewidth=1.0, zorder=3)
+            label = f"{value:.2f}" + (f"  ({note})" if note else "")
             # Knockout background so the limit line passes behind the label, not through it.
-            ax.text(value + 0.6, y + offset, f"{value:.2f}", va="center", ha="left",
+            ax.text(value + 0.6, y + offset, label, va="center", ha="left",
                     color=INK, fontsize=9, zorder=6,
                     bbox={"facecolor": SURFACE, "edgecolor": "none", "pad": 1.5})
 
@@ -68,7 +73,7 @@ def main(out: Path = Path(__file__).parent / "figures" / "fig1_preservation_boun
     ax.spines["bottom"].set_color(GRID)
 
     handles = [plt.Rectangle((0, 0), 1, 1, color=FROZEN), plt.Rectangle((0, 0), 1, 1, color=LENS)]
-    ax.legend(handles, ["Frozen metric (decision of record)", "Post-hoc lens: trailing whitespace stripped"],
+    ax.legend(handles, ["Closed pilots' metric (no stripping)", "Trailing whitespace stripped"],
               loc="lower right", frameon=False, fontsize=9, labelcolor=INK)
     fig.tight_layout()
     fig.savefig(out, facecolor=SURFACE)
