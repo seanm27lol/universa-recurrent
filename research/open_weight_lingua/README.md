@@ -85,8 +85,15 @@ stock loading), and the replication closed with pilot
 usable at P0 0.254 with the preservation criteria met under the floor-effect
 caveat. Three closed pilots, one assay: usable task fails preservation (Qwen),
 unusable tasks pass it with the caveat (both Gemma pairs), and the edit
-interface is absent everywhere. Details:
-[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md).
+interface is absent everywhere. Under the same frozen answer-convention
+amendment (addendum `protocols/gemma27b_confirmation_addendum.md`, frozen
+before the run), the 27B confirmation pilot `pilot-20260929T034532Z-4e4d655f`
+(auditor PASS) ran under `rstrip` and matched the post-hoc lens prediction
+exactly: P0 0.9648 (usable) and P2-loss upper 6.25 pp > 5 pp — preservation
+fails on a usable task, as on Qwen and Gemma-12B; decision STOP. The closed
+pilot's frozen outcome is preserved and not relabeled. Details:
+[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md) and
+[reports/gemma3_27b_confirmation.md](reports/gemma3_27b_confirmation.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
