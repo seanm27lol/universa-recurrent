@@ -132,6 +132,48 @@ The human record is
 | The locked 512-group validation exists | NOT RUN; remains unimplemented | Stop decision under the frozen thresholds plus over-budget projection (13.7 h > 8 h); the runner never auto-starts validation and the phase is closed |
 | The pilot establishes semantic content, faithfulness, or a compression result | FALSE | Behavioral preservation/coverage measurements at one site on one task family; gates and statistics are engineering instruments, not semantic evidence |
 
+## Post-Phase-Two steering assay (2026-09-22)
+
+A new, separate measurement on the **reused** pilot split: does a description
+*difference* — the pilot's saved AR directions (arm 1) or frozen oracle
+templates through the live AR (arm 2) — steer behavior under the NLA paper's
+reconstructed-difference recipe (`h′ = h + α·‖h‖·Δ/‖Δ‖`)? Frozen protocol:
+[protocols/steering_assay_brief.md](../research/open_weight_lingua/protocols/steering_assay_brief.md);
+outcome report:
+[reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md).
+This did not reopen the closed phase; the pilot's recorded outcomes stand.
+The single frozen run (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS)
+COMPLETED with a negative result, and the assay is closed per its stopping
+rule (one run; no follow-up sweeps).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The steering assay has been run on the released models | COMPLETE; negative result | Run steering-20260922T160432Z-d3b9e4d7: 128/128 groups, 256 receiver rows, auditor PASS, wall 6,114 s; manifest `git_head` aabcef5, plan hash ff060012… (reused pilot split) |
+| The assay's success criteria are fixed | Frozen pre-run (design choices), never weakened post-outcome | α grid {−1, 0.5, 1, 2}; at α=1: flip-to-B ≥ 0.30, y-integrity ≥ 0.90, control moved-x < 0.10; whole-group bootstrap 3,000 resamples, seed 205100 |
+| Any arm shows targeted steering at α=1 | NOT SUPPORTED at this checkpoint/task/site | All three arms failed every frozen criterion: av_difference flip 0.0781 / integrity 0.5703 / control-moved 0.4453; oracle_terse 0.0313 / 0.4219 / 0.4844; oracle_structured 0.0234 / 0.3594 / 0.5625; `successful_arms: []`. Intended deltas flip 2–8% while disturbing the unaffected answer in 43–64%; controls move x as much as intended deltas; higher α buys disruption, not targeting |
+| Description-difference L shifts are specific to the intended variable | Not supported | Steered mean L (logP(B)−logP(A)) moves toward B vs P0's −16.08 (av@1 −9.29, terse@1 −9.00, structured@1 −7.15), but matched controls shift comparably (control@1 −10.16 / −11.23 / −9.88) — an indiscriminate push, not targeted control |
+| This result refutes NLA steering generally, or establishes a semantic conclusion | FALSE | One checkpoint, one task family, one site; behavioral measurement only. The NLA authors' poetry-planning steering used a different, stronger model, site and task; oracle texts were intervention instruments; no semantic claim in either direction |
+| The steering machinery works on tiny fixtures | Tested locally | Delta unit-scaling, patch composition, template determinism and hashes, controls wiring, ITT encoding, manifest locking, audit replay and tamper detection on random Qwen fixtures; never labeled released-model results |
+
+## Phase Two vLLM backend (2026-09-22)
+
+An opt-in vLLM 0.30.0 backend for the AV/AR stages of the
+[open_weight_lingua runner](../research/open_weight_lingua/README.md): a pinned
+worker venv (`.venv-vllm`, separate because vllm pins transformers 5.x against
+the pipeline's 4.57.6), a subprocess worker replicating the eager recipe
+(marker context, injection scale, recompute-per-pass greedy decode, identity
+final norm, external value head), runner flags `--av-backend`/`--ar-backend`
+(default `eager`), and a measured equivalence gate
+(`scripts/check_vllm_equivalence.sh`). Target capture/patch stays eager; vLLM
+has no public mid-block capture/replacement API for it.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The vLLM worker reproduces the eager AV/AR recipe mechanics | Implemented and fixture-tested | CPU tests cover job validation, EmbedsPrompt construction, value-head math, checkpoint-inventory proof, and gate comparison logic; the worker never imports the pipeline package |
+| vLLM AV/AR outputs are interchangeable with eager outputs | GATE FAIL (measured 2026-09-22) | Gate replay of the pinned smoke bundle (`smoke-20260921T233021Z-cbe4057e`, models re-hash-verified): AV greedy continuations 0/32 token-identical (median first divergence at token 10.5; all rows still status-ok paraphrases; eager top-2 logit margin at a sample divergence measured 0.125 — near-tie argmax flips under different BF16 kernels); AR direction cosine min 0.8097 / median 0.99953 / max 0.99979, norm-relative error up to 5.85%. Both bars missed, so vllm is a distinct measurement backend: it stays non-default and its outputs may not be mixed into eager-regime evidence |
+| The target model runs under vLLM | FALSE | Target capture, patching, kernel-shape pinning and behavioral scoring remain eager Transformers; only the AV/AR adapters have an opt-in vllm path |
+| A faster vLLM decode implies any scientific claim | FALSE | The gate's recompute-per-pass AV discipline makes decode caching unusable by construction (measured 559.5 s for 4,564 forwards vs 522.4 s eager — no speedup on this workload); the phase-two pilot outcome (STOP) is unchanged, and this backend adds no validation result |
+
 ## Phase Two second-family port and replication (Gemma-3, 2026-09-22/23)
 
 The closed Phase Two pipeline was ported to a second model family on the
@@ -176,6 +218,25 @@ block 41 of 62, width 5376) with the unsloth/gemma-3-27b-it mirror target.
 | On 27B, P2 ≈ P3 on accuracy means language reconstruction failed | FALSE as framed (floor effect) | At P0 = 25% the accuracy channel is floor-limited and weakly informative; the informative channels separate description from noise — P2 agreement 0.816 / KL 0.216 vs P3 0.574 / 2.81, and the positive P2−P3 contrast (+1.84 lower). Equally, the met criteria do not establish task usability: the P0 floor failed, so the preservation pass is weak assay evidence under an unusable-task caveat |
 | Language reconstruction preserves behavior on a usable task, for any family | NOT ESTABLISHED anywhere | Three closed pilots, one assay: Qwen2.5-7B/L20 usable task (P0 0.811) with preservation FAILED (loss upper 41.4 pp); Gemma-12B/L32 and Gemma-27B/L41 preservation criteria met (loss upper 3.91/2.34 pp, P2−P3 lower +2.61/+1.84) under unusable tasks (P0 0.520/0.254). The edit interface is absent on all three (0/128 each; edit hypothesis untested everywhere) |
 | Bigger models preserve activations better | FALSE as framed; prohibited upgrade | The 12B→27B pass-margin reading is confounded by floor effects at P0 0.254 and by the 27B AV's BF16 serving cast (float32-native, unauditable locally — no fp32 A/B possible on this machine). Whether site depth, model size, family, or the NLA pair's training drives the Gemma pairs' preservation strength is speculation for a future phase, not a finding; no validation ran on any family and all three phases are closed |
+
+### Post-hoc answer lens and frozen answer-convention amendment (2026-09-27)
+
+A descriptive re-read of the closed pilots' saved generations, with trailing
+ASCII whitespace stripped once before the unchanged exact-integer rule. It
+changes no frozen outcome: thresholds and instruments are frozen per phase, and
+the STOP decision on each family stands. A Gemma-3-12B confirmation pilot under
+the frozen amendment later reproduced the 12B lens numbers exactly. See
+[reports/post_hoc_answer_lens.md](../research/open_weight_lingua/reports/post_hoc_answer_lens.md),
+[protocols/gemma_answer_convention.md](../research/open_weight_lingua/protocols/gemma_answer_convention.md)
+and [reports/gemma3_12b_confirmation.md](../research/open_weight_lingua/reports/gemma3_12b_confirmation.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The Gemma usability-gate failures reflect the model's computation | FALSE (instrument artifact) | Gemma-3-12B pilot taxonomy: 228/512 variants rejected for trailing whitespace, 221 of them with the correct value after stripping; the mirror target answers digits + newline + `<end_of_turn>`. The Qwen pilot has zero whitespace-affected rows |
+| Under the lens, every family exceeds the 5 pp preservation limit | Observed post hoc; confirmed for Gemma-3-12B by a frozen run; Gemma-3-27B remains descriptive | Lens P2 accuracy-loss one-sided upper: Qwen2.5-7B 41.41, Gemma-3-12B 10.16, Gemma-3-27B 6.25 pp, recomputed from saved generations with the frozen bootstrap. The 12B value is now also a frozen outcome (row below); the 27B value is not |
+| The frozen-metric Gemma "preservation passes" show the language route works on Gemma | FALSE | They were floor effects of the format rejections; under the lens the Gemma tasks become usable (P0 0.951 / 0.965) and preservation fails |
+| An answer-convention amendment exists for future runs | Frozen 2026-09-27, before the Gemma-12B confirmation pilot | `--answer-convention rstrip`; the default stays `raw`, byte-identical to the closed pilots' instrument, and remains the convention for Qwen runs |
+| A Gemma-12B confirmation pilot under the amendment has been run | COMPLETE; decision STOP | `pilot-20260927T202455Z-f5ec3892`, 128/128 groups, auditor PASS, `answer_convention: rstrip`, same lock, groups and calibration fit as the closed pilot. All 512 P0 generations bitwise-identical to the closed pilot's. P0 0.9512 (usability met); P2 accuracy-loss upper 10.16 pp > 5 pp (not met); P2 − P3 log-prob lower +2.607; edit-eligible 0/128. Every number matches the lens preview exactly. See reports/gemma3_12b_confirmation.md |
 
 ## Completed phase-one findings (2026-09-16)
 
