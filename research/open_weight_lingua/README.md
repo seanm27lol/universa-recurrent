@@ -94,6 +94,11 @@ fails on a usable task, as on Qwen and Gemma-12B; decision STOP. The closed
 pilot's frozen outcome is preserved and not relabeled. Details:
 [reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md) and
 [reports/gemma3_27b_confirmation.md](reports/gemma3_27b_confirmation.md).
+Why edit coverage is 0/128 on every family (post-hoc, descriptive): the site
+is the answer position, and the AV writes next-token predictions rather than
+variable-state statements; the Gemma descriptions carry the answer value, but
+never in the frozen forms. See
+[reports/edit_eligibility_structure.md](reports/edit_eligibility_structure.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
@@ -291,6 +296,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [splits.py](src/open_weight_lingua/splits.py) | Five deterministic disjoint splits (smoke → calibration → pilot → two validation blocks), carried exclusion inventories, plan hash over every group identity |
 | [controls.py](src/open_weight_lingua/controls.py) | P4 PCA fit on pooled unlabeled calibration unit directions; byte-budget rank `min(fitted_rank, floor(text_bytes/2))`, float16 coefficients, shared mean/basis bytes separate, no norm restoration |
 | [text_edits.py](src/open_weight_lingua/text_edits.py) | Frozen three-form current-value parser, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only edits; truth agreement recorded separately, never gates an edit |
+| [answer_slot.py](src/open_weight_lingua/answer_slot.py) | Parser for the AV's own "Final token" answer slot (rule AS-1.0.0): quoted candidates 0–19, eligible/absent/ambiguous, slot-only and everywhere value edits; reads text only and does not change the frozen `text_edits` rule |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

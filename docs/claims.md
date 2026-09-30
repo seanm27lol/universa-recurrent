@@ -244,6 +244,23 @@ and [reports/gemma3_27b_confirmation.md](../research/open_weight_lingua/reports/
 | A Gemma-12B confirmation pilot under the amendment has been run | COMPLETE; decision STOP | `pilot-20260927T202455Z-f5ec3892`, 128/128 groups, auditor PASS, `answer_convention: rstrip`, same lock, groups and calibration fit as the closed pilot. All 512 P0 generations bitwise-identical to the closed pilot's. P0 0.9512 (usability met); P2 accuracy-loss upper 10.16 pp > 5 pp (not met); P2 − P3 log-prob lower +2.607; edit-eligible 0/128. Every number matches the lens preview exactly. See reports/gemma3_12b_confirmation.md |
 | A Gemma-27B confirmation pilot under the amendment has been run | COMPLETE; decision STOP | `pilot-20260929T034532Z-4e4d655f`, 128/128 groups, auditor PASS, `answer_convention: rstrip`, same lock, groups and calibration fit as the closed pilot, under the frozen addendum protocols/gemma27b_confirmation_addendum.md. All 512 P0 generations bitwise-identical to the closed pilot's. P0 0.9648 (usability met); P2 accuracy-loss upper 6.25 pp > 5 pp (not met); P2 − P3 log-prob lower +1.844; edit-eligible 0/128. Every number matches the lens preview, which the addendum recorded before the run as the prediction under test. See reports/gemma3_27b_confirmation.md |
 
+### Post-hoc structure of edit eligibility (2026-09-29)
+
+A descriptive re-read of the saved AV descriptions from the Qwen2.5-7B pilot
+and both Gemma confirmation pilots, asking why no group is edit-eligible on any
+family. It loads no model and relabels nothing: 0/128 coverage and the STOP
+decisions stand. See
+[reports/edit_eligibility_structure.md](../research/open_weight_lingua/reports/edit_eligibility_structure.md)
+and `scripts/edit_structure_analysis.py`.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The 0/128 edit coverage is an accident of the frozen rule's exact phrasing | FALSE (structural) | Even case- and markdown-insensitive, the three frozen forms occur in 0 of 1,024 Gemma descriptions; Qwen's 3/512 are false values inside quoted narratives. The capture site is the answer position and the AV writes answer predictions, not variable-state statements |
+| Gemma descriptions carry the queried answer value | Observed post hoc | Contained in 120/128 (12B) and 127/128 (27B) receivers against an unrelated-answer baseline of 13 and 18, including computed values the prompt never shows (44/50, 49/50); it leads the "Final token" candidate list in 108 and 111 receivers. Qwen: 12 leads, containment near its baseline (38 vs 36). A candidate is the AV's next-token guess, not evidence of reading the activation |
+| Receiver descriptions carry the program state the wrong-variable control needs | FALSE at this site | The other variable's computed value appears in 4/45 (12B), 2/45 (27B) and 5/45 (Qwen) receivers |
+| An answer-slot edit rule would give usable edit coverage | Syntactic only; behavior not measured | Rule AS-1.0.0 (`answer_slot.py`): 65/128 (12B) and 74/128 (27B) single-candidate receivers, above the 32-group floor on paper, but it edits a described prediction, not a variable's state; 63 and 53 receivers are ambiguous, and 19 and 18 already list the ±1 counterfactual |
+| A description's number content transfers to behavior under replacement | Observed on Gemma-12B; weak on Gemma-27B and Qwen (post hoc, P3 natural edits) | When another group's slot lead differs from the own answer, P3 answers it in 220/477 (12B), 35/470 (27B) and 31/440 (Qwen) rows; unrelated-answer baseline 0/401, 3/403, 13/377. The wrong-lead subset (~60 rows per Gemma family) is too small to separate the number from the rest of the text |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
