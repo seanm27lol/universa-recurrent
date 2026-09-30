@@ -184,8 +184,11 @@ results without calling the summarizers.
 ## Cost, order, stopping rule
 
 - **Order.** D1 on 12B, then D1 on 27B, then D2 on 12B. Each part starts only
-  when no other GPU compute process is running and at least 60 GB (12B) or
-  90 GB (27B) of unified memory is available; otherwise it waits.
+  when no other GPU workload is active and at least 60 GB (12B) or 90 GB (27B)
+  of unified memory is available; otherwise it waits. An idle resident process
+  (such as the rf-moe dashboard, about 0.5 GB and 0% SM, present during both
+  confirmation pilots) does not count as a workload; it is recorded. This
+  clarification was added before any diagnostic forward.
 - **Projected cost.** About 25 min (D1 12B), 45 min (D1 27B) and 80 min
   (D2 12B), plus hash verification and loads.
 - **Throughput stop.** If measured throughput on the first receivers projects
