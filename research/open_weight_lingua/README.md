@@ -99,6 +99,13 @@ is the answer position, and the AV writes next-token predictions rather than
 variable-state statements; the Gemma descriptions carry the answer value, but
 never in the frozen forms. See
 [reports/edit_eligibility_structure.md](reports/edit_eligibility_structure.md).
+Frozen follow-up diagnostics (not pilot reruns) then measured the channel
+directly. On Gemma-3-12B, rewriting every mention of the value in a
+description moves the answer to the written value in about a third of
+receivers, replicated on 256 fresh groups (42/121); rewriting only the answer
+slot does not (2/64, 5/121). Gemma-3-27B shifts preference but not answers.
+Capturing at the end of the program yields no variable-state statements. See
+[reports/edit_channel_diagnostics.md](reports/edit_channel_diagnostics.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
