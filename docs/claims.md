@@ -261,6 +261,27 @@ and `scripts/edit_structure_analysis.py`.
 | An answer-slot edit rule would give usable edit coverage | Syntactic only; behavior not measured | Rule AS-1.0.0 (`answer_slot.py`): 65/128 (12B) and 74/128 (27B) single-candidate receivers, above the 32-group floor on paper, but it edits a described prediction, not a variable's state; 63 and 53 receivers are ambiguous, and 19 and 18 already list the ±1 counterfactual |
 | A description's number content transfers to behavior under replacement | Observed on Gemma-12B; weak on Gemma-27B and Qwen (post hoc, P3 natural edits) | When another group's slot lead differs from the own answer, P3 answers it in 220/477 (12B), 35/470 (27B) and 31/440 (Qwen) rows; unrelated-answer baseline 0/401, 3/403, 13/377. The wrong-lead subset (~60 rows per Gemma family) is too small to separate the number from the rest of the text |
 
+### Edit-channel diagnostics (2026-09-30)
+
+Four frozen diagnostic runs on the Gemma pairs, each protocol committed and
+pushed before its forwards: D1 rewrites the AV's answer slot on the pilot
+receivers (12B, 27B), D2 captures at the end of the program (12B), and D3
+replicates the everywhere edit on the fresh 12B calibration split. New
+measurements, not pilot reruns; every 0/128 coverage result and STOP decision
+stands. See
+[reports/edit_channel_diagnostics.md](../research/open_weight_lingua/reports/edit_channel_diagnostics.md),
+[protocols/edit_channel_diagnostics.md](../research/open_weight_lingua/protocols/edit_channel_diagnostics.md)
+and [protocols/edit_replication.md](../research/open_weight_lingua/protocols/edit_replication.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The diagnostics' harness recomputes the pilot's P2 exactly | Verified bitwise | D1: fresh P0 logits/greedy, E0 direction, E0 replacement and E0 greedy equal the saved pilot records on 65/65 (12B) and 74/74 (27B) receivers; D2: pilot-site re-capture 128/128 and AV replay 8/8; D3: calibration re-capture 256/256 and D1 replay 4/4; all audits PASS |
+| Rewriting only the AV's answer slot moves the Gemma answer | NOT SUPPORTED (frozen reading unmet on both families) | D1 slot-only edit to the counterfactual: 2/64 (12B) and 0/74 (27B) answers moved, `Δ` lower bound 0.0; the 12B prediction (0.3–0.5) was wrong. Every 12B primary receiver repeats the value outside the slot, so a slot-only edit leaves a self-contradicting text |
+| A consistent edit (every mention rewritten) moves the Gemma-3-12B answer to the written value | SUPPORTED out of sample (frozen D3 readings R3a and R3b met) | D1 (secondary condition): 25/64. D3 on 256 fresh groups: 42/121 to the counterfactual (0.347, `Δ` lower 0.281), 43/120 to the other neighbour, 32/121 to a distant value; log-probability shifts +11.9 to +17.6 toward the written value versus +1.2 to +2.6 toward others. Boundary: it shows the AR-patch path carries a consistently written number to the output; it does not show that the AV reads the activation, and it edits a next-token guess, not a variable's state |
+| The same holds on Gemma-3-27B | NOT OBSERVED | D1: 0–1 of 74 answers moved under every edit, although each edit shifts the log-probability toward its own written value by +3.4 to +5.5 nats; consistent with the 7% P3 adoption. Not a size ranking: sites, NLA pairs and the 27B AV's BF16 cast differ |
+| Capturing at the end of the program yields variable-state descriptions | NOT SUPPORTED (frozen reading unmet; as predicted) | D2 (12B): the affected variable is bound to its true value in 14/128 descriptions (floor 32) and its computed value in 1/50 (floor 0.25); computed values appear at all in 4/50, against 44/50 at the answer position; both variables are named in 54/128 (1/128 at the answer position); frozen-rule hits 0 |
+| These diagnostics test or relabel the Phase Two edit hypothesis | FALSE | The frozen v1.0.0 hypothesis (edit a stated variable-state value) remains untested; 0/128 coverage and STOP stand on every family. D1/D3 test the AV's answer guess, which at this site is the same number, not the same hypothesis |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
