@@ -14,62 +14,20 @@ the affected variable.
 from collections import Counter
 import json
 from pathlib import Path
-import re
 import sys
 
 from open_weight_lingua import answer_slot
-from open_weight_lingua.tasks import Statement, interpret
+from open_weight_lingua.description_census import (
+    bound_values,
+    integer_answer,
+    literals,
+    names,
+    numbers,
+    program,
+    relaxed_frozen_hit,
+)
+from open_weight_lingua.tasks import interpret
 from open_weight_lingua.text_edits import parse as frozen_parse
-
-NUMBER = re.compile(r"(?<![0-9A-Za-z_.])(\d{1,2})(?![0-9])")
-GUARD = r"(?<![A-Za-z0-9_])"
-MARK = r"[`'\"*]*"
-FROZEN_FORMS = ("{v} is currently", "{v} is now", "the current value of {v} is")
-
-
-def program(prompt: str) -> tuple[Statement, ...]:
-    statements = []
-    for line in prompt.split("\nWhat is")[0].split("\n"):
-        variable, rhs = (part.strip() for part in line.split("="))
-        arithmetic = re.fullmatch(r"([xy]) ([+-]) (\d+)", rhs)
-        if arithmetic:
-            operation = "add" if arithmetic.group(2) == "+" else "subtract"
-            statements.append(Statement(variable, operation, int(arithmetic.group(3))))
-        elif rhs in ("x", "y"):
-            statements.append(Statement(variable, "copy", rhs))
-        else:
-            statements.append(Statement(variable, "assign", int(rhs)))
-    return tuple(statements)
-
-
-def answer(generation: dict | None, convention: str) -> int | None:
-    if not generation or not generation.get("terminated"):
-        return None
-    text = generation["text"].rstrip() if convention == "rstrip" else generation["text"]
-    return int(text) if re.fullmatch(r"0|[1-9][0-9]*", text) else None
-
-
-def numbers(text: str) -> set[int]:
-    return {int(n) for n in NUMBER.findall(text)}
-
-
-def bound_values(text: str, variable: str) -> list[int]:
-    pattern = re.compile(
-        GUARD + MARK + variable + MARK
-        + r"\s*(?:=|==|:|is now|is currently|is|equals|becomes|holds)\s*"
-        + MARK + r"(\d{1,2})(?![0-9])"
-    )
-    return [int(m.group(1)) for m in pattern.finditer(text)]
-
-
-def relaxed_frozen_hit(text: str) -> bool:
-    flat = re.sub(r"[`*\"']", "", text).lower()
-    return any(
-        re.search(GUARD + form.format(v=v) + r"\s*(\d{1,2})(?![0-9])", flat)
-        for v in ("x", "y")
-        for form in FROZEN_FORMS
-    )
-
 
 def analyze(run: Path, convention: str) -> dict:
     rows = {r["id"]: r for r in json.loads((run / "results.json").read_text())}
@@ -82,7 +40,7 @@ def analyze(run: Path, convention: str) -> dict:
         query = row["variable"]
         other = "y" if query == "x" else "x"
         assert str(state[query]) == row["answer"]
-        literals = {int(n) for n in re.findall(r"\d+", row["prompt"])}
+        written = literals(row["prompt"])
         counterpart = rid.replace("-A-", "-B-") if "-A-" in rid else rid.replace("-B-", "-A-")
         cf = int(inputs[counterpart]["answer"])
         unrelated = inputs[rows[rows[rid]["controls"]["shuffled_description_id"]]["controls"]["shuffled_description_id"]]
@@ -95,13 +53,13 @@ def analyze(run: Path, convention: str) -> dict:
             c["frozen_hits_any_variable"] += any(frozen[v].status != "absent" for v in ("x", "y"))
             c["frozen_hits_queried_variable"] += frozen[query].status != "absent"
             c["frozen_relaxed_hits"] += relaxed_frozen_hit(desc)
-            c["names_queried_variable"] += bool(re.search(GUARD + MARK + query + MARK + r"(?![A-Za-z0-9_])", desc))
+            c["names_queried_variable"] += names(desc, query)
             c["contains_true_answer"] += state[query] in nums
             c["contains_unrelated_answer"] += int(unrelated["answer"]) in nums and unrelated["answer"] != row["answer"]
-            if state[query] not in literals:
+            if state[query] not in written:
                 c["computed_answer_rows"] += 1
                 c["computed_answer_in_text"] += state[query] in nums
-            if state[other] != state[query] and state[other] not in literals:
+            if state[other] != state[query] and state[other] not in written:
                 c["computed_other_rows"] += 1
                 c["computed_other_in_text"] += state[other] in nums
             bound = bound_values(desc, query)
@@ -119,7 +77,7 @@ def analyze(run: Path, convention: str) -> dict:
         foreign = rows[rid]["controls"]["shuffled_description_id"]
         lead = answer_slot.parse(text[foreign]).lead
         own, foreign_answer = int(row["answer"]), int(inputs[foreign]["answer"])
-        p3 = answer(rows[rid]["conditions"]["P3"]["generation"], convention)
+        p3 = integer_answer(rows[rid]["conditions"]["P3"]["generation"], convention)
         if lead is None or p3 is None:
             channel["unscored"] += 1
             continue
