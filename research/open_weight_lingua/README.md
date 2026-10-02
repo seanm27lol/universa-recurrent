@@ -85,8 +85,28 @@ stock loading), and the replication closed with pilot
 usable at P0 0.254 with the preservation criteria met under the floor-effect
 caveat. Three closed pilots, one assay: usable task fails preservation (Qwen),
 unusable tasks pass it with the caveat (both Gemma pairs), and the edit
-interface is absent everywhere. Details:
-[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md).
+interface is absent everywhere. Under the same frozen answer-convention
+amendment (addendum `protocols/gemma27b_confirmation_addendum.md`, frozen
+before the run), the 27B confirmation pilot `pilot-20260929T034532Z-4e4d655f`
+(auditor PASS) ran under `rstrip` and matched the post-hoc lens prediction
+exactly: P0 0.9648 (usable) and P2-loss upper 6.25 pp > 5 pp — preservation
+fails on a usable task, as on Qwen and Gemma-12B; decision STOP. The closed
+pilot's frozen outcome is preserved and not relabeled. Details:
+[reports/gemma3_27b_pilot.md](reports/gemma3_27b_pilot.md) and
+[reports/gemma3_27b_confirmation.md](reports/gemma3_27b_confirmation.md).
+Why edit coverage is 0/128 on every family (post-hoc, descriptive): the site
+is the answer position, and the AV writes next-token predictions rather than
+variable-state statements; the Gemma descriptions carry the answer value, but
+never in the frozen forms. See
+[reports/edit_eligibility_structure.md](reports/edit_eligibility_structure.md).
+Frozen follow-up diagnostics (not pilot reruns) then measured the channel
+directly. On Gemma-3-12B, rewriting every mention of the value in a
+description moves the answer to the written value in about a third of
+receivers, replicated on 256 fresh groups (42/121); rewriting only the answer
+slot does not (2/64, 5/121), and hand-written texts asserting the same number
+do not either (1 of 484). Gemma-3-27B shifts preference but not answers.
+Capturing at the end of the program yields no variable-state statements. See
+[reports/edit_channel_diagnostics.md](reports/edit_channel_diagnostics.md).
 
 Milestone 2 adds two stages on the same machinery. A target-only
 **calibration** stage (256 groups) fits the P4 PCA baseline on pooled unit
@@ -284,6 +304,11 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [splits.py](src/open_weight_lingua/splits.py) | Five deterministic disjoint splits (smoke → calibration → pilot → two validation blocks), carried exclusion inventories, plan hash over every group identity |
 | [controls.py](src/open_weight_lingua/controls.py) | P4 PCA fit on pooled unlabeled calibration unit directions; byte-budget rank `min(fitted_rank, floor(text_bytes/2))`, float16 coefficients, shared mean/basis bytes separate, no norm restoration |
 | [text_edits.py](src/open_weight_lingua/text_edits.py) | Frozen three-form current-value parser, canonical values 0–19, eligible/absent/ambiguous statuses, value-span-only edits; truth agreement recorded separately, never gates an edit |
+| [answer_slot.py](src/open_weight_lingua/answer_slot.py) | Parser for the AV's own "Final token" answer slot (rule AS-1.0.0): quoted candidates 0–19, eligible/absent/ambiguous, slot-only and everywhere value edits; reads text only and does not change the frozen `text_edits` rule |
+| [description_census.py](src/open_weight_lingua/description_census.py) | Text-only helpers: parse a prompt back into its program, prompt literals, variable-bound value statements, relaxed frozen-form search, integer answers under a convention |
+| [edit_diagnostics.py](src/open_weight_lingua/edit_diagnostics.py) | Frozen edit-channel diagnostics ([protocol](protocols/edit_channel_diagnostics.md)): D1 answer-slot edits patched as P2 with bitwise harness gates against the saved pilot; D2 end-of-program capture and AV census; independent recount audit |
+| [edit_replication.py](src/open_weight_lingua/edit_replication.py) | Frozen out-of-sample replication D3 ([protocol](protocols/edit_replication.md)): fresh AV descriptions on the Gemma-3-12B calibration split, consistent everywhere-edits with specificity controls, capture and D1-replay harness gates, recount audit |
+| [edit_oracle_control.py](src/open_weight_lingua/edit_oracle_control.py) | Frozen oracle-text control D4 ([protocol](protocols/edit_oracle_control.md)): D3's receivers patched with hand-written texts asserting the same number (the steering assay's frozen templates, a bare answer slot, a neutral mention) against the replayed edited AV description; bitwise D3 replay gate, recount audit |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
