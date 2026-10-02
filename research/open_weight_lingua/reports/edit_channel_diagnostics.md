@@ -1,12 +1,13 @@
-# Edit-channel diagnostics on the Gemma pairs — 2026-09-30
+# Edit-channel diagnostics on the Gemma pairs — 2026-09-30 to 10-02
 
 For `y = 3`, a Gemma-3-12B receiver's saved AV description says "Result: 3",
 "y = 3", "requiring the value 3", and in its closing answer slot, "3" three
 more times. Change only the three quoted slot numbers to 2, reconstruct the
 text with the AR and patch it in exactly as the pilot's P2, and the model
 still answers 3. Change every mention to 2, and in about a third of such
-receivers it answers 2. This page records the four frozen diagnostic runs
-behind that sentence. **They are new measurements on reused or fresh
+receivers it answers 2. Hand-written texts that assert the same number move
+it in 1 of 484 receiver-texts. This page records the five frozen diagnostic runs behind
+those sentences. **They are new measurements on reused or fresh
 calibration and pilot splits, not pilot reruns, not validation, and not a
 reopening of the closed steering assay. Every closed outcome stands: 0/128
 edit coverage under the frozen rule v1.0.0 on every family, the STOP
@@ -27,6 +28,9 @@ were committed and pushed before any forward they govern:
   covers D3: an out-of-sample replication on fresh 12B groups. It was drafted
   after the D1 12B result, committed after the D1 27B result and while D2
   was running; its status paragraph records that order.
+- [edit_oracle_control.md](../protocols/edit_oracle_control.md) (commit
+  `32960ce`) covers D4: the same D3 receivers patched with hand-written texts
+  asserting the same number. It was frozen after D1–D3 were read.
 
 Each part ran exactly once. Predictions were recorded before each run; the
 table at the end compares them with the outcomes.
@@ -67,6 +71,7 @@ Code: [`edit_diagnostics.py`](../src/open_weight_lingua/edit_diagnostics.py),
 | D1 27B | `editdiag-d1-gemma3-27b-20260930T040529Z-2b8da593` | `4156764e99032b43…` | `95a050a` | 5 gates bitwise on 74/74 | PASS | 3,084 s |
 | D2 12B | `editdiag-d2-gemma3-12b-20260930T050252Z-41d2b801` | `3e076138bce0be68…` | `95a050a` | re-capture 128/128, AV replay 8/8 bitwise | PASS | 4,027 s |
 | D3 12B | `editrep-d3-gemma3-12b-20260930T061624Z-587ec9e4` | `1f9079dc1c7a0550…` | `440c41f` | re-capture 256/256, D1 replay 4/4 bitwise | PASS | 9,039 s |
+| D4 12B | `editoracle-d4-gemma3-12b-20261002T144025Z-91fd9c75` | `4d81e3541cca97f3…` | `32960ce` | D3 E1g replay 121/121 bitwise | PASS | 1,857 s |
 
 The D1 gates are:
 
@@ -160,6 +165,49 @@ example:
 
 For `x = 11; y = 3; x = x - 1; x = x + 1` the value 11 is never mentioned.
 
+## D4 — hand-written texts asserting the same number (Gemma-3-12B)
+
+D3's 121 primary receivers, the same patch, and the same counterfactual `c`.
+The replayed E1g condition (D3's edited AV description) reproduced D3's saved
+records bitwise on all 121. The four oracles are:
+
+- **O_terse:** "The current value of x is N."
+- **O_structured:** the three-paragraph template.
+- **O_slot:** a bare answer slot.
+- **O_number:** "A short note that mentions the number N."
+
+O_terse and O_structured are the steering assay's frozen templates, imported
+verbatim.
+
+| Condition | Answer = `c` | Answer = `a` (`rstrip`) | `L` toward `c` (lower) | Cosine to original |
+|---|---:|---:|---:|---:|
+| E1g, edited AV description | **42 / 121** | 76 | +12.51 (+11.01) | 0.989 |
+| O_structured | 0 | 61 | +7.30 (+6.46) | 0.988 |
+| O_slot | 1 | 120 | +4.86 (+4.37) | 0.981 |
+| O_terse | 0 | 11 | +5.55 (+5.02) | 0.979 |
+| O_number | 0 | 15 | +5.76 (+5.18) | 0.977 |
+
+**Frozen readings.**
+
+- **R4a, the edited AV description adds beyond the written number: met.**
+  `hit(E1g) − hit(O_k)` has a lower bound of 0.26–0.28 against every oracle.
+- R4b (a hand-written text does as well) is not met.
+- R4c is not met for any oracle.
+
+**Prediction: wrong.** I expected the structured template to do as well
+(R4b) and R4a not to be met.
+
+**What the oracle failures are** (descriptive, not a frozen reading).
+Every oracle raises `logP(c)` against `logP(a)` by about 5–7 nats, yet none
+moves the answer. The non-`a` answers under O_terse (110), O_number (106) and
+O_structured (60) are almost all a leading newline followed by the *true*
+answer: stripped on both sides, they equal `a` in 119–120 of 121 receivers
+and `c` in 0. The frozen `rstrip` convention correctly counts a leading
+newline as a failure. Read as numbers, the hand-written texts break the
+answer's format but leave its value alone. Only the edited AV description —
+whose reconstruction stays closest to the original activation — moves the
+value.
+
 ## Predictions against outcomes
 
 | Part | Recorded prediction | Outcome | Match |
@@ -168,14 +216,20 @@ For `x = 11; y = 3; x = x - 1; x = x + 1` the value 11 is never mentioned.
 | D1 27B | E1 hit rate at most about 0.15 | 0.0 | yes |
 | D2 12B | state reading not met; surface narration | not met (14/128; 1/50) | yes |
 | D3 12B | primary about half; E1g about 0.39 and R3a met; E1 at most about 0.06; R3b met | 121/256; 0.347, met; 0.041; met | yes |
+| D4 12B | R4b met by O_structured; R4a not met; O_number at most about 0.1 | R4b not met (0/121); R4a met; O_number 0 | **no** |
 
 ## What these runs establish
 
-- **On Gemma-3-12B, a written number controls the answer through the
-  reconstruction path, if the text is consistent.** Rewriting every mention of
-  the value moves the greedy answer to the written value in about a third of
+- **On Gemma-3-12B, an edited AV description moves the answer to the number
+  it states, if the edit is consistent.** Rewriting every mention of the
+  value moves the greedy answer to the written value in about a third of
   receivers. Fresh groups, any written value (a neighbour, the counterfactual,
   or a distant number) and a pre-registered replication all agree.
+- **The number alone does not do it (D4).** Four hand-written texts asserting
+  the same number move the answer in 0–1 of 121 receivers, against 42 for the
+  edited AV description. They shift its log-probability but leave the
+  computed answer in place. The description's own content about this
+  activation is needed for the written number to take effect.
 - **Rewriting only the answer slot does not work.** The rest of the
   description still states the old value. This is why a rule that edits one
   statement — the frozen v1.0.0 design, applied to this genre — could not
@@ -195,19 +249,21 @@ For `x = 11; y = 3; x = x - 1; x = x + 1` the value 11 is never mentioned.
   stand. The Phase Two edit hypothesis as frozen — editing a stated
   variable-state value — remains untested. D1/D3 test a different object:
   the AV's next-token answer guess, which at this site is the same number.
-- **The flip does not show that the description reads the activation.** The
-  patch replaces the site activation with a reconstruction of the text, so
-  the flip shows that the AR maps a consistently written number to a
-  direction the target reads as that answer. That is a property of the AR
-  and target, not evidence that the AV verbalized the activation faithfully,
-  and not a change to a represented variable state.
+- **This is not proof of a faithful reading.** D4 rules out the simplest
+  alternative — that the AR turns any text asserting a number into "answer
+  that number". The edited description works where hand-written text does
+  not, which is evidence the AV's text carries receiver-specific content the
+  AR uses. It does not show which parts of the description matter, that the
+  description is true of the activation, or that an edit changes a
+  represented variable state. The oracles differ from the description in
+  length, register and repetition as well as in content.
 - **No scaling claim.** 12B's flips and 27B's absence of flips do not rank
   model sizes: the sites differ (block 32 of 48, sliding-window; block 41 of
   62, full-attention), the NLA pairs were trained separately, and 27B's
   descriptions came from its BF16-cast AV.
 - **Not a contradiction of the Qwen steering assay.** That assay used a
-  different recipe (additive difference steering), a different family and
-  hand-written templates.
+  different recipe (additive difference steering) and a different family. Its
+  hand-written templates also failed there, consistent with D4.
 - **Scope.** The everywhere edit can also rewrite an unrelated number that
   happens to equal the value. D1 reused the pilot split. One task family, one
-  site per family, one run per part.
+  site per family, one run per part. D4 tests one fixed set of four oracle texts.

@@ -103,7 +103,8 @@ Frozen follow-up diagnostics (not pilot reruns) then measured the channel
 directly. On Gemma-3-12B, rewriting every mention of the value in a
 description moves the answer to the written value in about a third of
 receivers, replicated on 256 fresh groups (42/121); rewriting only the answer
-slot does not (2/64, 5/121). Gemma-3-27B shifts preference but not answers.
+slot does not (2/64, 5/121), and hand-written texts asserting the same number
+do not either (1 of 484). Gemma-3-27B shifts preference but not answers.
 Capturing at the end of the program yields no variable-state statements. See
 [reports/edit_channel_diagnostics.md](reports/edit_channel_diagnostics.md).
 
