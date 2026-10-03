@@ -1,4 +1,4 @@
-# Edit-channel diagnostics on the Gemma pairs — 2026-09-30 to 10-02
+# Edit-channel diagnostics on the Gemma pairs — 2026-09-30 to 10-03
 
 For `y = 3`, a Gemma-3-12B receiver's saved AV description says "Result: 3",
 "y = 3", "requiring the value 3", and in its closing answer slot, "3" three
@@ -6,8 +6,9 @@ more times. Change only the three quoted slot numbers to 2, reconstruct the
 text with the AR and patch it in exactly as the pilot's P2, and the model
 still answers 3. Change every mention to 2, and in about a third of such
 receivers it answers 2. Hand-written texts that assert the same number move
-it in 1 of 484 receiver-texts. This page records the five frozen diagnostic runs behind
-those sentences. **They are new measurements on reused or fresh
+it in 1 of 484 receiver-texts. The AV's description of a *different* program,
+rewritten to say 2, works as well as the receiver's own. This page records the
+six frozen diagnostic runs behind those sentences. **They are new measurements on reused or fresh
 calibration and pilot splits, not pilot reruns, not validation, and not a
 reopening of the closed steering assay. Every closed outcome stands: 0/128
 edit coverage under the frozen rule v1.0.0 on every family, the STOP
@@ -31,6 +32,11 @@ were committed and pushed before any forward they govern:
 - [edit_oracle_control.md](../protocols/edit_oracle_control.md) (commit
   `32960ce`) covers D4: the same D3 receivers patched with hand-written texts
   asserting the same number. It was frozen after D1–D3 were read.
+- [edit_foreign_control.md](../protocols/edit_foreign_control.md) (commit
+  `43b8f64`) covers D5: each receiver patched with another same-variable
+  receiver's description, rewritten to this receiver's counterfactual. It was
+  frozen after D1–D4 were read. Its prediction was against the D4 reading
+  below, and it turned out right.
 
 Each part ran exactly once. Predictions were recorded before each run; the
 table at the end compares them with the outcomes.
@@ -72,6 +78,7 @@ Code: [`edit_diagnostics.py`](../src/open_weight_lingua/edit_diagnostics.py),
 | D2 12B | `editdiag-d2-gemma3-12b-20260930T050252Z-41d2b801` | `3e076138bce0be68…` | `95a050a` | re-capture 128/128, AV replay 8/8 bitwise | PASS | 4,027 s |
 | D3 12B | `editrep-d3-gemma3-12b-20260930T061624Z-587ec9e4` | `1f9079dc1c7a0550…` | `440c41f` | re-capture 256/256, D1 replay 4/4 bitwise | PASS | 9,039 s |
 | D4 12B | `editoracle-d4-gemma3-12b-20261002T144025Z-91fd9c75` | `4d81e3541cca97f3…` | `32960ce` | D3 E1g replay 121/121 bitwise | PASS | 1,857 s |
+| D5 12B | `editforeign-d5-gemma3-12b-20261003T053546Z-0e304bef` | `f74ec290c5a1095a…` | `43b8f64` | D3 E1g replay 121/121 bitwise | PASS | 1,385 s |
 
 The D1 gates are:
 
@@ -208,6 +215,41 @@ answer's format but leave its value alone. Only the edited AV description —
 whose reconstruction stays closest to the original activation — moves the
 value.
 
+## D5 — another program's description, rewritten to the same number (Gemma-3-12B)
+
+The same 121 receivers and the same patch. The donor for receiver `i` is the
+next primary receiver, cyclically in D3's order, that asks about the same
+variable. That rule was frozen before the run; no receiver is its own donor.
+F0 (the receiver's own description, every mention rewritten to `c`)
+reproduced D3's saved E1g records bitwise on all 121.
+
+| Condition | Answer = `c` | Answer = donor's own value | Answer = `a` (`rstrip`) | `L` toward `c` (lower) | Cosine |
+|---|---:|---:|---:|---:|---:|
+| F0, own description, rewritten to `c` | 42 / 121 | 6 | 76 | +12.51 (+11.05) | 0.989 |
+| **F1, donor's description, rewritten to `c`** | **46 / 121** | 3 | 73 | +13.49 (+11.92) | 0.987 |
+| F2, donor's description, unedited | 3 / 121 | 49 | 66 | +3.87 (+3.08) | 0.987 |
+
+In 7 receivers the donor already states `c`, so there F1 = F2. Among the 106
+receivers whose donor states a third value, the unedited donor text moves the
+answer to that value in 39 (0.37).
+
+**Frozen readings.**
+
+- **R5b, a foreign AV description works as well: met.** F1's hit rate
+  (0.380) is at least F0's (0.347), and F1 beats its unedited base F2 with a
+  lower bound of 0.281.
+- **R5a, the receiver's own description matters: not met.** Own minus
+  foreign has a point estimate of −0.033 and a lower bound of −0.099.
+
+**Predictions: right** on R5b, R5a and donor adoption (predicted about 0.4).
+They were recorded against this report's earlier D4 reading.
+
+**What changes.** The D4 section and earlier drafts read the D4 result as
+evidence that the description carries content specific to *this*
+activation. D5 refutes that reading. What the AR needs is an AV-register
+description of *this task*; the number written in it then sets the answer,
+whichever program the description came from.
+
 ## Predictions against outcomes
 
 | Part | Recorded prediction | Outcome | Match |
@@ -217,6 +259,7 @@ value.
 | D2 12B | state reading not met; surface narration | not met (14/128; 1/50) | yes |
 | D3 12B | primary about half; E1g about 0.39 and R3a met; E1 at most about 0.06; R3b met | 121/256; 0.347, met; 0.041; met | yes |
 | D4 12B | R4b met by O_structured; R4a not met; O_number at most about 0.1 | R4b not met (0/121); R4a met; O_number 0 | **no** |
+| D5 12B | R5b met; R5a not met; donor adoption about 0.4 | R5b met (0.380 vs 0.347); R5a not met; adoption 0.37 | yes |
 
 ## What these runs establish
 
@@ -225,11 +268,17 @@ value.
   value moves the greedy answer to the written value in about a third of
   receivers. Fresh groups, any written value (a neighbour, the counterfactual,
   or a distant number) and a pre-registered replication all agree.
-- **The number alone does not do it (D4).** Four hand-written texts asserting
-  the same number move the answer in 0–1 of 121 receivers, against 42 for the
-  edited AV description. They shift its log-probability but leave the
-  computed answer in place. The description's own content about this
-  activation is needed for the written number to take effect.
+- **The number alone does not do it (D4), and the activation does not
+  matter either (D5).**
+  - Four hand-written texts asserting the same number move the answer in
+    0–1 of 121 receivers, against 42 for the edited AV description. They
+    shift its log-probability but leave the computed answer in place.
+  - The AV's description of a *different* program, rewritten to the same
+    number, moves 46.
+  - Unedited, a foreign description pulls the answer to its own number in
+    37% of receivers.
+  - What is needed is AV-register text about this task. Content specific to
+    the individual activation is not.
 - **Rewriting only the answer slot does not work.** The rest of the
   description still states the old value. This is why a rule that edits one
   statement — the frozen v1.0.0 design, applied to this genre — could not
@@ -249,14 +298,16 @@ value.
   stand. The Phase Two edit hypothesis as frozen — editing a stated
   variable-state value — remains untested. D1/D3 test a different object:
   the AV's next-token answer guess, which at this site is the same number.
-- **This is not proof of a faithful reading.** D4 rules out the simplest
-  alternative — that the AR turns any text asserting a number into "answer
-  that number". The edited description works where hand-written text does
-  not, which is evidence the AV's text carries receiver-specific content the
-  AR uses. It does not show which parts of the description matter, that the
-  description is true of the activation, or that an edit changes a
-  represented variable state. The oracles differ from the description in
-  length, register and repetition as well as in content.
+- **This is not evidence that the description reads its activation.**
+  - D4 ruled out "any text asserting a number".
+  - D5 ruled out "content specific to this activation". A description of
+    another program works as well once it states the same number.
+  - The surviving reading is that, at this site, the AR maps AV-register
+    task descriptions to on-task directions in which the stated number sets
+    the answer. Hand-written texts, which differ in length, register and
+    repetition, fall off that manifold and break the answer's format.
+  - That is a property of the AR, the target and the AV's output genre. It
+    says nothing about faithfulness or represented variable state.
 - **No scaling claim.** 12B's flips and 27B's absence of flips do not rank
   model sizes: the sites differ (block 32 of 48, sliding-window; block 41 of
   62, full-attention), the NLA pairs were trained separately, and 27B's
@@ -266,4 +317,5 @@ value.
   hand-written templates also failed there, consistent with D4.
 - **Scope.** The everywhere edit can also rewrite an unrelated number that
   happens to equal the value. D1 reused the pilot split. One task family, one
-  site per family, one run per part. D4 tests one fixed set of four oracle texts.
+  site per family, one run per part. D4 tests one fixed set of four oracle texts; D5 one donor
+  rule.
