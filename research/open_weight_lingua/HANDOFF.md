@@ -1,4 +1,4 @@
-# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-03 (updated after D5)
+# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-03 (updated after D6)
 
 ```text
 x = 3
@@ -62,12 +62,16 @@ boundaries.
    | Hand-written texts asserting the number (four frozen texts) | 0–1/121 each |
    | **Another program's AV description, every mention rewritten** (D5) | **46/121** |
    | That other description, unedited | 3/121; it pulls the answer to *its own* number in 39/106 |
+   | Half the mentions, or every mention except the slot (D6) | 0/121; ¾ of them 11/121 |
 
    Any written value works: the counterfactual, the other neighbour, or a
    distant number. So the AR maps AV-register descriptions of this task to
    on-task directions in which the stated number sets the answer.
    Hand-written mimicry falls off that manifold and breaks the answer's
-   format. Content specific to the individual activation is not needed. On Gemma-3-27B every edit shifts the log-probability
+   format. Content specific to the individual activation is not needed. The
+   preference for the written number grows smoothly with how much of the text
+   states it, but the answer flips only when nearly the whole description
+   agrees (D6). On Gemma-3-27B every edit shifts the log-probability
    toward the written number but almost never flips the answer (0–1/74). On
    Qwen, the closed steering assay's additive recipe was non-specific
    disruption.
@@ -102,7 +106,7 @@ boundaries.
 | Gemma port, 12B and 27B pilots | `reports/gemma3_pilot.md`, `reports/gemma3_27b_pilot.md` | Phase Two second-family port; Gemma-3-27B extension |
 | The answer-instrument fix and confirmations | `reports/post_hoc_answer_lens.md`, `reports/gemma3_12b_confirmation.md`, `reports/gemma3_27b_confirmation.md` | Post-hoc answer lens and frozen answer-convention amendment |
 | Why edit coverage is 0/128 | `reports/edit_eligibility_structure.md` | Post-hoc structure of edit eligibility |
-| Edit-channel runs D1–D5 | `reports/edit_channel_diagnostics.md` | Edit-channel diagnostics |
+| Edit-channel runs D1–D6 | `reports/edit_channel_diagnostics.md` | Edit-channel diagnostics |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -120,12 +124,15 @@ manifest hashes.
      `reports/edit_eligibility_structure.md` and
      `reports/edit_channel_diagnostics.md` to its `sources:` header before
      quoting them.
-2. **Consider the edit-channel line closed.** D5 (done 2026-10-03) answered
-   the open question: the effect does not need the receiver's own activation.
+2. **Consider the edit-channel line closed.**
+   - D5 (2026-10-03) answered the open question: the effect does not need the
+     receiver's own activation.
+   - D6 (2026-10-03) gave the mechanism: near-total agreement is needed.
+
    What remains is optional characterization, not a test of the hypothesis:
    - which features of AV text the AR needs — paragraph ablations of a
      foreign description; why hand-written mimicry fails;
-   - the consistency dose: rewrite *k* of *n* mentions;
+   - whether a different mention order changes D6's threshold;
    - why 27B does not flip, which needs a new site or position and so a new
      protocol, kept out of Phase Two's records.
 
@@ -161,13 +168,14 @@ manifest hashes.
   - `scripts/run_edit_diagnostics.sh` for D1 and D2;
   - `scripts/run_edit_replication.sh` for D3;
   - `scripts/run_edit_oracle_control.sh` for D4;
-  - `scripts/run_edit_foreign_control.sh` for D5.
+  - `scripts/run_edit_foreign_control.sh` for D5;
+  - `scripts/run_edit_consistency_dose.sh` for D6.
 - **Audits.** Each module also takes `--audit <run-dir>`, as does
   `python -m open_weight_lingua.audit <run-dir>` for pilots.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (240 pass, 1 skip);
+    (247 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about

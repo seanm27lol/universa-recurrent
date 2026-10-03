@@ -7,8 +7,10 @@ text with the AR and patch it in exactly as the pilot's P2, and the model
 still answers 3. Change every mention to 2, and in about a third of such
 receivers it answers 2. Hand-written texts that assert the same number move
 it in 1 of 484 receiver-texts. The AV's description of a *different* program,
-rewritten to say 2, works as well as the receiver's own. This page records the
-six frozen diagnostic runs behind those sentences. **They are new measurements on reused or fresh
+rewritten to say 2, works as well as the receiver's own. Rewriting only part
+of the description — even everything but the answer slot — almost never
+works. This page records the seven frozen diagnostic runs behind those
+sentences. **They are new measurements on reused or fresh
 calibration and pilot splits, not pilot reruns, not validation, and not a
 reopening of the closed steering assay. Every closed outcome stands: 0/128
 edit coverage under the frozen rule v1.0.0 on every family, the STOP
@@ -37,6 +39,10 @@ were committed and pushed before any forward they govern:
   receiver's description, rewritten to this receiver's counterfactual. It was
   frozen after D1–D4 were read. Its prediction was against the D4 reading
   below, and it turned out right.
+- [edit_consistency_dose.md](../protocols/edit_consistency_dose.md) (commit
+  `64b7eb1`) covers D6: rewriting a growing fraction of the mentions, or every
+  mention except the answer slot. It was frozen after D1–D5 were read, and
+  started only after another user's training job had released the GPU.
 
 Each part ran exactly once. Predictions were recorded before each run; the
 table at the end compares them with the outcomes.
@@ -79,6 +85,7 @@ Code: [`edit_diagnostics.py`](../src/open_weight_lingua/edit_diagnostics.py),
 | D3 12B | `editrep-d3-gemma3-12b-20260930T061624Z-587ec9e4` | `1f9079dc1c7a0550…` | `440c41f` | re-capture 256/256, D1 replay 4/4 bitwise | PASS | 9,039 s |
 | D4 12B | `editoracle-d4-gemma3-12b-20261002T144025Z-91fd9c75` | `4d81e3541cca97f3…` | `32960ce` | D3 E1g replay 121/121 bitwise | PASS | 1,857 s |
 | D5 12B | `editforeign-d5-gemma3-12b-20261003T053546Z-0e304bef` | `f74ec290c5a1095a…` | `43b8f64` | D3 E1g replay 121/121 bitwise | PASS | 1,385 s |
+| D6 12B | `editdose-d6-gemma3-12b-20261003T065726Z-3f350865` | `b7dae5715bd24d46…` | `64b7eb1` | D3 E1g replay 121/121 bitwise | PASS | 1,939 s |
 
 The D1 gates are:
 
@@ -250,6 +257,42 @@ activation. D5 refutes that reading. What the AR needs is an AV-register
 description of *this task*; the number written in it then sets the answer,
 whichever program the description came from.
 
+## D6 — how much of the description must agree (Gemma-3-12B)
+
+The same 121 receivers and the same patch. A description mentions the answer
+5–15 times (median 11). The doses rewrite the first ¼, ½ or ¾ of those
+mentions, in text order: the narrative first, the "Final token" slot last. NS
+rewrites every mention except the quoted slot candidates. The full rewrite
+reproduced D3's saved E1g records bitwise on all 121.
+
+| Mentions rewritten to `c` | Answer = `c` | Answer = `a` | `L` toward `c` (lower) |
+|---|---:|---:|---:|
+| none (D3's E0, reference) | 0 / 121 | — | — |
+| first ¼ (K25) | 0 | 120 | +1.15 (+0.99) |
+| first ½ (K50) | 0 | 119 | +3.66 (+3.27) |
+| first ¾ (K75) | 11 | 108 | +7.46 (+6.53) |
+| all (K100) | **42** | 76 | +12.51 (+10.99) |
+| only the slot (D3's E1, reference) | 5 | 115 | +6.27 (+5.48) |
+| all except the slot (NS) | **0** | 120 | +2.78 (+2.42) |
+
+**Frozen readings.**
+
+- **R6a, more agreement means more flips: met.** K75 minus K25 has a lower
+  bound of 0.050.
+- **R6b, the slot is not needed: not met.** Rewriting every mention outside
+  the slot moves 0 of 121 answers.
+
+**Predictions: partly wrong.** The rising curve and R6a were right. K50 (0.0)
+and K75 (0.09) came in below the predicted 0.1–0.2 and 0.2–0.3, and the
+prediction that NS would move about 0.2–0.3 and meet R6b was wrong.
+
+**Reading, as declared before the run for this combination.** Agreement
+matters, and the slot's mentions are part of what must agree. The
+log-probability shift toward the written number grows smoothly with the share
+of the text that states it. The greedy answer flips only once nearly the
+whole description agrees, slot included. Each half alone — the slot, or the
+narrative without the slot — leaves the model's own answer in place.
+
 ## Predictions against outcomes
 
 | Part | Recorded prediction | Outcome | Match |
@@ -260,6 +303,7 @@ whichever program the description came from.
 | D3 12B | primary about half; E1g about 0.39 and R3a met; E1 at most about 0.06; R3b met | 121/256; 0.347, met; 0.041; met | yes |
 | D4 12B | R4b met by O_structured; R4a not met; O_number at most about 0.1 | R4b not met (0/121); R4a met; O_number 0 | **no** |
 | D5 12B | R5b met; R5a not met; donor adoption about 0.4 | R5b met (0.380 vs 0.347); R5a not met; adoption 0.37 | yes |
+| D6 12B | rising curve (K50 about 0.1–0.2, K75 about 0.2–0.3); R6a met; NS about 0.2–0.3 and R6b met | rising but steeper (K50 0.0, K75 0.09); R6a met; NS 0.0, R6b not met | **partly** |
 
 ## What these runs establish
 
@@ -279,6 +323,11 @@ whichever program the description came from.
     37% of receivers.
   - What is needed is AV-register text about this task. Content specific to
     the individual activation is not.
+- **And the text must agree almost everywhere (D6).** The preference shifts
+  smoothly with the share of mentions rewritten. The answer flips only near
+  full agreement: 0 of 121 at half the mentions, 11 at three-quarters, 42 at
+  all. Rewriting everything but the slot moves none, and the slot alone
+  moves 5.
 - **Rewriting only the answer slot does not work.** The rest of the
   description still states the old value. This is why a rule that edits one
   statement — the frozen v1.0.0 design, applied to this genre — could not
@@ -318,4 +367,4 @@ whichever program the description came from.
 - **Scope.** The everywhere edit can also rewrite an unrelated number that
   happens to equal the value. D1 reused the pilot split. One task family, one
   site per family, one run per part. D4 tests one fixed set of four oracle texts; D5 one donor
-  rule.
+  rule; D6 one mention order (text order), so its doses also shift location.

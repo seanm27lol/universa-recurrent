@@ -56,9 +56,10 @@ protocol and recorded outcome, and none reopens this phase:
 - Gemma-3-12B and 27B replications;
 - an answer-instrument fix with bitwise-reproduced confirmation pilots;
 - a structural account of the 0/128 edit coverage;
-- six edit-channel diagnostics. On Gemma-3-12B, consistently editing an AV
-  description moves the answer to the stated number, even when the
-  description is of a different program. Hand-written text does not.
+- seven edit-channel diagnostics. On Gemma-3-12B, consistently editing an
+  AV description moves the answer to the stated number, even when the
+  description is of a different program, but only when nearly the whole text
+  agrees. Hand-written text does not.
 
 The current state and ranked next steps are in the
 [open-weight NLA handoff](../research/open_weight_lingua/HANDOFF.md).
