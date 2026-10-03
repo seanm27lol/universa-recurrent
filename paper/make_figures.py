@@ -21,12 +21,12 @@ UPPER_BOUNDS = [
     ("Qwen2.5-7B", 41.41, 41.41),
     # reports/gemma3_pilot.md (closed) and reports/gemma3_12b_confirmation.md (confirmation run)
     ("Gemma-3-12B", 3.906, 10.16),
-    # reports/gemma3_27b_pilot.md (closed) and reports/post_hoc_answer_lens.md (post-hoc only)
+    # reports/gemma3_27b_pilot.md (closed) and reports/gemma3_27b_confirmation.md (confirmation run)
     ("Gemma-3-27B", 2.344, 6.25),
 ]
 # What the stripped value is, per family: shown on the bar so status is never color-alone.
 STRIPPED_STATUS = {"Qwen2.5-7B": "", "Gemma-3-12B": "confirmation run",
-                   "Gemma-3-27B": "post-hoc re-read"}
+                   "Gemma-3-27B": "confirmation run"}
 
 # Reference palette slots 1 and 2 (validated: CVD dE 24.7, contrast >= 3:1 on #fcfcfb).
 FROZEN, LENS = "#2a78d6", "#eb6834"
