@@ -50,6 +50,19 @@ validation was not run. See the [important findings](phase_two_results.md) and
 trigger checkpoint, site, layer or task shopping; a future phase would need
 its own brief, budget and stopping rule.
 
+**Since the closeout.** Each piece of follow-up work had its own frozen
+protocol and recorded outcome, and none reopens this phase:
+
+- Gemma-3-12B and 27B replications;
+- an answer-instrument fix with bitwise-reproduced confirmation pilots;
+- a structural account of the 0/128 edit coverage;
+- five edit-channel diagnostics. On Gemma-3-12B, consistently editing the
+  AV's own description moves the answer to the stated number, and
+  hand-written text does not.
+
+The current state and ranked next steps are in the
+[open-weight NLA handoff](../research/open_weight_lingua/HANDOFF.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
