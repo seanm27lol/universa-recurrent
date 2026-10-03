@@ -14,6 +14,9 @@ sources:
   research/open_weight_lingua/reports/gemma3_pilot.md
   research/open_weight_lingua/reports/gemma3_27b_pilot.md
   research/open_weight_lingua/reports/gemma3_12b_confirmation.md
+  research/open_weight_lingua/reports/gemma3_27b_confirmation.md
+  research/open_weight_lingua/reports/edit_eligibility_structure.md
+  research/open_weight_lingua/reports/edit_channel_diagnostics.md
   research/open_weight_lingua/reports/post_hoc_answer_lens.md
   research/open_weight_lingua/reports/steering_assay.md
   research/open_weight_lingua/reports/nla_ecosystem_notes.md
@@ -37,26 +40,28 @@ describes one internal activation of a language model in English, with an
 (Fraser-Taliente, Kantamneni, Ong et al., 2026). If the English carries what the
 model is computing, swapping a vector for its reconstruction should leave the
 model's behavior intact, and editing the text should change behavior in a
-targeted way. We tested both properties on the three released NLA pairs that fit
-our hardware, for Qwen2.5-7B-Instruct, Gemma-3-12B-it and Gemma-3-27B-it, using a
-small arithmetic task with paired counterfactuals. Every threshold, control and
-stopping rule was frozen before outcomes were read. On the only family where the
-task was usable under the frozen metric (Qwen2.5-7B), the description route
-failed the preservation criterion decisively: the one-sided 95% upper bound on
-accuracy loss was 41.4 percentage points against a 5-point limit. A generic PCA
-reconstruction held to the same byte budget stayed close to the unmodified model.
-The descriptions were clearly on-task (they beat a shuffled-description control
-on every family), but the frozen edit rule found no editable current-value
-statement in any group on any family (0/128 each), so the edit hypothesis is
-untested. Both Gemma families initially failed the usability gate because of an
-instrument artifact (a trailing newline). A Gemma-3-12B confirmation pilot, run
-under a metric amendment frozen beforehand, made the task usable (P0 accuracy
-0.9512) and failed preservation (upper bound 10.16 points), so two families now
-fail preservation on usable tasks; a post-hoc re-read puts Gemma-3-27B over the
-limit as well. A separate
-steering assay and a serving-backend equivalence gate were also negative. We
-report these as bounded negative results for one task, one site per model and
-the released checkpoints, not as a verdict on NLAs in general.
+targeted way. We assessed preservation and edit feasibility on the three released
+NLA pairs that fit our hardware, for Qwen2.5-7B-Instruct, Gemma-3-12B-it and Gemma-3-27B-it, using a
+small arithmetic task with paired counterfactuals. Pilot thresholds, controls and
+stopping rules were frozen before outcomes were read. All three families fail the
+preservation criterion on usable tasks: the one-sided 95% upper bounds on accuracy
+loss are 41.4, 10.16 and 6.25 percentage points, respectively, against a 5-point
+limit. Both Gemma pilots initially failed usability because the metric rejected
+trailing newlines. Confirmation pilots under a frozen metric amendment made the
+tasks usable (P0 accuracy 0.9512 and 0.9648), reproduced the post-hoc predictions
+exactly, and still decided STOP; their P0 generations were bitwise-identical to
+the closed pilots'. A generic PCA reconstruction using no more bytes than the
+text stayed close to the unmodified model. Descriptions beat a shuffled control
+on every family, but a post-hoc analysis found answer predictions rather than
+the variable-state statements the frozen editor requires: coverage remains
+0/128 each, and the frozen edit hypothesis remains untested. Six separately
+frozen diagnostics found that consistently rewriting the number in a Gemma-3-12B
+AV description moves the answer in about a third of selected receivers. Another
+program's description works as well; four hand-written texts do not. This effect
+is a property of the AR, the target and the AV's output genre, not evidence that
+descriptions read their own activation. A separate Qwen steering assay and a
+serving-backend equivalence gate were negative. These results concern one task,
+one released layer per model and the tested checkpoints and serving conditions.
 
 ## 1. Introduction
 
@@ -89,17 +94,21 @@ test (Fraser-Taliente et al., 2026).
    wrong-description control, a byte-budgeted numerical baseline, a random
    direction and a raw donor, with decision gates and stopping rules fixed
    before any outcome was read (§3).
-2. **Results on three model families** (§4). Where the task was usable, the
-   description route failed preservation decisively while a generic PCA baseline
-   did not. The descriptions carried task-relevant information on every family.
-   The edit interface never appeared.
-3. **Two follow-up measurements**, both negative: steering by description
-   differences, and equivalence of a faster serving backend (§4.5–4.6).
-4. **An instrument-failure case study** (§4.3): the Gemma usability failures
+2. **Results on three model families** (§4). Each fails the frozen preservation
+   criterion on a usable task, while a generic PCA baseline stays close to the
+   unmodified model. The descriptions carried task-relevant information on every
+   family; the frozen variable-state edit interface never appeared.
+3. **A structural explanation and six edit-channel diagnostics** (§4.4–4.5).
+   The descriptions predict answers. Consistent edits move Gemma-3-12B answers
+   even when the text comes from another program, limiting the finding to the
+   AR, target and AV output genre. Two recorded predictions were wrong.
+4. **Two other follow-up measurements**, both negative: steering by description
+   differences, and equivalence of a faster serving backend (§4.6–4.7).
+5. **An instrument-failure case study** (§4.3): the Gemma usability failures
    were a trailing-newline artifact in the answer metric. It was caught post hoc
-   and handled by freezing a metric amendment for a confirmation run, not by
-   relabeling closed runs. The confirmation run then reproduced the predicted
-   outcome exactly.
+   and handled by freezing a metric amendment for confirmation pilots. Both
+   confirmation pilots reproduced the predicted outcomes exactly, while the
+   closed runs retain their original outcomes.
 
 ## 2. Background
 
@@ -192,36 +201,38 @@ are failures.
 Each family ran an 8-group engineering smoke, a 256-group calibration (which fits
 P4 and freezes the median norm), and one 128-group pilot. A locked 512-group
 validation opens only if the pilot meets the gates and its projected cost fits an
-eight-hour budget (28,800 s). One pilot per family; no threshold re-tuning; a
-failed pilot closes the family. Engineering gates ran on every run: bitwise
-identity checks for P1, kernel-shape pinning so BF16 kernel reselection cannot
+eight-hour budget (28,800 s). The original phase permits one pilot per family
+with no threshold re-tuning; a failed pilot closes the family. The separately
+frozen instrument confirmations are described in §4.3. Engineering gates ran on
+every run: bitwise identity checks for P1, kernel-shape pinning so BF16 kernel reselection cannot
 masquerade as an effect, a frozen suffix-drift bound, and an independent auditor
 that recomputes every decision and statistic from saved results.
 
 ## 4. Results
 
-Four pilots ran: one per family under the frozen metric, and one Gemma-3-12B
-confirmation pilot under the amended metric described in §4.3. All completed
-128/128 groups with auditor PASS. Every decision was **STOP**, and no validation
-stage was opened.
+Five pilots ran: one per family under the original frozen metric, and one
+confirmation pilot per Gemma pair under the amended metric described in §4.3.
+All completed 128/128 groups with auditor PASS. Every decision was **STOP**,
+and no validation stage was opened.
 
 ### 4.1 Outcomes against the frozen gates
 
-| | Qwen2.5-7B, block 20/28 | Gemma-3-12B, block 32/48 | Gemma-3-27B, block 41/62 | Gemma-3-12B confirmation (amended metric) |
-|---|---:|---:|---:|---:|
-| P0 accuracy | 0.811 | 0.520 | 0.254 | 0.9512 |
-| Task usable (P0 ≥ 0.80) | yes | no | no | yes |
-| P2 accuracy-loss upper (pp; limit 5) | 41.4 | 3.91 | 2.34 | 10.16 |
-| P2 − P3 log-prob lower (must be > 0) | +3.80 | +2.61 | +1.84 | +2.607 |
-| P2 agreement with P0 | 0.615 | 0.854 | 0.816 | 0.945 |
-| Edit-eligible groups (need 32) | 0/128 | 0/128 | 0/128 | 0/128 |
-| AV round-trip cosine (median) | 0.841 | 0.990 | 0.982 | not reported |
-| Projected validation cost (s; budget 28,800) | 49,253 | 75,348 | 181,295 | 113,902 |
-| Decision | STOP | STOP | STOP | STOP |
+| | Qwen2.5-7B, block 20/28 | Gemma-3-12B, block 32/48 | Gemma-3-27B, block 41/62 | Gemma-3-12B confirmation (amended metric) | Gemma-3-27B confirmation (amended metric) |
+|---|---:|---:|---:|---:|---:|
+| P0 accuracy | 0.811 | 0.520 | 0.254 | 0.9512 | 0.9648 |
+| Task usable (P0 ≥ 0.80) | yes | no | no | yes | yes |
+| P2 accuracy-loss upper (pp; limit 5) | 41.4 | 3.91 | 2.34 | 10.16 | 6.25 |
+| P2 − P3 log-prob lower (must be > 0) | +3.80 | +2.61 | +1.84 | +2.607 | +1.844 |
+| P2 agreement with P0 | 0.615 | 0.854 | 0.816 | 0.945 | 0.967 |
+| Edit-eligible groups (need 32) | 0/128 | 0/128 | 0/128 | 0/128 | 0/128 |
+| AV round-trip cosine (median) | 0.841 | 0.990 | 0.982 | not reported | 0.9823 |
+| Projected validation cost (s; budget 28,800) | 49,253 | 75,348 | 181,295 | 113,902 | 192,132 |
+| Decision | STOP | STOP | STOP | STOP | STOP |
 
 Read naively, the first three columns look like the language route *works* on
-Gemma (preservation met) and fails on Qwen. The fourth column, and Section 4.3,
-show why that reading is wrong.
+Gemma (preservation met) and fails on Qwen. The confirmation columns and §4.3
+show why that reading is wrong. The original pilot columns retain their frozen
+outcomes.
 
 ### 4.2 Per-condition behavior
 
@@ -252,7 +263,7 @@ Three patterns hold on every family:
 On Qwen, P2's residual accuracy does not come from the retained norm: replacing
 it with the calibration median norm gives 0.5605 against 0.5645.
 
-### 4.3 An instrument failure, a corrected re-read, and a confirmation run
+### 4.3 An instrument failure, a corrected re-read, and two confirmation runs
 
 Gemma-3-12B's P0 accuracy of 0.5195 was suspicious for a task this simple. A
 failure taxonomy of the saved generations found that the mirror-sourced target
@@ -270,47 +281,139 @@ phase, so their STOP decisions stand. Instead, in three steps:
 2. **Frozen amendment.** That `rstrip` convention was then frozen as a metric
    amendment, *before* any confirmation forward pass. The default stays the
    original `raw` convention, and the closed runs replay unchanged under it.
-3. **Confirmation pilot.** A fresh Gemma-3-12B pilot ran under the amendment,
-   with the same lock, the same 128 groups and the same calibration fit
-   (`pilot-20260927T202455Z-f5ec3892`, auditor PASS). All 512 P0 generations
-   were bitwise-identical to the closed pilot's: the instrument changed, not the
-   model. Every number matched the re-read's preview exactly.
+3. **Confirmation pilots.** A fresh pilot for each Gemma pair ran under the
+   amendment, reusing its closed pilot's lock, 128 groups and calibration fit:
+   `pilot-20260927T202455Z-f5ec3892` (12B) and
+   `pilot-20260929T034532Z-4e4d655f` (27B), both auditor PASS. The 27B addendum
+   was committed and pushed before any model forward; it recorded the lens
+   values as predictions, keeping the thresholds and BF16 AV serving cast
+   unchanged. Both runs reproduced every amended-metric number in the preview
+   exactly and decided **STOP**. Each run's 512 P0 generations were
+   bitwise-identical to its closed pilot's. On 27B, every other condition's
+   generations, all AV descriptions and all saved answer log probabilities
+   also reproduced bitwise. The comparison instrument changed; the generated
+   evidence did not.
 
 | Family | P0 accuracy | P2 accuracy | P2 loss point / one-sided upper (pp) | Limit | Status |
 |---|---:|---:|---:|---:|---|
 | Qwen2.5-7B | 0.8105 | 0.5645 | 34.38 / 41.41 | 5 | Frozen; no whitespace-affected rows, identical under either metric |
 | Gemma-3-12B | 0.9512 | 0.9336 | 5.47 / 10.16 | 5 | Frozen outcome of the confirmation pilot |
-| Gemma-3-27B | 0.9648 | 0.9531 | 2.34 / 6.25 | 5 | Post-hoc re-read only; no confirmation run |
+| Gemma-3-27B | 0.9648 | 0.9531 | 2.34 / 6.25 | 5 | Frozen outcome of the confirmation pilot |
 
 ![Upper bound on P2 accuracy loss per family, closed-pilot metric versus trailing whitespace stripped, against the 5-point limit](figures/fig1_preservation_bounds.png)
 
 **Figure 1.** One-sided 95% upper bound on P2 accuracy loss versus P0. Under the
 closed pilots' metric, the Gemma bounds sit under the limit only because the
-metric rejected most correct answers. With trailing whitespace stripped, both
-Gemma tasks become usable (P0 0.951 and 0.965) and all three families exceed the
-5-point limit. For Gemma-3-12B that value is the frozen outcome of the
-confirmation pilot; for Gemma-3-27B it is a post-hoc re-read of saved
-generations, not a frozen outcome.
+metric rejected correct answers with trailing whitespace. With that whitespace
+stripped, both Gemma tasks become usable (P0 0.951 and 0.965) and all three
+families exceed the 5-point limit. Both Gemma corrected values are frozen confirmation outcomes.
+The earlier re-read remains a descriptive preview; the original pilots retain
+their frozen outcomes.
 
 So the apparent Gemma preservation passes were floor effects of the format
-rejections. With a working instrument, Gemma-3-12B lands where Qwen landed:
-usable task, preservation failed, decided by a frozen run. Gemma-3-27B points the
-same way, though only descriptively. The size of the loss differs a lot, from
-41.41 points on Qwen to 6.25 on Gemma-3-27B, but three families cannot separate
-model size from site depth, family or the NLA pair's training, and the 27B AV
+rejections. With a working instrument, both Gemma pairs land where Qwen landed:
+usable task, preservation failed, decided by a frozen run. The loss upper bounds
+range from 41.41 points on Qwen to 6.25 on Gemma-3-27B, but three families cannot
+separate model size from site depth, family or the NLA pair's training, and the 27B AV
 was served with a BF16 cast that could not be audited locally.
 
-### 4.4 The edit interface never appeared
+### 4.4 Why the frozen edit interface never appeared
 
-On every family, 0 of 128 groups contained an unambiguous statement of the
-affected variable's current value. On Qwen, 127 of 128 receiver parses for `x`
-and all 128 for `y` were *absent*; the single eligible parse stated 10 against a
-reference of 6. Zero coverage means the descriptions at these sites rarely state
-explicit current values in a form the frozen rule accepts. It does not show that
-the descriptions lack editable content of other kinds. The edit hypothesis is
-**untested**, not refuted.
+For a program whose answer is 10, the Gemma-3-27B AV predicts a final token
+like "10" or "11"; it does not say "x is currently 10". The capture token
+opens the assistant's answer, and the AV writes predicted continuations rather
+than the variable-state statements the frozen editor requires. This is the
+structural mismatch behind 0/128 coverage on every family.
 
-### 4.5 Steering by description differences
+The [structure report](../research/open_weight_lingua/reports/edit_eligibility_structure.md)
+is explicitly **post-hoc and descriptive**: it re-reads saved Qwen pilot and
+Gemma confirmation descriptions with no new model run. A *receiver* is the
+source-program row querying the affected variable, one per group. A *computed
+value* is absent from the prompt's integer literals. Its answer-slot heuristic
+reads the quoted integer candidates in the AV's "Final token" paragraph.
+
+| Description content | Qwen2.5-7B | Gemma-3-12B | Gemma-3-27B |
+|---|---:|---:|---:|
+| Contains receiver's true answer | 38/128 | 120/128 | 127/128 |
+| Contains an unrelated row's answer (baseline count) | 36 | 13 | 18 |
+| Computed answer appears | 13/50 | 44/50 | 49/50 |
+| True answer leads the answer-slot list (count) | 12 | 108 | 111 |
+| Other variable's computed value appears | 5/45 | 4/45 | 2/45 |
+| Single-candidate answer slot | 11/128 | 65/128 | 74/128 |
+
+Ignoring case and markdown still finds no frozen current-value form in 1,024
+Gemma descriptions. Qwen's three hits among 512 descriptions state false values
+inside quoted narratives. Gemma descriptions usually contain the queried answer,
+including values the prompt never shows, but seldom contain the other variable's
+computed value needed for the wrong-variable control. A looser spelling rule
+does not supply that missing state description.
+
+The alternative answer-slot rule would exceed the 32-group floor on both Gemma
+pairs only as a syntactic screen: 63 and 53 receivers, respectively, remain
+ambiguous, and 19 and 18 already list the counterfactual value. Matching the
+answer is not evidence that the AV reads its activation. Editing these guesses
+tests a different hypothesis from editing stated variable state. The frozen
+v1.0.0 hypothesis remains **untested**; every 0/128 coverage result and STOP
+decision stands.
+
+### 4.5 Six frozen edit-channel diagnostics
+
+For a receiver whose answer is 3, a description can repeat "Result: 3",
+"y = 3" and several closing answer-slot candidates. Changing just the slot to
+2 leaves contradictory text; changing every standalone mention makes the text
+consistent. D1 tests these edits on each Gemma pair, D2 moves the capture token
+to the end of the program on 12B, D3 replicates the consistent edit on fresh
+12B groups, and D4–D5 test what kind of text the AR needs. These are six new
+diagnostic runs, each with protocol and predictions committed and pushed before
+its forwards. Later protocols were informed by earlier results; each part ran
+once. They do not reopen the pilots, the Qwen steering assay or validation.
+
+For edit runs, the primary population comprises receivers with one answer-slot
+candidate equal to the original answer. Each text is reconstructed and patched
+by the P2 replacement recipe with the receiver's retained norm. A *hit* is a
+greedy answer equal to the written value under `rstrip`; `Δ` is its hit rate
+minus the unedited-description rate for that value. For written value `v` and
+original answer `a`, the log-probability shift is the change in
+`logP(v) − logP(a)` relative to the unedited replacement; `logP` is the target's
+answer-sequence log probability. Reported lower bounds are one-sided 95% bounds
+from the frozen receiver bootstrap (3,000 resamples). The
+[diagnostic report](../research/open_weight_lingua/reports/edit_channel_diagnostics.md)
+links the protocols, implementation, run identities and audits. All six audits
+passed; replay controls matched the corresponding saved records bitwise.
+
+| Run | Outcome | Frozen reading and recorded prediction |
+|---|---|---|
+| D1, 12B pilot receivers | Slot-only counterfactual edit: 2/64 hits, `Δ` lower 0.0. Every-mention edit (secondary condition): 25/64. | Slot-edit reading unmet. **Prediction wrong:** expected a hit rate about 0.3–0.5; observed 0.031. |
+| D1, 27B pilot receivers | Slot-only counterfactual edit: 0/74; every tested edit gives only 0–1/74 hits. | Slot-edit reading unmet; prediction of at most about 0.15 was right. |
+| D2, 12B program-end capture | True value bound to the affected variable in 14/128 descriptions; computed value bound in 1/50. Frozen-rule hits: 0. | Variable-state reading unmet, as predicted: below the 32-count and 0.25 computed-value floors. |
+| D3, 12B fresh calibration groups | 121 primary receivers from 256 groups. Every-mention counterfactual edit: 42/121 (0.347), `Δ` lower 0.281; slot-only: 5/121. Other neighbour: 43/120; distant value: 32/121. | R3a (consistent edit moves behavior out of sample) and R3b (number-general) met, as predicted. |
+| D4, 12B D3 receivers | Edited AV description: 42/121. Hand-written terse, structured, bare-slot and neutral-number texts: 0, 0, 1 and 0 hits, respectively. | R4a (AV description adds beyond the written number) met; R4b (a hand-written text does as well) unmet. **Prediction wrong:** expected the reverse, with the structured text matching the AV description. |
+| D5, 12B D3 receivers | Another same-variable program's AV description, rewritten to the counterfactual: 46/121, versus own description 42/121 and unedited foreign description 3/121. | R5b (foreign description works as well) met; R5a (own description matters) unmet, as predicted. Own minus foreign: −0.033, lower −0.099. |
+
+**Descriptive observations, distinct from those frozen readings.** All primary
+D1 12B descriptions repeat the old value outside the slot. D3 edits shift
+log probability toward whichever value is written, by +11.9 to +17.6 nats
+versus +1.2 to +2.6 toward the other tested values. The 27B edits also shift
+log probability toward their written value (+3.4 to +5.5 nats), despite almost
+never changing the answer. D2 names both variables more often (54/128 versus
+1/128 at the answer position), but computed values appear in only 4/50
+descriptions, versus 44/50 at the answer position.
+
+D4's hand-written texts also shift log probability toward the written value by
+about 5–7 nats, yet mostly leave the numerical answer intact while some break
+its format: after stripping both ends, the terse, structured and neutral
+texts yield the original value in 119–120/121 receivers. That is a descriptive
+re-read; the frozen `rstrip` metric still counts leading newlines as failures.
+D5's unedited foreign text pulls 39/106 answers to its own number when that
+number differs from both the receiver's original and counterfactual values.
+
+D4 alone was initially read as evidence for content specific to the receiver's
+activation. **D5 refuted that interpretation:** another program's AV description
+works as well. The supported edit effect is a property of the AR, the target
+and the AV's output genre. It provides no evidence that descriptions read their
+own activation, and leaves the frozen variable-state edit hypothesis untested.
+
+### 4.6 Steering by description differences
 
 A separate, single frozen run on Qwen reused the pilot split to test the NLA
 paper's reconstructed-difference steering recipe,
@@ -336,7 +439,7 @@ intended deltas did. Higher α bought disruption, not targeting. This covers one
 checkpoint, one task family and one site. The NLA authors' steering demonstration
 used a different, stronger model, site and task; this result does not refute it.
 
-### 4.6 A faster backend is a different instrument
+### 4.7 A faster backend is a different instrument
 
 An opt-in vLLM path for the AV and AR stages was held to a measured equivalence
 gate against the default eager Transformers path, replaying a pinned smoke
@@ -352,21 +455,35 @@ decode caching.
 
 **What the evidence supports.** At the released sites, on this task, the English
 descriptions carry information the model uses (P2 beats P3 everywhere), but not
-enough to reproduce the model's behavior within a 5-point tolerance. That is a
-frozen outcome on the two usable tasks, Qwen2.5-7B (decisively) and Gemma-3-12B
-under the amended metric, and a post-hoc reading on Gemma-3-27B. A generic
-numerical reconstruction, given
-no more bytes than the text, stays close to the unmodified model. The descriptions
-did not expose current variable values in an editable form, and description
-differences did not steer targeted behavior.
+enough to meet the frozen 5-point preservation criterion. That is now a frozen
+outcome on usable tasks for all three families, with both Gemma pairs assessed
+under the amended metric. A generic numerical reconstruction, given no more
+bytes than the text, stays close to the unmodified model. The post-hoc structure
+analysis explains the absent edit interface: these descriptions predict the next
+answer token and do not expose the variable-state statements required by v1.0.0.
+
+**What the edit diagnostics add.** On Gemma-3-12B, rewriting every mention of a
+number in AV-written text moves the answer to that number in about a third of
+selected receivers, replicated on fresh groups in D3. Slot-only edits leave
+conflicting mentions and rarely move the answer. D4's four hand-written texts fail, but D5's description of another
+program works as well as the receiver's own. The supported reading is that the
+AR maps descriptions written in the AV's task-specific style to directions in
+which the stated number can set the target's answer. This is a property of the
+AR, the target and the AV's output genre; it provides no evidence that the AV
+reads its own activation or faithfully describes program state. D5 refutes the
+earlier receiver-specific interpretation of D4. These replacement interventions
+also do not overturn the negative Qwen additive-difference steering result:
+the family and intervention recipe differ.
 
 **What it does not support.** None of this says language is useless for
 interpretability: P4 is a no-more-than-budget baseline for one task, not an
 optimal compressor, and the brief explicitly forbids that upgrade. It also does
-not rank model sizes, and it does not speak to layers other than the one each pair
-was released for. The NLA paper documents layer sensitivity, and no
-alternate-layer checkpoints are released, so testing another site means
-training a new NLA.
+not rank model sizes: the preservation bounds and the 12B/27B edit contrast
+confound model size with site, separately trained NLA pairs and the 27B AV's
+locally unauditable BF16 serving cast. The evidence concerns the released layer
+for each pair. D2 changes the capture token, not the layer, and fails its frozen
+variable-state reading. Neither the answer-slot diagnostics nor D2 tests the
+frozen v1.0.0 edit hypothesis; every family's 0/128 coverage and every STOP stand.
 
 **Why the process matters as much as the numbers.** Three things in this study
 could easily have produced a misleading headline. A BF16 kernel reselection could
@@ -375,23 +492,39 @@ identity gate ruled that out. A faster backend could have silently changed the
 measurements; an equivalence gate caught it. A metric artifact made two families
 look like they preserved behavior; freezing thresholds per phase and freezing the
 fix as an amendment for a new run, rather than relabeling closed runs, kept the
-record honest. The re-read made a prediction, and the confirmation run under the
-frozen amendment tested it and reproduced it exactly. The negative results are
-only credible because each of those failure modes had a written rule before the
-outcome was seen.
+record honest. Both confirmation runs under the frozen amendment reproduced the
+re-read's predictions exactly. The diagnostic sequence also preserves its wrong
+predictions: D1 12B did not show the predicted slot-edit effect, and D4 reversed
+the predicted AV-versus-hand-written comparison. D5 then tested and refuted the
+receiver-specific explanation proposed after D4. Keeping frozen readings apart
+from descriptive observations makes those revisions visible.
 
 ## 6. Limitations
 
-- One task family (two-variable arithmetic), one capture site per model, one
-  capture token, and 128 pilot groups per family. No locked validation ran.
+- One task family (two-variable arithmetic), one released layer per model and
+  128 pilot groups per family. Pilots and replacement edits use the answer
+  position; D2 additionally tests the program-end token on 12B. No locked
+  validation ran. D3's 256 fresh calibration groups are a diagnostic replication,
+  not the locked validation stage.
 - Released checkpoints only; the Gemma targets are sourced from a public mirror
-  whose weight and tokenizer files are content-identical to the gated originals,
-  with four small configuration files differing.
+  whose weight and tokenizer blobs have identical LFS hashes in the official
+  and mirror API records. Divergent small configuration files are pinned as the
+  mirror's own bytes; reconciliation with the official bytes awaits gated access.
 - The Gemma-3-27B AV (float32-native) was served with a BF16 cast to fit memory.
   That deviation is declared in the lock and could not be audited locally.
-- Only Gemma-3-12B has a confirmation run under the amended metric. The
-  Gemma-3-27B corrected-metric result in §4.3 is a post-hoc re-read and stays
-  descriptive.
+- Each Gemma pair has one frozen confirmation pilot, reusing its closed pilot's
+  groups and calibration fit. Exact reproduction tests the amended instrument
+  on this software stack; it is not an independent sample or evidence of
+  correctness beyond the assay. The earlier answer lens and the structure
+  analysis remain post-hoc descriptions.
+- The replacement-edit diagnostics select receivers with a single correct
+  answer-slot candidate. D1 reuses the pilot split; D4 and D5 reuse D3's primary receivers.
+  Rewriting every mention can also change an unrelated number equal to the
+  answer. D4 tests four fixed texts that differ from AV text in length, register
+  and repetition; D5 tests one same-variable donor rule. Which textual features
+  the AR needs is unresolved. These results concern the AR, target and AV output
+  genre, with no evidence that descriptions read their own activation. The
+  frozen v1.0.0 variable-state edit hypothesis remains untested.
 - The amended metric strips trailing whitespace only. The teacher-forced
   log-probability channel is unchanged and still scores a newline-free suffix
   that the Gemma target does not prefer; this is recorded, not reconciled.
@@ -400,13 +533,18 @@ outcome was seen.
 
 ## 7. Reproducibility
 
-Everything needed to audit or re-run the study is public in
+The study's code, hash-pinned model locks, frozen protocols and reports are public
+in
 [`research/open_weight_lingua`](../research/open_weight_lingua/README.md):
-hash-pinned model locks, the frozen protocols, the runner, the independent
-auditor, per-run manifests and the reports quoted here. Its fixture test suite
-runs on CPU in CI, on tiny random models with no downloads. Real runs need one
+the reports cite run IDs and manifest hashes. Run bundles, including manifests
+and tensors needed to replay the independent auditor, remain local and
+git-ignored; they are not all published with the paper. Auditor PASS recomputes
+saved statistics and decisions, but does not authenticate execution or rerun
+model forwards. The fixture test suite runs on CPU in CI, on tiny random models
+with no downloads. Real runs need one
 GPU host; measured pilot wall-clock times were 11,980.8 s (Qwen2.5-7B), 18,472.7 s
-(Gemma-3-12B), 44,681.4 s (Gemma-3-27B) and 27,524 s (Gemma-3-12B confirmation).
+(Gemma-3-12B), 44,681.4 s (Gemma-3-27B), 27,524 s (Gemma-3-12B confirmation)
+and 47,280.8 s (Gemma-3-27B confirmation). The reports record setup separately.
 
 | Record | Where |
 |---|---|
@@ -415,6 +553,9 @@ GPU host; measured pilot wall-clock times were 11,980.8 s (Qwen2.5-7B), 18,472.7
 | Gemma-3-12B and 27B pilots | [reports/gemma3_pilot.md](../research/open_weight_lingua/reports/gemma3_pilot.md), [reports/gemma3_27b_pilot.md](../research/open_weight_lingua/reports/gemma3_27b_pilot.md) |
 | Answer-metric amendment and lens | [protocols/gemma_answer_convention.md](../research/open_weight_lingua/protocols/gemma_answer_convention.md), [reports/post_hoc_answer_lens.md](../research/open_weight_lingua/reports/post_hoc_answer_lens.md) |
 | Gemma-3-12B confirmation pilot | [reports/gemma3_12b_confirmation.md](../research/open_weight_lingua/reports/gemma3_12b_confirmation.md) |
+| Gemma-3-27B confirmation pilot and frozen addendum | [reports/gemma3_27b_confirmation.md](../research/open_weight_lingua/reports/gemma3_27b_confirmation.md), [protocols/gemma27b_confirmation_addendum.md](../research/open_weight_lingua/protocols/gemma27b_confirmation_addendum.md) |
+| Post-hoc structure of edit eligibility | [reports/edit_eligibility_structure.md](../research/open_weight_lingua/reports/edit_eligibility_structure.md) |
+| Six frozen edit-channel runs, D1–D5 | [reports/edit_channel_diagnostics.md](../research/open_weight_lingua/reports/edit_channel_diagnostics.md) |
 | Steering assay | [reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md) |
 | Every claim and its status | [docs/claims.md](../docs/claims.md) |
 | Full technical report (Qwen) | [docs/phase_two_technical_report.md](../docs/phase_two_technical_report.md) |
