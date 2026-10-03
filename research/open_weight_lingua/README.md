@@ -109,8 +109,9 @@ receivers, replicated on 256 fresh groups (42/121); rewriting only the answer
 slot does not (2/64, 5/121), and hand-written texts asserting the same number
 do not either (1 of 484). Another program's description rewritten to the same
 number works as well as the receiver's own (46/121), so the effect belongs to
-AV-register task text, not to the individual activation. Gemma-3-27B shifts
-preference but not answers.
+AV-register task text, not to the individual activation. The flip needs nearly
+the whole description to agree: 0/121 at half the mentions, 0/121 for
+everything but the answer slot. Gemma-3-27B shifts preference but not answers.
 Capturing at the end of the program yields no variable-state statements. See
 [reports/edit_channel_diagnostics.md](reports/edit_channel_diagnostics.md).
 
