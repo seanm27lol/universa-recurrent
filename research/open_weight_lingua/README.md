@@ -29,6 +29,9 @@ competitive under the stated budget, not evidence that language is useless.
 [Milestone 2 checks, repairs and the pilot outcome](reports/milestone_two.md);
 [human pilot decision record](protocols/pilot_decision.md).
 
+**Where things stand now, across all three families, and what to do next:
+[HANDOFF.md](HANDOFF.md).**
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
