@@ -285,6 +285,22 @@ and [protocols/edit_replication.md](../research/open_weight_lingua/protocols/edi
 | The flip needs the whole AV description to agree on the written number | SUPPORTED in part (frozen D6: R6a met, R6b unmet; R6b and the dose magnitudes were predicted wrongly) | Protocol protocols/edit_consistency_dose.md (commit 64b7eb1), run editdose-d6-gemma3-12b-20261003T065726Z-3f350865 (D3 E1g replay bitwise 121/121, audit PASS): rewriting the first ¼, ½, ¾ and all of a description's mentions (in text order) moves 0, 0, 11 and 42 of 121 answers, while the log-probability shift toward the written value grows smoothly (+1.15, +3.66, +7.46, +12.51); every mention except the answer slot moves 0, and the slot alone (D3) moves 5. Boundary: one mention order, so the doses also shift location; a property of the AR-patch path, not of how faithfully a description reads its activation |
 | These diagnostics test or relabel the Phase Two edit hypothesis | FALSE | The frozen v1.0.0 hypothesis (edit a stated variable-state value) remains untested; 0/128 coverage and STOP stand on every family. D1/D3 test the AV's answer guess, which at this site is the same number, not the same hypothesis |
 
+## Phase Three: is there a readable program state? (2026-10-04, closed at Stage 0)
+
+Phase Three asked whether a position and layer holds both variables' current
+values linearly, so that a typed record (`x is currently 10; y is currently 6`)
+could be read and edited causally. The brief
+([protocols/phase_three_brief.md](../research/open_weight_lingua/protocols/phase_three_brief.md),
+frozen at 6d51d0e) set gate G0 before any forward. G0 failed on the primary
+model, so the phase closed after Stage 0. See
+[reports/phase_three_stage0.md](../research/open_weight_lingua/reports/phase_three_stage0.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Some surveyed position linearly exposes both x's and y's current values (G0) | NOT SUPPORTED (frozen gate failed; Phase Three closed) | Gemma-3-12B run p3-stage0-gemma3-12b-20261004T062811Z-745ea17c: the best site (answer position, block 45) reads x 0.500 and y 0.463 held out, computed values 0.457 and 0.415, against G0's 0.80 and 0.50. Qwen2.5-7B (reported only, p3-stage0-qwen2.5-7b-20261004T074740Z-840871a1): 0.436 and 0.381. Copy-the-literal baseline 0.664 (x) and 0.445 (y); permuted-label probes 0.05–0.12. The predicted mid-layer state at the end of the program was wrong: there both values stay near 0.15–0.24 |
+| The models hold the asked variable's value, not the program's state | Observed post hoc (descriptive; never part of G0) | Split by the variable asked: Gemma answer position, block 45, asked 0.930/0.875 versus not asked 0.070/0.051; Qwen block 27, 0.746/0.707 versus 0.125/0.055. It becomes readable only in the last third of depth. At Qwen's released-NLA block 20, even the asked value reads 0.316/0.199. This is consistent with on-demand computation and explains why Phase Two's descriptions predicted answers |
+| Stages 1–2 (self-verbalization, typed causal edits) were run | FALSE | Closed by the failed gate; the validation splits remain unopened. Nonlinear and per-line codes are untested; searching for them would need a new brief |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
