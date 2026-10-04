@@ -54,7 +54,7 @@ the closed pilots'. A generic PCA reconstruction using no more bytes than the
 text stayed close to the unmodified model. Descriptions beat a shuffled control
 on every family, but a post-hoc analysis found answer predictions rather than
 the variable-state statements the frozen editor requires: coverage remains
-0/128 each, and the frozen edit hypothesis remains untested. Six separately
+0/128 each, and the frozen edit hypothesis remains untested. Seven separately
 frozen diagnostics found that consistently rewriting the number in a Gemma-3-12B
 AV description moves the answer in about a third of selected receivers. Another
 program's description works as well; four hand-written texts do not. This effect
@@ -98,10 +98,11 @@ test (Fraser-Taliente et al., 2026).
    criterion on a usable task, while a generic PCA baseline stays close to the
    unmodified model. The descriptions carried task-relevant information on every
    family; the frozen variable-state edit interface never appeared.
-3. **A structural explanation and six edit-channel diagnostics** (§4.4–4.5).
+3. **A structural explanation and seven edit-channel diagnostics** (§4.4–4.5).
    The descriptions predict answers. Consistent edits move Gemma-3-12B answers
    even when the text comes from another program, limiting the finding to the
-   AR, target and AV output genre. Two recorded predictions were wrong.
+   AR, target and AV output genre. Three recorded predictions were wrong in
+   whole or in part.
 4. **Two other follow-up measurements**, both negative: steering by description
    differences, and equivalence of a faster serving backend (§4.6–4.7).
 5. **An instrument-failure case study** (§4.3): the Gemma usability failures
@@ -356,14 +357,15 @@ tests a different hypothesis from editing stated variable state. The frozen
 v1.0.0 hypothesis remains **untested**; every 0/128 coverage result and STOP
 decision stands.
 
-### 4.5 Six frozen edit-channel diagnostics
+### 4.5 Seven frozen edit-channel diagnostics
 
 For a receiver whose answer is 3, a description can repeat "Result: 3",
 "y = 3" and several closing answer-slot candidates. Changing just the slot to
 2 leaves contradictory text; changing every standalone mention makes the text
 consistent. D1 tests these edits on each Gemma pair, D2 moves the capture token
 to the end of the program on 12B, D3 replicates the consistent edit on fresh
-12B groups, and D4–D5 test what kind of text the AR needs. These are six new
+12B groups, D4–D5 test what kind of text the AR needs, and D6 tests how much
+of the description must agree on the edited number. These are seven new
 diagnostic runs, each with protocol and predictions committed and pushed before
 its forwards. Later protocols were informed by earlier results; each part ran
 once. They do not reopen the pilots, the Qwen steering assay or validation.
@@ -378,7 +380,7 @@ original answer `a`, the log-probability shift is the change in
 answer-sequence log probability. Reported lower bounds are one-sided 95% bounds
 from the frozen receiver bootstrap (3,000 resamples). The
 [diagnostic report](../research/open_weight_lingua/reports/edit_channel_diagnostics.md)
-links the protocols, implementation, run identities and audits. All six audits
+links the protocols, implementation, run identities and audits. All seven audits
 passed; replay controls matched the corresponding saved records bitwise.
 
 | Run | Outcome | Frozen reading and recorded prediction |
@@ -389,6 +391,12 @@ passed; replay controls matched the corresponding saved records bitwise.
 | D3, 12B fresh calibration groups | 121 primary receivers from 256 groups. Every-mention counterfactual edit: 42/121 (0.347), `Δ` lower 0.281; slot-only: 5/121. Other neighbour: 43/120; distant value: 32/121. | R3a (consistent edit moves behavior out of sample) and R3b (number-general) met, as predicted. |
 | D4, 12B D3 receivers | Edited AV description: 42/121. Hand-written terse, structured, bare-slot and neutral-number texts: 0, 0, 1 and 0 hits, respectively. | R4a (AV description adds beyond the written number) met; R4b (a hand-written text does as well) unmet. **Prediction wrong:** expected the reverse, with the structured text matching the AV description. |
 | D5, 12B D3 receivers | Another same-variable program's AV description, rewritten to the counterfactual: 46/121, versus own description 42/121 and unedited foreign description 3/121. | R5b (foreign description works as well) met; R5a (own description matters) unmet, as predicted. Own minus foreign: −0.033, lower −0.099. |
+| D6, 12B D3 receivers | Rewriting the first ¼, ½, ¾ and all mentions in text order moves 0, 0, 11 and 42 of 121 answers to the counterfactual; log-probability shifts are +1.15, +3.66, +7.46 and +12.51 nats, respectively. Rewriting every mention except the answer slot moves 0/121. | R6a (more agreement means more flips) met; R6b (the slot is not needed) unmet. **Predictions partly wrong:** R6b and the ½ and ¾ dose magnitudes; the rising curve and R6a were predicted correctly. |
+
+D6's prespecified reading is that the flip needs nearly the whole description
+to agree, including the answer slot. Preference for the written number grows
+smoothly with the share of mentions rewritten, but the answer changes only
+near full agreement in this text-order intervention.
 
 **Descriptive observations, distinct from those frozen readings.** All primary
 D1 12B descriptions repeat the old value outside the slot. D3 edits shift
@@ -465,8 +473,11 @@ answer token and do not expose the variable-state statements required by v1.0.0.
 **What the edit diagnostics add.** On Gemma-3-12B, rewriting every mention of a
 number in AV-written text moves the answer to that number in about a third of
 selected receivers, replicated on fresh groups in D3. Slot-only edits leave
-conflicting mentions and rarely move the answer. D4's four hand-written texts fail, but D5's description of another
-program works as well as the receiver's own. The supported reading is that the
+conflicting mentions and rarely move the answer. D6 shows that the flip needs
+nearly the whole description to agree, slot included: rewriting half the
+mentions or every mention outside the slot moves no answers. D4's four
+hand-written texts fail, but D5's description of another program works as well
+as the receiver's own. The supported reading is that the
 AR maps descriptions written in the AV's task-specific style to directions in
 which the stated number can set the target's answer. This is a property of the
 AR, the target and the AV's output genre; it provides no evidence that the AV
@@ -494,10 +505,12 @@ look like they preserved behavior; freezing thresholds per phase and freezing th
 fix as an amendment for a new run, rather than relabeling closed runs, kept the
 record honest. Both confirmation runs under the frozen amendment reproduced the
 re-read's predictions exactly. The diagnostic sequence also preserves its wrong
-predictions: D1 12B did not show the predicted slot-edit effect, and D4 reversed
-the predicted AV-versus-hand-written comparison. D5 then tested and refuted the
-receiver-specific explanation proposed after D4. Keeping frozen readings apart
-from descriptive observations makes those revisions visible.
+predictions: D1 12B did not show the predicted slot-edit effect, D4 reversed
+the predicted AV-versus-hand-written comparison, and D6's R6b and ½ and ¾
+dose magnitudes were predicted wrongly, although its rising curve and R6a
+were predicted correctly. D5 tested and refuted the receiver-specific
+explanation proposed after D4. Keeping frozen readings apart from descriptive
+observations makes those revisions visible.
 
 ## 6. Limitations
 
@@ -518,12 +531,15 @@ from descriptive observations makes those revisions visible.
   correctness beyond the assay. The earlier answer lens and the structure
   analysis remain post-hoc descriptions.
 - The replacement-edit diagnostics select receivers with a single correct
-  answer-slot candidate. D1 reuses the pilot split; D4 and D5 reuse D3's primary receivers.
+  answer-slot candidate. D1 reuses the pilot split; D4–D6 reuse D3's primary
+  receivers.
   Rewriting every mention can also change an unrelated number equal to the
   answer. D4 tests four fixed texts that differ from AV text in length, register
-  and repetition; D5 tests one same-variable donor rule. Which textual features
-  the AR needs is unresolved. These results concern the AR, target and AV output
-  genre, with no evidence that descriptions read their own activation. The
+  and repetition; D5 tests one same-variable donor rule. D6 tests one mention
+  order, so its doses also shift edit locations. Agreement across the description
+  is now known to matter; which features make AV text work for the AR remains
+  unresolved. These results concern the AR, target and AV output genre, with no
+  evidence that descriptions read their own activation. The
   frozen v1.0.0 variable-state edit hypothesis remains untested.
 - The amended metric strips trailing whitespace only. The teacher-forced
   log-probability channel is unchanged and still scores a newline-free suffix
@@ -555,7 +571,7 @@ and 47,280.8 s (Gemma-3-27B confirmation). The reports record setup separately.
 | Gemma-3-12B confirmation pilot | [reports/gemma3_12b_confirmation.md](../research/open_weight_lingua/reports/gemma3_12b_confirmation.md) |
 | Gemma-3-27B confirmation pilot and frozen addendum | [reports/gemma3_27b_confirmation.md](../research/open_weight_lingua/reports/gemma3_27b_confirmation.md), [protocols/gemma27b_confirmation_addendum.md](../research/open_weight_lingua/protocols/gemma27b_confirmation_addendum.md) |
 | Post-hoc structure of edit eligibility | [reports/edit_eligibility_structure.md](../research/open_weight_lingua/reports/edit_eligibility_structure.md) |
-| Six frozen edit-channel runs, D1–D5 | [reports/edit_channel_diagnostics.md](../research/open_weight_lingua/reports/edit_channel_diagnostics.md) |
+| Seven frozen edit-channel runs, D1–D6 | [reports/edit_channel_diagnostics.md](../research/open_weight_lingua/reports/edit_channel_diagnostics.md) |
 | Steering assay | [reports/steering_assay.md](../research/open_weight_lingua/reports/steering_assay.md) |
 | Every claim and its status | [docs/claims.md](../docs/claims.md) |
 | Full technical report (Qwen) | [docs/phase_two_technical_report.md](../docs/phase_two_technical_report.md) |
