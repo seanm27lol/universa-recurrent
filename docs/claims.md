@@ -316,6 +316,22 @@ model as predicted, so the phase closed. See
 | Arithmetic results are readable at statement boundaries (R2) | NOT SUPPORTED (frozen; predicted) | Gemma 0.176/0.206 at layer 18; Qwen 0.184/0.184 (needed 0.80). No layer of either model exceeds about 0.22, against a copy baseline of 0.044/0.018 and permuted-label probes of at most 0.089. Literal updates read at 0.79–1.00 because the boundary token is the number itself |
 | These models keep a readable running state of the program on this task | NOT SUPPORTED by Phases Three and Four together | No linearly readable state was found while reading (Phase Four) or at the end of the program (Phase Three); only the asked value appears, after the question. Linear probes only; codes that vary across lines are untested; readability is not use, and the causal Stage 1 was not run |
 
+## Phase Five: is the state there, but nonlinear? (2026-10-04, closed after its survey)
+
+Phase Five re-asked Phases Three and Four's questions with a
+one-hidden-layer MLP probe, under the same site and layer rules, with a
+permuted-label control at every selected site. The brief
+([protocols/phase_five_brief.md](../research/open_weight_lingua/protocols/phase_five_brief.md),
+frozen at 1841db5) set gate G5 before any fit or forward. G5 failed on the
+primary model as predicted, so the phase closed. See
+[reports/phase_five_nonlinear.md](../research/open_weight_lingua/reports/phase_five_nonlinear.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| A small nonlinear probe reads both final values at some surveyed site (G5a) | NOT SUPPORTED (frozen; predicted) | Gemma-3-12B run p5-nonlinear-gemma3-12b-20261004T211741Z-421ba7af, on Phase Three's saved activations: the selected site (answer position, block 46) reads x 0.479 and y 0.443 held out, computed 0.371 and 0.387 (G5a needed 0.80 and 0.50); permuted-label control 0.053/0.055. Split by the variable asked: 0.871/0.824 asked, 0.086/0.062 not asked. Qwen2.5-7B (reported only, p5-nonlinear-qwen2.5-7b-20261004T214157Z-354536e6): 0.445/0.322 at block 24 |
+| A small nonlinear probe reads the running state at statement boundaries (G5b = R1 and R2) | NOT SUPPORTED (frozen; predicted) | Gemma at Phase Four's re-captured boundaries: carried 0.527/0.319 and carried computed 0.019/0.077 at layer 7 (R1); arithmetic results 0.184/0.219 at layer 32 (R2), against 0.80. Qwen: carried computed 0.019/0.092; arithmetic 0.221/0.237. Controls 0.049–0.064. No layer of either model reads arithmetic results above 0.250 |
+| A nonlinear code hides the state that linear probes missed (the Othello-GPT pattern) | NOT SUPPORTED on this task | The MLP matches the linear probes within a few points, and is below them on carried values (by 3–15 points). One small probe family (256 hidden units, 768–1,246 training rows); a much larger probe or more data could differ. Readability is not use. Synthetic tests show this probe reads a sign-flipped code that a linear probe cannot |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
