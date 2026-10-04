@@ -64,6 +64,16 @@ protocol and recorded outcome, and none reopens this phase:
 The current state and ranked next steps are in the
 [open-weight NLA handoff](../research/open_weight_lingua/HANDOFF.md).
 
+## Phase-three status: closed at Stage 0, 2026-10-04
+
+Phase Three tried to build the missing piece itself: a typed state record
+read out of the model and edited causally. Its frozen site survey found no
+position where Gemma-3-12B or Qwen2.5-7B linearly holds both variables'
+values. Only the asked variable's value appears, late, after the question.
+The gate failed, so the later stages never ran and the validation splits
+stay unopened. See
+[the Stage 0 report](../research/open_weight_lingua/reports/phase_three_stage0.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
