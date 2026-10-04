@@ -301,6 +301,21 @@ model, so the phase closed after Stage 0. See
 | The models hold the asked variable's value, not the program's state | Observed post hoc (descriptive; never part of G0) | Split by the variable asked: Gemma answer position, block 45, asked 0.930/0.875 versus not asked 0.070/0.051; Qwen block 27, 0.746/0.707 versus 0.125/0.055. It becomes readable only in the last third of depth. At Qwen's released-NLA block 20, even the asked value reads 0.316/0.199. This is consistent with on-demand computation and explains why Phase Two's descriptions predicted answers |
 | Stages 1–2 (self-verbalization, typed causal edits) were run | FALSE | Closed by the failed gate; the validation splits remain unopened. Nonlinear and per-line codes are untested; searching for them would need a new brief |
 
+## Phase Four: is state tracked at statement boundaries? (2026-10-04, closed after its survey)
+
+Phase Four probed every statement boundary for x's and y's values as of
+that line, by how each variable changed on that line. The brief
+([protocols/phase_four_brief.md](../research/open_weight_lingua/protocols/phase_four_brief.md),
+frozen at af4e648) set gate G4 before any forward. G4 failed on the primary
+model as predicted, so the phase closed. See
+[reports/phase_four_trace.md](../research/open_weight_lingua/reports/phase_four_trace.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Carried values are readable at statement boundaries (R1) | NOT SUPPORTED (frozen; predicted) | Gemma-3-12B run p4-trace-gemma3-12b-20261004T161553Z-517f9189, at layer 7: carried 0.672/0.383 held out, below the copy-the-literal baseline 0.904/0.661; carried computed values 0.000/0.077 (R1 needed 0.80 and 0.50). Qwen2.5-7B (reported only, p4-trace-qwen2.5-7b-20261004T164315Z-27667f5a): 0.707/0.375, computed 0.000/0.108 |
+| Arithmetic results are readable at statement boundaries (R2) | NOT SUPPORTED (frozen; predicted) | Gemma 0.176/0.206 at layer 18; Qwen 0.184/0.184 (needed 0.80). No layer of either model exceeds about 0.22, against a copy baseline of 0.044/0.018 and permuted-label probes of at most 0.089. Literal updates read at 0.79–1.00 because the boundary token is the number itself |
+| These models keep a readable running state of the program on this task | NOT SUPPORTED by Phases Three and Four together | No linearly readable state was found while reading (Phase Four) or at the end of the program (Phase Three); only the asked value appears, after the question. Linear probes only; codes that vary across lines are untested; readability is not use, and the causal Stage 1 was not run |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

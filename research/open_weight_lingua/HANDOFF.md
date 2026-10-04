@@ -1,4 +1,4 @@
-# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Three)
+# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Four)
 
 ```text
 x = 3
@@ -89,6 +89,10 @@ boundaries.
      describers predicted answers.
    - Phase Three closed at its first gate; its validation splits are still
      unopened. See [reports/phase_three_stage0.md](reports/phase_three_stage0.md).
+   - Phase Four then checked every statement boundary, while the program is
+     being read. Literals on the current line read well; arithmetic results
+     read at about 0.2; carried computed values about 0. There is no running
+     state either. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
 
 5. **Measure the instrument first.** The Gemma pilots first "failed" the
    usability gate (P0 0.52 and 0.25) because the models answer `"5\n"` and
@@ -122,6 +126,7 @@ boundaries.
 | Why edit coverage is 0/128 | `reports/edit_eligibility_structure.md` | Post-hoc structure of edit eligibility |
 | Edit-channel runs D1–D6 | `reports/edit_channel_diagnostics.md` | Edit-channel diagnostics |
 | Phase Three site survey (closed at Stage 0) | `reports/phase_three_stage0.md`, `protocols/phase_three_brief.md` | Phase Three |
+| Phase Four boundary survey (closed) | `reports/phase_four_trace.md`, `protocols/phase_four_brief.md` | Phase Four |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -155,9 +160,9 @@ manifest hashes.
 
    Run these only if the paper needs them, each frozen first.
 
-3. **If the state question is pursued again, change the question.** Phase
-   Three showed that, on this task, these models don't hold a readable
-   state. A new brief would need a task that forces state to be kept (for
+3. **If the state question is pursued again, change the task.** Phases
+   Three and Four showed that, on this task, these models don't hold a
+   readable state, neither while reading nor at the end. A new brief would need a task that forces state to be kept (for
    example several questions about one program), or per-line and nonlinear
    readouts. It must not reuse Phase Three's survey to pick sites after the
    fact.
