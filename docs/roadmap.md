@@ -74,6 +74,16 @@ The gate failed, so the later stages never ran and the validation splits
 stay unopened. See
 [the Stage 0 report](../research/open_weight_lingua/reports/phase_three_stage0.md).
 
+## Phase-four status: closed after its survey, 2026-10-04
+
+Phase Four checked whether the state is tracked while the program is read.
+At every statement boundary, the models hold the literal written on that
+line. Results of arithmetic barely register, and values carried from
+earlier lines are essentially absent. Its gate failed, as predicted. With
+Phase Three, this is the finding: on this task the models compute answers
+on demand and keep no readable running state. See
+[the Phase Four report](../research/open_weight_lingua/reports/phase_four_trace.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
