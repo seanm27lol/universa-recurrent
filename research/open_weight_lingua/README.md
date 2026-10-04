@@ -39,6 +39,11 @@ variable's value appears late in depth, and the other variable's never does: the
 seem to compute answers on demand. See
 [reports/phase_three_stage0.md](reports/phase_three_stage0.md).
 
+**Phase Four closed after its survey (2026-10-04).** At every statement boundary, the
+models hold what is written on that line. Arithmetic results read at about 0.2, and
+values carried from earlier lines are essentially absent: no running state, on either
+family. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
