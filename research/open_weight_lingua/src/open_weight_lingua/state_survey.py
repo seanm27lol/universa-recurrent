@@ -183,9 +183,16 @@ def _rows(manifest_path: Path, split_name: str):
     return manifest, rows
 
 
+def stored(block_outputs: torch.Tensor) -> np.ndarray:
+    """Float32 storage. Not float16: Gemma's residual stream reaches about 63,000
+    at block 32 alone, against float16's 65,504 ceiling, so float16 would
+    overflow to inf."""
+    return block_outputs.float().cpu().numpy()
+
+
 @torch.inference_mode()
 def capture(model, rows: list[dict], where: dict, layers: int, device: str) -> dict:
-    """Block outputs (hidden_states[1..L]) at every position, as float16 [N, L, d]."""
+    """Block outputs (hidden_states[1..L]) at every position, as float32 [N, L, d]."""
     features = {name: [] for name in POSITIONS}
     for index, row in enumerate(rows):
         ids = torch.tensor([row["input_ids"]], device=device)
@@ -196,7 +203,7 @@ def capture(model, rows: list[dict], where: dict, layers: int, device: str) -> d
             raise RuntimeError("unexpected hidden-state count")
         stacked = torch.stack([h[0] for h in hidden[1:]])  # [L, T, d]
         for name in POSITIONS:
-            features[name].append(stacked[:, where[row["id"]][name]].float().cpu().numpy().astype(np.float16))
+            features[name].append(stored(stacked[:, where[row["id"]][name]]))
         if index % 128 == 0:
             print(f"  capture {index}/{len(rows)}", flush=True)
     return {name: np.stack(values) for name, values in features.items()}
@@ -207,7 +214,7 @@ def survey(features: dict, rows: list[dict], label: dict) -> dict:
     rng = np.random.default_rng(PERMUTATION_SEED)
     grid = {}
     for name in POSITIONS:
-        data = features[name].astype(np.float32)
+        data = np.asarray(features[name], dtype=np.float32)
         for layer in range(data.shape[1]):
             block = data[:, layer]
             entry = {}

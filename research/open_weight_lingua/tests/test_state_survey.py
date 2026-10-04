@@ -118,3 +118,12 @@ def test_constant_features_give_finite_chance_level_predictions():
         out = ss.probe_accuracies(x[:40], x[40:50], x[50:], v[:40], v[40:50], v[50:],
                                   np.zeros(10, bool), np.zeros(10, bool))
     assert 0.0 <= out["onehot"]["test"] <= 0.2
+
+
+def test_stored_features_keep_values_beyond_the_float16_range():
+    import torch
+
+    big = torch.tensor([[70000.0, -66000.0, 1.5]], dtype=torch.bfloat16)
+    out = ss.stored(big)
+    assert out.dtype == np.float32 and np.isfinite(out).all()
+    assert out[0, 0] > 65504 and out[0, 1] < -65504
