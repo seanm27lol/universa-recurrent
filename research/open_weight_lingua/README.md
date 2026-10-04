@@ -44,6 +44,12 @@ models hold what is written on that line. Arithmetic results read at about 0.2, 
 values carried from earlier lines are essentially absent: no running state, on either
 family. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
 
+**Phase Five closed after its survey (2026-10-04).** A one-hidden-layer MLP probe,
+which can read codes a linear probe cannot, finds no more than the linear probes did,
+at the end of the program or at any statement boundary, on either family. The
+"no readable state" conclusion now covers small nonlinear readouts too. See
+[reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -332,6 +338,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [edit_consistency_dose.py](src/open_weight_lingua/edit_consistency_dose.py) | Frozen consistency-dose diagnostic D6 ([protocol](protocols/edit_consistency_dose.md)): the first ¼, ½, ¾ of a description's mentions rewritten, and every mention except the answer slot, against the full rewrite; bitwise D3 replay gate, recount audit |
 | [state_survey.py](src/open_weight_lingua/state_survey.py) | Phase Three Stage 0 ([brief](protocols/phase_three_brief.md)): every block's output at five frozen token positions, linear one-hot and scalar probes for x's and y's current values, label-permutation and copy baselines, computed-value subsets, frozen site selection and gate G0 |
 | [state_trace_survey.py](src/open_weight_lingua/state_trace_survey.py) | Phase Four ([brief](protocols/phase_four_brief.md)): probes at every statement boundary for x's and y's values as of that line, by category (literal, arithmetic, copy or carried update), GPU float64 ridge probes, frozen readings R1/R2 and gate G4 |
+| [state_nonlinear.py](src/open_weight_lingua/state_nonlinear.py) | Phase Five ([brief](protocols/phase_five_brief.md)): one-hidden-layer MLP probes on Phase Three's saved activations (Part A) and on Phase Four's re-captured statement boundaries (Part B), under the same site and layer rules, with a permuted-label control at every selected site; gates G5a, G5b, G5 |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

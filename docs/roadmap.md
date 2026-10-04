@@ -84,6 +84,16 @@ Phase Three, this is the finding: on this task the models compute answers
 on demand and keep no readable running state. See
 [the Phase Four report](../research/open_weight_lingua/reports/phase_four_trace.md).
 
+## Phase-five status: closed after its survey, 2026-10-04
+
+Phase Five asked whether the state is there but nonlinear, as with
+Othello-GPT's board. A small MLP probe, under the same rules, read about
+what the linear probes read: the literal on the current line, and the
+asked value after the question. Its gate failed, as predicted. Probing
+harder on this task is unlikely to change the answer; a next phase should
+change the task so that state must be kept. See
+[the Phase Five report](../research/open_weight_lingua/reports/phase_five_nonlinear.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
