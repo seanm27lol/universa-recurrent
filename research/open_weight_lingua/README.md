@@ -44,6 +44,12 @@ models hold what is written on that line. Arithmetic results read at about 0.2, 
 values carried from earlier lines are essentially absent: no running state, on either
 family. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
 
+**Phase Five closed after its survey (2026-10-04).** A one-hidden-layer MLP probe,
+which can read codes a linear probe cannot, finds no more than the linear probes did,
+at the end of the program or at any statement boundary, on either family. The
+"no readable state" conclusion now covers small nonlinear readouts too. See
+[reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
