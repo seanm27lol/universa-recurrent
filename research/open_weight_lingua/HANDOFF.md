@@ -1,4 +1,4 @@
-# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-03 (updated after D6)
+# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Three)
 
 ```text
 x = 3
@@ -76,7 +76,21 @@ boundaries.
    Qwen, the closed steering assay's additive recipe was non-specific
    disruption.
 
-4. **Measure the instrument first.** The Gemma pilots first "failed" the
+4. **The models don't seem to keep a readable state at all (Phase Three,
+   Stage 0).** We tried to build the missing state record ourselves.
+   - A frozen survey of five positions and every layer found no place where
+     Gemma-3-12B or Qwen2.5-7B linearly holds both variables' values. The
+     best site, the answer position, reaches 0.50 / 0.46 on Gemma against a
+     0.80 gate.
+   - Split by the variable asked, that site reads the asked value at
+     0.93 / 0.88 and the other at chance.
+   - The values appear only after the question, late in depth. The models
+     seem to compute the answer on demand, which is why Phase Two's
+     describers predicted answers.
+   - Phase Three closed at its first gate; its validation splits are still
+     unopened. See [reports/phase_three_stage0.md](reports/phase_three_stage0.md).
+
+5. **Measure the instrument first.** The Gemma pilots first "failed" the
    usability gate (P0 0.52 and 0.25) because the models answer `"5\n"` and
    the frozen metric rejected the trailing newline. A frozen amendment fixed
    the comparison, and both confirmation pilots reproduced the closed pilots'
@@ -107,6 +121,7 @@ boundaries.
 | The answer-instrument fix and confirmations | `reports/post_hoc_answer_lens.md`, `reports/gemma3_12b_confirmation.md`, `reports/gemma3_27b_confirmation.md` | Post-hoc answer lens and frozen answer-convention amendment |
 | Why edit coverage is 0/128 | `reports/edit_eligibility_structure.md` | Post-hoc structure of edit eligibility |
 | Edit-channel runs D1–D6 | `reports/edit_channel_diagnostics.md` | Edit-channel diagnostics |
+| Phase Three site survey (closed at Stage 0) | `reports/phase_three_stage0.md`, `protocols/phase_three_brief.md` | Phase Three |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -116,14 +131,16 @@ manifest hashes.
 
 ## What to do next, ranked
 
-1. **Update the paper** (`paper/nla_three_families.md`, maintained in a
-   separate session).
-   - It predates the 27B confirmation and all of the edit-channel work.
+1. **Optionally add Phase Three to the paper** (`paper/nla_three_families.md`,
+   maintained in a separate session).
+   - The paper covers everything through D6 (PRs #23 and #24, merged
+     2026-10-03/04).
+   - Phase Three's Stage 0 is a natural explanatory section: the models hold
+     only the asked value, late, which is why the released describers
+     predict answers.
    - `tests/test_paper_numbers.py` fails if the paper cites a number that is
-     not in a declared source. Add `reports/gemma3_27b_confirmation.md`,
-     `reports/edit_eligibility_structure.md` and
-     `reports/edit_channel_diagnostics.md` to its `sources:` header before
-     quoting them.
+     not in a declared source. Add `reports/phase_three_stage0.md` to its
+     `sources:` header before quoting it.
 2. **Consider the edit-channel line closed.**
    - D5 (2026-10-03) answered the open question: the effect does not need the
      receiver's own activation.
@@ -137,6 +154,13 @@ manifest hashes.
      protocol, kept out of Phase Two's records.
 
    Run these only if the paper needs them, each frozen first.
+
+3. **If the state question is pursued again, change the question.** Phase
+   Three showed that, on this task, these models don't hold a readable
+   state. A new brief would need a task that forces state to be kept (for
+   example several questions about one program), or per-line and nonlinear
+   readouts. It must not reuse Phase Three's survey to pick sites after the
+   fact.
 
 **Not recommended:**
 

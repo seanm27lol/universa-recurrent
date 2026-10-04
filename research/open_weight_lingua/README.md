@@ -32,6 +32,13 @@ competitive under the stated budget, not evidence that language is useless.
 **Where things stand now, across all three families, and what to do next:
 [HANDOFF.md](HANDOFF.md).**
 
+**Phase Three closed at Stage 0 (2026-10-04).** It asked whether any position holds both
+variables' values readably, so that a typed state record could be edited. No surveyed
+position does, on either Gemma-3-12B or Qwen2.5-7B. After the question, the asked
+variable's value appears late in depth, and the other variable's never does: the models
+seem to compute answers on demand. See
+[reports/phase_three_stage0.md](reports/phase_three_stage0.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
