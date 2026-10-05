@@ -109,6 +109,26 @@ def last_nonpadding(attention_mask: torch.Tensor, row: int = 0) -> int:
     return int(positions[-1])
 
 
+def generation_eos_token_ids(model, tokenizer) -> frozenset[int]:
+    """Honor the model's declared stop set; use tokenizer EOS only if absent.
+
+    Some instruction models declare both end-of-turn and end-of-text tokens.
+    A scalar declaration is a one-token set. An explicit empty list disables
+    EOS stopping; if neither source declares EOS, generation remains bounded
+    by max_tokens. This affects future greedy runs, not sealed outcomes or
+    the canonical answer-plus-tokenizer-EOS teacher-forcing convention.
+    """
+    configured = getattr(getattr(model, "generation_config", None), "eos_token_id", None)
+    if configured is None:
+        configured = getattr(tokenizer, "eos_token_id", None)
+    if configured is None:
+        return frozenset()
+    values = [configured] if type(configured) is int else configured
+    if not isinstance(values, (list, tuple)) or any(type(value) is not int or value < 0 for value in values):
+        raise ValueError("generation EOS must be a nonnegative integer or a list of such integers")
+    return frozenset(values)
+
+
 def output_tensor(output):
     if isinstance(output, torch.Tensor):
         return output
@@ -250,6 +270,7 @@ class Target:
         work_ids, work_mask = pad_to_bucket(ids, mask)
         work_ids, work_mask = work_ids.clone(), work_mask.clone()
         position = last_nonpadding(work_mask)
+        eos_token_ids = generation_eos_token_ids(self.model, self.tokenizer)
         generated, terminated = [], False
         for _ in range(max_tokens):
             logits = self.forward(
@@ -260,7 +281,7 @@ class Target:
             )
             token = int(logits[0, position].argmax())
             generated.append(token)
-            if token == self.tokenizer.eos_token_id:
+            if token in eos_token_ids:
                 terminated = True
                 break
             if position + 1 >= TARGET_BUCKET:
