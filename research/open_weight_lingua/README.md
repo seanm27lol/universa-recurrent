@@ -33,28 +33,37 @@ competitive under the stated budget, not evidence that language is useless.
 [HANDOFF.md](HANDOFF.md).**
 
 **Phase Three closed at Stage 0 (2026-10-04).** It asked whether any position holds both
-variables' values readably, so that a typed state record could be edited. No surveyed
-position does, on either Gemma-3-12B or Qwen2.5-7B. After the question, the asked
-variable's value appears late in depth, and the other variable's never does: the models
-seem to compute answers on demand. See
+variables' values readably, so that a typed state record could be edited. At no surveyed
+position did its linear probes read both, on either Gemma-3-12B or Qwen2.5-7B. After the
+question, the asked variable's value becomes readable late in depth, and the other
+variable's does not. That fits computation near the answer, but poor readout alone does
+not show where or whether state is kept. See
 [reports/phase_three_stage0.md](reports/phase_three_stage0.md).
 
 **Phase Four closed after its survey (2026-10-04).** At every statement boundary, the
-models hold what is written on that line. Arithmetic results read at about 0.2, and
-values carried from earlier lines are essentially absent: no running state, on either
-family. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
+probes read what is written on that line. Arithmetic results read at about 0.2, and
+values carried from earlier lines barely at all: these probes recovered no running
+state on either family, which is not proof that none exists. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
 
 **Phase Five closed after its survey (2026-10-04).** A one-hidden-layer MLP probe,
-which can read codes a linear probe cannot, finds no more than the linear probes did,
-at the end of the program or at any statement boundary, on either family. The
-"no readable state" conclusion now covers small nonlinear readouts too. See
+which can read codes a linear probe cannot, read no more than the linear probes did,
+at the end of the program or at any statement boundary, on either family. The readout
+limit now covers that small nonlinear probe too; it does not cover every possible code
+(see the [readout audit](reports/phase_six_readout_audit.md)). See
 [reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
 
-**Phase Six closed at Stage 0 (2026-10-05).** With the question asked before the
-program, both models answer less accurately (Gemma 0.73 against 0.94), often giving the
-value of whichever variable the program ends on. Probes show no sign that knowing the
-question in advance makes the asked variable tracked. See
-[reports/phase_six_question_first.md](reports/phase_six_question_first.md).
+**Phase Six closed at Stage 0 (2026-10-05).** With the question moved before the
+program *and* reworded, both models answer less accurately (Gemma 0.73 against 0.94).
+Asked and not-asked readouts stayed below the tracking thresholds, with intervals that
+leave small effects unresolved. See
+[reports/phase_six_question_first.md](reports/phase_six_question_first.md) and its
+review addendum.
+
+**Phase Seven (2026-10-05, exploratory).** Crossing question position with wording on
+the same programs separates the two. Qwen's loss is all position (about −0.30, with no
+resolved wording effect). Gemma's is position (−0.097) plus a wording × position
+interaction (−0.105): "at the end of this program" hurts only when it comes first. See
+[reports/phase_seven_prompt_factorial.md](reports/phase_seven_prompt_factorial.md).
 
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run

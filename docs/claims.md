@@ -372,6 +372,26 @@ experiment. Phase Six's failed U6 and void G6/E6 remain unchanged.
 | An intercept can matter to this readout | Demonstrated on a constructed control | On the imbalanced affine-separable binary fixture, frozen one-hot scores 0.650 and both affine variants score 1.000. This does not isolate an intercept effect in the model activations, where alpha and layer are selected separately per method |
 | Alternative readouts recover a reliable running state from the saved Phase Six activations | NOT SUPPORTED at the historical thresholds | Selected arithmetic x/y scores for scalar versus frozen readout: Gemma 0.250/0.285 versus 0.103/0.228; Qwen 0.309/0.241 versus 0.154/0.254. Some scores improve, while carried-value and final-value scalar readout are weaker. No method meets both-variable R1/R2 thresholds; this is descriptive, without a new significance test |
 | The CPU replay reproduces the original probe results | Independently checked numerical replay | All 7,828 original numeric grid entries match exactly. All saved predictions were rescored and all layer choices recomputed; six alpha fits were independently reconstructed at three boundary layers per family for asked x/y under all three methods. Other fits were not independently refitted. This validates the recorded readout calculations, not causal use or absence of state |
+| A second, independent implementation reproduces the audit and bounds the readout | Independently checked (exploratory) | `scripts/probe_family_cross_check.py`, written separately, matches the overlapping pilot scores to three decimals. Its logistic affine classifier does not beat the frozen readout on running state (Gemma arithmetic 0.213/0.246). A planted code in real activations is read by the frozen readout from about 2% of the activation norm when categorical, but not at all, up to 8%, when it is a magnitude. Affine scalar reads the magnitude code at 0.78 by 4%. All asked-minus-not-asked intervals span zero. A limit on the instruments, not evidence of absent state |
+
+## Phase Seven: question position versus wording (2026-10-05, exploratory)
+
+Phase Seven crossed question position (before/after the program) with
+wording (original / "at the end of this program") on the same 1,536 reused
+calibration and pilot prompts per family. It added a diagnostic that asks
+the original question both before and after. The protocol
+([protocols/phase_seven_prompt_factorial_v1.md](../research/open_weight_lingua/protocols/phase_seven_prompt_factorial_v1.md),
+frozen at 210bffb) fixed five primary contrasts per model with Bonferroni
+99.5% whole-group intervals. Answers only; reserved validation unopened. See
+[reports/phase_seven_prompt_factorial.md](../research/open_weight_lingua/reports/phase_seven_prompt_factorial.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Qwen2.5-7B's Phase Six loss comes from question position, not wording | SUPPORTED (exploratory) | Run phase-seven-campaign-v1-20261005/qwen: before − after −0.301 [−0.345, −0.258] (original wording), −0.298 [−0.340, −0.255] (expanded); wording −0.007 [−0.043, +0.029] before, −0.010 [−0.024, +0.005] after; interaction +0.003 [−0.036, +0.042]. Reused programs; one wording pair |
+| Gemma-3-12B's Phase Six loss comes from position plus a wording × position interaction | SUPPORTED (exploratory) | Run phase-seven-campaign-v1.1-20261005/gemma: position −0.097 [−0.130, −0.065] (original), −0.202 [−0.241, −0.163] (expanded); wording before −0.118 [−0.155, −0.083], after −0.014 [−0.028, −0.001]; interaction −0.105 [−0.145, −0.066]. From an operational restart (v1.1) with all 144 frozen files byte-identical, after a v1 stage stopped by its supervisor with 0 rows |
+| With the question first, errors concentrate where the program ends on the other variable | Observed (descriptive) | When the last line assigns the other variable: Gemma 0.798 (original first) and 0.539 (expanded first) against 0.965 after; Qwen 0.367 and 0.337 against 0.861. Answers equal the other variable's value 11.3% / 35.2% (Gemma) and 19.1% / 25.4% (Qwen). Behaviour only; not evidence about internal storage |
+| Restating the question after the program repairs the loss | Gemma: largely; Qwen: partly (diagnostic, 95%) | Before-and-after minus after-only: Gemma −0.016 [−0.030, −0.002], Qwen −0.104 [−0.128, −0.080]; minus before-only: +0.081 and +0.198 |
+| The two Phase Six formats reproduce under the multi-EOS fix | Checked | Gemma: identical texts, 1,536/1,536 in both. Qwen: identical except 13 answers that previously continued past `<|endoftext|>`; none changes score under `raw` |
 
 ## Completed phase-one findings (2026-09-16)
 

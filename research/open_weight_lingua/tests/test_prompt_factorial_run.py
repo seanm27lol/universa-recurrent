@@ -221,6 +221,7 @@ def test_run_and_evaluate_end_to_end_with_both_family_freeze(tmp_path, monkeypat
     assert run.run(args) == "COMPLETE"
     completion = run.read(args.output / "completion.json")
     assert completion["completed_rows"] == 40 and completion["progress"]["completed_rows"] == 40
+    assert completion["error"] is None and completion["traceback"] is None
     assert completion["timings_seconds"]["generation"] >= 0
     analysis_args = SimpleNamespace(run=args.output, freeze=freeze, output=tmp_path / "analysis")
     analysis = run.evaluate(analysis_args)
@@ -230,3 +231,62 @@ def test_run_and_evaluate_end_to_end_with_both_family_freeze(tmp_path, monkeypat
     analysis_args.output = tmp_path / "rejected_analysis"
     with pytest.raises(ValueError, match="frozen artifact changed"):
         run.evaluate(analysis_args)
+
+
+@pytest.mark.parametrize("failure_kind", ("setup", "deadline", "interrupt"))
+def test_completion_captures_full_failure_traceback_and_preserves_control_flow(tmp_path, monkeypatch, failure_kind):
+    """Pre-load faults retain chained/timeout/interrupt diagnostics without retries."""
+    freeze = tmp_path / "freeze.json"
+    freeze.write_text("{}")
+    args = SimpleNamespace(output=tmp_path / "run", campaign=tmp_path / "campaign", freeze=freeze,
+                           family="gemma3-12b", device="cpu")
+    previous_handler = object()
+    handlers, timers, releases, calls = [], [], [], []
+    monkeypatch.setattr(run.signal, "getsignal", lambda signum: previous_handler)
+    monkeypatch.setattr(run.signal, "signal", lambda signum, handler: handlers.append((signum, handler)))
+    monkeypatch.setattr(run.signal, "setitimer", lambda kind, duration: timers.append((kind, duration)))
+    monkeypatch.setattr(run, "release_models", lambda: releases.append(True))
+    monkeypatch.setattr(run, "load_model", lambda *args: pytest.fail("failure must precede model loading"))
+    failure = RuntimeError("fixture setup failed") if failure_kind == "setup" else KeyboardInterrupt("fixture interrupted")
+
+    def failed_setup(path):
+        calls.append(path)
+        if failure_kind == "deadline":
+            run.check_deadline(10, clock=lambda: 10)
+        if failure_kind == "setup":
+            try:
+                raise OSError("fixture tokenizer metadata missing")
+            except OSError as cause:
+                raise failure from cause
+        raise failure
+
+    monkeypatch.setattr(run, "verified_pair", failed_setup)
+    if failure_kind == "deadline":
+        assert run.run(args) == "PARTIAL_TIMEOUT"
+    else:
+        with pytest.raises(type(failure)) as caught:
+            run.run(args)
+        assert caught.value is failure
+    completion = run.read(args.output / "completion.json")
+    diagnostic = completion["traceback"]
+    assert diagnostic.startswith("Traceback (most recent call last):")
+    assert "in run" in diagnostic and "in failed_setup" in diagnostic
+    if failure_kind == "setup":
+        assert "OSError: fixture tokenizer metadata missing" in diagnostic
+        assert "The above exception was the direct cause" in diagnostic
+        assert "RuntimeError: fixture setup failed" in diagnostic
+        assert completion["error"] == "RuntimeError: fixture setup failed"
+    elif failure_kind == "deadline":
+        assert "in check_deadline" in diagnostic
+        assert "TimeoutError: shared three-hour campaign deadline reached" in diagnostic
+        assert completion["error"] == "shared three-hour campaign deadline reached"
+    else:
+        assert "KeyboardInterrupt: fixture interrupted" in diagnostic
+        assert completion["error"] == "KeyboardInterrupt: fixture interrupted"
+    assert completion["status"] == ("PARTIAL_TIMEOUT" if failure_kind == "deadline" else "FAILED")
+    assert completion["completed_rows"] == 0 and completion["generations_sha256"] is None
+    assert calls == [freeze] and releases == [True]
+    assert handlers[-1] == (run.signal.SIGALRM, previous_handler)
+    assert timers[-1] == (run.signal.ITIMER_REAL, 0)
+    assert not (args.campaign / ".active").exists()
+    assert (args.campaign / "gemma3-12b.claimed").exists()

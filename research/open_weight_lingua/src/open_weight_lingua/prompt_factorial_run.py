@@ -8,6 +8,7 @@ import json
 import os
 import signal
 import time
+import traceback
 from pathlib import Path
 
 import numpy as np
@@ -209,6 +210,7 @@ def run(args):
     args.output.mkdir(parents=True)
     started, timings, progress = time.perf_counter(), {}, {}
     status, error, model, tokenizer = "FAILED", None, None, None
+    error_traceback = None
     target, original_forward, bounded_forward = None, None, None
     generated_path = args.output / "generations.jsonl"
     deadline = campaign["deadline_unix"]
@@ -268,8 +270,10 @@ def run(args):
         status = "COMPLETE"
     except TimeoutError as failure:
         status, error = "PARTIAL_TIMEOUT", str(failure)
-    except Exception as failure:
+        error_traceback = traceback.format_exc()
+    except (Exception, KeyboardInterrupt) as failure:
         error = f"{type(failure).__name__}: {failure}"
+        error_traceback = traceback.format_exc()
         raise
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
@@ -277,7 +281,8 @@ def run(args):
         target, original_forward, bounded_forward, model, tokenizer = None, None, None, None, None
         release_models()
         completed = sum(1 for line in generated_path.open() if line.strip()) if generated_path.exists() else 0
-        write_json(args.output / "completion.json", {"status": status, "error": error, "completed_rows": completed,
+        write_json(args.output / "completion.json", {"status": status, "error": error, "traceback": error_traceback,
+                    "completed_rows": completed,
                     "expected_rows": EXPECTED_ROWS, "timings_seconds": timings, "progress": progress, "wall_seconds": time.perf_counter() - started,
                     "campaign": campaign, "setup_seconds": float(os.environ.get("OWL_SETUP_SECONDS", "0")),
                     "generations_sha256": sha256_file(generated_path) if generated_path.exists() else None})

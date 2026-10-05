@@ -114,6 +114,12 @@ gates remain unchanged; see the
      left small asked-versus-not-asked effects unresolved. Other-variable
      answers explain most Gemma errors (65%), but only 28% of Qwen errors. See
      [reports/phase_six_question_first.md](reports/phase_six_question_first.md).
+   - Phase Seven then crossed question position with wording on the same
+     programs (exploratory). Qwen's loss is all position (about −0.30).
+     Gemma's is position (−0.097) plus a wording × position interaction
+     (−0.105): "at the end of this program" hurts only when it comes first,
+     pulling answers toward the last-written variable. See
+     [reports/phase_seven_prompt_factorial.md](reports/phase_seven_prompt_factorial.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -158,7 +164,8 @@ gates remain unchanged; see the
 | Phase Four boundary survey (closed) | `reports/phase_four_trace.md`, `protocols/phase_four_brief.md` | Phase Four |
 | Phase Five nonlinear probes (closed) | `reports/phase_five_nonlinear.md`, `protocols/phase_five_brief.md` | Phase Five |
 | Phase Six question-first prompts (closed at Stage 0) | `reports/phase_six_question_first.md`, `protocols/phase_six_brief.md` | Phase Six |
-| Phase Six saved-feature probe sensitivity audit (CPU, exploratory) | `reports/phase_six_readout_audit.md` | Phase Six readout sensitivity audit |
+| Phase Six saved-feature probe sensitivity audit (CPU, exploratory), with an independent cross-check | `reports/phase_six_readout_audit.md` | Phase Six readout sensitivity audit |
+| Phase Seven position × wording factorial (exploratory) | `reports/phase_seven_prompt_factorial.md`, `protocols/phase_seven_prompt_factorial_v1.md` | Phase Seven |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -175,15 +182,18 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. Keep reserved validation unopened.
-2. **Separate wording from position in a matched follow-up.** Compare both
-   the original and expanded question at both positions, keeping programs,
-   scoring and model settings fixed. Specify the comparisons and stopping
-   rules before collecting new outputs. This can distinguish the prompt
-   factors; it would still need separate evidence to identify storage,
-   retrieval or recomputation. The
-   [Phase Seven v1 design](protocols/phase_seven_prompt_factorial_v1.md)
-   prepares this comparison; its launch freeze and model results are separate
-   from the completed CPU audit.
+2. **Confirm Phase Seven on reserved data.** The exploratory factorial
+   separated the prompt factors (see above). A confirmatory 2×2 should:
+   - freeze its contrasts first: Gemma's wording × position interaction,
+     Qwen's position effect, and the other-variable answers when the
+     program ends on the other variable;
+   - only then open `validation_a`: 256 unseen groups, 1,024 prompts per
+     format.
+
+   Measured cost is about 29 minutes of generation for Gemma and 15 for
+   Qwen, plus a few minutes of setup each. `validation_b` stays reserved.
+   This would still say nothing about storage, retrieval or recomputation;
+   that needs its own intervention design.
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -249,7 +259,10 @@ choose sites after seeing the outcomes.
   - `scripts/run_edit_consistency_dose.sh` for D6;
   - `scripts/run_state_survey.sh`, `scripts/run_state_trace_survey.sh` and
     `scripts/run_state_nonlinear.sh` for Phases Three, Four and Five;
-  - `scripts/run_state_question_first.sh` for Phase Six.
+  - `scripts/run_state_question_first.sh` for Phase Six;
+  - `python -m open_weight_lingua.prompt_factorial` (stimuli) and
+    `python -m open_weight_lingua.prompt_factorial_run run|evaluate` for
+    Phase Seven, with the exact frozen commands in the launch-freeze record.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -257,7 +270,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (274 pass, 1 skip);
+    (313 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about
