@@ -50,6 +50,12 @@ at the end of the program or at any statement boundary, on either family. The
 "no readable state" conclusion now covers small nonlinear readouts too. See
 [reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
 
+**Phase Six closed at Stage 0 (2026-10-05).** With the question asked before the
+program, both models answer less accurately (Gemma 0.73 against 0.94), often giving the
+value of whichever variable the program ends on. Probes show no sign that knowing the
+question in advance makes the asked variable tracked. See
+[reports/phase_six_question_first.md](reports/phase_six_question_first.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -339,6 +345,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [state_survey.py](src/open_weight_lingua/state_survey.py) | Phase Three Stage 0 ([brief](protocols/phase_three_brief.md)): every block's output at five frozen token positions, linear one-hot and scalar probes for x's and y's current values, label-permutation and copy baselines, computed-value subsets, frozen site selection and gate G0 |
 | [state_trace_survey.py](src/open_weight_lingua/state_trace_survey.py) | Phase Four ([brief](protocols/phase_four_brief.md)): probes at every statement boundary for x's and y's values as of that line, by category (literal, arithmetic, copy or carried update), GPU float64 ridge probes, frozen readings R1/R2 and gate G4 |
 | [state_nonlinear.py](src/open_weight_lingua/state_nonlinear.py) | Phase Five ([brief](protocols/phase_five_brief.md)): one-hidden-layer MLP probes on Phase Three's saved activations (Part A) and on Phase Four's re-captured statement boundaries (Part B), under the same site and layer rules, with a permuted-label control at every selected site; gates G5a, G5b, G5 |
+| [state_question_first.py](src/open_weight_lingua/state_question_first.py) | Phase Six ([brief](protocols/phase_six_brief.md)): the same programs with the question asked first; greedy answers in both formats (gate U6), Phase Four's boundary probes for the asked and the not-asked variable, readings R1/R2 and gate G6, and the paired question effect E6 with a whole-group bootstrap |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
