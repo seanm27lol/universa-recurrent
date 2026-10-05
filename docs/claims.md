@@ -332,6 +332,22 @@ primary model as predicted, so the phase closed. See
 | A small nonlinear probe reads the running state at statement boundaries (G5b = R1 and R2) | NOT SUPPORTED (frozen; predicted) | Gemma at Phase Four's re-captured boundaries: carried 0.527/0.319 and carried computed 0.019/0.077 at layer 7 (R1); arithmetic results 0.184/0.219 at layer 32 (R2), against 0.80. Qwen: carried computed 0.019/0.092; arithmetic 0.221/0.237. Controls 0.049–0.064. No layer of either model reads arithmetic results above 0.250 |
 | A nonlinear code hides the state that linear probes missed (the Othello-GPT pattern) | NOT SUPPORTED on this task | The MLP matches the linear probes within a few points, and is below them on carried values (by 3–15 points). One small probe family (256 hidden units, 768–1,246 training rows); a much larger probe or more data could differ. Readability is not use. Synthetic tests show this probe reads a sign-flipped code that a linear probe cannot |
 
+## Phase Six: does asking the question first make the model track the variable? (2026-10-05, closed at Stage 0)
+
+Phase Six asked the same 1,536 prompts with the question before the program,
+so the model knows which variable matters while reading. The brief
+([protocols/phase_six_brief.md](../research/open_weight_lingua/protocols/phase_six_brief.md),
+frozen at 1c61018) set a usability gate U6, gate G6 and effect E6 before any
+forward. U6 failed on the primary model, contrary to prediction, so G6 and E6
+are void and the phase closed. See
+[reports/phase_six_question_first.md](../research/open_weight_lingua/reports/phase_six_question_first.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The question-first format is usable (U6: Gemma-3-12B accuracy ≥ 0.80) | NOT SUPPORTED (frozen; prediction was that it passes) | Gemma-3-12B run p6-question-first-gemma3-12b-20261004T231457Z-96041d06: 0.729 question first against 0.944 question after on the same 1,536 prompts; the question-after pilot split reproduces P0 exactly (487/512). Qwen2.5-7B (reported only, p6-question-first-qwen2.5-7b-20261004T235340Z-4f429ce9): 0.502 against 0.810, P0 reproduced (415/512) |
+| Knowing the question first makes the asked variable readable at statement boundaries (G6, E6) | VOID (U6 failed); descriptively, no effect | Asked minus not-asked arithmetic-result accuracy on the same programs: Gemma +0.014 [−0.014, +0.043], Qwen +0.016 [−0.006, +0.039]; carried computed values at most 0.123. At the program's last token the asked final value reads 0.301/0.180 (Gemma), level with the variable not asked; it appears only at the answer position. Linear probes, one question wording |
+| With the question first, errors follow the program's last line | Observed post hoc (descriptive; never gating) | When the last line assigns the other variable, question-first accuracy falls to 0.539 (Gemma) and 0.337 (Qwen), and the models answer with the other variable's value 35.2% and 25.3% of the time; question after, 0.965 and 0.861. When the last line assigns the asked variable, accuracy is unchanged (0.918 against 0.923 for Gemma). One wording; "at the end of this program" may itself draw attention to the last line |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

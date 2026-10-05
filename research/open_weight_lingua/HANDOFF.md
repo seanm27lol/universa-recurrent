@@ -1,4 +1,4 @@
-# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Five)
+# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Six)
 
 ```text
 x = 3
@@ -97,6 +97,10 @@ boundaries.
      which can read codes linear probes miss. It found no more than the
      linear probes did, on either model. See
      [reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
+   - Phase Six asked the question *before* the program. The models still
+     did not track the asked variable, and they often answered about the
+     variable the program ended on (Gemma accuracy 0.73 against 0.94). See
+     [reports/phase_six_question_first.md](reports/phase_six_question_first.md).
 
 5. **Measure the instrument first.** The Gemma pilots first "failed" the
    usability gate (P0 0.52 and 0.25) because the models answer `"5\n"` and
@@ -132,6 +136,7 @@ boundaries.
 | Phase Three site survey (closed at Stage 0) | `reports/phase_three_stage0.md`, `protocols/phase_three_brief.md` | Phase Three |
 | Phase Four boundary survey (closed) | `reports/phase_four_trace.md`, `protocols/phase_four_brief.md` | Phase Four |
 | Phase Five nonlinear probes (closed) | `reports/phase_five_nonlinear.md`, `protocols/phase_five_brief.md` | Phase Five |
+| Phase Six question-first prompts (closed at Stage 0) | `reports/phase_six_question_first.md`, `protocols/phase_six_brief.md` | Phase Six |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -165,12 +170,18 @@ manifest hashes.
 
    Run these only if the paper needs them, each frozen first.
 
-3. **If the state question is pursued again, change the task.** Phases
-   Three to Five showed that, on this task, these models don't hold a
-   readable state, neither while reading nor at the end, for linear and
-   small nonlinear probes alike. A new brief would need a task that forces
-   state to be kept, for example several questions about one program. It
-   must not reuse the Phase Three–Five surveys to pick sites after the fact.
+3. **If the state question is pursued again, make recomputation
+   impossible.** Phases Three to Six showed that, on this task, these models
+   hold no readable state:
+   - neither while reading nor at the end;
+   - for linear and small nonlinear probes alike;
+   - even when told the question in advance.
+
+   Moving the question was not enough. A short program can always be
+   re-read at answer time. A new brief needs a task where that fails, for
+   example programs too long to recompute in one pass, or a program the
+   model cannot see once the question arrives. It must not reuse the Phase
+   Three–Six surveys to pick sites after the fact.
 
 **Not recommended:**
 
@@ -191,7 +202,7 @@ manifest hashes.
 
 - **Code and branches.** `research/open_weight_lingua/`, in the worktree
   at `~/projects/universa-recurrent-gemma`. Each phase gets its own branch
-  (`phase-three-state`, `phase-four-trace`, `phase-five-nonlinear`). `main`
+  (`phase-three-state` … `phase-six-question-first`). `main`
   merges each branch with `--no-ff` once its report is in.
 - **Discipline.** Every measurement is frozen first: protocol, predictions
   and code are committed and pushed *before* any model forward. Each runs
@@ -206,13 +217,14 @@ manifest hashes.
   - `scripts/run_edit_foreign_control.sh` for D5;
   - `scripts/run_edit_consistency_dose.sh` for D6;
   - `scripts/run_state_survey.sh`, `scripts/run_state_trace_survey.sh` and
-    `scripts/run_state_nonlinear.sh` for Phases Three, Four and Five.
+    `scripts/run_state_nonlinear.sh` for Phases Three, Four and Five;
+  - `scripts/run_state_question_first.sh` for Phase Six.
 - **Audits.** Each module also takes `--audit <run-dir>`, as does
   `python -m open_weight_lingua.audit <run-dir>` for pilots.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (268 pass, 1 skip);
+    (274 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about

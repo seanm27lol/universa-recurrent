@@ -50,6 +50,12 @@ at the end of the program or at any statement boundary, on either family. The
 "no readable state" conclusion now covers small nonlinear readouts too. See
 [reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
 
+**Phase Six closed at Stage 0 (2026-10-05).** With the question asked before the
+program, both models answer less accurately (Gemma 0.73 against 0.94), often giving the
+value of whichever variable the program ends on. Probes show no sign that knowing the
+question in advance makes the asked variable tracked. See
+[reports/phase_six_question_first.md](reports/phase_six_question_first.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
