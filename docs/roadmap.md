@@ -94,6 +94,18 @@ harder on this task is unlikely to change the answer; a next phase should
 change the task so that state must be kept. See
 [the Phase Five report](../research/open_weight_lingua/reports/phase_five_nonlinear.md).
 
+## Phase-six status: closed at Stage 0, 2026-10-05
+
+Phase Six moved the question before the program, so the models know what
+to track while reading. They did not track it. The asked and the not-asked
+variable read alike at every line, and the asked value still appears only
+at the answer position. Accuracy dropped, mostly because the models
+answered about the variable the program ended on. The usability gate failed,
+so the phase closed. On this task the state question is now answered from
+four angles. A further phase would need a task in which recomputing at
+answer time is impossible. See
+[the Phase Six report](../research/open_weight_lingua/reports/phase_six_question_first.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
