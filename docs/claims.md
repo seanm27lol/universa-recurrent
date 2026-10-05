@@ -334,19 +334,44 @@ primary model as predicted, so the phase closed. See
 
 ## Phase Six: does asking the question first make the model track the variable? (2026-10-05, closed at Stage 0)
 
-Phase Six asked the same 1,536 prompts with the question before the program,
-so the model knows which variable matters while reading. The brief
+Phase Six used the same 1,536 program/question pairs, moved the question
+before the program and added "at the end of this program" to its wording.
+The question names the variable before the program, but this combined
+intervention does not isolate position from wording. The brief
 ([protocols/phase_six_brief.md](../research/open_weight_lingua/protocols/phase_six_brief.md),
 frozen at 1c61018) set a usability gate U6, gate G6 and effect E6 before any
 forward. U6 failed on the primary model, contrary to prediction, so G6 and E6
 are void and the phase closed. See
 [reports/phase_six_question_first.md](../research/open_weight_lingua/reports/phase_six_question_first.md).
 
+**Interpretation review, 2026-10-05:** this section corrects the conclusions
+recorded at `c4a6e73`; the run numbers, thresholds and closed outcomes are
+unchanged. The pilot is held out from current probe fitting and selection,
+but was examined in previous phases. Groups and complete programs are
+disjoint across splits; some intermediate token prefixes are shared.
+
 | Statement | Status | Evidence and boundary |
 |---|---|---|
 | The question-first format is usable (U6: Gemma-3-12B accuracy ≥ 0.80) | NOT SUPPORTED (frozen; prediction was that it passes) | Gemma-3-12B run p6-question-first-gemma3-12b-20261004T231457Z-96041d06: 0.729 question first against 0.944 question after on the same 1,536 prompts; the question-after pilot split reproduces P0 exactly (487/512). Qwen2.5-7B (reported only, p6-question-first-qwen2.5-7b-20261004T235340Z-4f429ce9): 0.502 against 0.810, P0 reproduced (415/512) |
-| Knowing the question first makes the asked variable readable at statement boundaries (G6, E6) | VOID (U6 failed); descriptively, no effect | Asked minus not-asked arithmetic-result accuracy on the same programs: Gemma +0.014 [−0.014, +0.043], Qwen +0.016 [−0.006, +0.039]; carried computed values at most 0.123. At the program's last token the asked final value reads 0.301/0.180 (Gemma), level with the variable not asked; it appears only at the answer position. Linear probes, one question wording |
-| With the question first, errors follow the program's last line | Observed post hoc (descriptive; never gating) | When the last line assigns the other variable, question-first accuracy falls to 0.539 (Gemma) and 0.337 (Qwen), and the models answer with the other variable's value 35.2% and 25.3% of the time; question after, 0.965 and 0.861. When the last line assigns the asked variable, accuracy is unchanged (0.918 against 0.923 for Gemma). One wording; "at the end of this program" may itself draw attention to the last line |
+| Knowing the question first makes the asked variable readable at statement boundaries (G6, E6) | VOID (U6 failed); descriptive intervals leave small effects unresolved | Asked minus not-asked arithmetic-result accuracy on the same programs: Gemma +0.014 [−0.014, +0.043], Qwen +0.016 [−0.006, +0.039]; carried computed values at most 0.123. At the program's last token the asked final value reads 0.301/0.180 (Gemma); readout is stronger at the answer position. These limited probes do not establish equivalence, absent state or a unique computation time |
+| In the new format, errors are associated with the program's last assignment | Observed post hoc (descriptive; never gating) | When the last line assigns the other variable, question-first accuracy falls to 0.539 (Gemma) and 0.337 (Qwen), and answers equal that variable's value 35.2% and 25.3% of the time; question after, accuracy is 0.965 and 0.861. When the last line assigns the asked variable, Gemma is similar across formats (0.918 versus 0.923), while Qwen falls to 0.667 from 0.759. Other-variable answers account for 65% of all Gemma errors but only 28% of Qwen errors. Position and wording changed together; this association does not identify an internal mechanism |
+| These surveys prove that state is absent and answers are computed only at the answer position | NOT ESTABLISHED | Better probe readout near the answer is compatible with computation or retrieval there, but also with state stored at other sites or in codes the probes miss. Answer errors do not prove that a value was unavailable. The reused pilot makes this an exploratory survey; no causal state-removal intervention was run |
+
+## Phase Six readout sensitivity audit (2026-10-05, CPU, exploratory)
+
+The [saved-feature audit](../research/open_weight_lingua/reports/phase_six_readout_audit.md)
+compares the frozen categorical ridge readout with affine categorical and
+affine scalar variants on the existing Phase Six activations. Alpha and
+layer choices still use the selection split only. The pilot has already
+been examined; this is instrument characterization, not a new confirmatory
+experiment. Phase Six's failed U6 and void G6/E6 remain unchanged.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| A low score from frozen categorical ridge rules out a perfectly linear scalar state | FALSE on a constructed control | With integers 0–19 stored directly in one coordinate, frozen and affine one-hot readouts score 0.100; affine scalar scores 1.000 at the tested alpha values ≤ 1. The noiseless support is reused in reverse row order: an algebraic sensitivity check, not generalization evidence |
+| An intercept can matter to this readout | Demonstrated on a constructed control | On the imbalanced affine-separable binary fixture, frozen one-hot scores 0.650 and both affine variants score 1.000. This does not isolate an intercept effect in the model activations, where alpha and layer are selected separately per method |
+| Alternative readouts recover a reliable running state from the saved Phase Six activations | NOT SUPPORTED at the historical thresholds | Selected arithmetic x/y scores for scalar versus frozen readout: Gemma 0.250/0.285 versus 0.103/0.228; Qwen 0.309/0.241 versus 0.154/0.254. Some scores improve, while carried-value and final-value scalar readout are weaker. No method meets both-variable R1/R2 thresholds; this is descriptive, without a new significance test |
+| The CPU replay reproduces the original probe results | Independently checked numerical replay | All 7,828 original numeric grid entries match exactly. All saved predictions were rescored and all layer choices recomputed; six alpha fits were independently reconstructed at three boundary layers per family for asked x/y under all three methods. Other fits were not independently refitted. This validates the recorded readout calculations, not causal use or absence of state |
 
 ## Completed phase-one findings (2026-09-16)
 

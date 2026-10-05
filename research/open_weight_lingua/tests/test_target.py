@@ -8,11 +8,69 @@ from open_weight_lingua.target import (
     Target,
     Site,
     block_hook,
+    generation_eos_token_ids,
     last_nonpadding,
     output_tensor,
     pad_to_bucket,
     replace_output,
 )
+
+
+@pytest.mark.parametrize("declared", ([2, 7], 7))
+def test_greedy_stops_on_declared_model_eos_before_continuing(declared, model_factory, tokenizer, monkeypatch):
+    """An alternative model EOS must end the answer without another forward."""
+    target = Target(model_factory(), tokenizer)
+    target.model.generation_config.eos_token_id = declared
+    continuation = iter([11, 19, 7])  # "19", then EOS 7 (tokenizer EOS is 2).
+    calls = []
+
+    def scripted_forward(ids, mask, *args):
+        calls.append(int(mask.sum()))
+        logits = torch.full((1, TARGET_BUCKET, 32), -100.0)
+        logits[:, :, next(continuation)] = 100.0  # an extra forward would fail
+        return logits
+
+    monkeypatch.setattr(target, "forward", scripted_forward)
+    ids, mask = target.tensors([[3, 4, 5]], [[1, 1, 1]])
+    result = target.greedy(ids, mask, Site(1, 2))
+    assert result == {"text": "19", "token_ids": [11, 19, 7], "terminated": True}
+    assert calls == [3, 4, 5]
+
+
+@pytest.mark.parametrize("missing_config", (False, True))
+def test_greedy_uses_tokenizer_eos_when_model_declaration_missing(missing_config, model_factory, tokenizer, monkeypatch):
+    target = Target(model_factory(), tokenizer)
+    if missing_config:
+        target.model.generation_config = None
+    else:
+        target.model.generation_config.eos_token_id = None
+    continuation = iter([11, 2])
+
+    def scripted_forward(ids, mask, *args):
+        logits = torch.full((1, TARGET_BUCKET, 32), -100.0)
+        logits[:, :, next(continuation)] = 100.0
+        return logits
+
+    monkeypatch.setattr(target, "forward", scripted_forward)
+    ids, mask = target.tensors([[3]], [[1]])
+    result = target.greedy(ids, mask, Site(1, 0))
+    assert result == {"text": "1", "token_ids": [11, 2], "terminated": True}
+
+
+def test_model_eos_declaration_takes_precedence_over_tokenizer(model_factory, tokenizer):
+    model = model_factory()
+    model.generation_config.eos_token_id = [7, 8, 7]
+    assert generation_eos_token_ids(model, tokenizer) == frozenset({7, 8})
+    model.generation_config.eos_token_id = []
+    assert generation_eos_token_ids(model, tokenizer) == frozenset()
+
+
+@pytest.mark.parametrize("invalid", (True, -1, "2", [2, None], [2, -1]))
+def test_invalid_model_eos_declaration_fails_loudly(invalid, model_factory, tokenizer):
+    model = model_factory()
+    model.generation_config.eos_token_id = invalid
+    with pytest.raises(ValueError, match="generation EOS"):
+        generation_eos_token_ids(model, tokenizer)
 
 
 def test_index_native_restoration_two_inputs(model_factory, tokenizer):
