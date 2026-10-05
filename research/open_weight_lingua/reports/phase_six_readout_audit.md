@@ -164,3 +164,71 @@ The next prompt experiment must also separate question wording from
 position; the reviewed [Phase Six report](phase_six_question_first.md)
 explains why its existing comparison cannot do that. Any new experiment
 needs its own design and evidence, separate from this completed CPU audit.
+
+## Independent cross-check with a second implementation (2026-10-05, CPU, exploratory)
+
+A second review session refit the readouts with separately written code,
+`scripts/probe_family_cross_check.py`, which imports none of this audit's
+modules. It reads the same saved activations, chooses settings on the
+selection split and treats pilot scores as exploratory. Outputs are kept
+locally in `runs/review-probe-cross-check-20261005/` (Gemma JSON
+`a5b06d5f9d89…`, Qwen `f3038a752126…`). That run took 57 min (Gemma) and
+37 min (Qwen) on 8 CPU threads each.
+
+**Agreement.** Where the two implementations fit the same readout, the pilot
+scores match to three decimals:
+- the frozen one-hot readings (for example Gemma R1 0.653 / 0.379, R2
+  0.103 / 0.228);
+- the affine scalar readings (Gemma R2 0.250 / 0.285 at layer 18, carried
+  0.468 / 0.173 at layer 29);
+- the scalar answer-position values (0.230 / 0.344);
+- the 390 of 1,740 boundaries whose prefix also occurs in training, 8 of
+  them arithmetic.
+
+It also adds four checks this audit did not run.
+
+1. **A logistic affine classifier:** multinomial logistic regression with an
+   intercept, L2-penalized, on standardized inputs. It does not beat the
+   frozen readout on the running state.
+   - Gemma, asked variable: arithmetic 0.213 / 0.246 at layer 19, carried
+     0.441 / 0.282.
+   - Qwen: arithmetic 0.169 / 0.241, carried 0.590 / 0.323.
+   - At the answer position it matches the ridge readouts: Gemma, question
+     after, 0.949 / 0.918.
+2. **A planted code in the real activations.** At the middle layer
+   (Gemma 24, Qwen 14), the true running value was added to the
+   question-after boundary activations, as a one-hot or a scalar direction.
+   Strength is the planted norm relative to the mean centred activation
+   norm. These are held-out accuracies over all boundaries, x / y, Gemma;
+   Qwen is similar.
+
+   | Planted code, strength | 0 | 0.02 | 0.04 | 0.08 |
+   |---|---|---|---|---|
+   | One-hot, frozen one-hot readout | 0.46 / 0.44 | 0.88 / 0.86 | 1.00 / 0.99 | 1.00 / 1.00 |
+   | One-hot, logistic readout | 0.43 / 0.47 | 0.68 / 0.68 | 0.92 / 0.91 | 0.99 / 0.99 |
+   | Scalar, frozen one-hot readout | 0.46 / 0.44 | 0.47 / 0.45 | 0.47 / 0.45 | 0.47 / 0.45 |
+   | Scalar, logistic readout | 0.43 / 0.47 | 0.44 / 0.48 | 0.47 / 0.49 | 0.50 / 0.51 |
+   | Scalar, affine scalar readout | 0.38 / 0.38 | 0.58 / 0.56 | 0.78 / 0.78 | 0.95 / 0.96 |
+
+   The frozen readout would have caught a categorical code of a few percent
+   of the activation norm. It is blind to a magnitude code at every
+   strength tested, and so is the logistic classifier. This is the
+   constructed-control finding above, reproduced in realistic noise.
+3. **Asked minus not-asked arithmetic accuracy, per readout,** with
+   whole-group 95% intervals. Every interval spans zero.
+   - Gemma: frozen +0.014 [−0.014, +0.043]; logistic −0.003
+     [−0.020, +0.015]; scalar +0.038 [−0.011, +0.091].
+   - Qwen: +0.016, +0.000 and +0.008.
+4. **Question-after boundaries** (Phase Five's re-capture).
+   - 195 of 870 held-out boundaries share a training prefix, 8 of them
+     arithmetic.
+   - On the 356 arithmetic boundaries with novel prefixes, accuracy is
+     0.15–0.18 for the categorical readouts and 0.247 (Gemma) / 0.236
+     (Qwen) for the scalar readout.
+   - Prefix reuse does not drive the arithmetic scores.
+
+Together these sharpen the bound. A categorical running-state code of more
+than a few percent of the activation norm would very likely have been read.
+A magnitude code would not have been read by the original instrument. The
+scalar readout, which can read one, reaches only 0.19–0.31 on arithmetic
+results across both models and both question formats. Neither result establishes that state is absent.

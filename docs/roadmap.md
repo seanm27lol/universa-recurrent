@@ -79,9 +79,9 @@ stay unopened. See
 Phase Four checked whether the state is tracked while the program is read.
 At every statement boundary, the models hold the literal written on that
 line. Results of arithmetic barely register, and values carried from
-earlier lines are essentially absent. Its gate failed, as predicted. With
-Phase Three, this is the finding: on this task the models compute answers
-on demand and keep no readable running state. See
+earlier lines barely register. Its gate failed, as predicted. With Phase
+Three, the probes recovered no readable running state on this task. That
+is a limit on these readouts, not proof that no state is kept. See
 [the Phase Four report](../research/open_weight_lingua/reports/phase_four_trace.md).
 
 ## Phase-five status: closed after its survey, 2026-10-04
@@ -89,22 +89,28 @@ on demand and keep no readable running state. See
 Phase Five asked whether the state is there but nonlinear, as with
 Othello-GPT's board. A small MLP probe, under the same rules, read about
 what the linear probes read: the literal on the current line, and the
-asked value after the question. Its gate failed, as predicted. Probing
-harder on this task is unlikely to change the answer; a next phase should
-change the task so that state must be kept. See
+asked value after the question. Its gate failed, as predicted. Later
+review showed that the original readout cannot see a magnitude code (see
+the readout audit), so the limit is on the tested probes. See
 [the Phase Five report](../research/open_weight_lingua/reports/phase_five_nonlinear.md).
 
 ## Phase-six status: closed at Stage 0, 2026-10-05
 
-Phase Six moved the question before the program, so the models know what
-to track while reading. They did not track it. The asked and the not-asked
-variable read alike at every line, and the asked value still appears only
-at the answer position. Accuracy dropped, mostly because the models
-answered about the variable the program ended on. The usability gate failed,
-so the phase closed. On this task the state question is now answered from
-four angles. A further phase would need a task in which recomputing at
-answer time is impossible. See
+Phase Six moved the question before the program and reworded it. The
+asked and the not-asked variable read alike at every line within small,
+unresolved margins. Of the positions probed, the asked value reads best at
+the answer. Accuracy dropped and the usability gate failed, so the phase
+closed. See
 [the Phase Six report](../research/open_weight_lingua/reports/phase_six_question_first.md).
+
+## Phase-seven status: exploratory factorial complete, 2026-10-05
+
+Phase Seven crossed question position with wording on the same programs.
+Qwen's Phase Six loss is a position effect. Gemma's is a smaller position
+effect plus a wording × position interaction. A confirmatory 2×2 on the
+reserved `validation_a`, frozen before that split is opened, is the next
+step. See
+[the Phase Seven report](../research/open_weight_lingua/reports/phase_seven_prompt_factorial.md).
 
 ## Original project stages (not a new run list)
 
