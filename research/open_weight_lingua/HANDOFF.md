@@ -1,4 +1,4 @@
-# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-04 (updated after Phase Six)
+# Handoff: what the open-weight NLA assay has shown, and what to do next — 2026-10-05 (Phase Six review)
 
 ```text
 x = 3
@@ -21,6 +21,13 @@ Autoencoder (NLA) pairs for three model families. This page says what it has
 established, points to the evidence, and ranks the next steps. Every claim
 here is in [docs/claims.md](../../docs/claims.md) with its run IDs and
 boundaries.
+
+**Review update — 2026-10-05.** The state-survey interpretation below was
+narrowed after review of `c4a6e73`. Poor probe readout does not establish
+absent state or computation only at answer time. Phase Six also changed
+question wording and position together. The recorded results and closed
+gates remain unchanged; see the
+[Phase Six review addendum](reports/phase_six_question_first.md).
 
 ## What we can say
 
@@ -76,31 +83,41 @@ boundaries.
    Qwen, the closed steering assay's additive recipe was non-specific
    disruption.
 
-4. **The models don't seem to keep a readable state at all (Phase Three,
-   Stage 0).** We tried to build the missing state record ourselves.
-   - A frozen survey of five positions and every layer found no place where
-     Gemma-3-12B or Qwen2.5-7B linearly holds both variables' values. The
+4. **The tested probes did not meet the program-state readout thresholds.**
+   We tried to build the missing state record ourselves.
+   - A frozen survey of five positions and every layer found no surveyed
+     site where the tested probes recovered both variables at the threshold
+     for Gemma-3-12B or Qwen2.5-7B. The
      best site, the answer position, reaches 0.50 / 0.46 on Gemma against a
      0.80 gate.
    - Split by the variable asked, that site reads the asked value at
      0.93 / 0.88 and the other at chance.
-   - The values appear only after the question, late in depth. The models
-     seem to compute the answer on demand, which is why Phase Two's
-     describers predicted answers.
+   - Asked-value readout is strongest after the question, late in depth.
+     Computation or retrieval near the answer is one explanation, but
+     these observations do not establish when the value was first computed,
+     where it was stored, or why the Phase Two describer chose its wording.
    - Phase Three closed at its first gate; its validation splits are still
      unopened. See [reports/phase_three_stage0.md](reports/phase_three_stage0.md).
    - Phase Four then checked every statement boundary, while the program is
      being read. Literals on the current line read well; arithmetic results
-     read at about 0.2; carried computed values about 0. There is no running
-     state either. See [reports/phase_four_trace.md](reports/phase_four_trace.md).
+     read at about 0.2; carried computed values about 0. These probes did not
+     recover a reliable running state. See
+     [reports/phase_four_trace.md](reports/phase_four_trace.md).
    - Phase Five gave the state the Othello-GPT chance: a small MLP probe,
-     which can read codes linear probes miss. It found no more than the
-     linear probes did, on either model. See
+     which can read codes linear probes miss. The tested MLP also failed
+     its readout thresholds on both models. See
      [reports/phase_five_nonlinear.md](reports/phase_five_nonlinear.md).
-   - Phase Six asked the question *before* the program. The models still
-     did not track the asked variable, and they often answered about the
-     variable the program ended on (Gemma accuracy 0.73 against 0.94). See
+   - Phase Six moved the question *before* the program and added "at the
+     end of this program" to its wording. Gemma accuracy fell to 0.73 against
+     0.94, failing usability; Qwen fell to 0.502 against 0.810. Descriptive
+     probes stayed below the planned tracking thresholds, while intervals
+     left small asked-versus-not-asked effects unresolved. Other-variable
+     answers explain most Gemma errors (65%), but only 28% of Qwen errors. See
      [reports/phase_six_question_first.md](reports/phase_six_question_first.md).
+   - These surveys reuse an already examined pilot. Groups and complete
+     programs remain separate across train/select/pilot, but some causal
+     token prefixes repeat. "Held out" refers to the current probe fit,
+     not an untouched confirmatory sample or universally novel boundary inputs.
 
 5. **Measure the instrument first.** The Gemma pilots first "failed" the
    usability gate (P0 0.52 and 0.25) because the models answer `"5\n"` and
@@ -122,6 +139,10 @@ boundaries.
   which is unauditable locally.
 - **No generality.** One toy task, integers 0–19, one site per family, and
   no locked validation run on any family.
+- **No proof of absent state or late-only computation.** Limited probe
+  families can miss a representation, and an answer can fail despite an
+  available value. Readout location alone does not identify the model's
+  computation or use of state.
 - **No relabeling.** Every closed outcome stands.
 
 ## Where the evidence is
@@ -137,6 +158,7 @@ boundaries.
 | Phase Four boundary survey (closed) | `reports/phase_four_trace.md`, `protocols/phase_four_brief.md` | Phase Four |
 | Phase Five nonlinear probes (closed) | `reports/phase_five_nonlinear.md`, `protocols/phase_five_brief.md` | Phase Five |
 | Phase Six question-first prompts (closed at Stage 0) | `reports/phase_six_question_first.md`, `protocols/phase_six_brief.md` | Phase Six |
+| Phase Six saved-feature probe sensitivity audit (CPU, exploratory) | `reports/phase_six_readout_audit.md` | Phase Six readout sensitivity audit |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -146,17 +168,33 @@ manifest hashes.
 
 ## What to do next, ranked
 
-1. **Optionally add Phase Three to the paper** (`paper/nla_three_families.md`,
+1. **Use the completed CPU instrument audit to bound the readout claims.**
+   The [saved-feature audit](reports/phase_six_readout_audit.md) reproduces
+   the original scores and shows that scalar regression can recover a known
+   numeric encoding missed by categorical ridge. On the captured activations,
+   some arithmetic scores improve, but none of the tested methods meets the
+   tracking thresholds. This is useful instrument characterization, with no
+   new gate or significance claim. Keep reserved validation unopened.
+2. **Separate wording from position in a matched follow-up.** Compare both
+   the original and expanded question at both positions, keeping programs,
+   scoring and model settings fixed. Specify the comparisons and stopping
+   rules before collecting new outputs. This can distinguish the prompt
+   factors; it would still need separate evidence to identify storage,
+   retrieval or recomputation. The
+   [Phase Seven v1 design](protocols/phase_seven_prompt_factorial_v1.md)
+   prepares this comparison; its launch freeze and model results are separate
+   from the completed CPU audit.
+3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
      2026-10-03/04).
-   - Phase Three's Stage 0 is a natural explanatory section: the models hold
-     only the asked value, late, which is why the released describers
-     predict answers.
+   - Phase Three's Stage 0 can describe where its probes recover the asked
+     value, with the limits of the readout made explicit. It does not by
+     itself explain why the released describers predict answers.
    - `tests/test_paper_numbers.py` fails if the paper cites a number that is
      not in a declared source. Add `reports/phase_three_stage0.md` to its
      `sources:` header before quoting it.
-2. **Consider the edit-channel line closed.**
+4. **Consider the edit-channel line closed.**
    - D5 (2026-10-03) answered the open question: the effect does not need the
      receiver's own activation.
    - D6 (2026-10-03) gave the mechanism: near-total agreement is needed.
@@ -170,18 +208,11 @@ manifest hashes.
 
    Run these only if the paper needs them, each frozen first.
 
-3. **If the state question is pursued again, make recomputation
-   impossible.** Phases Three to Six showed that, on this task, these models
-   hold no readable state:
-   - neither while reading nor at the end;
-   - for linear and small nonlinear probes alike;
-   - even when told the question in advance.
-
-   Moving the question was not enough. A short program can always be
-   re-read at answer time. A new brief needs a task where that fails, for
-   example programs too long to recompute in one pass, or a program the
-   model cannot see once the question arrives. It must not reuse the Phase
-   Three–Six surveys to pick sites after the fact.
+Longer-term tests could restrict access to earlier program information and
+intervene on the retained representation to distinguish storage, retrieval
+and recomputation. That mechanism question remains open. Such a design
+needs its own controls and must not reuse the Phase Three–Six surveys to
+choose sites after seeing the outcomes.
 
 **Not recommended:**
 
@@ -219,8 +250,10 @@ manifest hashes.
   - `scripts/run_state_survey.sh`, `scripts/run_state_trace_survey.sh` and
     `scripts/run_state_nonlinear.sh` for Phases Three, Four and Five;
   - `scripts/run_state_question_first.sh` for Phase Six.
-- **Audits.** Each module also takes `--audit <run-dir>`, as does
-  `python -m open_weight_lingua.audit <run-dir>` for pilots.
+- **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
+  Audit interfaces differ across the diagnostic and survey modules;
+  `state_question_first` does not implement an `--audit` option. Check the
+  specific module's interface rather than assuming that option is shared.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
