@@ -107,10 +107,15 @@ closed. See
 
 Phase Seven crossed question position with wording on the same programs.
 Qwen's Phase Six loss is a position effect. Gemma's is a smaller position
-effect plus a wording × position interaction. A confirmatory 2×2 on the
-reserved `validation_a`, frozen before that split is opened, is the next
-step. See
+effect plus a wording × position interaction. See
 [the Phase Seven report](../research/open_weight_lingua/reports/phase_seven_prompt_factorial.md).
+
+## Phase-seven confirmatory: all six hypotheses supported, 2026-10-06
+
+A 2×2 frozen before the reserved `validation_a` split was opened replicated
+the attribution on unseen data. Gemma's wording effects came out smaller
+than in the exploratory run. `validation_b` remains reserved. See
+[the confirmatory report](../research/open_weight_lingua/reports/phase_seven_confirmatory.md).
 
 ## Original project stages (not a new run list)
 
