@@ -65,6 +65,12 @@ resolved wording effect). Gemma's is position (−0.097) plus a wording × posit
 interaction (−0.105): "at the end of this program" hurts only when it comes first. See
 [reports/phase_seven_prompt_factorial.md](reports/phase_seven_prompt_factorial.md).
 
+**Phase Seven confirmed on unseen data (2026-10-06).** All six frozen hypotheses held on
+the reserved `validation_a` split. Qwen loses about 30 points from question position,
+with wording effects shown to be under 5 points. Gemma loses about 11 points from
+position plus a smaller wording × position interaction (−0.076). See
+[reports/phase_seven_confirmatory.md](reports/phase_seven_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
