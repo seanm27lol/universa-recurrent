@@ -65,6 +65,12 @@ resolved wording effect). Gemma's is position (−0.097) plus a wording × posit
 interaction (−0.105): "at the end of this program" hurts only when it comes first. See
 [reports/phase_seven_prompt_factorial.md](reports/phase_seven_prompt_factorial.md).
 
+**Phase Seven confirmed on unseen data (2026-10-06).** All six frozen hypotheses held on
+the reserved `validation_a` split. Qwen loses about 30 points from question position,
+with wording effects shown to be under 5 points. Gemma loses about 11 points from
+position plus a smaller wording × position interaction (−0.076). See
+[reports/phase_seven_confirmatory.md](reports/phase_seven_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -355,6 +361,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [state_trace_survey.py](src/open_weight_lingua/state_trace_survey.py) | Phase Four ([brief](protocols/phase_four_brief.md)): probes at every statement boundary for x's and y's values as of that line, by category (literal, arithmetic, copy or carried update), GPU float64 ridge probes, frozen readings R1/R2 and gate G4 |
 | [state_nonlinear.py](src/open_weight_lingua/state_nonlinear.py) | Phase Five ([brief](protocols/phase_five_brief.md)): one-hidden-layer MLP probes on Phase Three's saved activations (Part A) and on Phase Four's re-captured statement boundaries (Part B), under the same site and layer rules, with a permuted-label control at every selected site; gates G5a, G5b, G5 |
 | [state_question_first.py](src/open_weight_lingua/state_question_first.py) | Phase Six ([brief](protocols/phase_six_brief.md)): the same programs with the question asked first; greedy answers in both formats (gate U6), Phase Four's boundary probes for the asked and the not-asked variable, readings R1/R2 and gate G6, and the paired question effect E6 with a whole-group bootstrap |
+| [prompt_factorial.py](src/open_weight_lingua/prompt_factorial.py), [prompt_factorial_run.py](src/open_weight_lingua/prompt_factorial_run.py) | Phase Seven exploratory factorial ([protocol](protocols/phase_seven_prompt_factorial_v1.md)): question position × wording plus a repeat diagnostic on reused calibration/pilot programs; stimuli builder, runner and frozen evaluator |
+| [prompt_factorial_confirm.py](src/open_weight_lingua/prompt_factorial_confirm.py) | Phase Seven confirmatory 2×2 on the reserved validation_a split ([protocol](protocols/phase_seven_confirmatory_validation_a.md)): plan-hash-bound stimuli, greedy answers with multi-EOS stopping, six Bonferroni-controlled hypotheses with a whole-group bootstrap |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

@@ -393,6 +393,25 @@ frozen at 210bffb) fixed five primary contrasts per model with Bonferroni
 | Restating the question after the program repairs the loss | Gemma: largely; Qwen: partly (diagnostic, 95%) | Before-and-after minus after-only: Gemma −0.016 [−0.030, −0.002], Qwen −0.104 [−0.128, −0.080]; minus before-only: +0.081 and +0.198 |
 | The two Phase Six formats reproduce under the multi-EOS fix | Checked | Gemma: identical texts, 1,536/1,536 in both. Qwen: identical except 13 answers that previously continued past `<|endoftext|>`; none changes score under `raw` |
 
+## Phase Seven confirmatory: validation_a (2026-10-06)
+
+Six hypotheses from the exploratory factorial were frozen
+([protocols/phase_seven_confirmatory_validation_a.md](../research/open_weight_lingua/protocols/phase_seven_confirmatory_validation_a.md),
+at 7b5210f) before the reserved `validation_a` split (256 groups, 1,024
+base prompts per family) was opened. They were tested once, with 99.17%
+Bonferroni whole-group bootstrap intervals. See
+[reports/phase_seven_confirmatory.md](../research/open_weight_lingua/reports/phase_seven_confirmatory.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| G1: Gemma-3-12B answers less accurately with the question before the program | SUPPORTED (confirmatory) | Run p7-confirm-gemma3-12b-20261006T015135Z-22d1a992: original wording, before − after −0.114 [−0.151, −0.078]; beyond the 5-point reference |
+| G2: with the question first, Gemma's expanded wording lowers accuracy | SUPPORTED (confirmatory) | −0.080 [−0.125, −0.035]; smaller than the exploratory −0.118 and not shown to exceed 5 points |
+| G3: Gemma's wording harm depends on position | SUPPORTED (confirmatory) | Interaction −0.076 [−0.123, −0.031]; smaller than the exploratory −0.105 and not shown to exceed 5 points |
+| Q1: Qwen2.5-7B answers less accurately with the question before the program | SUPPORTED (confirmatory) | Run p7-confirm-qwen2.5-7b-20261006T023616Z-84ec0111: −0.302 [−0.348, −0.255]; beyond the 5-point reference. Relaunched once after an external SIGKILL in the pre-run test suite, before any data or model was touched |
+| Q2: Qwen's wording effect with the question first is smaller than 5 points | SUPPORTED (confirmatory equivalence) | −0.001 [−0.046, +0.042] |
+| Q3: Qwen's position effect does not depend on wording by 5 points or more | SUPPORTED (confirmatory equivalence) | −0.005 [−0.049, +0.038], narrowly inside the margin |
+| Question-first errors concentrate where the program ends on the other variable | Supported (pre-specified secondary, 95%) | Last-line concentration, original/expanded wording: Gemma −0.111 [−0.170, −0.053] and −0.412 [−0.475, −0.348]; Qwen −0.334 [−0.418, −0.248] and −0.430 [−0.510, −0.352]. Behaviour only; not evidence about internal storage |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
