@@ -71,6 +71,15 @@ with wording effects shown to be under 5 points. Gemma loses about 11 points fro
 position plus a smaller wording × position interaction (−0.076). See
 [reports/phase_seven_confirmatory.md](reports/phase_seven_confirmatory.md).
 
+**Phase Eight: where the answer reads the program (2026-10-06, confirmed on validation_b).**
+Attention knockout shows that both models must look back at the program tokens after
+reading the question, by different routes. Qwen's answer position reads them in layers
+21–23 of 28; blocking that costs 57 points of digit accuracy. Gemma's answer positions
+never need them directly; its question tokens read them in layers 24–29 of 48, and
+blocking that costs 75 points. All six pre-registered claims held. See
+[reports/phase_eight_knockout.md](reports/phase_eight_knockout.md) and
+[reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
