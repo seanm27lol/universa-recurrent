@@ -117,6 +117,15 @@ the attribution on unseen data. Gemma's wording effects came out smaller
 than in the exploratory run. `validation_b` remains reserved. See
 [the confirmatory report](../research/open_weight_lingua/reports/phase_seven_confirmatory.md).
 
+## Phase-eight status: answer routing confirmed, 2026-10-06
+
+Attention knockout located where each model's answer consults the program:
+Qwen's answer position in layers 21–23, Gemma's question tokens in layers
+24–29. All six claims frozen from the exploratory run held on
+`validation_b`. Both reserved validation blocks are now spent. Which program
+tokens are read (raw statements or stored state) is the open next question.
+See [the Phase Eight confirmatory report](../research/open_weight_lingua/reports/phase_eight_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

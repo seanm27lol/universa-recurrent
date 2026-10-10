@@ -71,6 +71,15 @@ with wording effects shown to be under 5 points. Gemma loses about 11 points fro
 position plus a smaller wording × position interaction (−0.076). See
 [reports/phase_seven_confirmatory.md](reports/phase_seven_confirmatory.md).
 
+**Phase Eight: where the answer reads the program (2026-10-06, confirmed on validation_b).**
+Attention knockout shows that both models must look back at the program tokens after
+reading the question, by different routes. Qwen's answer position reads them in layers
+21–23 of 28; blocking that costs 57 points of digit accuracy. Gemma's answer positions
+never need them directly; its question tokens read them in layers 24–29 of 48, and
+blocking that costs 75 points. All six pre-registered claims held. See
+[reports/phase_eight_knockout.md](reports/phase_eight_knockout.md) and
+[reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -363,6 +372,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [state_question_first.py](src/open_weight_lingua/state_question_first.py) | Phase Six ([brief](protocols/phase_six_brief.md)): the same programs with the question asked first; greedy answers in both formats (gate U6), Phase Four's boundary probes for the asked and the not-asked variable, readings R1/R2 and gate G6, and the paired question effect E6 with a whole-group bootstrap |
 | [prompt_factorial.py](src/open_weight_lingua/prompt_factorial.py), [prompt_factorial_run.py](src/open_weight_lingua/prompt_factorial_run.py) | Phase Seven exploratory factorial ([protocol](protocols/phase_seven_prompt_factorial_v1.md)): question position × wording plus a repeat diagnostic on reused calibration/pilot programs; stimuli builder, runner and frozen evaluator |
 | [prompt_factorial_confirm.py](src/open_weight_lingua/prompt_factorial_confirm.py) | Phase Seven confirmatory 2×2 on the reserved validation_a split ([protocol](protocols/phase_seven_confirmatory_validation_a.md)): plan-hash-bound stimuli, greedy answers with multi-EOS stopping, six Bonferroni-controlled hypotheses with a whole-group bootstrap |
+| [answer_knockout.py](src/open_weight_lingua/answer_knockout.py) | Phase Eight ([brief](protocols/phase_eight_knockout_brief.md)): attention knockout from each grid layer onward, blocking the answer positions or every post-program position from reading the program tokens; teacher-forced digit accuracy, a bitwise no-op control, and the release layer per model |
+| [answer_knockout_confirm.py](src/open_weight_lingua/answer_knockout_confirm.py) | Phase Eight confirmatory ([protocol](protocols/phase_eight_confirmatory_validation_b.md)): the six pre-registered knockout claims on the reserved validation_b split, plan-hash-bound stimuli, bitwise no-op control, Bonferroni whole-group bootstrap on per-prompt accuracy loss |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
