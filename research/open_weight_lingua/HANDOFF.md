@@ -123,6 +123,12 @@ gates remain unchanged; see the
      A frozen 2×2 on the reserved `validation_a` split confirmed all six
      claims, with Gemma's wording effects smaller (about −0.08). See
      [reports/phase_seven_confirmatory.md](reports/phase_seven_confirmatory.md).
+   - Phase Eight intervened instead of probing. Attention knockout shows
+     that both models must look back at the program tokens after reading
+     the question: Qwen's answer position in layers 21–23 of 28, Gemma's
+     question tokens in layers 24–29 of 48 (Gemma's answer positions never
+     need the program directly). It was confirmed on `validation_b`. See
+     [reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -147,9 +153,9 @@ gates remain unchanged; see the
   and numerics differ: the 27B AV is float32-native and was served BF16,
   which is unauditable locally.
 - **No generality.** One toy task, integers 0–19, one site per family, and
-  no locked NLA validation run on any family. (`validation_a` has since been
-  used by the behavioural Phase Seven confirmatory study, not by the NLA
-  pipeline.)
+  no locked NLA validation run on any family. (Both validation blocks have
+  since been used by the Phase Seven and Phase Eight confirmatory studies,
+  not by the NLA pipeline.)
 - **No proof of absent state or late-only computation.** Limited probe
   families can miss a representation, and an answer can fail despite an
   available value. Readout location alone does not identify the model's
@@ -172,6 +178,7 @@ gates remain unchanged; see the
 | Phase Six saved-feature probe sensitivity audit (CPU, exploratory), with an independent cross-check | `reports/phase_six_readout_audit.md` | Phase Six readout sensitivity audit |
 | Phase Seven position × wording factorial (exploratory) | `reports/phase_seven_prompt_factorial.md`, `protocols/phase_seven_prompt_factorial_v1.md` | Phase Seven |
 | Phase Seven confirmatory 2×2 on validation_a | `reports/phase_seven_confirmatory.md`, `protocols/phase_seven_confirmatory_validation_a.md` | Phase Seven confirmatory |
+| Phase Eight attention knockout (exploratory, then confirmatory on validation_b) | `reports/phase_eight_knockout.md`, `reports/phase_eight_confirmatory.md`, `protocols/phase_eight_*` | Phase Eight |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -188,15 +195,17 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. It used no reserved data.
-2. **Phase Seven is confirmed; decide what to do with `validation_b`.**
-   - All six frozen hypotheses held on `validation_a` (2026-10-06,
-     [report](reports/phase_seven_confirmatory.md)). Qwen's loss is position
-     only. Gemma's is position plus a wording × position interaction,
-     smaller than first estimated (−0.076).
-   - `validation_b` (256 groups) is the last reserved block. Use it only
-     for a new question with its own frozen protocol, for example another
-     wording, or an intervention aimed at storage versus recomputation.
-     Do not use it to re-run this one.
+2. **Both reserved blocks are spent; the next question needs new data.**
+   - Phase Seven used `validation_a` (prompt position × wording, all six
+     claims held). Phase Eight used `validation_b` (answer routing by
+     attention knockout, all six claims held;
+     [report](reports/phase_eight_confirmatory.md)).
+   - The open question Phase Eight leaves: *which* program tokens the late
+     read uses. Is it the asked variable's own lines, or the last program
+     token, where a summary could be stored? Explore it with partial-span
+     knockouts on the reused calibration and pilot prompts first.
+   - Any confirmatory test then needs newly generated programs under a new,
+     frozen split plan with a new seed. All five Phase Two splits are used.
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -230,9 +239,9 @@ choose sites after seeing the outcomes.
 **Not recommended:**
 
 - **Locked NLA validation:** preservation already fails, and the projected
-  cost is 13.7 h (Qwen) to 53 h (Gemma-3-27B) against an 8 h budget. Only
-  `validation_b` is still unused; `validation_a` went to the Phase Seven
-  confirmatory study.
+  cost is 13.7 h (Qwen) to 53 h (Gemma-3-27B) against an 8 h budget. Both
+  reserved blocks are now used: `validation_a` by Phase Seven and
+  `validation_b` by Phase Eight.
 - **More capture positions in search of state statements:** D2 was negative,
   and it edges toward the site-shopping the Phase Two rules forbid.
 - **The 70B pair:** 141 GB does not fit in 121 GB of unified memory.
@@ -270,7 +279,10 @@ choose sites after seeing the outcomes.
     Phase Seven, with the exact frozen commands in the launch-freeze record;
   - `scripts/run_prompt_factorial_confirm.sh` and
     `python -m open_weight_lingua.prompt_factorial_confirm evaluate` for the
-    confirmatory 2×2.
+    confirmatory 2×2;
+  - `scripts/run_answer_knockout.sh` (exploratory) and
+    `scripts/run_answer_knockout_confirm.sh` plus its `evaluate` command
+    (confirmatory) for Phase Eight.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -278,7 +290,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (320 pass, 1 skip);
+    (336 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about
