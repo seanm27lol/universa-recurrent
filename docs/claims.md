@@ -412,6 +412,26 @@ Bonferroni whole-group bootstrap intervals. See
 | Q3: Qwen's position effect does not depend on wording by 5 points or more | SUPPORTED (confirmatory equivalence) | −0.005 [−0.049, +0.038], narrowly inside the margin |
 | Question-first errors concentrate where the program ends on the other variable | Supported (pre-specified secondary, 95%) | Last-line concentration, original/expanded wording: Gemma −0.111 [−0.170, −0.053] and −0.412 [−0.475, −0.348]; Qwen −0.334 [−0.418, −0.248] and −0.430 [−0.510, −0.352]. Behaviour only; not evidence about internal storage |
 
+## Phase Eight: where the answer reads the program (attention knockout, 2026-10-06)
+
+Attention from later positions to the program tokens was blocked from layer
+k onward (Geva et al. 2023). First this was exploratory, on reused
+calibration and pilot prompts
+([brief](../research/open_weight_lingua/protocols/phase_eight_knockout_brief.md),
+frozen at 9eacb79). Then six claims were tested once on the last reserved
+split, `validation_b`
+([protocol](../research/open_weight_lingua/protocols/phase_eight_confirmatory_validation_b.md),
+frozen at 8d80475). Reports:
+[exploratory](../research/open_weight_lingua/reports/phase_eight_knockout.md),
+[confirmatory](../research/open_weight_lingua/reports/phase_eight_confirmatory.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Qwen2.5-7B's answer position must read the program in layers 21–23 of 28 | SUPPORTED (confirmatory) | Run p8-confirm-qwen2.5-7b-20261006T213942Z-cd61e14a: blocking the answer positions from the program from layer 21 costs 0.565 [0.508, 0.621] in digit accuracy (Q2); from layer 24 it costs −0.002 [−0.009, +0.004] (Q1), as does blocking every post-program position from 24 (Q3, −0.004). Exploratory release layer 24, replicated on pilot |
+| Gemma-3-12B's answer positions never need the program directly | SUPPORTED (confirmatory) | Run p8-confirm-gemma3-12b-20261006T211531Z-e69aeafa: blocking them at every layer costs 0.019 [0.000, 0.038] (G3) |
+| Gemma-3-12B's question and template tokens must read the program in layers 24–29 of 48 | SUPPORTED (confirmatory) | Blocking every post-program position from layer 24 costs 0.753 [0.703, 0.799] (G2); from layer 30 it costs 0.014 [−0.003, +0.032] (G1). Exploratory release layer 30, replicated on pilot |
+| These knockouts show which program tokens are read (raw statements or stored state) | NOT ESTABLISHED | The blocked span is the whole program, including its last token. Teacher-forced digit accuracy; off-distribution intervention; one prompt format; layer grid, not single layers |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
