@@ -80,6 +80,14 @@ blocking that costs 75 points. All six pre-registered claims held. See
 [reports/phase_eight_knockout.md](reports/phase_eight_knockout.md) and
 [reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
 
+**Phase Nine: the late read targets the asked variable's statements (2026-10-12, confirmed on
+fresh programs).** Inside each model's late route, blocking the asked variable's own lines costs
+about as much as blocking the whole program (Gemma 70 points, Qwen 58). Blocking the other
+variable's lines, which are as long on average, costs nothing, and no end-of-program summary is
+needed. All six claims held on 256 newly generated groups. See
+[reports/phase_nine_span_knockout.md](reports/phase_nine_span_knockout.md) and
+[reports/phase_nine_confirmatory.md](reports/phase_nine_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -374,6 +382,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [prompt_factorial_confirm.py](src/open_weight_lingua/prompt_factorial_confirm.py) | Phase Seven confirmatory 2×2 on the reserved validation_a split ([protocol](protocols/phase_seven_confirmatory_validation_a.md)): plan-hash-bound stimuli, greedy answers with multi-EOS stopping, six Bonferroni-controlled hypotheses with a whole-group bootstrap |
 | [answer_knockout.py](src/open_weight_lingua/answer_knockout.py) | Phase Eight ([brief](protocols/phase_eight_knockout_brief.md)): attention knockout from each grid layer onward, blocking the answer positions or every post-program position from reading the program tokens; teacher-forced digit accuracy, a bitwise no-op control, and the release layer per model |
 | [answer_knockout_confirm.py](src/open_weight_lingua/answer_knockout_confirm.py) | Phase Eight confirmatory ([protocol](protocols/phase_eight_confirmatory_validation_b.md)): the six pre-registered knockout claims on the reserved validation_b split, plan-hash-bound stimuli, bitwise no-op control, Bonferroni whole-group bootstrap on per-prompt accuracy loss |
+| [span_knockout.py](src/open_weight_lingua/span_knockout.py) | Phase Nine ([brief](protocols/phase_nine_span_knockout_brief.md)): partial-span knockout inside each model's confirmed route — the last program token alone, everything but it, the asked or other variable's lines, the asked variable's final line; line assignment checked per token |
+| [span_knockout_confirm.py](src/open_weight_lingua/span_knockout_confirm.py) | Phase Nine confirmatory ([protocol](protocols/phase_nine_confirmatory_fresh.md)): 256 freshly generated groups (seed 206001, excluding every Phase Two program), three span knockouts per prompt, six Bonferroni-controlled claims with a whole-group bootstrap |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
