@@ -20,6 +20,8 @@ SPLIT_SEEDS = {
     "fresh_2026_10": 206001,
     # Fresh programs for Phase Eleven's confirmatory test (protocols/phase_eleven_confirmatory_fresh.md).
     "fresh_2026_10b": 207001,
+    # Fresh programs for Phase Twelve's confirmatory test (protocols/phase_twelve_confirmatory_fresh.md).
+    "fresh_2026_10c": 208001,
 }
 PROMPT_TEMPLATE = "{program}\nWhat is {variable}? Reply with only the integer."
 
