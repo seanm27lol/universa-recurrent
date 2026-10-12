@@ -432,6 +432,25 @@ frozen at 8d80475). Reports:
 | Gemma-3-12B's question and template tokens must read the program in layers 24–29 of 48 | SUPPORTED (confirmatory) | Blocking every post-program position from layer 24 costs 0.753 [0.703, 0.799] (G2); from layer 30 it costs 0.014 [−0.003, +0.032] (G1). Exploratory release layer 30, replicated on pilot |
 | These knockouts show which program tokens are read (raw statements or stored state) | NOT ESTABLISHED | The blocked span is the whole program, including its last token. Teacher-forced digit accuracy; off-distribution intervention; one prompt format; layer grid, not single layers |
 
+## Phase Nine: which statements the late read uses (partial-span knockout, 2026-10-12)
+
+Inside each model's confirmed late route, only parts of the program were
+blocked. First this was exploratory, on reused prompts
+([brief](../research/open_weight_lingua/protocols/phase_nine_span_knockout_brief.md),
+frozen at 6c01ef9). Then six claims were tested once on **256 freshly
+generated groups**, seed 206001, excluding every Phase Two program
+([protocol](../research/open_weight_lingua/protocols/phase_nine_confirmatory_fresh.md),
+frozen at 1bf1d52 before generation). Reports:
+[exploratory](../research/open_weight_lingua/reports/phase_nine_span_knockout.md),
+[confirmatory](../research/open_weight_lingua/reports/phase_nine_confirmatory.md).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The late read uses the asked variable's own statements | SUPPORTED (confirmatory, fresh programs) | Blocking them costs 0.699 [0.649, 0.749] (Gemma, G1) and 0.579 [0.524, 0.631] (Qwen, Q1) in digit accuracy, about as much as blocking the whole program (exploratory 0.74 / 0.60). Runs p9-confirm-gemma3-12b-20261012T005339Z-14893e44 and p9-confirm-qwen2.5-7b-20261012T011909Z-d5cb3c8f |
+| It does not use the other variable's statements | SUPPORTED (confirmatory) | Blocking them costs 0.001 [−0.010, 0.013] (G2) and −0.021 [−0.036, −0.008] (Q2; a small improvement for Qwen). The two sets of lines are the same size on average |
+| No end-of-program summary is needed | SUPPORTED (confirmatory) | When the program ends on the other variable, blocking its last token costs −0.002 [−0.021, 0.016] (G3) and −0.006 [−0.021, 0.006] (Q3). Elsewhere the last token matters only as the asked statement's own operand |
+| Copied values sit at the asked variable's copy statement by the late layers | Observed (descriptive, exploratory and confirmatory) | When the asked variable copies the other, blocking the other variable's lines leaves accuracy near baseline (Gemma 0.936 vs 0.950; Qwen 0.826 vs 0.784). When the copy happens was not tested |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

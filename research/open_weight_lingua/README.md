@@ -80,6 +80,14 @@ blocking that costs 75 points. All six pre-registered claims held. See
 [reports/phase_eight_knockout.md](reports/phase_eight_knockout.md) and
 [reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
 
+**Phase Nine: the late read targets the asked variable's statements (2026-10-12, confirmed on
+fresh programs).** Inside each model's late route, blocking the asked variable's own lines costs
+about as much as blocking the whole program (Gemma 70 points, Qwen 58). Blocking the other
+variable's lines, which are as long on average, costs nothing, and no end-of-program summary is
+needed. All six claims held on 256 newly generated groups. See
+[reports/phase_nine_span_knockout.md](reports/phase_nine_span_knockout.md) and
+[reports/phase_nine_confirmatory.md](reports/phase_nine_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
