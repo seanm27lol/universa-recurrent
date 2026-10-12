@@ -469,6 +469,24 @@ frozen at 1f65b9f;
 | Blocking the final statement from earlier lines degrades the answer, whichever variable's lines are blocked | SUPPORTED (confirmatory, fresh programs) | Literal final statements, 424 prompts: same-variable block loss 0.486 [0.405, 0.567] (G1) and 0.269 [0.192, 0.345] (Q1); other-variable block 0.356 [0.273, 0.443] (G2) and 0.366 [0.277, 0.457] (Q2). Runs p11-confirm-gemma3-12b-20261012T055510Z-d723ce72 and p11-confirm-qwen2.5-7b-20261012T061602Z-5e56b0d1 |
 | A degraded final assignment makes the model fall back to the previous one | SUPPORTED (confirmatory) | The rate of answering the superseded value rises by 0.439 [0.359, 0.520] (G3) and 0.283 [0.202, 0.366] (Q3); 76–92% of wrong answers under either block are the superseded value. Layer-0 blocks only; "most recent intact assignment wins" is an interpretation, not tested |
 
+## Phase Twelve: the late read takes the most recent intact assignment (2026-10-12)
+
+The asked variable's final, previous, or both assignments were degraded
+(each statement blocked from every earlier program token, from layer 0).
+Explored on opened programs
+([report](../research/open_weight_lingua/reports/phase_twelve_selection.md)),
+then six claims were confirmed on **1,536 freshly generated groups** (seed
+208001, excluding Phase Two and both earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_twelve_confirmatory_fresh.md)
+frozen at 4f606db;
+[report](../research/open_weight_lingua/reports/phase_twelve_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Degrading the final assignment makes the model answer the previous value | SUPPORTED (confirmatory, fresh programs) | 385 prompts with a literal final assignment and three distinct values: rise in v1 answers +0.535 [0.449, 0.622] (Gemma, G1), +0.600 [0.503, 0.689] (Qwen, Q1). Runs p12-confirm-gemma3-12b-20261012T074136Z-fd9fdc5f and p12-confirm-qwen2.5-7b-20261012T080812Z-dab1fe0f |
+| Degrading the final and the previous assignment makes it answer the value before that | SUPPORTED (confirmatory) | Rise in v2 answers over the final-only condition: +0.405 [0.318, 0.491] (G2), +0.771 [0.689, 0.846] (Q2); v2 is then said more often than v1 (0.439 vs 0.109; 0.875 vs 0.021) |
+| Degrading only the previous assignment does not hurt | SUPPORTED (confirmatory) | Loss −0.010 [−0.047, 0.023] (G3); Qwen improves by 0.166 [0.089, 0.249] (Q3), losing a competitor. Off-distribution blocks; literal final statements; one task family |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
