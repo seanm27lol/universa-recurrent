@@ -25,6 +25,19 @@ five Phase Two splits.
 
 **All six were supported, with nearly the exploratory effect sizes.**
 
+**Correction, 2026-10-12.** The "copy" category and the breakdown labelled
+"copies the other variable" were mislabelled. The generator lets a variable
+copy itself (`x = x`), and 148 of the 156 final copies here are such
+self-copies. The "copies the other variable" breakdown was computed as "has
+*any* copy statement" without checking the source. Only 42 of its 268
+prompts (32 of 218 in the confirmatory set) contain a genuine cross-variable
+copy (`x = y`). On those few prompts the results are noisy and inconsistent
+across runs and models. So the earlier statement that copied values "sit at
+the asked variable's copy statement by the late layers" is **not
+established**. The pre-registered confirmatory claims do not depend on this
+breakdown and are unaffected. Numbers below are unchanged; the labels and
+that inference are corrected.
+
 ## What ran
 
 - **Freeze.**
@@ -95,13 +108,13 @@ blocked, by the asked variable's last update:
 |---|---|---|
 | A literal (486) | 0.992 → 0.414 | 0.866 → 0.383 |
 | Arithmetic (386) | 0.935 → 0.140 | 0.756 → 0.093 |
-| A copy (152) | 0.947 → 0.105 | 0.809 → 0.138 |
+| A copy, 152 (mostly self-copies `x = x`) | 0.947 → 0.105 | 0.809 → 0.138 |
 
-Prompts whose asked variable copies the other variable (218) keep their
-accuracy when the other variable's lines are blocked: Gemma 0.936 against
-0.950, Qwen 0.826 against 0.784. This repeats the exploratory sign that
-copied values sit at the asked variable's own copy statement by the late
-layers.
+*Corrected:* the 218 prompts labelled "copies the other variable" are
+mostly self-copies. On the 32 genuine cross-variable copies, blocking the
+other variable's lines gives 0.625 against 0.688 (Gemma) and 0.562 against
+0.531 (Qwen). Blocking the asked lines gives 0.375 and 0.469. These are too
+few prompts to locate a copied value.
 
 ## What this establishes
 
@@ -117,12 +130,11 @@ layers.
   models.
 - **With Phases Eight and Nine together:** after reading the question, both
   models look back at the asked variable's statements in a late window.
-  Copied values do not need the other variable's statements at that point.
 
 ## What this does not establish
 
-- **When copied values move.** That they sit at the copy statement by the
-  late layers is inferred; the layers before the route were not blocked.
+- **Where copied values sit.** Genuine cross-variable copies are too rare
+  (32 prompts) to say.
 - **Single-token roles.** The variable name, the operator and the operand
   within a statement were not separated.
 - **Knockout limits.** An off-distribution intervention; teacher-forced

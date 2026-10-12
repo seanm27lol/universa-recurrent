@@ -184,7 +184,7 @@ on the other variable, in both models.
 |---|---:|---|---|
 | A literal (`x = 7`) | 706 | 0.987 / 0.816 / 0.550 | 0.918 / 0.344 / 0.422 |
 | Arithmetic (`x = x + 2`) | 674 | 0.895 / 0.866 / 0.875 | 0.691 / 0.610 / 0.540 |
-| A copy (`x = y`) | 156 | 0.962 / 0.904 / 0.904 | 0.833 / 0.814 / 0.699 |
+| A copy (148 of 156 are self-copies `x = x`) | 156 | 0.962 / 0.904 / 0.904 | 0.833 / 0.814 / 0.699 |
 
 A question placed first hurts most when the asked variable was last set by a
 literal. That is also when the other variable is more often the last writer.

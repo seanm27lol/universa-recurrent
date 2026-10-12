@@ -203,8 +203,10 @@ manifest hashes.
 2. **Next question: when do values move to the asked statements?**
    - Phase Nine confirmed, on fresh programs, that the late read targets
      the asked variable's own statements
-     ([report](reports/phase_nine_confirmatory.md)). Copied values seem to
-     sit at the asked variable's copy statement by the late layers.
+     ([report](reports/phase_nine_confirmatory.md)). A claim that copied
+     values sit at the copy statement was withdrawn on 2026-10-12: it rested
+     on a mislabelled breakdown. Most "copies" are self-copies (`x = x`), and
+     genuine cross-variable copies are rare (about 3% of prompts).
    - Open: *when* copied and computed values arrive there, and which tokens
      within a statement carry them. A knockout in *early* layers would
      test that: block the copy statement's view of the other variable's
