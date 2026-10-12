@@ -30,6 +30,19 @@ statements.**
 These are exploratory results on reused calibration and pilot prompts, and
 pilot replicates calibration closely.
 
+**Correction, 2026-10-12.** The "copy" category and the breakdown labelled
+"copies the other variable" were mislabelled. The generator lets a variable
+copy itself (`x = x`), and 148 of the 156 final copies here are such
+self-copies. The "copies the other variable" breakdown was computed as "has
+*any* copy statement" without checking the source. Only 42 of its 268
+prompts (32 of 218 in the confirmatory set) contain a genuine cross-variable
+copy (`x = y`). On those few prompts the results are noisy and inconsistent
+across runs and models. So the earlier statement that copied values "sit at
+the asked variable's copy statement by the late layers" is **not
+established**. The pre-registered confirmatory claims do not depend on this
+breakdown and are unaffected. Numbers below are unchanged; the labels and
+that inference are corrected.
+
 ## What ran
 
 - **Brief.** Frozen and pushed at `6c01ef9` before any Phase Nine forward.
@@ -87,15 +100,17 @@ all prompts):
 |---|---|---|
 | A literal (`x = 7`), 706 prompts | 0.37 / 0.35 (full program blocked: 0.35 / 0.39) | 0.38 / 0.36 |
 | Arithmetic (`x = x + 2`), 674 | 0.63 / 0.54 | 0.12 / 0.11 |
-| A copy (`x = y`), 156 | 0.94 / 0.85 | 0.16 / 0.10 |
+| A copy, 156 (148 are self-copies `x = x`) | 0.94 / 0.85 | 0.16 / 0.10 |
 
 - **Literal values** are read from the final assignment line alone:
   blocking it is as damaging as blocking the whole program.
 - **Computed values** need the earlier lines too.
-- **Copied values (`x = y`)** survive blocking the other variable's lines.
-  Over the 268 prompts whose history includes such a copy, accuracy is 0.93
-  (Gemma) and 0.84 (Qwen) with the other variable's lines blocked, close to
-  baseline. They are destroyed by blocking the asked variable's lines.
+- **Copies** (mostly self-copies `x = x`) lose their value when the asked
+  variable's lines are blocked, as computed values do. *Corrected:* the
+  268-prompt "copies the other variable" breakdown was mostly self-copies.
+  On the 42 genuine cross-variable copies, blocking the other variable's
+  lines gives 0.71 against 0.83 (Gemma) and 0.67 against 0.64 (Qwen). Too
+  few and too noisy to say where a copied value sits.
 
 **Predictions.**
 1. The no-op control is exact. *Held.*
@@ -117,21 +132,16 @@ all prompts):
   same size, are not needed: their blocking costs nothing.
 - **No summary at the end of the program is required.** When the program
   ends on the other variable, the last token is irrelevant to the answer.
-- **Some values are moved forward during reading.**
-  - A value copied from the other variable (`x = y`) does not need the
-    other variable's lines at the late layers. It must already sit at the
-    asked variable's copy statement by then.
-  - Computed values need the asked variable's earlier lines as well as its
-    last one.
-
-  So the late read retrieves from the asked variable's statement tokens,
-  and those tokens carry more than their surface text.
+- **Computed values need the asked variable's earlier lines as well as its
+  last one.** *Corrected:* an earlier version inferred that values copied
+  from the other variable sit at the copy statement by the late layers. That
+  rested on a mislabelled breakdown (see the correction note above) and is
+  not established.
 
 ## What this does not establish
 
-- **When the copy happens.** That copied values sit at the copy statement by
-  the critical layer is inferred, not observed. The layers before the route
-  were left unblocked.
+- **Where copied values sit.** Genuine cross-variable copies are too rare
+  here (42 prompts) to say.
 - **Line-level spans.** Single tokens within a line (the variable name, the
   operand) were not separated.
 - **Knockout limits.** An off-distribution intervention; teacher-forced
