@@ -88,6 +88,15 @@ needed. All six claims held on 256 newly generated groups. See
 [reports/phase_nine_span_knockout.md](reports/phase_nine_span_knockout.md) and
 [reports/phase_nine_confirmatory.md](reports/phase_nine_confirmatory.md).
 
+**Phases Ten and Eleven: a degraded final assignment falls back to the previous one
+(2026-10-12, confirmed on fresh programs).** Blocking the asked variable's final statement
+from earlier lines damages the answer even when that statement is a literal, and whichever
+variable's lines are blocked. The model then mostly answers the variable's *previous* value
+(Gemma −49 points, 44% superseded answers; Qwen −27, 40%). All six claims held on 512 newly
+generated groups. See
+[reports/phase_eleven_confirmatory.md](reports/phase_eleven_confirmatory.md) and the
+Phase Ten and Eleven exploratory reports.
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
