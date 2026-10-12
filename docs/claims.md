@@ -504,6 +504,27 @@ frozen at fac33db;
 | Its post-program positions read the program late, ending by layer 46 of 62 | SUPPORTED (confirmatory) | Blocked from layer 46: loss +0.029 [0.016, 0.044] (R2, threshold 0.05); from layer 38: +0.189 [0.162, 0.216] (R3). Release layer 46 of 62 (74% of depth) against 30 of 48 (62%) in the 12B |
 | It takes the most recent intact assignment | SUPPORTED (confirmatory) | 430 eligible prompts: v1 gain +0.751 [0.679, 0.818] (S1), v2 gain +0.807 [0.735, 0.870] (S2), previous-only loss +0.009 [−0.014, 0.035] (S3). Two sizes in one family, not a scaling law; statement-level spans not repeated at 27B |
 
+## Phases Fourteen and Fifteen: the late read with the question first (2026-10-12)
+
+The question was placed before the program (Phase Seven's `original_before`
+format), and the late read was probed by blocking post-program positions
+from parts of the program. Explored on opened programs
+([Phase Fourteen](../research/open_weight_lingua/reports/phase_fourteen_question_order.md),
+[Phase Fifteen](../research/open_weight_lingua/reports/phase_fifteen_variable_choice.md)),
+then eight claims were tested on **512 freshly generated groups** (seed
+210001, excluding Phase Two and the four earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_fifteen_confirmatory_fresh.md)
+frozen at bca0b10;
+[report](../research/open_weight_lingua/reports/phase_fifteen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| With the question first, the accuracy loss on programs ending on the other variable is the late read choosing that variable's statements | SUPPORTED (confirmatory, fresh programs) | 1,010 prompts: hiding the other variable's lines from the post-program positions gives Gemma 0.990 and Qwen 0.880, against question-after 0.964 and 0.848 (residual gap −0.026 [−0.048, −0.006], −0.033 [−0.066, −0.002]; G1, Q1) and question-first 0.804 and 0.398 (recovery +0.186 [0.144, 0.231], +0.482 [0.429, 0.539]; G2, Q2). Other-value answers fall to about 5%. Runs p15-confirm-gemma3-12b-20261012T194705Z-ceaafb30 and p15-confirm-qwen2.5-7b-20261012T205421Z-f84c5e0c |
+| Qwen also takes superseded values of the asked variable with the question first | Exploratory | Literal finals: hiding superseded lines 0.514 → 0.757, previous-value answers 30.6% → 3.5%; hiding both distractors 0.971 (question after 0.896) |
+| Gemma's read ends later with the question first; Qwen's does not | SUPPORTED (confirmatory) | Blocking every post-program position from layer 30 of 48 costs Gemma +0.082 [0.060, 0.105] with the question first (G4); exploratory release layer 36 against 30. Qwen from layer 24 of 28: −0.002 [−0.017, 0.013] (Q4) |
+| Knowing the question first does not make the asked statement hold its computed value | Exploratory | With only an arithmetic last line visible, accuracy sits within 6 points of the floor in both orders and models |
+| No end-of-program summary with the question first | QUALIFIED | The last line alone gives a small excess over the floor: Gemma +0.072 [0.031, 0.114] (G3 NOT SUPPORTED at the 10-point margin), Qwen +0.050 [0.028, 0.076] (Q3 supported). Post hoc, about 40% is numeric coincidence; 3–5 points remain. No summary large enough to answer from |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
