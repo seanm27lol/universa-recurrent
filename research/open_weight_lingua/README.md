@@ -113,6 +113,18 @@ recent intact assignment (v1 gain +0.751, v2 gain +0.807). The read ends deeper 
 generated groups. See [reports/phase_thirteen_scale.md](reports/phase_thirteen_scale.md) and
 [reports/phase_thirteen_confirmatory.md](reports/phase_thirteen_confirmatory.md).
 
+**Phases Fourteen and Fifteen: with the question first, the late read chooses worse
+(2026-10-12, seven of eight claims confirmed on fresh programs).** Placing the question before
+the program does not change what the late read uses: no computed value at the statement and
+no end-of-program summary large enough to answer from (a 3–5 point trace remains). Gemma's read
+ends later (layer 36 against 30 of 48). The question-first accuracy loss is a *selection*
+failure: hiding the other variable's lines from the post-program positions restores
+question-after accuracy on programs that end on it (Gemma 0.804 → 0.990, Qwen 0.398 → 0.880).
+Qwen also takes superseded values. See
+[reports/phase_fourteen_question_order.md](reports/phase_fourteen_question_order.md),
+[reports/phase_fifteen_variable_choice.md](reports/phase_fifteen_variable_choice.md) and
+[reports/phase_fifteen_confirmatory.md](reports/phase_fifteen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -415,6 +427,9 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [selection_knockout.py](src/open_weight_lingua/selection_knockout.py) | Phase Twelve ([brief](protocols/phase_twelve_selection_brief.md)): degrades the final, the previous, or both assignments of the asked variable and scores the current, previous and earlier values, testing whether the late read takes the most recent intact assignment |
 | [selection_confirm.py](src/open_weight_lingua/selection_confirm.py) | Phase Twelve confirmatory ([protocol](protocols/phase_twelve_confirmatory_fresh.md)): 1,536 fresh groups (seed 208001, excluding Phase Two and both earlier fresh splits), six Bonferroni-controlled claims on falling back to v1 and v2 and on degrading only the previous assignment |
 | [scale_confirm.py](src/open_weight_lingua/scale_confirm.py) | Phase Thirteen confirmatory ([protocol](protocols/phase_thirteen_confirmatory_fresh.md)): Gemma-3-27B on 1,536 fresh groups (seed 209001, excluding Phase Two and the three earlier fresh splits); routing knockouts on the first 512 groups and selection degradations on every eligible prompt, six Bonferroni-controlled claims |
+| [question_order_knockout.py](src/open_weight_lingua/question_order_knockout.py) | Phase Fourteen ([brief](protocols/phase_fourteen_question_order_brief.md)): each prompt with the question after and before the program; the Phase Eight layer sweep and `only_last_line` (post-program positions see only the program's last line) |
+| [variable_choice_knockout.py](src/open_weight_lingua/variable_choice_knockout.py) | Phase Fifteen ([brief](protocols/phase_fifteen_variable_choice_brief.md)): in both orders, hides the other variable's lines, the asked variable's superseded lines, or both from the post-program positions, scoring the answer, the other variable's value and the previous value |
+| [order_confirm.py](src/open_weight_lingua/order_confirm.py) | Phases Fourteen and Fifteen confirmatory ([protocol](protocols/phase_fifteen_confirmatory_fresh.md)): 512 fresh groups (seed 210001, excluding Phase Two and the four earlier fresh splits), both orders, eight Bonferroni-controlled claims |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

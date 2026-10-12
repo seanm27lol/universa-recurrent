@@ -164,6 +164,18 @@ on 1,536 freshly generated groups (seed 209001). Open next: whether the read
 changes when the question comes before the program.
 See [the Phase Thirteen confirmatory report](../research/open_weight_lingua/reports/phase_thirteen_confirmatory.md).
 
+## Phases fourteen and fifteen: the question-first read, confirmed, 2026-10-12
+
+With the question before the program, the late read still uses the asked
+variable's statements and still has no usable end-of-program summary, but
+it chooses worse. It takes the other variable's statements, and for Qwen
+also superseded ones. Hiding those distractors restores question-after
+accuracy. Gemma's read also ends later. Seven of eight claims held on 512
+freshly generated groups (seed 210001); the eighth narrowed "no summary" to
+"no summary large enough to answer from". Open next: how the asked variable
+reaches the late read when the question comes first.
+See [the confirmatory report](../research/open_weight_lingua/reports/phase_fifteen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

@@ -147,6 +147,12 @@ gates remain unchanged; see the
      (release layer 46 of 62), and it takes the most recent intact
      assignment. Confirmed on 1,536 fresh groups. See
      [reports/phase_thirteen_confirmatory.md](reports/phase_thirteen_confirmatory.md).
+   - Phases Fourteen and Fifteen: with the question before the program,
+     the late read uses the same statements but chooses worse. Hiding the
+     other variable's lines restores question-after accuracy. Gemma's read
+     ends later. A small end-of-program trace (3–5 points) remains. Seven
+     of eight claims confirmed on 512 fresh groups. See
+     [reports/phase_fifteen_confirmatory.md](reports/phase_fifteen_confirmatory.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -201,6 +207,7 @@ gates remain unchanged; see the
 | Phases Ten and Eleven: final-assignment knockouts (exploratory; confirmatory on fresh programs) | `reports/phase_ten_dependency_knockout.md`, `reports/phase_eleven_supersession.md`, `reports/phase_eleven_confirmatory.md`, `protocols/phase_ten_*`, `protocols/phase_eleven_*` | Phases Ten and Eleven |
 | Phase Twelve: selection of the most recent intact assignment (exploratory; confirmatory on fresh programs) | `reports/phase_twelve_selection.md`, `reports/phase_twelve_confirmatory.md`, `protocols/phase_twelve_*` | Phase Twelve |
 | Phase Thirteen: the account at Gemma-3-27B (exploratory; confirmatory on fresh programs) | `reports/phase_thirteen_scale.md`, `reports/phase_thirteen_confirmatory.md`, `protocols/phase_thirteen_*` | Phase Thirteen |
+| Phases Fourteen and Fifteen: the late read with the question first (exploratory; joint confirmatory on fresh programs) | `reports/phase_fourteen_question_order.md`, `reports/phase_fifteen_variable_choice.md`, `reports/phase_fifteen_confirmatory.md`, `protocols/phase_fourteen_*`, `protocols/phase_fifteen_*` | Phases Fourteen and Fifteen |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -217,16 +224,15 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. It used no reserved data.
-2. **Next question: does the read change when the question comes first?**
-   - Phase Thirteen confirmed on fresh programs that the account holds at
-     Gemma-3-27B ([report](reports/phase_thirteen_confirmatory.md)).
-   - Across Phases Eight to Thirteen, in three models: a late look-back
-     after the question, targeting the asked variable's statements and
-     taking the most recent intact one.
-   - Phase Fourteen asks whether that changes when the question precedes
-     the program (Phase Seven's `original_before` format).
-   - Fresh splits used so far: 206001, 207001, 208001, 209001. A next
-     confirmation needs a new seed excluding all four.
+2. **Next question: how does the asked variable reach the late read when
+   the question comes first?**
+   - Phases Fourteen and Fifteen confirmed on fresh programs that the
+     question-first loss is a selection failure of the late read
+     ([report](reports/phase_fifteen_confirmatory.md)).
+   - Phase Sixteen asks whether the post-program reader takes the variable
+     straight from the question, or the program tokens carry it.
+   - Fresh splits used so far: 206001, 207001, 208001, 209001, 210001. A
+     next confirmation needs a new seed excluding all five.
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -313,7 +319,11 @@ choose sites after seeing the outcomes.
     (plus `evaluate`) for Phase Twelve;
   - `scripts/run_answer_knockout.sh` and `scripts/run_selection_knockout.sh`
     with `--protocol`, then `scripts/run_scale_confirm.sh` (plus `evaluate`)
-    for Phase Thirteen.
+    for Phase Thirteen;
+  - `scripts/run_question_order_knockout.sh`,
+    `scripts/run_variable_choice_knockout.sh` and
+    `scripts/run_order_confirm.sh` (plus `evaluate`) for Phases Fourteen
+    and Fifteen.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -321,7 +331,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (387 pass, 1 skip);
+    (407 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about
