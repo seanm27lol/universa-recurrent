@@ -106,9 +106,12 @@ def test_end_to_end_on_fixture_models(tmp_path, monkeypatch, model_factory, toke
     monkeypatch.setattr(sel, "verify_models", lambda lock, paths: {})
     monkeypatch.setattr(sel, "compatibility", lambda device: {})
     monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", lambda path, **kwargs: tokenizer)
+    brief = tmp_path / "another_brief.md"
+    brief.write_text("a later phase reusing this module")
     args = sel.parse_args(["--lock", str(lock), "--calibration-run", str(tmp_path / "cal"),
-                           "--pilot-run", str(tmp_path / "pil"), "--device", "cpu"])
+                           "--pilot-run", str(tmp_path / "pil"), "--device", "cpu", "--protocol", str(brief)])
     run = RunDirectory(tmp_path / "selection")
     summary = sel.run(args, run, {})
     manifest = json.loads((run.path / "manifest.json").read_text())
     assert manifest["by_source"]["fresh"] == 8 and set(summary) == {"all", "reused", "fresh"}
+    assert manifest["protocol_path"] == str(brief) and manifest["protocol_sha256"] == sel.sha256_file(brief)

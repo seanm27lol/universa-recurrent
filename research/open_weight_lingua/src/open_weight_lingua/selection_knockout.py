@@ -158,7 +158,7 @@ def run(args, run_dir: RunDirectory, timings: dict) -> dict:
     rows, generation = pool(args, tokenizer)
     write_json(run_dir.path / "manifest.json", {
         "format": FORMAT, "family": _family(args.lock), "created_at": datetime.now(timezone.utc).isoformat(),
-        "git_head": _git_head(), "protocol_sha256": sha256_file(PROTOCOL), "source_file_sha256": source_identity(),
+        "git_head": _git_head(), "protocol_path": str(args.protocol), "protocol_sha256": sha256_file(args.protocol), "source_file_sha256": source_identity(),
         "model_lock_sha256": sha256_file(args.lock),
         "inputs": {"calibration_run": args.calibration_run.name, "pilot_run": args.pilot_run.name, "fresh": generation},
         "prompts": len(rows), "by_source": {s: sum(r["source"] == s for r in rows) for s in ("reused", "fresh")},
@@ -194,6 +194,8 @@ def parse_args(argv=None):
     parser.add_argument("--cache", type=Path, default=PROJECT / "model-cache")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--run-dir", type=Path)
+    parser.add_argument("--protocol", type=Path, default=PROTOCOL,
+                        help="the frozen brief this run executes under (default: this module's own brief)")
     return parser.parse_args(argv)
 
 
