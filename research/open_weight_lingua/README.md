@@ -97,6 +97,13 @@ generated groups. See
 [reports/phase_eleven_confirmatory.md](reports/phase_eleven_confirmatory.md) and the
 Phase Ten and Eleven exploratory reports.
 
+**Phase Twelve: the late read takes the most recent intact assignment (2026-10-12, confirmed
+on fresh programs).** Degrade the asked variable's final assignment and the answer falls back
+to its previous value. Degrade the last two and it falls back to the one before. Degrading an
+earlier assignment alone changes nothing; for Qwen it removes interference. All six claims
+held on 1,536 newly generated groups. See
+[reports/phase_twelve_confirmatory.md](reports/phase_twelve_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -396,6 +403,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [dependency_knockout.py](src/open_weight_lingua/dependency_knockout.py) | Phase Ten ([brief](protocols/phase_ten_dependency_knockout_brief.md)): from each grid layer onward, blocks the asked variable's final statement from the lines it depends on (copy source, earlier asked lines; literal as placebo) to find when it collects its dependency |
 | [supersession_knockout.py](src/open_weight_lingua/supersession_knockout.py) | Phase Eleven ([brief](protocols/phase_eleven_supersession_brief.md)): the asked variable's final statement blocked from earlier same-variable lines versus the other variable's lines (control), scoring the answer and the superseded value |
 | [supersession_confirm.py](src/open_weight_lingua/supersession_confirm.py) | Phase Eleven confirmatory ([protocol](protocols/phase_eleven_confirmatory_fresh.md)): 512 fresh groups (seed 207001, excluding Phase Two and Phase Nine's fresh split), literal-final prompts under both final-statement blocks, six Bonferroni-controlled claims on loss and superseded-value gain |
+| [selection_knockout.py](src/open_weight_lingua/selection_knockout.py) | Phase Twelve ([brief](protocols/phase_twelve_selection_brief.md)): degrades the final, the previous, or both assignments of the asked variable and scores the current, previous and earlier values, testing whether the late read takes the most recent intact assignment |
+| [selection_confirm.py](src/open_weight_lingua/selection_confirm.py) | Phase Twelve confirmatory ([protocol](protocols/phase_twelve_confirmatory_fresh.md)): 1,536 fresh groups (seed 208001, excluding Phase Two and both earlier fresh splits), six Bonferroni-controlled claims on falling back to v1 and v2 and on degrading only the previous assignment |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

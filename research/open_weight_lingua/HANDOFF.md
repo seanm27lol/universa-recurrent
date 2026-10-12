@@ -138,6 +138,10 @@ gates remain unchanged; see the
      model fall back to that variable's previous value. Confirmed on 512
      fresh groups. See
      [reports/phase_eleven_confirmatory.md](reports/phase_eleven_confirmatory.md).
+   - Phase Twelve: the late read takes the most recent intact assignment.
+     Degrading the last two assignments pushes the answer back two steps.
+     Confirmed on 1,536 fresh groups. See
+     [reports/phase_twelve_confirmatory.md](reports/phase_twelve_confirmatory.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -190,6 +194,7 @@ gates remain unchanged; see the
 | Phase Eight attention knockout (exploratory, then confirmatory on validation_b) | `reports/phase_eight_knockout.md`, `reports/phase_eight_confirmatory.md`, `protocols/phase_eight_*` | Phase Eight |
 | Phase Nine partial-span knockout (exploratory, then confirmatory on fresh programs) | `reports/phase_nine_span_knockout.md`, `reports/phase_nine_confirmatory.md`, `protocols/phase_nine_*` | Phase Nine |
 | Phases Ten and Eleven: final-assignment knockouts (exploratory; confirmatory on fresh programs) | `reports/phase_ten_dependency_knockout.md`, `reports/phase_eleven_supersession.md`, `reports/phase_eleven_confirmatory.md`, `protocols/phase_ten_*`, `protocols/phase_eleven_*` | Phases Ten and Eleven |
+| Phase Twelve: selection of the most recent intact assignment (exploratory; confirmatory on fresh programs) | `reports/phase_twelve_selection.md`, `reports/phase_twelve_confirmatory.md`, `protocols/phase_twelve_*` | Phase Twelve |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -206,16 +211,16 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. It used no reserved data.
-2. **Next question: does the late read take the most recent intact
-   assignment?**
-   - Phases Ten and Eleven confirmed, on fresh programs, that degrading the
-     asked variable's final statement makes the model answer its previous
-     value ([report](reports/phase_eleven_confirmatory.md)).
-   - Test the selection rule directly: degrade the last *two* assignments
-     and look for a fallback to the third-latest.
-   - Fresh splits used so far: `fresh_2026_10` (206001) and
-     `fresh_2026_10b` (207001). A next confirmation needs a new seed
-     excluding both.
+2. **Next question: does the account hold at larger scale?**
+   - Phase Twelve confirmed on fresh programs that the late read takes the
+     most recent intact assignment
+     ([report](reports/phase_twelve_confirmatory.md)).
+   - Across Phases Eight to Twelve: a late look-back after the question,
+     targeting the asked variable's statements and taking the most recent
+     intact one.
+   - A natural next test is Gemma-3-27B, whose lock is in `configs/`.
+   - Fresh splits used so far: 206001, 207001, 208001. A next confirmation
+     needs a new seed excluding all three.
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -297,7 +302,9 @@ choose sites after seeing the outcomes.
     (plus `evaluate`) for Phase Nine;
   - `scripts/run_dependency_knockout.sh`, `scripts/run_supersession_knockout.sh`
     and `scripts/run_supersession_confirm.sh` (plus `evaluate`) for Phases
-    Ten and Eleven.
+    Ten and Eleven;
+  - `scripts/run_selection_knockout.sh` and `scripts/run_selection_confirm.sh`
+    (plus `evaluate`) for Phase Twelve.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -305,7 +312,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (366 pass, 1 skip);
+    (377 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about
