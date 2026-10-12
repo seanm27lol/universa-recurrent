@@ -90,7 +90,9 @@ def fresh_rows(groups, tokenizer) -> list[dict]:
                    "answer": base["answer"], "input_ids": ids, "span": list(span),
                    "asked_last_update_kind": KIND[last_update.operation],
                    "last_line_assigns_asked": statements[-1].variable == variable,
-                   "asked_copies_other": any(s.variable == variable and s.operation == "copy" for s in statements),
+                   # NB: true for ANY copy of the asked variable, including self-copies (x = x); the name is
+               # misleading, kept for the recorded runs (see the 2026-10-12 correction).
+               "asked_copies_other": any(s.variable == variable and s.operation == "copy" for s in statements),
                    "spans": spans_for(statements, variable, span, lines)}
             row["sequence"] = teacher_forced(row, tokenizer)
             if len(row["sequence"]["ids"]) > TARGET_BUCKET:
