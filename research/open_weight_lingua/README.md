@@ -88,6 +88,15 @@ needed. All six claims held on 256 newly generated groups. See
 [reports/phase_nine_span_knockout.md](reports/phase_nine_span_knockout.md) and
 [reports/phase_nine_confirmatory.md](reports/phase_nine_confirmatory.md).
 
+**Phases Ten and Eleven: a degraded final assignment falls back to the previous one
+(2026-10-12, confirmed on fresh programs).** Blocking the asked variable's final statement
+from earlier lines damages the answer even when that statement is a literal, and whichever
+variable's lines are blocked. The model then mostly answers the variable's *previous* value
+(Gemma −49 points, 44% superseded answers; Qwen −27, 40%). All six claims held on 512 newly
+generated groups. See
+[reports/phase_eleven_confirmatory.md](reports/phase_eleven_confirmatory.md) and the
+Phase Ten and Eleven exploratory reports.
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -384,6 +393,9 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [answer_knockout_confirm.py](src/open_weight_lingua/answer_knockout_confirm.py) | Phase Eight confirmatory ([protocol](protocols/phase_eight_confirmatory_validation_b.md)): the six pre-registered knockout claims on the reserved validation_b split, plan-hash-bound stimuli, bitwise no-op control, Bonferroni whole-group bootstrap on per-prompt accuracy loss |
 | [span_knockout.py](src/open_weight_lingua/span_knockout.py) | Phase Nine ([brief](protocols/phase_nine_span_knockout_brief.md)): partial-span knockout inside each model's confirmed route — the last program token alone, everything but it, the asked or other variable's lines, the asked variable's final line; line assignment checked per token |
 | [span_knockout_confirm.py](src/open_weight_lingua/span_knockout_confirm.py) | Phase Nine confirmatory ([protocol](protocols/phase_nine_confirmatory_fresh.md)): 256 freshly generated groups (seed 206001, excluding every Phase Two program), three span knockouts per prompt, six Bonferroni-controlled claims with a whole-group bootstrap |
+| [dependency_knockout.py](src/open_weight_lingua/dependency_knockout.py) | Phase Ten ([brief](protocols/phase_ten_dependency_knockout_brief.md)): from each grid layer onward, blocks the asked variable's final statement from the lines it depends on (copy source, earlier asked lines; literal as placebo) to find when it collects its dependency |
+| [supersession_knockout.py](src/open_weight_lingua/supersession_knockout.py) | Phase Eleven ([brief](protocols/phase_eleven_supersession_brief.md)): the asked variable's final statement blocked from earlier same-variable lines versus the other variable's lines (control), scoring the answer and the superseded value |
+| [supersession_confirm.py](src/open_weight_lingua/supersession_confirm.py) | Phase Eleven confirmatory ([protocol](protocols/phase_eleven_confirmatory_fresh.md)): 512 fresh groups (seed 207001, excluding Phase Two and Phase Nine's fresh split), literal-final prompts under both final-statement blocks, six Bonferroni-controlled claims on loss and superseded-value gain |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

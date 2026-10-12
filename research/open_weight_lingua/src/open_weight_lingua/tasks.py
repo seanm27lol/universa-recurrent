@@ -18,6 +18,8 @@ SPLIT_SEEDS = {
     # Fresh programs for Phase Nine's confirmatory test (protocols/phase_nine_confirmatory_fresh.md);
     # not part of the five-split Phase Two plan, whose hash is unchanged.
     "fresh_2026_10": 206001,
+    # Fresh programs for Phase Eleven's confirmatory test (protocols/phase_eleven_confirmatory_fresh.md).
+    "fresh_2026_10b": 207001,
 }
 PROMPT_TEMPLATE = "{program}\nWhat is {variable}? Reply with only the integer."
 

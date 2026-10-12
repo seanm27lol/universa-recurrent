@@ -110,6 +110,8 @@ def prompt_rows(manifest: dict, split: str, tokenizer) -> list[dict]:
                "prompt": item["prompt"], "input_ids": item["input_ids"], "answer": item["answer"], "span": list(span),
                "asked_last_update_kind": KIND[last_update.operation],
                "last_line_assigns_asked": statements[-1].variable == variable,
+               # NB: true for ANY copy of the asked variable, including self-copies (x = x); the name is
+               # misleading, kept for the recorded runs (see the 2026-10-12 correction).
                "asked_copies_other": any(s.variable == variable and s.operation == "copy" for s in statements),
                "spans": spans_for(statements, variable, span, lines)}
         row["sequence"] = teacher_forced(row, tokenizer)

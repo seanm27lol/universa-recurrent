@@ -449,7 +449,25 @@ frozen at 1bf1d52 before generation). Reports:
 | The late read uses the asked variable's own statements | SUPPORTED (confirmatory, fresh programs) | Blocking them costs 0.699 [0.649, 0.749] (Gemma, G1) and 0.579 [0.524, 0.631] (Qwen, Q1) in digit accuracy, about as much as blocking the whole program (exploratory 0.74 / 0.60). Runs p9-confirm-gemma3-12b-20261012T005339Z-14893e44 and p9-confirm-qwen2.5-7b-20261012T011909Z-d5cb3c8f |
 | It does not use the other variable's statements | SUPPORTED (confirmatory) | Blocking them costs 0.001 [−0.010, 0.013] (G2) and −0.021 [−0.036, −0.008] (Q2; a small improvement for Qwen). The two sets of lines are the same size on average |
 | No end-of-program summary is needed | SUPPORTED (confirmatory) | When the program ends on the other variable, blocking its last token costs −0.002 [−0.021, 0.016] (G3) and −0.006 [−0.021, 0.006] (Q3). Elsewhere the last token matters only as the asked statement's own operand |
-| Copied values sit at the asked variable's copy statement by the late layers | Observed (descriptive, exploratory and confirmatory) | When the asked variable copies the other, blocking the other variable's lines leaves accuracy near baseline (Gemma 0.936 vs 0.950; Qwen 0.826 vs 0.784). When the copy happens was not tested |
+| Copied values sit at the asked variable's copy statement by the late layers | NOT ESTABLISHED (correction, 2026-10-12) | An earlier version listed this as observed. That rested on a breakdown labelled "copies the other variable", which was computed as "has any copy" and so was mostly self-copies (`x = x`). On the genuine cross-variable copies (42 exploratory, 32 confirmatory prompts) the results are noisy and inconsistent: Gemma with the other variable's lines blocked, 0.71 vs 0.83 and 0.63 vs 0.69; with the asked lines blocked, 0.81 and 0.38. The six confirmatory claims above do not depend on this breakdown |
+
+## Phases Ten and Eleven: the asked variable's final assignment (2026-10-12)
+
+Phase Ten (exploratory; [report](../research/open_weight_lingua/reports/phase_ten_dependency_knockout.md))
+blocked the asked variable's final statement from the lines it depends on.
+Phase Eleven (exploratory; [report](../research/open_weight_lingua/reports/phase_eleven_supersession.md))
+compared that block with a control and scored the superseded value. Six
+claims were then confirmed on **512 freshly generated groups** (seed 207001,
+excluding Phase Two and Phase Nine's fresh split;
+[protocol](../research/open_weight_lingua/protocols/phase_eleven_confirmatory_fresh.md)
+frozen at 1f65b9f;
+[report](../research/open_weight_lingua/reports/phase_eleven_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The final statement must collect its operand (eager computation) | NOT SUPPORTED as tested | A literal final statement, which needs nothing earlier, is damaged by the same block as much as an arithmetic one (exploratory: Gemma 0.963 → 0.437, Qwen 0.884 → 0.547 from layer 0). The block measures integrity, not operand collection |
+| Blocking the final statement from earlier lines degrades the answer, whichever variable's lines are blocked | SUPPORTED (confirmatory, fresh programs) | Literal final statements, 424 prompts: same-variable block loss 0.486 [0.405, 0.567] (G1) and 0.269 [0.192, 0.345] (Q1); other-variable block 0.356 [0.273, 0.443] (G2) and 0.366 [0.277, 0.457] (Q2). Runs p11-confirm-gemma3-12b-20261012T055510Z-d723ce72 and p11-confirm-qwen2.5-7b-20261012T061602Z-5e56b0d1 |
+| A degraded final assignment makes the model fall back to the previous one | SUPPORTED (confirmatory) | The rate of answering the superseded value rises by 0.439 [0.359, 0.520] (G3) and 0.283 [0.202, 0.366] (Q3); 76–92% of wrong answers under either block are the superseded value. Layer-0 blocks only; "most recent intact assignment wins" is an interpretation, not tested |
 
 ## Completed phase-one findings (2026-09-16)
 
