@@ -37,6 +37,13 @@ because it rose 38 points.
 
 These are exploratory results on opened programs.
 
+> **Qualified by the confirmatory test (2026-10-12).** On fresh programs,
+> with the question first, the last line alone gave 5–7 points above the
+> floor. Gemma's "no summary" claim (G3) was not supported at its 10-point
+> margin. About 40% of the excess is numeric coincidence. Read (ii) as "no
+> summary large enough to answer from", not "none at all". See
+> [the confirmatory report](phase_fifteen_confirmatory.md).
+
 ## What ran
 
 - **Freeze.** The brief, module, tests and launcher were committed and
