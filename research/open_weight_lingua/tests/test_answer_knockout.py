@@ -141,3 +141,4 @@ def test_end_to_end_on_fixture_models(tmp_path, monkeypatch, model_factory, toke
     assert len(lines) == len(json.loads((run.path / "manifest.json").read_text())["rows"])
     first = json.loads(lines[0])
     assert {"baseline", "answer@0", "after_program@7"} <= set(first)
+    assert json.loads((run.path / "manifest.json").read_text())["protocol_sha256"] == ak.sha256_file(ak.PROTOCOL)  # default brief
