@@ -104,6 +104,15 @@ earlier assignment alone changes nothing; for Qwen it removes interference. All 
 held on 1,536 newly generated groups. See
 [reports/phase_twelve_confirmatory.md](reports/phase_twelve_confirmatory.md).
 
+**Phase Thirteen: the account holds at Gemma-3-27B (2026-10-12, confirmed on fresh
+programs).** The unchanged Phase Eight and Twelve modules on the 62-layer Gemma-3-27B: its
+answer positions never need the program (loss +0.008), its post-program positions read it late
+(blocking from layer 46 costs 2.9 points, from layer 38 costs 18.9), and it takes the most
+recent intact assignment (v1 gain +0.751, v2 gain +0.807). The read ends deeper than in the
+12B: release layer 46 of 62 (74%) against 30 of 48 (62%). All six claims held on 1,536 newly
+generated groups. See [reports/phase_thirteen_scale.md](reports/phase_thirteen_scale.md) and
+[reports/phase_thirteen_confirmatory.md](reports/phase_thirteen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -405,6 +414,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [supersession_confirm.py](src/open_weight_lingua/supersession_confirm.py) | Phase Eleven confirmatory ([protocol](protocols/phase_eleven_confirmatory_fresh.md)): 512 fresh groups (seed 207001, excluding Phase Two and Phase Nine's fresh split), literal-final prompts under both final-statement blocks, six Bonferroni-controlled claims on loss and superseded-value gain |
 | [selection_knockout.py](src/open_weight_lingua/selection_knockout.py) | Phase Twelve ([brief](protocols/phase_twelve_selection_brief.md)): degrades the final, the previous, or both assignments of the asked variable and scores the current, previous and earlier values, testing whether the late read takes the most recent intact assignment |
 | [selection_confirm.py](src/open_weight_lingua/selection_confirm.py) | Phase Twelve confirmatory ([protocol](protocols/phase_twelve_confirmatory_fresh.md)): 1,536 fresh groups (seed 208001, excluding Phase Two and both earlier fresh splits), six Bonferroni-controlled claims on falling back to v1 and v2 and on degrading only the previous assignment |
+| [scale_confirm.py](src/open_weight_lingua/scale_confirm.py) | Phase Thirteen confirmatory ([protocol](protocols/phase_thirteen_confirmatory_fresh.md)): Gemma-3-27B on 1,536 fresh groups (seed 209001, excluding Phase Two and the three earlier fresh splits); routing knockouts on the first 512 groups and selection degradations on every eligible prompt, six Bonferroni-controlled claims |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
