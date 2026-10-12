@@ -129,6 +129,10 @@ gates remain unchanged; see the
      question tokens in layers 24–29 of 48 (Gemma's answer positions never
      need the program directly). It was confirmed on `validation_b`. See
      [reports/phase_eight_confirmatory.md](reports/phase_eight_confirmatory.md).
+   - Phase Nine narrowed it down: the late read retrieves the asked
+     variable's own statements, and only those. No end-of-program summary
+     is needed. Confirmed on 256 freshly generated groups. See
+     [reports/phase_nine_confirmatory.md](reports/phase_nine_confirmatory.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -179,6 +183,7 @@ gates remain unchanged; see the
 | Phase Seven position × wording factorial (exploratory) | `reports/phase_seven_prompt_factorial.md`, `protocols/phase_seven_prompt_factorial_v1.md` | Phase Seven |
 | Phase Seven confirmatory 2×2 on validation_a | `reports/phase_seven_confirmatory.md`, `protocols/phase_seven_confirmatory_validation_a.md` | Phase Seven confirmatory |
 | Phase Eight attention knockout (exploratory, then confirmatory on validation_b) | `reports/phase_eight_knockout.md`, `reports/phase_eight_confirmatory.md`, `protocols/phase_eight_*` | Phase Eight |
+| Phase Nine partial-span knockout (exploratory, then confirmatory on fresh programs) | `reports/phase_nine_span_knockout.md`, `reports/phase_nine_confirmatory.md`, `protocols/phase_nine_*` | Phase Nine |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -195,17 +200,18 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. It used no reserved data.
-2. **Both reserved blocks are spent; the next question needs new data.**
-   - Phase Seven used `validation_a` (prompt position × wording, all six
-     claims held). Phase Eight used `validation_b` (answer routing by
-     attention knockout, all six claims held;
-     [report](reports/phase_eight_confirmatory.md)).
-   - The open question Phase Eight leaves: *which* program tokens the late
-     read uses. Is it the asked variable's own lines, or the last program
-     token, where a summary could be stored? Explore it with partial-span
-     knockouts on the reused calibration and pilot prompts first.
-   - Any confirmatory test then needs newly generated programs under a new,
-     frozen split plan with a new seed. All five Phase Two splits are used.
+2. **Next question: when do values move to the asked statements?**
+   - Phase Nine confirmed, on fresh programs, that the late read targets
+     the asked variable's own statements
+     ([report](reports/phase_nine_confirmatory.md)). Copied values seem to
+     sit at the asked variable's copy statement by the late layers.
+   - Open: *when* copied and computed values arrive there, and which tokens
+     within a statement carry them. A knockout in *early* layers would
+     test that: block the copy statement's view of the other variable's
+     lines.
+   - Explore on the reused calibration and pilot prompts first. Confirm on
+     another freshly generated split (a new seed, excluding Phase Two and
+     `fresh_2026_10`).
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -282,7 +288,9 @@ choose sites after seeing the outcomes.
     confirmatory 2×2;
   - `scripts/run_answer_knockout.sh` (exploratory) and
     `scripts/run_answer_knockout_confirm.sh` plus its `evaluate` command
-    (confirmatory) for Phase Eight.
+    (confirmatory) for Phase Eight;
+  - `scripts/run_span_knockout.sh` and `scripts/run_span_knockout_confirm.sh`
+    (plus `evaluate`) for Phase Nine.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -290,7 +298,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (336 pass, 1 skip);
+    (347 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about

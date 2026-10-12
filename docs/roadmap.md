@@ -126,6 +126,15 @@ Qwen's answer position in layers 21–23, Gemma's question tokens in layers
 tokens are read (raw statements or stored state) is the open next question.
 See [the Phase Eight confirmatory report](../research/open_weight_lingua/reports/phase_eight_confirmatory.md).
 
+## Phase-nine status: the read targets the asked statements, confirmed, 2026-10-12
+
+Partial-span knockout showed that the late read retrieves the asked
+variable's own statements, and only those. No end-of-program summary is
+needed. All six claims held on 256 freshly generated groups (seed 206001),
+frozen before generation. Open next: when copied and computed values move
+to the asked statements, and which tokens within a statement carry them.
+See [the Phase Nine confirmatory report](../research/open_weight_lingua/reports/phase_nine_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
