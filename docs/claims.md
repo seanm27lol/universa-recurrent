@@ -487,6 +487,23 @@ frozen at 4f606db;
 | Degrading the final and the previous assignment makes it answer the value before that | SUPPORTED (confirmatory) | Rise in v2 answers over the final-only condition: +0.405 [0.318, 0.491] (G2), +0.771 [0.689, 0.846] (Q2); v2 is then said more often than v1 (0.439 vs 0.109; 0.875 vs 0.021) |
 | Degrading only the previous assignment does not hurt | SUPPORTED (confirmatory) | Loss −0.010 [−0.047, 0.023] (G3); Qwen improves by 0.166 [0.089, 0.249] (Q3), losing a competitor. Off-distribution blocks; literal final statements; one task family |
 
+## Phase Thirteen: the account holds at Gemma-3-27B (2026-10-12)
+
+The unchanged Phase Eight and Phase Twelve modules ran on Gemma-3-27B (62
+layers), first on opened programs
+([report](../research/open_weight_lingua/reports/phase_thirteen_scale.md)).
+Six claims were then confirmed on **1,536 freshly generated groups** (seed
+209001, excluding Phase Two and the three earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_thirteen_confirmatory_fresh.md)
+frozen at fac33db;
+[report](../research/open_weight_lingua/reports/phase_thirteen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Gemma-3-27B's answer positions never need the program directly | SUPPORTED (confirmatory, fresh programs) | 2,048 prompts (512 groups), answer positions blocked from the program at every layer: loss +0.008 [−0.001, 0.019] (R1). Run p13-confirm-gemma3-27b-20261012T123053Z-84de33d2 |
+| Its post-program positions read the program late, ending by layer 46 of 62 | SUPPORTED (confirmatory) | Blocked from layer 46: loss +0.029 [0.016, 0.044] (R2, threshold 0.05); from layer 38: +0.189 [0.162, 0.216] (R3). Release layer 46 of 62 (74% of depth) against 30 of 48 (62%) in the 12B |
+| It takes the most recent intact assignment | SUPPORTED (confirmatory) | 430 eligible prompts: v1 gain +0.751 [0.679, 0.818] (S1), v2 gain +0.807 [0.735, 0.870] (S2), previous-only loss +0.009 [−0.014, 0.035] (S3). Two sizes in one family, not a scaling law; statement-level spans not repeated at 27B |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and

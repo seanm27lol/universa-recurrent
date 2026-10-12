@@ -154,6 +154,16 @@ Phases Eight to Twelve the account is a recency-ordered lookup at answer
 time. Open next: whether it holds at larger scale (Gemma-3-27B).
 See [the Phase Twelve confirmatory report](../research/open_weight_lingua/reports/phase_twelve_confirmatory.md).
 
+## Phase-thirteen status: the account holds at Gemma-3-27B, confirmed, 2026-10-12
+
+The larger sibling model routes the late read the same way: its answer
+positions never need the program, its post-program positions read it late,
+and it takes the most recent intact assignment. The read ends deeper: by
+layer 46 of 62 (74% of depth) against 30 of 48 (62%) in the 12B. Confirmed
+on 1,536 freshly generated groups (seed 209001). Open next: whether the read
+changes when the question comes before the program.
+See [the Phase Thirteen confirmatory report](../research/open_weight_lingua/reports/phase_thirteen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
