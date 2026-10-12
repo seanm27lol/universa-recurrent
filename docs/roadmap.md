@@ -136,6 +136,15 @@ statements. A claim about copied values was withdrawn on 2026-10-12: it
 rested on a mislabelled breakdown.
 See [the Phase Nine confirmatory report](../research/open_weight_lingua/reports/phase_nine_confirmatory.md).
 
+## Phases ten and eleven: a degraded final assignment falls back, confirmed, 2026-10-12
+
+Blocking the asked variable's final statement from earlier lines degrades
+it, whichever lines are blocked, and the model then answers the previous
+assignment. Confirmed on 512 freshly generated groups (seed 207001). Open
+next: whether the late read selects the most recent *intact* assignment.
+Degrade the last two assignments and look for a fallback to the third.
+See [the Phase Eleven confirmatory report](../research/open_weight_lingua/reports/phase_eleven_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
