@@ -97,6 +97,13 @@ generated groups. See
 [reports/phase_eleven_confirmatory.md](reports/phase_eleven_confirmatory.md) and the
 Phase Ten and Eleven exploratory reports.
 
+**Phase Twelve: the late read takes the most recent intact assignment (2026-10-12, confirmed
+on fresh programs).** Degrade the asked variable's final assignment and the answer falls back
+to its previous value. Degrade the last two and it falls back to the one before. Degrading an
+earlier assignment alone changes nothing; for Qwen it removes interference. All six claims
+held on 1,536 newly generated groups. See
+[reports/phase_twelve_confirmatory.md](reports/phase_twelve_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot

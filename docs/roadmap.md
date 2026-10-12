@@ -145,6 +145,15 @@ next: whether the late read selects the most recent *intact* assignment.
 Degrade the last two assignments and look for a fallback to the third.
 See [the Phase Eleven confirmatory report](../research/open_weight_lingua/reports/phase_eleven_confirmatory.md).
 
+## Phase-twelve status: most recent intact assignment, confirmed, 2026-10-12
+
+The late read takes the asked variable's most recent intact assignment.
+Degrading assignments from the end pushes the answer back one assignment at
+a time. Confirmed on 1,536 freshly generated groups (seed 208001). Across
+Phases Eight to Twelve the account is a recency-ordered lookup at answer
+time. Open next: whether it holds at larger scale (Gemma-3-27B).
+See [the Phase Twelve confirmatory report](../research/open_weight_lingua/reports/phase_twelve_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |
