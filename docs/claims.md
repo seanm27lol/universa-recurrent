@@ -563,6 +563,25 @@ frozen at bccef75;
 | In Gemma, that mark is spread over the other variable's lines, not its last line | SUPPORTED (confirmatory) | Other's lines minus last line: +0.158 [0.126, 0.191] (G3) |
 | In Qwen, the last line alone carries more than 5 points | NOT SUPPORTED | +0.054 [0.033, 0.077] (Q3): above zero, below the threshold |
 
+## Phase Eighteen: with the question first, the program reads the question in the middle layers (2026-10-13)
+
+The program was blocked from the question in only some layers, on
+question-first prompts where the mark decides the answer. Explored on
+opened programs
+([report](../research/open_weight_lingua/reports/phase_eighteen_marking_layers.md)),
+then six claims about the window's edges were tested on **768 freshly
+generated groups** (seed 213001, excluding Phase Two and the seven earlier
+fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_eighteen_confirmatory_fresh.md)
+frozen at 18b6598;
+[report](../research/open_weight_lingua/reports/phase_eighteen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The marking is finished by layer 24 of 48 (Gemma) and 17 of 28 (Qwen), before the late read | SUPPORTED (confirmatory, fresh programs) | 1,412 prompts: blocking from those layers on changes other-value answers by +0.011 [0.004, 0.020] (G1) and −0.007 [−0.016, 0.001] (Q1). Runs p18-confirm-gemma3-12b-20261013T100005Z-7c3d752d and p18-confirm-qwen2.5-7b-20261013T105047Z-809ab6f4 |
+| It has begun below layer 12 (Gemma) and 10 (Qwen) | SUPPORTED (confirmatory) | Blocking only the layers below: +0.188 [0.153, 0.226] (G3), +0.098 [0.064, 0.133] (Q3) |
+| More than 5 points of it continue past layer 18 (Gemma) and 14 (Qwen) | NOT SUPPORTED | +0.056 [0.036, 0.077] (G2), +0.058 [0.034, 0.083] (Q2): above zero, below the threshold; most of the marking is done by then |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
