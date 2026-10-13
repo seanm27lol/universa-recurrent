@@ -582,6 +582,22 @@ frozen at 18b6598;
 | It has begun below layer 12 (Gemma) and 10 (Qwen) | SUPPORTED (confirmatory) | Blocking only the layers below: +0.188 [0.153, 0.226] (G3), +0.098 [0.064, 0.133] (Q3) |
 | More than 5 points of it continue past layer 18 (Gemma) and 14 (Qwen) | NOT SUPPORTED | +0.056 [0.036, 0.077] (G2), +0.058 [0.034, 0.083] (Q2): above zero, below the threshold; most of the marking is done by then |
 
+## Phase Nineteen: the question-first two-stage account at Gemma-3-27B (2026-10-13)
+
+The Phase Eighteen design ran on Gemma-3-27B (62 layers), first on opened
+programs ([report](../research/open_weight_lingua/reports/phase_nineteen_scale_question_first.md)),
+then five claims were tested on **768 freshly generated groups** (seed
+214001, excluding Phase Two and the eight earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_nineteen_confirmatory_fresh.md)
+frozen at 6b8ad4f;
+[report](../research/open_weight_lingua/reports/phase_nineteen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| With the question first, Gemma-3-27B's program carries the asked variable to the late read | SUPPORTED (confirmatory, fresh programs) | 1,424 prompts where the mark decides the answer: blocking the program from the question raises other-value answers by +0.636 [0.593, 0.679] (S1; accuracy 0.952 → 0.206). Run p19-confirm-gemma3-27b-20261013T142219Z-23f56073 |
+| Its marking has begun below layer 23 and is finished by layer 31 of 62 (half the depth, as in the 12B); the first seven layers do not mark | SUPPORTED (confirmatory) | Blocking below 23: +0.588 [0.545, 0.634] (S4); from 31 on: −0.001 [−0.004, 0.002] (S2); below 7: +0.001 [−0.004, 0.005] (S5) |
+| More than 5 points of it happen after layer 23 | NOT SUPPORTED | +0.061 [0.041, 0.083] (S3): above zero, below the threshold, as in Phase Eighteen for both smaller models |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
