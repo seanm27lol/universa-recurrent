@@ -163,6 +163,11 @@ gates remain unchanged; see the
      statements and the other's; the read needs both. Five of six claims
      confirmed on 768 fresh groups. See
      [reports/phase_seventeen_confirmatory.md](reports/phase_seventeen_confirmatory.md).
+   - Phase Eighteen: that marking happens in the middle layers. It has
+     begun below layer 12 (Gemma) or 10 (Qwen), mostly done by 18 or 14,
+     finished by 24 or 17, before the late read. Four of six claims
+     confirmed on 768 fresh groups. See
+     [reports/phase_eighteen_confirmatory.md](reports/phase_eighteen_confirmatory.md).
    - These surveys reuse an already examined pilot. Groups and complete
      programs remain separate across train/select/pilot, but some causal
      token prefixes repeat. "Held out" refers to the current probe fit,
@@ -220,6 +225,7 @@ gates remain unchanged; see the
 | Phases Fourteen and Fifteen: the late read with the question first (exploratory; joint confirmatory on fresh programs) | `reports/phase_fourteen_question_order.md`, `reports/phase_fifteen_variable_choice.md`, `reports/phase_fifteen_confirmatory.md`, `protocols/phase_fourteen_*`, `protocols/phase_fifteen_*` | Phases Fourteen and Fifteen |
 | Phase Sixteen: how the asked variable reaches the read with the question first (exploratory; confirmatory on fresh programs) | `reports/phase_sixteen_question_route.md`, `reports/phase_sixteen_confirmatory.md`, `protocols/phase_sixteen_*` | Phase Sixteen |
 | Phase Seventeen: where the program marks the asked variable (exploratory; confirmatory on fresh programs) | `reports/phase_seventeen_question_marking.md`, `reports/phase_seventeen_confirmatory.md`, `protocols/phase_seventeen_*` | Phase Seventeen |
+| Phase Eighteen: the layers of the marking (exploratory; confirmatory on fresh programs) | `reports/phase_eighteen_marking_layers.md`, `reports/phase_eighteen_confirmatory.md`, `protocols/phase_eighteen_*` | Phase Eighteen |
 | Qwen steering assay (closed) | `reports/steering_assay.md` | Post-Phase-Two steering assay |
 | vLLM backend (gate failed; keep eager) | — | Phase Two vLLM backend |
 
@@ -236,13 +242,16 @@ manifest hashes.
    some arithmetic scores improve, but none of the tested methods meets the
    tracking thresholds. This is useful instrument characterization, with no
    new gate or significance claim. It used no reserved data.
-2. **Next question: at which layers does the program read the question?**
-   - Phase Seventeen confirmed on fresh programs that the program marks
-     both variables' statements ([report](reports/phase_seventeen_confirmatory.md)).
-   - Phase Eighteen blocks the program from the question in only some
-     layers.
-   - Fresh splits used so far: 206001–212001. A next confirmation needs a
-     new seed excluding all seven.
+2. **Open questions after Phase Eighteen.** These are candidates, none
+   started.
+   - **Scale.** Does the question-first two-stage account (middle-layer
+     marking, late read) hold at Gemma-3-27B?
+   - **Qwen.** Why is Qwen's fallback broader than recency (Phase Sixteen
+     Q3)?
+   - **Wording.** Does any of it depend on the single question wording
+     used throughout?
+   - Fresh splits used so far: 206001–213001. A next confirmation needs a
+     new seed excluding all eight.
 3. **Optionally add the state surveys to the paper** (`paper/nla_three_families.md`,
    maintained in a separate session).
    - The paper covers everything through D6 (PRs #23 and #24, merged
@@ -337,7 +346,9 @@ choose sites after seeing the outcomes.
   - `scripts/run_question_route_knockout.sh` and `scripts/run_route_confirm.sh`
     (plus `evaluate`) for Phase Sixteen;
   - `scripts/run_question_marking_knockout.sh` and
-    `scripts/run_marking_confirm.sh` (plus `evaluate`) for Phase Seventeen.
+    `scripts/run_marking_confirm.sh` (plus `evaluate`) for Phase Seventeen;
+  - `scripts/run_marking_layers_knockout.sh` and
+    `scripts/run_layers_confirm.sh` (plus `evaluate`) for Phase Eighteen.
 - **Audits.** Use `python -m open_weight_lingua.audit <run-dir>` for pilots.
   Audit interfaces differ across the diagnostic and survey modules;
   `state_question_first` does not implement an `--audit` option. Check the
@@ -345,7 +356,7 @@ choose sites after seeing the outcomes.
 - **Tests and lint.**
   - `.venv-phase2/bin/python -m pytest -q -c
     research/open_weight_lingua/pyproject.toml research/open_weight_lingua/tests`
-    (435 pass, 1 skip);
+    (449 pass, 1 skip);
   - `tests/test_paper_numbers.py`;
   - `uvx --offline ruff@0.14.14 check research/open_weight_lingua`.
 - **The GPU** (GB10, 121 GB unified memory). The 27B pipeline peaks at about
