@@ -176,6 +176,17 @@ freshly generated groups (seed 210001); the eighth narrowed "no summary" to
 reaches the late read when the question comes first.
 See [the confirmatory report](../research/open_weight_lingua/reports/phase_fifteen_confirmatory.md).
 
+## Phase sixteen: the program carries the asked variable, confirmed for Gemma, 2026-10-13
+
+With the question first, Gemma marks the asked variable on the program as
+it reads it. Cut the program off from the question and the late read takes
+the most recent assignment of either variable. Qwen's variable is confused
+by the same cut, but its fallback is not specifically recency. Five of six
+claims held on 768 freshly generated groups (seed 211001). Open next: which
+program tokens carry the mark: the asked statements, the other's, or the
+program's end.
+See [the Phase Sixteen confirmatory report](../research/open_weight_lingua/reports/phase_sixteen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

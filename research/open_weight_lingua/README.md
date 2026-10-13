@@ -125,6 +125,17 @@ Qwen also takes superseded values. See
 [reports/phase_fifteen_variable_choice.md](reports/phase_fifteen_variable_choice.md) and
 [reports/phase_fifteen_confirmatory.md](reports/phase_fifteen_confirmatory.md).
 
+**Phase Sixteen: with the question first, the program carries the asked variable (2026-10-13,
+five of six claims confirmed on fresh programs).** The exploratory prediction of a direct
+route from the question to the reading positions was wrong. In Gemma, when the program tokens
+cannot attend to the question, the late read takes the most recent assignment of either
+variable: on programs ending on the other variable, 71% of answers become its value (accuracy
+0.822 → 0.202), while programs ending on the asked variable lose 7 points. Qwen's variable is
+confused too (+17 points of other-value answers), but its loss is not specific to the most
+recent assignment (Q3 not supported). See
+[reports/phase_sixteen_question_route.md](reports/phase_sixteen_question_route.md) and
+[reports/phase_sixteen_confirmatory.md](reports/phase_sixteen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -430,6 +441,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [question_order_knockout.py](src/open_weight_lingua/question_order_knockout.py) | Phase Fourteen ([brief](protocols/phase_fourteen_question_order_brief.md)): each prompt with the question after and before the program; the Phase Eight layer sweep and `only_last_line` (post-program positions see only the program's last line) |
 | [variable_choice_knockout.py](src/open_weight_lingua/variable_choice_knockout.py) | Phase Fifteen ([brief](protocols/phase_fifteen_variable_choice_brief.md)): in both orders, hides the other variable's lines, the asked variable's superseded lines, or both from the post-program positions, scoring the answer, the other variable's value and the previous value |
 | [order_confirm.py](src/open_weight_lingua/order_confirm.py) | Phases Fourteen and Fifteen confirmatory ([protocol](protocols/phase_fifteen_confirmatory_fresh.md)): 512 fresh groups (seed 210001, excluding Phase Two and the four earlier fresh splits), both orders, eight Bonferroni-controlled claims |
+| [question_route_knockout.py](src/open_weight_lingua/question_route_knockout.py) | Phase Sixteen ([brief](protocols/phase_sixteen_question_route_brief.md)): question-first prompts with the program, the reading positions or both blocked from the question (or its variable-name token) |
+| [route_confirm.py](src/open_weight_lingua/route_confirm.py) | Phase Sixteen confirmatory ([protocol](protocols/phase_sixteen_confirmatory_fresh.md)): 768 fresh groups (seed 211001, excluding Phase Two and the five earlier fresh splits), six Bonferroni-controlled claims on blocking the program from the question |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |

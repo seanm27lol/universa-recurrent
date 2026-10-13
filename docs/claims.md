@@ -525,6 +525,26 @@ frozen at bca0b10;
 | Knowing the question first does not make the asked statement hold its computed value | Exploratory | With only an arithmetic last line visible, accuracy sits within 6 points of the floor in both orders and models |
 | No end-of-program summary with the question first | QUALIFIED | The last line alone gives a small excess over the floor: Gemma +0.072 [0.031, 0.114] (G3 NOT SUPPORTED at the 10-point margin), Qwen +0.050 [0.028, 0.076] (Q3 supported). Post hoc, about 40% is numeric coincidence; 3–5 points remain. No summary large enough to answer from |
 
+## Phase Sixteen: with the question first, the program carries the asked variable (2026-10-13)
+
+With the question before the program, attention was blocked from layer 0
+between the question and either the program tokens or the post-program
+positions. Explored on opened programs
+([report](../research/open_weight_lingua/reports/phase_sixteen_question_route.md),
+where the predicted direct route was wrong), then six claims were tested on
+**768 freshly generated groups** (seed 211001, excluding Phase Two and the
+five earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_sixteen_confirmatory_fresh.md)
+frozen at 34e3306;
+[report](../research/open_weight_lingua/reports/phase_sixteen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| In Gemma-3-12B, with the question first, the asked variable reaches the late read through the program tokens; without it the read takes the most recent assignment of either variable | SUPPORTED (confirmatory, fresh programs) | Program blocked from the question: other-value answers on programs ending on the other variable +0.578 [0.533, 0.622] (G1), accuracy loss there +0.620 [0.576, 0.662] (G2), against a 7-point loss on programs ending on the asked variable (per-program contrast +0.553 [0.489, 0.613], G3). Run p16-confirm-gemma3-12b-20261013T004624Z-e44d86a5 |
+| In Qwen2.5-7B the same block confuses the variable | SUPPORTED (confirmatory) | Other-value answers +0.171 [0.134, 0.210] (Q1); accuracy loss +0.209 [0.170, 0.251] (Q2). Run p16-confirm-qwen2.5-7b-20261013T020421Z-9ef6ac5d |
+| ... and Qwen falls back specifically to the most recent assignment | NOT SUPPORTED | Per-program contrast +0.026 [−0.029, 0.082] (Q3): programs ending on the asked variable lose about as much (0.620 → 0.439) |
+| The question reaches the read directly | Small (descriptive) | Blocking the reader from only `What is x?` raises other-value answers by 6.5 points (Gemma) and 4.4 (Qwen). Blocking it from the whole question also hides the answer format and is uninterpretable |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
