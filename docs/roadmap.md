@@ -196,6 +196,14 @@ Five of six claims held on 768 freshly generated groups (seed 212001). Open
 next: at which layers the program reads the question.
 See [the Phase Seventeen confirmatory report](../research/open_weight_lingua/reports/phase_seventeen_confirmatory.md).
 
+## Phase eighteen: marking precedes the late read, confirmed, 2026-10-13
+
+With the question first, the program reads the question in the middle
+layers and is finished by layer 24 of 48 (Gemma) or 17 of 28 (Qwen), before
+the late read. Four of six claims held on 768 freshly generated groups (seed
+213001); the marking after layers 18 and 14 was smaller than 5 points.
+See [the Phase Eighteen confirmatory report](../research/open_weight_lingua/reports/phase_eighteen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

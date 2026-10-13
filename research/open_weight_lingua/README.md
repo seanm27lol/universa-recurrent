@@ -145,6 +145,16 @@ is spread over its lines rather than its last line. See
 [reports/phase_seventeen_question_marking.md](reports/phase_seventeen_question_marking.md) and
 [reports/phase_seventeen_confirmatory.md](reports/phase_seventeen_confirmatory.md).
 
+**Phase Eighteen: with the question first, marking happens in the middle layers, before the
+late read (2026-10-13, four of six claims confirmed on fresh programs).** Blocking the program
+from the question from layer 24 of 48 (Gemma) or 17 of 28 (Qwen) on is harmless; blocking
+below layer 12 or 10 is not. Most of the marking is done by layer 18 or 14, with a small
+remainder (about 5 points) after. With the question first the model works in two stages:
+the program marks both variables' statements in the middle layers, and the post-program
+positions read the marked program in the late layers. See
+[reports/phase_eighteen_marking_layers.md](reports/phase_eighteen_marking_layers.md) and
+[reports/phase_eighteen_confirmatory.md](reports/phase_eighteen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -454,6 +464,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [route_confirm.py](src/open_weight_lingua/route_confirm.py) | Phase Sixteen confirmatory ([protocol](protocols/phase_sixteen_confirmatory_fresh.md)): 768 fresh groups (seed 211001, excluding Phase Two and the five earlier fresh splits), six Bonferroni-controlled claims on blocking the program from the question |
 | [question_marking_knockout.py](src/open_weight_lingua/question_marking_knockout.py) | Phase Seventeen ([brief](protocols/phase_seventeen_question_marking_brief.md)): question-first prompts with only the asked variable's lines, the other's, or the last line blocked from the question |
 | [marking_confirm.py](src/open_weight_lingua/marking_confirm.py) | Phase Seventeen confirmatory ([protocol](protocols/phase_seventeen_confirmatory_fresh.md)): 768 fresh groups (seed 212001, excluding Phase Two and the six earlier fresh splits), six Bonferroni-controlled claims on where the program marks the asked variable |
+| [marking_layers_knockout.py](src/open_weight_lingua/marking_layers_knockout.py) | Phase Eighteen ([brief](protocols/phase_eighteen_marking_layers_brief.md)): the program blocked from the question from layer k on, or below layer k, on question-first prompts where the mark decides the answer |
+| [layers_confirm.py](src/open_weight_lingua/layers_confirm.py) | Phase Eighteen confirmatory ([protocol](protocols/phase_eighteen_confirmatory_fresh.md)): 768 fresh groups (seed 213001, excluding Phase Two and the seven earlier fresh splits), six Bonferroni-controlled claims on the marking window's edges |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
