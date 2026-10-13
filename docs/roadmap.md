@@ -204,6 +204,17 @@ the late read. Four of six claims held on 768 freshly generated groups (seed
 213001); the marking after layers 18 and 14 was smaller than 5 points.
 See [the Phase Eighteen confirmatory report](../research/open_weight_lingua/reports/phase_eighteen_confirmatory.md).
 
+## Phase nineteen: the question-first account holds at 27B, confirmed, 2026-10-13
+
+Gemma-3-27B marks the program from the question in the first half of its
+depth and reads it late; without the marks it takes the other variable's
+value. Four of five claims held on 768 freshly generated groups (seed
+214001). Across three models, the question-after and question-first
+accounts are now confirmed on fresh programs. Remaining open questions
+(Qwen's broader fallback, other question wordings) are listed in the
+handoff.
+See [the Phase Nineteen confirmatory report](../research/open_weight_lingua/reports/phase_nineteen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

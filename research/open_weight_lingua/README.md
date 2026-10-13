@@ -155,6 +155,15 @@ positions read the marked program in the late layers. See
 [reports/phase_eighteen_marking_layers.md](reports/phase_eighteen_marking_layers.md) and
 [reports/phase_eighteen_confirmatory.md](reports/phase_eighteen_confirmatory.md).
 
+**Phase Nineteen: the question-first two-stage account holds at Gemma-3-27B (2026-10-13, four
+of five claims confirmed on fresh programs).** With the question first, cutting the 27B's
+program off from the question raises other-value answers by 64 points (accuracy 0.952 →
+0.206). Its marking has begun below layer 23 and is finished by layer 31 of 62: half the depth,
+as in the 12B, while the late read sits deeper in the larger model. In all three models the
+marking after about 37% of depth is above zero but under 5 points. See
+[reports/phase_nineteen_scale_question_first.md](reports/phase_nineteen_scale_question_first.md)
+and [reports/phase_nineteen_confirmatory.md](reports/phase_nineteen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -466,6 +475,7 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [marking_confirm.py](src/open_weight_lingua/marking_confirm.py) | Phase Seventeen confirmatory ([protocol](protocols/phase_seventeen_confirmatory_fresh.md)): 768 fresh groups (seed 212001, excluding Phase Two and the six earlier fresh splits), six Bonferroni-controlled claims on where the program marks the asked variable |
 | [marking_layers_knockout.py](src/open_weight_lingua/marking_layers_knockout.py) | Phase Eighteen ([brief](protocols/phase_eighteen_marking_layers_brief.md)): the program blocked from the question from layer k on, or below layer k, on question-first prompts where the mark decides the answer |
 | [layers_confirm.py](src/open_weight_lingua/layers_confirm.py) | Phase Eighteen confirmatory ([protocol](protocols/phase_eighteen_confirmatory_fresh.md)): 768 fresh groups (seed 213001, excluding Phase Two and the seven earlier fresh splits), six Bonferroni-controlled claims on the marking window's edges |
+| [scale_marking_confirm.py](src/open_weight_lingua/scale_marking_confirm.py) | Phase Nineteen confirmatory ([protocol](protocols/phase_nineteen_confirmatory_fresh.md)): Gemma-3-27B on 768 fresh groups (seed 214001, excluding Phase Two and the eight earlier fresh splits), five Bonferroni-controlled claims on the question-first marking (the exploratory stage reuses `marking_layers_knockout.py` with `--protocol`) |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
