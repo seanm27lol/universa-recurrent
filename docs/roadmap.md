@@ -187,6 +187,15 @@ program tokens carry the mark: the asked statements, the other's, or the
 program's end.
 See [the Phase Sixteen confirmatory report](../research/open_weight_lingua/reports/phase_sixteen_confirmatory.md).
 
+## Phase seventeen: the program marks both variables, confirmed, 2026-10-13
+
+With the question first, the program tokens mark the asked variable's
+statements and the other variable's statements; the late read needs both
+marks. In Gemma the mark on the other variable is spread over its lines.
+Five of six claims held on 768 freshly generated groups (seed 212001). Open
+next: at which layers the program reads the question.
+See [the Phase Seventeen confirmatory report](../research/open_weight_lingua/reports/phase_seventeen_confirmatory.md).
+
 ## Original project stages (not a new run list)
 
 | Stage | Deliverable | Gate before a claim |

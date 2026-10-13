@@ -136,6 +136,15 @@ recent assignment (Q3 not supported). See
 [reports/phase_sixteen_question_route.md](reports/phase_sixteen_question_route.md) and
 [reports/phase_sixteen_confirmatory.md](reports/phase_sixteen_confirmatory.md).
 
+**Phase Seventeen: with the question first, the program marks both variables' statements
+(2026-10-13, five of six claims confirmed on fresh programs).** Blocking only the asked
+variable's lines from the question, or only the other variable's lines, each makes the late
+read take the other variable's value more often (Gemma +25 and +21 points, Qwen +14 and +13).
+The exploratory prediction of tagging alone was wrong. In Gemma the mark on the other variable
+is spread over its lines rather than its last line. See
+[reports/phase_seventeen_question_marking.md](reports/phase_seventeen_question_marking.md) and
+[reports/phase_seventeen_confirmatory.md](reports/phase_seventeen_confirmatory.md).
+
 **Post-phase steering assay (2026-09-22): COMPLETE with a negative result.**
 One frozen reconstructed-difference steering run
 (`steering-20260922T160432Z-d3b9e4d7`, auditor PASS) on the reused pilot
@@ -443,6 +452,8 @@ trigger a search for a different checkpoint, site or task (brief §11).
 | [order_confirm.py](src/open_weight_lingua/order_confirm.py) | Phases Fourteen and Fifteen confirmatory ([protocol](protocols/phase_fifteen_confirmatory_fresh.md)): 512 fresh groups (seed 210001, excluding Phase Two and the four earlier fresh splits), both orders, eight Bonferroni-controlled claims |
 | [question_route_knockout.py](src/open_weight_lingua/question_route_knockout.py) | Phase Sixteen ([brief](protocols/phase_sixteen_question_route_brief.md)): question-first prompts with the program, the reading positions or both blocked from the question (or its variable-name token) |
 | [route_confirm.py](src/open_weight_lingua/route_confirm.py) | Phase Sixteen confirmatory ([protocol](protocols/phase_sixteen_confirmatory_fresh.md)): 768 fresh groups (seed 211001, excluding Phase Two and the five earlier fresh splits), six Bonferroni-controlled claims on blocking the program from the question |
+| [question_marking_knockout.py](src/open_weight_lingua/question_marking_knockout.py) | Phase Seventeen ([brief](protocols/phase_seventeen_question_marking_brief.md)): question-first prompts with only the asked variable's lines, the other's, or the last line blocked from the question |
+| [marking_confirm.py](src/open_weight_lingua/marking_confirm.py) | Phase Seventeen confirmatory ([protocol](protocols/phase_seventeen_confirmatory_fresh.md)): 768 fresh groups (seed 212001, excluding Phase Two and the six earlier fresh splits), six Bonferroni-controlled claims on where the program marks the asked variable |
 | [stats.py](src/open_weight_lingua/stats.py) | Whole-group bootstrap (3,000 resamples, fixed seed) and one-sided upper/lower estimates for the decision rules; absolute log-probability contrasts only, no fraction-recovered ratios |
 | [runner.py](src/open_weight_lingua/runner.py) | Stages smoke/calibration/pilot; P0–P5, raw donor, per-stage median-norm diagnostic, edit conditions on eligible groups, all variants/failures, sequential loading |
 | [audit.py](src/open_weight_lingua/audit.py) | Recompute saved counts and KL without loading models or invoking the producer |
