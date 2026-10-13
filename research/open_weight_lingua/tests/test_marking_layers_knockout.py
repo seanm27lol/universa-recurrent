@@ -87,13 +87,16 @@ def test_end_to_end_on_fixture_models(tmp_path, monkeypatch, model_factory, toke
     monkeypatch.setattr(mlk, "verify_models", lambda lock, paths: {})
     monkeypatch.setattr(mlk, "compatibility", lambda device: {})
     monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", lambda path, **kwargs: tokenizer)
+    brief = tmp_path / "a_later_brief.md"
+    brief.write_text("a later phase reusing this module")
     args = mlk.parse_args(["--lock", str(lock), "--calibration-run", str(tmp_path / "cal"),
-                           "--pilot-run", str(tmp_path / "pil"), "--device", "cpu"])
+                           "--pilot-run", str(tmp_path / "pil"), "--device", "cpu", "--protocol", str(brief)])
     run = RunDirectory(tmp_path / "layers")
     summary = mlk.run(args, run, {})
     manifest = json.loads((run.path / "manifest.json").read_text())
     inputs = sum(len(json.loads((tmp_path / n / "manifest.json").read_text())["inputs"]) for n in ("cal", "pil"))
     assert manifest["prompts"] == inputs and summary["layers"] == 8 and set(summary["window"]) == {"calibration", "pilot"}
-    assert manifest["protocol_sha256"] == mlk.sha256_file(mlk.PROTOCOL)
+    assert manifest["protocol_path"] == str(brief) and manifest["protocol_sha256"] == mlk.sha256_file(brief)
+    assert mlk.parse_args(["--lock", "l", "--calibration-run", "c", "--pilot-run", "p"]).protocol == mlk.PROTOCOL
     first = json.loads((run.path / "results.jsonl").read_text().splitlines()[0])
     assert set(first) == {"id", *mlk.conditions(8)}
