@@ -545,6 +545,24 @@ frozen at 34e3306;
 | ... and Qwen falls back specifically to the most recent assignment | NOT SUPPORTED | Per-program contrast +0.026 [−0.029, 0.082] (Q3): programs ending on the asked variable lose about as much (0.620 → 0.439) |
 | The question reaches the read directly | Small (descriptive) | Blocking the reader from only `What is x?` raises other-value answers by 6.5 points (Gemma) and 4.4 (Qwen). Blocking it from the whole question also hides the answer format and is uninterpretable |
 
+## Phase Seventeen: with the question first, the program marks both variables' statements (2026-10-13)
+
+Parts of the program were blocked from the question, from layer 0, on
+question-first prompts. Explored on opened programs
+([report](../research/open_weight_lingua/reports/phase_seventeen_question_marking.md)),
+then six claims were tested on **768 freshly generated groups** (seed
+212001, excluding Phase Two and the six earlier fresh splits;
+[protocol](../research/open_weight_lingua/protocols/phase_seventeen_confirmatory_fresh.md)
+frozen at bccef75;
+[report](../research/open_weight_lingua/reports/phase_seventeen_confirmatory.md)).
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| The asked variable's statements carry a mark from the question | SUPPORTED (confirmatory, fresh programs) | 1,419 prompts on programs ending on the other variable: blocking the asked variable's lines from the question raises other-value answers by +0.247 [0.208, 0.287] (Gemma, G1) and +0.142 [0.107, 0.178] (Qwen, Q1). Runs p17-confirm-gemma3-12b-20261013T045634Z-11c94a0a and p17-confirm-qwen2.5-7b-20261013T063010Z-f36bf6d9 |
+| The other variable's statements carry a mark too | SUPPORTED (confirmatory) | Blocking the other variable's lines: +0.208 [0.172, 0.247] (G2), +0.128 [0.097, 0.162] (Q2) |
+| In Gemma, that mark is spread over the other variable's lines, not its last line | SUPPORTED (confirmatory) | Other's lines minus last line: +0.158 [0.126, 0.191] (G3) |
+| In Qwen, the last line alone carries more than 5 points | NOT SUPPORTED | +0.054 [0.033, 0.077] (Q3): above zero, below the threshold |
+
 ## Completed phase-one findings (2026-09-16)
 
 **This sequence is closed.** Read the [findings](phase_one_results.md) and
