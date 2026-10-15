@@ -21,10 +21,15 @@ Two synthetic benchmarks share one model (see README.md in this directory):
        country's A and B never meet in one vector (a shared table would leak);
      * gradient masking: a query's gradient reaches only its designated branch, so
        Gumbel exploration cannot send Trait-B supervision into Branch 0;
+     * in training, the bridge is left out of any query that designates a branch but not
+       both branches the bridge reads; otherwise a Trait-A query that fires the bridge
+       would train Branch 0 on an output that depends on Branch 1's Trait-B stalk;
      * the router reads the query context but not the entity token, so routing cannot
        carry country-specific trait information;
      * combined accuracy is a 2-way S0-vs-S1 comparison, so chance is 50%.
-   The "no bridge, shared embedding" variant removes the first item on purpose.
+   The "no bridge, shared embedding" variant removes the first item on purpose. The dense
+   variant mixes every branch's output on every query, so its branches are not isolated:
+   it is a compute baseline, not a test of the cap.
 
 Model changes from the original sketch (both benchmarks): a real training loop; the
 bridge pairs the executed branch with the runner-up and actually runs the runner-up
@@ -204,10 +209,21 @@ class TypeInformedTreeNN(nn.Module):
             fire = noul >= self.bridge_threshold
             hard = fire.to(noul.dtype)
             gate = hard + noul - noul.detach() if self.training else hard  # same forward value both modes
+        if self.training and grad_allow is not None and bridge != "off":
+            # Where a query designates a branch but not both branches the bridge reads (a Trait-A query
+            # firing the bridge), the bridge's output would make that branch's training signal depend on
+            # the other branch's stalk (Trait B). Leave the bridge out of those rows' training forward
+            # pass; the Brier loss still trains the gate. Combined queries designate no branch here.
+            u_all, v_all = torch.minimum(top1, top2), torch.maximum(top1, top2)
+            coupled = grad_allow.any(-1) & ~(grad_allow[rows_all, u_all] & grad_allow[rows_all, v_all])
+            gate = torch.where(coupled, torch.zeros_like(gate), gate)
 
         need = torch.zeros(B, K, dtype=torch.bool, device=h0.device)
         need[rows_all, top1] = True
         need[rows_all[fire], top2[fire]] = True
+        if partner_perm is not None and bridge != "off":
+            # Shuffled-partner control: the bridge reads the partner query's stalk, so compute it.
+            need[partner_perm[fire], torch.maximum(top1, top2)[fire]] = True
         # Training needs every branch output for the straight-through routing gradient.
         execute = torch.ones_like(need) if (self.training or self.dense or reference) else need
 
@@ -323,7 +339,13 @@ def optimize(model, args, sample_batch, make_kwargs, label):
 
 # =========================================================================== benchmark 1: routing
 class ToyWorld:
-    """Fixed facts (regions, sizes, capitals) plus a query sampler."""
+    """Fixed facts (regions, sizes, capitals) plus a query sampler.
+
+    Training and evaluation draw from the same distribution: every (relation, entity)
+    fact in an evaluation batch is also seen in training, in other filler contexts and
+    relation positions. Evaluation therefore tests routing and recall in fresh contexts,
+    not generalization to held-out facts.
+    """
 
     RELATIONS = ["region_of", "size_of", "capital_of", "country_of", "echo"]
     TYPES = [  # (relation, entity kind, target branch, needs bridge)
@@ -460,7 +482,7 @@ def run_routing(args, device) -> Dict:
     print(f"\n=== ROUTING benchmark (mean ± sd over seeds {args.seeds}) ===")
     print(f"{'':44s}" + "".join(f"{v:>20s}" for v in ROUTING_VARIANTS))
     for name, path in [
-        ("Task accuracy (held-out queries)", ("eval", "task_acc")),
+        ("Task accuracy (fresh-context queries)", ("eval", "task_acc")),
         ("Routing accuracy", ("eval", "route_acc")),
         ("Routing ECE (lower = better calibrated)", ("eval", "route_ece")),
         ("Noul gate accuracy", ("eval", "noul_acc")),
@@ -703,7 +725,7 @@ def run_compositional(args, device) -> Dict:
 
 
 # =========================================================================== main
-def main():
+def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--benchmark", default="both", choices=["routing", "compositional", "both"])
     p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
@@ -729,7 +751,11 @@ def main():
     p.add_argument("--bridge-threshold", type=float, default=0.5)
     p.add_argument("--log-every", type=int, default=500)
     p.add_argument("--out", type=Path, default=Path("runs/titnn"))
-    args = p.parse_args()
+    return p.parse_args(argv)
+
+
+def main():
+    args = parse_args()
 
     device = torch.device("cuda" if args.device == "auto" and torch.cuda.is_available() else
                           ("cpu" if args.device == "auto" else args.device))
