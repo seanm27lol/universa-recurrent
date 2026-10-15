@@ -750,4 +750,5 @@ README.
 | The cap comes from the architecture alone | FALSE | It depends on private branch embeddings, gradient masking and an entity-blind router; with one shared embedding a single branch reached 0.573 ± 0.036, above chance on two of three seeds |
 | The bridge model uses about half the dense compute on XOR queries | Counted, not timed | 442,368 versus 835,584 branch-and-bridge MACs per query (0.529×), from layer shapes |
 | The bridge is needed on the routing benchmark | Not supported | Every variant 1.000 on fresh-context routing queries (every fact is also seen in training) on every seed; the variant trained without the bridge matched it |
+| Without routing labels, the router still routes by query type | Observed on 3 seeds | Routing benchmark trained on answers and compute only: accuracy 1.000, purity 1.000, conflicting types always separated, bridge never fires (1.00 branch runs per query against 1.40 supervised). It finds the minimal partition the task needs (2–3 branches), not the labelled four types (type–branch NMI 0.65–0.81 against 0.91) |
 | Any of this transfers to language models or real tasks | Not established | Synthetic toy tasks only |

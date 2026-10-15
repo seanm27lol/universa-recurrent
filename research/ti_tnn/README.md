@@ -122,6 +122,7 @@ not isolated. It is a compute baseline, not a test of the cap.
 python research/ti_tnn/ti_tnn_train.py                    # both benchmarks, 3 seeds, GPU if available
 python research/ti_tnn/ti_tnn_train.py --benchmark compositional
 python research/ti_tnn/ti_tnn_train.py --device cpu --steps 2000 --seeds 0   # quick CPU check
+python research/ti_tnn/ti_tnn_train.py --benchmark unsupervised               # routing with no labels
 ```
 
 Results print as tables and are saved to `runs/titnn/<timestamp>/routing.json` and
@@ -231,6 +232,29 @@ fed another country's Trait-B stalk.
   longer queries than training saw (length 10), both routed variants stayed at 1.000
   on every seed while dense averaged 0.995 (lowest 0.986); a small difference.
 
+- **Unsupervised routing, GPU run 2026-10-15**
+  ([frozen brief](protocols/unsupervised_routing.md); `unsupervised.json` sha256
+  `7fa5e8a2fdff49b29c8e866f14f178a28466582dc7ff460959345baf2a38fda3`).
+  - **Setup.** The routing benchmark trained with no routing or gate labels:
+    answer cross-entropy plus compute, with each bridge firing charged one
+    branch.
+  - **All four predictions held, on every seed.**
+    - Both unsupervised variants reach 1.000, also on length-10 queries.
+    - Routing is perfectly consistent by query type (purity 1.000).
+    - The query types that share an entity kind always go to different
+      branches.
+    - The bridge never fires.
+  - **Fewer types than the labels impose.** The router does not recover the
+    labelled four-way typing (type–branch NMI 0.65–0.81, against 0.91
+    supervised). It finds just the partition the task needs: `capital_of`
+    with `country_of` on one branch, and `region_of` with `size_of` on another.
+    That second pair is compatible because one asks about countries and the
+    other about capitals. Two branches on two seeds, three on one.
+  - **Compute.** 1.00 branch run per query, against 1.40 for the supervised
+    model, whose labels make the bridge fire on 40% of queries that do not
+    need it.
+  - **What it shows.** Without labels, routing follows what conflicts in the
+    task, not human-named categories.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.
