@@ -42,7 +42,7 @@ def parse_args(argv=None):
     p.add_argument("--balance-coef", type=float, default=0.01)
     p.add_argument("--bridge-cost", type=float, default=0.01)
     p.add_argument("--batch", type=int, default=32, help="sequences per step")
-    p.add_argument("--tokens", type=float, default=2e8, help="training token budget")
+    p.add_argument("--tokens", type=float, default=1e8, help="training token budget")
     p.add_argument("--lr", type=float, default=6e-4)
     p.add_argument("--min-lr-frac", type=float, default=0.1)
     p.add_argument("--warmup-frac", type=float, default=0.02)

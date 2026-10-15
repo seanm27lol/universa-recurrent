@@ -120,3 +120,9 @@ GPU (gated):
 
 Results go to the git-ignored `runs/titnn_bench/`; `bench/summarize.py`
 builds the tables. About 21 GPU-hours.
+
+**Execution record.** The first launch (2026-10-15 19:51 UTC) used `lm.py`'s
+200M-token default instead of the protocol's 100M, because the runner did not
+pass `--tokens`. I stopped it after 100 of 12,207 steps of the first dense run.
+It produced no result, and its partial output was deleted. The runner and the
+default now both use 100M tokens. Nothing else changed.
