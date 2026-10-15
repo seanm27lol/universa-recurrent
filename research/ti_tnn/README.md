@@ -109,14 +109,13 @@ fed another country's Trait-B stalk.
   appear in XOR training queries and every split is balanced; that the router
   ignores the entity token; that the bridge edge orientation is fixed; and that MAC
   counts follow layer shapes.
-- **Routing benchmark, earlier CPU development run (one seed, 1,000 steps, with the
-  previous script version, before the fixed bridge-edge orientation; a re-run on the
-  current version is in progress):** every
-  variant reached 100% on held-out queries, so this task separates the variants only
-  on compute: 1.40 branch runs per query routed with the bridge, 1.00 without, 4.00
-  dense. Random routing (bridge off) fell to 58.5%, so routing is load-bearing. The
-  model trained without the bridge matched the one with it: the bridge is not needed
-  on this task.
+- **Routing benchmark, CPU development run (one seed, 1,000 steps):** every variant
+  reached 100% on held-out queries, so this task separates the variants only on
+  compute: 1.40 branch runs per query routed with the bridge, 1.00 without, 4.00
+  dense. Random routing (bridge off) fell to 0.5845, and to 0.084 to 0.211 on the
+  relational queries, so routing is load-bearing. The model trained without the
+  bridge matched the one with it: the bridge is not needed on this task, unlike the
+  compositional one below.
 - **Compositional isolation benchmark, CPU development run (one seed, 2,000 steps,
   the first and only configuration tried; nothing was tuned after seeing results):**
 
