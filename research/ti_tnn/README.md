@@ -1,7 +1,8 @@
 # TI-TNN: typed branches, a calibrated router and a sheaf bridge
 
 **Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
-with 3 seeds (2026-10-14).** Nothing here is a result about language models.
+with 3 seeds (2026-10-14; re-run 2026-10-15 after an isolation fix).** Nothing here is
+a result about language models.
 
 ## A concrete example
 
@@ -58,11 +59,20 @@ mixtures of experts (Shazeer et al.).
    `nobridge_shared_emb` variant shows this.
 2. *Gradient masking.* A query's gradient reaches only its designated branch, so
    routing exploration cannot send Trait-B supervision into Branch 0.
-3. *The router ignores the entity token*, so routing cannot carry trait information.
-4. *Held-out countries' XOR queries never appear in training*, and every split is
+3. *No coupling through the bridge in training.* The bridge is left out of the
+   training forward pass for any query that designates a branch but not both branches
+   the bridge reads. Otherwise a Trait-A query that fires the bridge would train
+   Branch 0 on an output that depends on Branch 1's Trait-B stalk. (Added 2026-10-15;
+   before, gradient masking alone did not close this path.) The Brier loss still
+   trains the gate, and XOR queries, which designate no branch, still train the bridge.
+4. *The router ignores the entity token*, so routing cannot carry trait information.
+5. *Held-out countries' XOR queries never appear in training*, and every split is
    balanced in A, B and XOR.
-5. *Two-way scoring.* Combined accuracy compares only the two status tokens, so
+6. *Two-way scoring.* Combined accuracy compares only the two status tokens, so
    chance is 50%.
+
+The `dense` variant mixes every branch's output on every query, so its branches are
+not isolated. It is a compute baseline, not a test of the cap.
 
 ## Run it
 
@@ -81,7 +91,10 @@ Results print as tables and are saved to `runs/titnn/<timestamp>/routing.json` a
 **Routing.** Queries such as `capital_of <country>` and `region_of <country>`. Branches
 are token-wise, so only the router can tell the model which function to apply to the
 entity: routing is load-bearing. Variants: routed + bridge, routed without a bridge,
-and dense.
+and dense. Evaluation queries are fresh samples from the training distribution, so
+every fact they ask about is also seen in training, in other filler contexts and
+relation positions. The benchmark tests routing and recall in fresh contexts, not
+generalization to held-out facts.
 
 **Compositional isolation.** 512 countries, split train / validation / test (320 /
 64 / 128), stratified by (A, B). `traitA_of` is supervised only through Branch 0 and
@@ -104,18 +117,30 @@ fed another country's Trait-B stalk.
 - **Tested locally (software properties, not results):**
   [`tests/test_ti_tnn.py`](../../tests/test_ti_tnn.py) checks that conditional
   execution matches running every branch; that gradient masking keeps Trait-B
-  supervision out of Branch 0's parameters and embedding subspace; that strict
-  isolation trains only the bridge on XOR queries; that held-out countries never
-  appear in XOR training queries and every split is balanced; that the router
-  ignores the entity token; that the bridge edge orientation is fixed; and that MAC
-  counts follow layer shapes.
-**GPU run, 2026-10-14:** default settings (3 seeds, 3,000 steps, batch 512), NVIDIA
-GB10 (compute capability 12.1), PyTorch 2.10.0+cu130, Python 3.11.14, aarch64. The
-configuration is the one first tried on CPU; nothing was tuned after seeing results.
-Results files stay on the GPU host (`runs/` is not committed): `routing.json` sha256
-`a739895e30c139b7449d8c980928fef3852f789fa8a9764bb5d31dc67fb89726`,
-`compositional.json` sha256
-`953d2a66563f971755369a26e0fc92b1de0c49747a207b55b61a44a12f5168af`.
+  supervision out of Branch 0's parameters and embedding subspace; that, in routed
+  training, Branch 1's state never shapes Branch 0's update, even when the bridge gate
+  fires; that strict isolation trains only the bridge on XOR queries; that held-out
+  countries never appear in XOR training queries and every split is balanced; that
+  the router ignores the entity token; that the bridge edge orientation is fixed; that
+  the shuffled-partner control reads the partner's computed stalk; that routing
+  evaluation reuses training facts; that MAC counts follow layer shapes; and that both
+  benchmarks run end to end.
+
+**GPU run, 2026-10-15** (after the isolation fix, assumption 3 above):
+- **Settings.** Default settings (3 seeds, 3,000 steps, batch 512), NVIDIA GB10
+  (compute capability 12.1), PyTorch 2.10.0+cu130, Python 3.11.14, aarch64. The
+  configuration is the one first tried on CPU; nothing was tuned after seeing
+  results.
+- **Results files** stay on the GPU host (`runs/` is not committed):
+  - `routing.json` sha256
+    `3fe33e3294f4c62a3229bff523199185e528c0c291e559c330adb27864a14fc0`;
+  - `compositional.json` sha256
+    `a8c8bcc81c9b60ba7d5a30a1b9e67ad34c7ca418c38630a2604615af414f955d`.
+- **Against the 2026-10-14 run before the fix** (`routing.json` `a739895e…`,
+  `compositional.json` `953d2a66…`):
+  - every routing result is identical, since the fix does not touch that benchmark;
+  - every compositional accuracy is identical except the bridge-off control on
+    two `routed_bridge` seeds (below).
 
 - **Compositional isolation benchmark:**
 
@@ -136,19 +161,27 @@ Results files stay on the GPU host (`runs/` is not committed): `routing.json` sh
   chance on held-out ones, as the information argument predicts. The bridge composes
   the separately learned traits on held-out countries on every seed, with 0.529× the
   dense model's branch-and-bridge compute on those queries (2 branches + bridge
-  versus 4 + bridge). Controls on `routed_bridge`, identical on every seed: bridge off
-  at evaluation 0.500 (the output then carries no Trait-B information, and the test
-  set is balanced in XOR within each value of Trait A); bridge fed the next country's
-  Trait-B stalk 0.516, exactly the fraction of those partner pairs that share Trait B
-  (checked against the data), so the bridge computes XOR of whatever traits it is
-  given; XOR queries
-  routed Branch 0 then Branch 1 and fired the gate on 100% of queries; conditional
-  execution matched running every branch exactly. Single-trait accuracy was 1.000 for
-  every variant, so each branch learned its own trait for held-out countries. The
-  shared-embedding leak is real but modest at this training budget.
+  versus 4 + bridge). Controls on `routed_bridge`:
+  - **Bridge off at evaluation:** 0.500, 0.477 and 0.508 over the three seeds, at
+    chance. The output then carries no Trait-B information. Before the fix it was
+    exactly 0.500 on every seed; it no longer is, so the earlier exactness was not a
+    property of the design.
+  - **Bridge fed the next country's Trait-B stalk:** 0.516 on every seed. That is
+    exactly the fraction of those partner pairs that share Trait B (checked against
+    the data), so the bridge computes XOR of whatever traits it is given. The
+    control now always computes the partner's stalk; the bridge fired on every XOR
+    query here, so the value is unchanged.
+  - **Routing and gate:** XOR queries were routed to Branch 0 then Branch 1 and fired
+    the gate on 100% of queries.
+  - **Exactness:** conditional execution matched running every branch exactly.
 
-- **Routing benchmark:** every variant reached 1.000 on held-out queries on every
-  seed, so this task separates the variants only on compute: 1.40 branch runs per
+  Single-trait accuracy was 1.000 for every variant, so each branch learned its own
+  trait for held-out countries. The shared-embedding leak is real but modest at this
+  training budget.
+
+- **Routing benchmark:** every variant reached 1.000 on fresh-context queries (facts
+  seen in training, new contexts) on every seed, so this task separates the variants
+  only on compute: 1.40 branch runs per
   query routed with the bridge, 1.00 without, 4.00 dense. Random routing with the
   bridge off fell to 0.576 ± 0.003 (routed + bridge) and 0.583 ± 0.004 (no bridge),
   so routing is load-bearing. The model trained without the bridge matched the one

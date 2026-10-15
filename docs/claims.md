@@ -735,16 +735,19 @@ interpreter, semantic discovery, formal causal abstraction or speedup is claimed
 
 Typed branches, a calibrated router and a gated sheaf bridge, tested on two
 synthetic benchmarks in [research/ti_tnn](../research/ti_tnn/README.md). Results
-below are one GPU run with 3 seeds (NVIDIA GB10, PyTorch 2.10.0+cu130, 2026-10-14),
-using the configuration first tried on CPU; results-file hashes are in the README.
+below are one GPU run with 3 seeds (NVIDIA GB10, PyTorch 2.10.0+cu130, 2026-10-15, after
+an isolation fix; the 2026-10-14 run before it gave the same accuracies except one
+control), using the configuration first tried on CPU; results-file hashes are in the
+README.
 
 | Statement | Status | Evidence and boundary |
 |---|---|---|
 | Conditional execution gives the same outputs as running every branch | Tested locally; observed on GPU | `tests/test_ti_tnn.py`; max logit difference 0 on every seed |
 | Gradient masking keeps Trait-B supervision out of Branch 0 | Tested locally | Branch 0's parameters and embedding subspace receive exactly zero gradient from Trait-B queries |
+| In routed training, Branch 1's state never shapes Branch 0's update | Tested locally (fixed 2026-10-15) | Before the fix, a Trait-A query that fired the bridge trained Branch 0 on an output depending on Branch 1's Trait-B stalk; the bridge is now left out of such queries in training. The dense variant mixes every branch on every query and is not isolated |
 | One branch is capped at chance on held-out XOR under the stated isolation | Holds by construction; observed on 3 seeds | XOR is independent of each trait alone. `routed_nobridge` 0.492 ± 0.027 on 128 held-out test countries, every seed's 95% interval including 0.5, while 1.000 on train countries (memorized) |
-| The bridge composes separately learned traits on held-out countries | Observed on 3 seeds | `routed_bridge` 1.000 on held-out test and validation countries on every seed; bridge off 0.500; the next country's Trait-B stalk 0.516, exactly the share of partner pairs with the same Trait B |
+| The bridge composes separately learned traits on held-out countries | Observed on 3 seeds | `routed_bridge` 1.000 on held-out test and validation countries on every seed, before and after the isolation fix; bridge off 0.500, 0.477, 0.508 (chance); the next country's Trait-B stalk 0.516, exactly the share of partner pairs with the same Trait B |
 | The cap comes from the architecture alone | FALSE | It depends on private branch embeddings, gradient masking and an entity-blind router; with one shared embedding a single branch reached 0.573 ± 0.036, above chance on two of three seeds |
 | The bridge model uses about half the dense compute on XOR queries | Counted, not timed | 442,368 versus 835,584 branch-and-bridge MACs per query (0.529×), from layer shapes |
-| The bridge is needed on the routing benchmark | Not supported | Every variant 1.000 on held-out routing queries on every seed; the variant trained without the bridge matched it |
+| The bridge is needed on the routing benchmark | Not supported | Every variant 1.000 on fresh-context routing queries (every fact is also seen in training) on every seed; the variant trained without the bridge matched it |
 | Any of this transfers to language models or real tasks | Not established | Synthetic toy tasks only |

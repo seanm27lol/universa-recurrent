@@ -83,3 +83,22 @@ jobs:
           python -m pip install "transformers==4.57.6" "huggingface-hub==0.36.0"
           "safetensors==0.7.0" "numpy==2.2.6" "PyYAML==6.0.3" "pytest==8.4.2"
       - run: python -m pytest -q
+
+  commit-messages:
+    # Commit messages must not carry Claude session or Claude/Anthropic co-author
+    # trailers: they have broken a contributor-license check before.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Reject session and co-author trailers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git log --format=%B "$BASE..$HEAD" | grep -Ein '^(claude-session:|co-authored-by:.*(claude|anthropic))'; then
+            echo "Remove the trailers listed above from the commit messages." >&2
+            exit 1
+          fi
