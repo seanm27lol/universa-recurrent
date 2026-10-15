@@ -41,6 +41,7 @@ kept but nothing trains it.
 
 Run:   python ti_tnn_train.py                          (GPU if available; both benchmarks; 3 seeds)
        python ti_tnn_train.py --benchmark compositional --device cpu --steps 2000 --seeds 0
+       python ti_tnn_train.py --benchmark unsupervised     (routing with no routing or gate labels)
 """
 from __future__ import annotations
 
@@ -275,6 +276,16 @@ class TypeInformedTreeNN(nn.Module):
         return {"total_loss": total, "task_loss": loss_task,
                 "brier_calibration_loss": brier_choice + brier_noul, "expected_cost": expected_cost}
 
+    def compute_unsupervised_loss(self, out, answer, lambda_flops=0.05, bridge_cost=1.0) -> Dict[str, torch.Tensor]:
+        """No routing or gate labels: task cross-entropy plus the expected compute, which now also
+        charges `bridge_cost` (in branch-cost units) for each expected bridge firing."""
+        route = out["route_info"]
+        loss_task = F.cross_entropy(out["logits"][:, -1], answer)
+        expected_cost = ((route["choice_probs"] * self.branch_flop_costs).sum(-1)
+                         + (bridge_cost * route["noul_prob"].squeeze(-1) if self.use_bridge else 0.0)).mean()
+        total = loss_task + lambda_flops * expected_cost
+        return {"total_loss": total, "task_loss": loss_task, "expected_cost": expected_cost}
+
     def macs_per_query(self, length: int, branch_execs: float, bridge_execs: float) -> float:
         """Branch + bridge multiply-accumulates per query (shared embedding/router/detokenizer excluded)."""
         return length * (branch_execs * self.branches[0].macs_per_token()
@@ -314,8 +325,9 @@ def column(runs, variant, *path) -> str:
     return summarize(vals)
 
 
-def optimize(model, args, sample_batch, make_kwargs, label):
-    """Shared training loop: AdamW, cosine LR, Gumbel temperature annealing, gradient clipping."""
+def optimize(model, args, sample_batch, make_kwargs, label, loss_fn=None):
+    """Shared training loop: AdamW, cosine LR, Gumbel temperature annealing, gradient clipping.
+    loss_fn(model, out, batch) replaces the default label-supervised loss when given."""
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, args.steps)
     for step in range(args.steps):
@@ -323,8 +335,9 @@ def optimize(model, args, sample_batch, make_kwargs, label):
         batch = sample_batch()
         model.train()
         out = model(batch["ids"], tau=tau, **make_kwargs(batch))
-        losses = model.compute_calibrated_loss(out, batch["answer"], batch["route"], batch["bridge"],
-                                               args.alpha_brier, args.lambda_flops)
+        losses = (loss_fn(model, out, batch) if loss_fn is not None else
+                  model.compute_calibrated_loss(out, batch["answer"], batch["route"], batch["bridge"],
+                                                args.alpha_brier, args.lambda_flops))
         opt.zero_grad(set_to_none=True)
         losses["total_loss"].backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -507,6 +520,93 @@ def run_routing(args, device) -> Dict:
             "variants": {k: {"dense": d, "use_bridge": u} for k, (d, u) in ROUTING_VARIANTS.items()},
             "runs": runs}
 
+
+
+# =========================================================================== benchmark 1b: unsupervised routing
+UNSUP_VARIANTS = {  # name: (routing and gate labels used in training, use_bridge)
+    "supervised": (True, True),        # the routing benchmark's routed + bridge model, for reference
+    "unsup_bridge": (False, True),     # no labels: task loss + compute cost, bridge firings charged
+    "unsup_nobridge": (False, False),  # no labels, no bridge
+}
+# Query types that share an entity kind; a token-wise branch sees only the entity, so each pair
+# must be routed to different branches for both answers to be right.
+MUST_SEPARATE = (("region_of", "capital_of"), ("size_of", "country_of"))
+
+
+def normalized_mutual_information(a: torch.Tensor, b: torch.Tensor) -> float:
+    """NMI(a; b) = I(a; b) / sqrt(H(a) H(b)) for two label vectors; 0 if either is constant."""
+    joint = torch.zeros(int(a.max()) + 1, int(b.max()) + 1, dtype=torch.float64)
+    joint.index_put_((a.cpu(), b.cpu()), torch.ones(len(a), dtype=torch.float64), accumulate=True)
+    joint /= joint.sum()
+    pa, pb = joint.sum(1), joint.sum(0)
+    nz = joint > 0
+    mi = (joint[nz] * (joint[nz] / (pa[:, None] * pb[None, :])[nz]).log()).sum()
+    ha, hb = -(pa[pa > 0] * pa[pa > 0].log()).sum(), -(pb[pb > 0] * pb[pb > 0].log()).sum()
+    return float(mi / (ha * hb).sqrt()) if ha > 0 and hb > 0 else 0.0
+
+
+@torch.no_grad()
+def routing_structure(model: TypeInformedTreeNN, world: ToyWorld, args, device, length: int) -> Dict:
+    """Label-free description of what the router learned: which branch each query type uses."""
+    model.eval()
+    b = world.sample(args.eval_size, length, torch.Generator().manual_seed(args.eval_seed), device)
+    out = model(b["ids"])
+    names = [t[0] for t in ToyWorld.TYPES]
+    branch, qt = out["top1"], b["qtype"]
+    table, majority = {}, {}
+    for i, n in enumerate(names):
+        counts = torch.bincount(branch[qt == i], minlength=model.num_branches).float()
+        table[n] = (counts / counts.sum()).tolist()
+        majority[n] = int(counts.argmax())
+    ok = out["logits"][:, -1].argmax(-1) == b["answer"]
+    return {
+        "task_acc": ok.float().mean().item(),
+        "task_acc_by_type": {n: ok[qt == i].float().mean().item() for i, n in enumerate(names)},
+        "branch_share_by_type": table,
+        "majority_branch": majority,
+        "purity": statistics.fmean(max(v) for v in table.values()),
+        "nmi_type_branch": normalized_mutual_information(qt, branch),
+        "distinct_majority_branches": len(set(majority.values())),
+        "required_pairs_separated": all(majority[x] != majority[y] for x, y in MUST_SEPARATE),
+        "bridge_fire_rate": out["bridge_fired"].float().mean().item(),
+        "bridge_fire_rate_by_type": {n: out["bridge_fired"][qt == i].float().mean().item() for i, n in enumerate(names)},
+        "branch_execs_per_query": out["branch_execs"] / args.eval_size,
+        "bridge_execs_per_query": out["bridge_execs"] / args.eval_size,
+    }
+
+
+def run_unsupervised(args, device) -> Dict:
+    world = ToyWorld(n_countries=args.n_countries, n_fillers=args.n_fillers)
+    runs = []
+    for seed in args.seeds:
+        for variant, (labels, use_bridge) in UNSUP_VARIANTS.items():
+            torch.manual_seed(seed)
+            model = TypeInformedTreeNN(world.vocab_size, args.d_model, args.d_stalk, args.d_edge,
+                                       bridge_threshold=args.bridge_threshold, use_bridge=use_bridge).to(device)
+            gen = torch.Generator().manual_seed(10_000 + seed)  # the routing benchmark's training stream
+            loss_fn = None if labels else (lambda m, out, b: m.compute_unsupervised_loss(
+                out, b["answer"], args.lambda_flops, args.bridge_cost))
+            t0 = time.time()
+            optimize(model, args, lambda: world.sample(args.batch, args.length, gen, device),
+                     lambda b: {}, f"unsupervised seed {seed} {variant:15s}", loss_fn=loss_fn)
+            runs.append({"seed": seed, "variant": variant, "train_seconds": round(time.time() - t0, 1),
+                         "structure": routing_structure(model, world, args, device, args.length),
+                         "stress": routing_structure(model, world, args, device, args.stress_length)})
+
+    print(f"\n=== UNSUPERVISED ROUTING (mean ± sd over seeds {args.seeds}) ===")
+    print(f"{'':44s}" + "".join(f"{v:>20s}" for v in UNSUP_VARIANTS))
+    for name, key in [("Task accuracy (fresh-context queries)", "task_acc"), ("Routing purity", "purity"),
+                      ("NMI(query type; branch)", "nmi_type_branch"),
+                      ("Distinct majority branches", "distinct_majority_branches"),
+                      ("Branch runs per query", "branch_execs_per_query"), ("Bridge fire rate", "bridge_fire_rate")]:
+        print(f"{name:44s}" + "".join(f"{column(runs, v, 'structure', key):>20s}" for v in UNSUP_VARIANTS))
+    for r in runs:
+        st = r["structure"]
+        print(f"  seed {r['seed']} {r['variant']:15s} majority {st['majority_branch']} "
+              f"separated {st['required_pairs_separated']}  acc {st['task_acc']:.4f}")
+    return {"world": {"vocab_size": world.vocab_size, "types": ToyWorld.TYPES, "must_separate": MUST_SEPARATE},
+            "variants": {k: {"labels": lab, "use_bridge": u} for k, (lab, u) in UNSUP_VARIANTS.items()},
+            "runs": runs}
 
 # =========================================================================== benchmark 2: compositional isolation
 class CompositionalWorld:
@@ -727,7 +827,7 @@ def run_compositional(args, device) -> Dict:
 # =========================================================================== main
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--benchmark", default="both", choices=["routing", "compositional", "both"])
+    p.add_argument("--benchmark", default="both", choices=["routing", "compositional", "both", "unsupervised"])
     p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"])
     p.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2])
     p.add_argument("--steps", type=int, default=3000)
@@ -749,6 +849,8 @@ def parse_args(argv=None):
     p.add_argument("--alpha-brier", type=float, default=0.5)
     p.add_argument("--lambda-flops", type=float, default=0.05)
     p.add_argument("--bridge-threshold", type=float, default=0.5)
+    p.add_argument("--bridge-cost", type=float, default=1.0,
+                   help="unsupervised benchmark: compute charged per expected bridge firing, in branch-cost units")
     p.add_argument("--log-every", type=int, default=500)
     p.add_argument("--out", type=Path, default=Path("runs/titnn"))
     return p.parse_args(argv)
@@ -771,6 +873,9 @@ def main():
     if args.benchmark in ("routing", "both"):
         result = run_routing(args, device)
         (out_dir / "routing.json").write_text(json.dumps({"config": config, "environment": env, **result}, indent=2))
+    if args.benchmark == "unsupervised":
+        result = run_unsupervised(args, device)
+        (out_dir / "unsupervised.json").write_text(json.dumps({"config": config, "environment": env, **result}, indent=2))
     if args.benchmark in ("compositional", "both"):
         result = run_compositional(args, device)
         (out_dir / "compositional.json").write_text(

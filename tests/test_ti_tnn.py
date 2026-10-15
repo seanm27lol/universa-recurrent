@@ -198,3 +198,42 @@ def test_compositional_benchmark_runs_end_to_end():
     assert routed["combined_test"]["chance"] == 0.5 and routed["combined_test"]["n_countries"] == 16
     assert set(routed["controls"]) == {"combined_test_bridge_off", "combined_test_shuffled_partner"}
     assert routed["exactness"]["max_abs_logit_diff_vs_run_everything"] < 1e-5
+
+
+def test_normalized_mutual_information_bounds():
+    a = torch.tensor([0, 0, 1, 1, 2, 2])
+    assert ti.normalized_mutual_information(a, torch.tensor([3, 3, 0, 0, 1, 1])) == pytest.approx(1.0)
+    assert ti.normalized_mutual_information(a, torch.zeros(6, dtype=torch.long)) == 0.0
+    assert ti.normalized_mutual_information(torch.tensor([0, 1, 0, 1]), torch.tensor([0, 0, 1, 1])) == pytest.approx(0.0)
+
+
+def test_unsupervised_loss_ignores_labels_and_charges_the_bridge():
+    w = ti.ToyWorld(n_countries=8, n_fillers=4)
+    b = w.sample(64, 6, torch.Generator().manual_seed(9), "cpu")
+    torch.manual_seed(0)
+    model = ti.TypeInformedTreeNN(w.vocab_size, d_model=16, d_stalk=8, d_edge=4).eval()
+    with torch.no_grad():
+        out = model(b["ids"])
+        base = model.compute_unsupervised_loss(out, b["answer"], lambda_flops=0.05, bridge_cost=0.0)
+        charged = model.compute_unsupervised_loss(out, b["answer"], lambda_flops=0.05, bridge_cost=1.0)
+        labelled = model.compute_calibrated_loss(out, b["answer"], b["route"], b["bridge"], 0.5, 0.05)
+        relabelled = model.compute_calibrated_loss(out, b["answer"], (b["route"] + 1) % 4, b["bridge"], 0.5, 0.05)
+    assert charged["total_loss"] > base["total_loss"]
+    assert charged["expected_cost"] - base["expected_cost"] == pytest.approx(out["route_info"]["noul_prob"].mean().item(), abs=1e-6)
+    assert labelled["total_loss"] != relabelled["total_loss"]  # the labelled loss does depend on labels
+
+
+def test_must_separate_pairs_share_an_entity_kind():
+    kinds = {rel: kind for rel, kind, _, _ in ti.ToyWorld.TYPES}
+    assert all(kinds[x] == kinds[y] for x, y in ti.MUST_SEPARATE)
+
+
+def test_unsupervised_benchmark_runs_end_to_end():
+    result = ti.run_unsupervised(ti.parse_args(SMOKE + ["--benchmark", "unsupervised"]), torch.device("cpu"))
+    assert {r["variant"] for r in result["runs"]} == set(ti.UNSUP_VARIANTS)
+    st = next(r for r in result["runs"] if r["variant"] == "unsup_bridge")["structure"]
+    assert 0 <= st["purity"] <= 1 and 0 <= st["nmi_type_branch"] <= 1 + 1e-9
+    assert set(st["majority_branch"]) == {t[0] for t in ti.ToyWorld.TYPES}
+    assert abs(sum(st["branch_share_by_type"]["echo"]) - 1) < 1e-6
+    nobridge = next(r for r in result["runs"] if r["variant"] == "unsup_nobridge")["structure"]
+    assert nobridge["bridge_fire_rate"] == 0.0
