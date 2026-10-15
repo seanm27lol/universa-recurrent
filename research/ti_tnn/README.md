@@ -27,6 +27,37 @@ bridge.
   combines the two branches' internal states (stalks). The comparison is a learned
   version of a cellular-sheaf coboundary.
 
+## Theoretical motivation: typed routing as built-in isolation
+
+How cleanly do dense networks organize what they learn? Cammarata
+([*Neural Networks Are Already Clean*](https://already-clean.goodfire.com/), Goodfire,
+2026) argues that most neurons are legible at every scale he tested. A network short
+on room "doesn't fold unrelated things together; its neurons just cover
+coarser-grained concepts." A preliminary Goodfire audit of Qwen3-32B estimates that
+about 90% of neuron poles have one main job. Even so, whether two concepts stay
+separate in a trained network is something one checks afterwards, by inspection.
+
+TI-TNN asks whether that separation can be built in instead.
+
+1. **Isolation by construction.** The router sends each query to one typed branch.
+   With private branch embeddings, gradient masking, no coupling through the bridge
+   in training, and a router that ignores the entity token, a single branch cannot
+   hold both traits of a held-out country (see [The mathematics](#the-mathematics)),
+   so it is capped at chance on XOR(A, B). Only the sheaf bridge reads two branches
+   together.
+2. **Evidence (3-seed GPU run, after the fixes in #27).**
+   - With the bridge, held-out XOR is 1.000 on every seed.
+   - With the bridge switched off at evaluation, it falls to 0.500, 0.477 and 0.508
+     (mean 0.495), which is chance.
+
+**Limits.**
+- The cap comes from the isolation assumptions, not from the router or the sheaf
+  alone. With one shared embedding table, a single branch scored above chance on two
+  of three seeds (see the [claim ledger](../../docs/claims.md)).
+- These are synthetic toy tasks.
+- Nothing here compares the approach with large dense models or shows it transfers to
+  language models.
+
 ## The mathematics
 
 Each country c has traits A(c), B(c) in {0, 1}, independent and balanced, and
@@ -218,6 +249,8 @@ helps when the traits are not cleanly isolated by construction.
 - Hansen and Ghrist (2019), *Toward a Spectral Theory of Cellular Sheaves*,
   [arXiv:1808.01513](https://arxiv.org/abs/1808.01513); Bodnar et al. (2022),
   *Neural Sheaf Diffusion*, [arXiv:2202.04579](https://arxiv.org/abs/2202.04579).
+- Cammarata (2026), *Neural Networks Are Already Clean*, Goodfire,
+  [already-clean.goodfire.com](https://already-clean.goodfire.com/).
 - Brier (1950), *Verification of Forecasts Expressed in Terms of Probability*,
   Monthly Weather Review 78(1).
 - Lake and Baroni (2018), *Generalization without Systematicity*,
