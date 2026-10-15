@@ -1,7 +1,7 @@
 # TI-TNN: typed branches, a calibrated router and a sheaf bridge
 
-**Status: exploratory toy benchmarks. Implemented, tested locally, and run once on CPU
-(one seed); 3-seed GPU runs pending.** Nothing here is a result about language models.
+**Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
+with 3 seeds (2026-10-14).** Nothing here is a result about language models.
 
 ## A concrete example
 
@@ -109,35 +109,59 @@ fed another country's Trait-B stalk.
   appear in XOR training queries and every split is balanced; that the router
   ignores the entity token; that the bridge edge orientation is fixed; and that MAC
   counts follow layer shapes.
-- **Routing benchmark, CPU development run (one seed, 1,000 steps):** every variant
-  reached 100% on held-out queries, so this task separates the variants only on
-  compute: 1.40 branch runs per query routed with the bridge, 1.00 without, 4.00
-  dense. Random routing (bridge off) fell to 0.5845, and to 0.084 to 0.211 on the
-  relational queries, so routing is load-bearing. The model trained without the
-  bridge matched the one with it: the bridge is not needed on this task, unlike the
-  compositional one below.
-- **Compositional isolation benchmark, CPU development run (one seed, 2,000 steps,
-  the first and only configuration tried; nothing was tuned after seeing results):**
+**GPU run, 2026-10-14:** default settings (3 seeds, 3,000 steps, batch 512), NVIDIA
+GB10 (compute capability 12.1), PyTorch 2.10.0+cu130, Python 3.11.14, aarch64. The
+configuration is the one first tried on CPU; nothing was tuned after seeing results.
+Results files stay on the GPU host (`runs/` is not committed): `routing.json` sha256
+`a739895e30c139b7449d8c980928fef3852f789fa8a9764bb5d31dc67fb89726`,
+`compositional.json` sha256
+`953d2a66563f971755369a26e0fc92b1de0c49747a207b55b61a44a12f5168af`.
 
-  | Held-out XOR accuracy (chance 0.50) | Validation (64) | Test (128) [95% CI] | Branch + bridge MACs per XOR query |
-  |---|---:|---:|---:|
-  | `routed_bridge` | 1.000 | 1.000 [1.000, 1.000] | 442,368 |
-  | `routed_nobridge` | 0.422 | 0.555 [0.461, 0.648] | 196,608 |
-  | `dense` | 1.000 | 1.000 [1.000, 1.000] | 835,584 |
-  | `nobridge_shared_emb` | 0.781 | 0.625 [0.539, 0.711] | 196,608 |
+- **Compositional isolation benchmark:**
 
-  The no-bridge model scored 1.000 on XOR for *train* countries (memorized) and is at
-  chance on held-out ones, as the information argument predicts. The bridge model
-  solved held-out XOR with 0.529× the dense model's branch-and-bridge compute on
-  those queries (2 branches + bridge versus 4 + bridge). Controls on `routed_bridge`:
-  bridge off at evaluation 0.500; bridge fed another country's Trait-B stalk 0.516;
-  XOR queries routed Branch 0 then Branch 1 and fired the gate on 100% of queries;
-  conditional execution matched running every branch exactly. Single-trait accuracy
-  was 1.000 for every variant, so each branch did learn its own trait for held-out
-  countries. Confidence intervals resample countries, the independent unit.
+  | Held-out XOR accuracy (chance 0.50) | Test, 128 countries (mean ± sd) | Validation, 64 | Train countries (seen) | Branch + bridge MACs per XOR query |
+  |---|---:|---:|---:|---:|
+  | `routed_bridge` | **1.000 ± 0.000** | 1.000 ± 0.000 | 1.000 | 442,368 |
+  | `routed_nobridge` | 0.492 ± 0.027 | 0.531 ± 0.031 | 1.000 | 196,608 |
+  | `dense` | 1.000 ± 0.000 | 1.000 ± 0.000 | 1.000 | 835,584 |
+  | `nobridge_shared_emb` | 0.573 ± 0.036 | 0.625 ± 0.068 | 1.000 | 196,608 |
 
-  **Not yet established:** whether this holds across seeds and longer training (GPU
-  runs with 3 seeds are pending), and anything beyond this synthetic task.
+  Per-seed held-out test accuracy with 95% bootstrap intervals over countries (the
+  independent unit): `routed_nobridge` 0.477 [0.390, 0.563], 0.523 [0.445, 0.602],
+  0.477 [0.391, 0.563], so every interval includes chance; `nobridge_shared_emb`
+  0.594 [0.508, 0.680], 0.594 [0.508, 0.680], 0.531 [0.438, 0.625], so two of three
+  exclude chance; `routed_bridge` and `dense` 1.000 [1.000, 1.000] on every seed.
+
+  What this shows. One branch memorizes XOR for train countries (1.000) and is at
+  chance on held-out ones, as the information argument predicts. The bridge composes
+  the separately learned traits on held-out countries on every seed, with 0.529× the
+  dense model's branch-and-bridge compute on those queries (2 branches + bridge
+  versus 4 + bridge). Controls on `routed_bridge`, identical on every seed: bridge off
+  at evaluation 0.500 (the output then carries no Trait-B information, and the test
+  set is balanced in XOR within each value of Trait A); bridge fed the next country's
+  Trait-B stalk 0.516, exactly the fraction of those partner pairs that share Trait B
+  (checked against the data), so the bridge computes XOR of whatever traits it is
+  given; XOR queries
+  routed Branch 0 then Branch 1 and fired the gate on 100% of queries; conditional
+  execution matched running every branch exactly. Single-trait accuracy was 1.000 for
+  every variant, so each branch learned its own trait for held-out countries. The
+  shared-embedding leak is real but modest at this training budget.
+
+- **Routing benchmark:** every variant reached 1.000 on held-out queries on every
+  seed, so this task separates the variants only on compute: 1.40 branch runs per
+  query routed with the bridge, 1.00 without, 4.00 dense. Random routing with the
+  bridge off fell to 0.576 ± 0.003 (routed + bridge) and 0.583 ± 0.004 (no bridge),
+  so routing is load-bearing. The model trained without the bridge matched the one
+  with it: the bridge is not needed on this task, unlike the compositional one. On
+  longer queries than training saw (length 10), both routed variants stayed at 1.000
+  on every seed while dense averaged 0.995 (lowest 0.986); a small difference.
+
+- **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
+  pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
+  embedding.
+
+**Not established:** anything beyond these synthetic tasks, and whether the bridge
+helps when the traits are not cleanly isolated by construction.
 
 ## Limits
 
