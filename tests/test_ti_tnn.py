@@ -131,3 +131,70 @@ def test_mac_counts_follow_layer_shapes():
     assert model.branches[0].macs_per_token() == 32768
     assert model.sheaf_bridge.macs_per_token() == 8192
     assert model.macs_per_query(6, branch_execs=2, bridge_execs=1) == 6 * (2 * 32768 + 8192)
+
+
+@pytest.mark.parametrize("use_bridge", [True, False])
+def test_branch_1_state_never_shapes_branch_0_training(world, use_bridge):
+    """Routed training: a Trait-A query's update to Branch 0 must not depend on Branch 1's state,
+    even when the bridge gate fires. (The dense variant mixes every branch and is not isolated.)"""
+
+    def branch0_grad(shift_branch_1):
+        model = comp_model(world, use_bridge=use_bridge).train()
+        with torch.no_grad():
+            model.router.noul_bridge_head.bias.fill_(5.0)  # the gate fires, as it can early in training
+            model.router.choice_head.bias.copy_(torch.tensor([3.0, 2.0, -5.0, -5.0]))
+            if shift_branch_1:  # change only Branch 1's embedding subspace
+                d = model.d_model
+                model.branch_vectorizer.weight[:, d:2 * d] += torch.randn_like(model.branch_vectorizer.weight[:, d:2 * d])
+        b = world.sample(0, 6, torch.Generator().manual_seed(7), "cpu", qtype=0, countries=torch.arange(world.n))
+        torch.manual_seed(1)  # same Gumbel noise in both calls
+        out = model(b["ids"], tau=1.0, grad_allow=ti.grad_allow_mask(b, combined_trains_branches=False))
+        assert out["bridge_fired"].all() == use_bridge
+        model.compute_calibrated_loss(out, b["answer"], b["route"], b["bridge"])["total_loss"].backward()
+        return model.branch_vectorizer.weight.grad[:, :model.d_model].clone()
+
+    assert torch.equal(branch0_grad(False), branch0_grad(True))
+
+
+def test_shuffled_partner_control_reads_the_partners_computed_stalk(world):
+    model = comp_model(world).eval()
+    b = world.sample(512, 6, torch.Generator().manual_seed(8), "cpu")
+    perm = torch.roll(torch.arange(len(b["ids"])), shifts=1)
+    with torch.no_grad():
+        model.router.noul_bridge_head.bias.fill_(0.3)  # some queries fire the bridge, some do not
+        out = model(b["ids"], partner_perm=perm)
+        ref = model(b["ids"], partner_perm=perm, reference=True)  # every stalk computed
+    assert 0 < out["bridge_execs"] < len(b["ids"])
+    assert torch.allclose(out["logits"], ref["logits"], atol=1e-5, rtol=0)
+
+
+def test_routing_evaluation_reuses_training_facts():
+    """The routing benchmark scores facts also seen in training, in fresh contexts: not held-out facts."""
+    w = ti.ToyWorld()
+    facts = lambda b: set(zip(b["qtype"].tolist(), b["ids"][:, -1].tolist()))  # noqa: E731
+    train, gen = set(), torch.Generator().manual_seed(10_000)
+    for _ in range(50):
+        train |= facts(w.sample(512, 6, gen, "cpu"))
+    assert facts(w.sample(2048, 6, torch.Generator().manual_seed(999_001), "cpu")) <= train
+
+
+SMOKE = ["--device", "cpu", "--seeds", "0", "--steps", "3", "--batch", "16", "--eval-size", "64",
+         "--comp-countries", "64", "--n-countries", "16", "--n-fillers", "8", "--queries-per-country", "2",
+         "--d-model", "16", "--d-stalk", "8", "--d-edge", "4", "--log-every", "100"]
+
+
+def test_routing_benchmark_runs_end_to_end():
+    result = ti.run_routing(ti.parse_args(SMOKE), torch.device("cpu"))
+    assert {r["variant"] for r in result["runs"]} == set(ti.ROUTING_VARIANTS)
+    routed = next(r for r in result["runs"] if r["variant"] == "sparse")["eval"]
+    assert 0 <= routed["task_acc"] <= 1 and set(routed["controls"]) == {"oracle_routing", "random_routing_bridge_off", "bridge_off"}
+    assert routed["exactness"]["max_abs_logit_diff_vs_run_everything"] < 1e-5
+
+
+def test_compositional_benchmark_runs_end_to_end():
+    result = ti.run_compositional(ti.parse_args(SMOKE), torch.device("cpu"))
+    assert {r["variant"] for r in result["runs"]} == set(ti.COMP_VARIANTS)
+    routed = next(r for r in result["runs"] if r["variant"] == "routed_bridge")["eval"]
+    assert routed["combined_test"]["chance"] == 0.5 and routed["combined_test"]["n_countries"] == 16
+    assert set(routed["controls"]) == {"combined_test_bridge_off", "combined_test_shuffled_partner"}
+    assert routed["exactness"]["max_abs_logit_diff_vs_run_everything"] < 1e-5
