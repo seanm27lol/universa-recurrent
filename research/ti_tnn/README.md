@@ -1,7 +1,7 @@
 # TI-TNN: typed branches, a calibrated router and a sheaf bridge
 
-**Status: exploratory toy benchmarks. Implemented and tested locally; GPU runs pending.**
-Nothing here is a result about language models.
+**Status: exploratory toy benchmarks. Implemented, tested locally, and run once on CPU
+(one seed); 3-seed GPU runs pending.** Nothing here is a result about language models.
 
 ## A concrete example
 
@@ -109,14 +109,36 @@ fed another country's Trait-B stalk.
   appear in XOR training queries and every split is balanced; that the router
   ignores the entity token; that the bridge edge orientation is fixed; and that MAC
   counts follow layer shapes.
-- **Routing benchmark, earlier CPU development run (one seed, 1,000 steps):** every
+- **Routing benchmark, earlier CPU development run (one seed, 1,000 steps, with the
+  previous script version, before the fixed bridge-edge orientation; a re-run on the
+  current version is in progress):** every
   variant reached 100% on held-out queries, so this task separates the variants only
   on compute: 1.40 branch runs per query routed with the bridge, 1.00 without, 4.00
   dense. Random routing (bridge off) fell to 58.5%, so routing is load-bearing. The
   model trained without the bridge matched the one with it: the bridge is not needed
   on this task.
-- **Compositional isolation benchmark:** CPU development run in progress; GPU runs
-  pending. No result is claimed yet.
+- **Compositional isolation benchmark, CPU development run (one seed, 2,000 steps,
+  the first and only configuration tried; nothing was tuned after seeing results):**
+
+  | Held-out XOR accuracy (chance 0.50) | Validation (64) | Test (128) [95% CI] | Branch + bridge MACs per XOR query |
+  |---|---:|---:|---:|
+  | `routed_bridge` | 1.000 | 1.000 [1.000, 1.000] | 442,368 |
+  | `routed_nobridge` | 0.422 | 0.555 [0.461, 0.648] | 196,608 |
+  | `dense` | 1.000 | 1.000 [1.000, 1.000] | 835,584 |
+  | `nobridge_shared_emb` | 0.781 | 0.625 [0.539, 0.711] | 196,608 |
+
+  The no-bridge model scored 1.000 on XOR for *train* countries (memorized) and is at
+  chance on held-out ones, as the information argument predicts. The bridge model
+  solved held-out XOR with 0.529× the dense model's branch-and-bridge compute on
+  those queries (2 branches + bridge versus 4 + bridge). Controls on `routed_bridge`:
+  bridge off at evaluation 0.500; bridge fed another country's Trait-B stalk 0.516;
+  XOR queries routed Branch 0 then Branch 1 and fired the gate on 100% of queries;
+  conditional execution matched running every branch exactly. Single-trait accuracy
+  was 1.000 for every variant, so each branch did learn its own trait for held-out
+  countries. Confidence intervals resample countries, the independent unit.
+
+  **Not yet established:** whether this holds across seeds and longer training (GPU
+  runs with 3 seeds are pending), and anything beyond this synthetic task.
 
 ## Limits
 

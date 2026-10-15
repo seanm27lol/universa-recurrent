@@ -730,3 +730,19 @@ The [edit experiment](mathematical_edits.md) compares named commands on decoded
 Variable meanings and parser alignment are specified, not discovered. Effect
 preservation after continuation is an empirical question. No natural-language
 interpreter, semantic discovery, formal causal abstraction or speedup is claimed.
+
+## TI-TNN toy benchmarks (exploratory, 2026-10-15)
+
+Typed branches, a calibrated router and a gated sheaf bridge, tested on two
+synthetic benchmarks in [research/ti_tnn](../research/ti_tnn/README.md). Results
+below are one CPU development run (one seed); 3-seed GPU runs are pending.
+
+| Statement | Status | Evidence and boundary |
+|---|---|---|
+| Conditional execution gives the same outputs as running every branch | Tested locally | `tests/test_ti_tnn.py`; max logit difference 0 in the CPU runs |
+| Gradient masking keeps Trait-B supervision out of Branch 0 | Tested locally | Branch 0's parameters and embedding subspace receive exactly zero gradient from Trait-B queries |
+| One branch is capped at chance on held-out XOR under the stated isolation | Holds by construction; observed | XOR is independent of each trait alone. CPU run: `routed_nobridge` 0.555 [0.461, 0.648] on 128 held-out test countries, 1.000 on train countries (memorized) |
+| The bridge composes separately learned traits on held-out countries | Observed once on CPU; not replicated | `routed_bridge` 1.000 on held-out test and validation countries; bridge off 0.500; another country's Trait-B stalk 0.516 |
+| The cap comes from the architecture alone | FALSE | It depends on private branch embeddings, gradient masking and an entity-blind router; with one shared embedding a single branch reached 0.625 [0.539, 0.711] |
+| The bridge model uses about half the dense compute on XOR queries | Counted, not timed | 442,368 versus 835,584 branch-and-bridge MACs per query (0.529×), from layer shapes |
+| Any of this transfers to language models or real tasks | Not established | Synthetic toy tasks only |
