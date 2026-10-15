@@ -29,6 +29,17 @@ bridge.
 
 ## Theoretical motivation: typed routing as built-in isolation
 
+**Where the idea came from.** It started with watching Qwen3-235B-A22B answer a
+one-fact question about a capital city. Qwen3 is a mixture-of-experts model, so it
+already routes: each token goes to 8 of 128 experts in each of its 94 layers, and only
+about 22 billion of its 235 billion parameters are active per token
+([Qwen3 technical report](https://arxiv.org/abs/2505.09388)). But that active amount
+is fixed. A capital lookup costs the same roughly 22 billion multiply-accumulates per
+token as a hard reasoning step. The routing is learned per token and per layer, not
+by type of question, so nothing in it says "this is a lookup; use less". TI-TNN asks
+for routing by question type instead: one branch for a simple lookup, and two
+branches joined by the bridge only when a question genuinely combines two things.
+
 How cleanly do dense networks organize what they learn? Cammarata
 ([*Neural Networks Are Already Clean*](https://already-clean.goodfire.com/), Goodfire,
 2026) argues that most neurons are legible at every scale he tested. A network short
@@ -251,6 +262,8 @@ helps when the traits are not cleanly isolated by construction.
   *Neural Sheaf Diffusion*, [arXiv:2202.04579](https://arxiv.org/abs/2202.04579).
 - Cammarata (2026), *Neural Networks Are Already Clean*, Goodfire,
   [already-clean.goodfire.com](https://already-clean.goodfire.com/).
+- Qwen Team (2025), *Qwen3 Technical Report*,
+  [arXiv:2505.09388](https://arxiv.org/abs/2505.09388).
 - Brier (1950), *Verification of Forecasts Expressed in Terms of Probability*,
   Monthly Weather Review 78(1).
 - Lake and Baroni (2018), *Generalization without Systematicity*,
