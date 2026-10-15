@@ -9,7 +9,7 @@ variants=("dense 0.01" "moe_top1 0.01" "moe_top2 0.01" "ti_tnn 0.01" "ti_tnn 0.0
 splits=(simple length addprim_jump addprim_turn_left)
 lm_seed() {
   for v in "${variants[@]}"; do set -- $v; gate
-    $PY research/ti_tnn/bench/lm.py --ffn "$1" --bridge-cost "$2" --seed "$SEED" || echo "FAILED lm $1 $2 seed $SEED"
+    $PY research/ti_tnn/bench/lm.py --ffn "$1" --bridge-cost "$2" --seed "$SEED" --tokens 1e8 || echo "FAILED lm $1 $2 seed $SEED"
   done
 }
 scan_seed() {
