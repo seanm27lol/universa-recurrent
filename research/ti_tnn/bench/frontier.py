@@ -297,6 +297,59 @@ def latency_prediction(doc: dict, manifest: list, candidate: str = f"{CANDIDATE}
             "rule": LATENCY_RULE, "validity": validity}
 
 
+# ---------------------------------------------------------------- the initialization control (separate analysis)
+# protocols/adaptive_compute_init_control.md. Its runs never enter the frozen verdict above.
+CONTROL = {"ti_tnn_adaptive_c30_initdense": "ti_tnn_adaptive_c30", "moe_top1_initdense": "moe_top1"}
+CONTROL_COMPARISONS = {"ti_tnn_adaptive_c30": "mod_c30", "moe_top1": "dense"}  # the comparison each must survive
+
+
+def sign(x: float) -> int:
+    return (x > 0) - (x < 0)
+
+
+def init_control(variants: dict, manifest: list, latency_doc: dict | None = None) -> dict:
+    """Paired by seed: each control family under dense-matched expert initialization against the same
+    family under the legacy initialization, and whether its comparison keeps its sign."""
+    rows = {(m["variant"], m["seed"]): m for m in manifest}
+    problems = []
+    for ctrl, orig in CONTROL.items():
+        for name, init in ((ctrl, "dense"), (orig, FROZEN_INIT), (CONTROL_COMPARISONS[orig], FROZEN_INIT)):
+            seeds = variants.get(name, {}).get("seeds", [])
+            if sorted(seeds) != list(SEEDS):
+                problems.append(f"{name}: seeds {sorted(seeds)} (expected {list(SEEDS)} once each)")
+            for s in SEEDS:
+                m = rows.get((name, s))
+                if m and (m["deviations"] or m["init_policy"] != init):
+                    problems.append(f"{name} seed {s}: init {m['init_policy']}, deviations {m['deviations']}")
+    q = lambda n: variants[n]["quality"]["mean"]
+    out = {"complete": not problems, "problems": problems, "families": {}}
+    for ctrl, orig in CONTROL.items():
+        other = CONTROL_COMPARISONS[orig]
+        fam = {"control": ctrl, "original": orig, "compared_with": other}
+        if not problems:
+            per_seed = {}
+            for i, s in enumerate(SEEDS):
+                a, b = variants[ctrl], variants[orig]
+                per_seed[s] = {"perplexity": {"legacy": b["quality"]["values"][i], "dense_init": a["quality"]["values"][i]},
+                               "decoder_macs": {"legacy": b["compute"]["values"][i], "dense_init": a["compute"]["values"][i]},
+                               "realized_compute": {"legacy": b["realized_compute"]["values"][i],
+                                                    "dense_init": a["realized_compute"]["values"][i]}}
+            gap_legacy, gap_dense = q(orig) - q(other), q(ctrl) - q(other)
+            fam.update({"per_seed": per_seed, "mean_perplexity": {"legacy": q(orig), "dense_init": q(ctrl), other: q(other)},
+                        "total_macs": {"legacy": variants[orig]["compute"]["mean"] + variants[orig]["head_macs_per_token"],
+                                       "dense_init": variants[ctrl]["compute"]["mean"] + variants[ctrl]["head_macs_per_token"]},
+                        "gap_to_comparison": {"legacy": gap_legacy, "dense_init": gap_dense},
+                        "holds": sign(gap_legacy) == sign(gap_dense) != 0})
+        else:
+            fam["holds"] = None
+        out["families"][ctrl] = fam
+    if latency_doc is not None:
+        lat_manifest = [m for m in manifest if m["variant"] == "ti_tnn_adaptive_c30_initdense"]
+        out["latency"] = latency_prediction(latency_doc, lat_manifest, candidate="ti_tnn_adaptive_c30_initdense")
+    out["holds"] = all_of(f["holds"] for f in out["families"].values())
+    return out
+
+
 def table(variants: dict, quality: str, fmt: str) -> str:
     rows = sorted(variants.items(), key=lambda kv: kv[1]["compute"]["mean"])
     lines = [f"| Variant | {quality} | Non-embedding MACs per token | Seeds |", "|---|---:|---:|---:|"]
@@ -320,6 +373,8 @@ def main(argv=None):
     p.add_argument("--lm", nargs="*", type=Path, default=[])
     p.add_argument("--latency", type=Path)
     p.add_argument("--source", action="append", default=[], help="ROOT=VERSION: the source version runs under ROOT came from")
+    p.add_argument("--init-control", nargs="*", type=Path, default=[],
+                   help="roots holding the initialization-control runs (separate analysis)")
     p.add_argument("--out", type=Path)
     args = p.parse_args(argv)
     sources = parse_sources(args.source)
@@ -355,6 +410,16 @@ def main(argv=None):
             summary["lm"]["latency_ms_per_token"] = {n: stat(v) for n, v in by.items()}
             pr["latency"] = latency_prediction(doc, manifest)
         print("## Part B: WikiText-103 (validation perplexity)\n\n" + table(P, "Perplexity", ".2f") + "\n")
+    if args.init_control:
+        V, manifest = load(list(args.lm) + list(args.init_control), "lm", sources)
+        doc = json.loads(args.latency.read_text()) if args.latency and args.latency.exists() else None
+        ctrl = init_control(V, manifest, doc)
+        print(f"init control: complete = {ctrl['complete']}; comparisons keep their sign = {ctrl['holds']}"
+              + (f"; latency = {ctrl['latency']['holds']}" if "latency" in ctrl else ""))
+        if args.out:
+            args.out.with_name(args.out.stem + "_init_control.json").write_text(json.dumps(ctrl, indent=2))
+        if not summary:
+            return
     for part, s in summary.items():
         if not s["inventory"]["complete"]:
             print(f"{part}: INCOMPLETE run inventory, not a valid test: {json.dumps(s['inventory'])}")
