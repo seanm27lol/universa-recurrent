@@ -42,11 +42,11 @@ information.
 
 | Variant | One-hop (fit) | **Two-hop** | Three-hop | Round trip | Inverse defect ‖M_cof M_cap − I‖/√d | Training time |
 |---|---:|---:|---:|---:|---:|---:|
-| `functorial` | 1.000 | **1.000 ± 0.000** | 1.000 | 1.000 | 0.0 (exact) | 41–44 s |
+| `functorial` | 1.000 | **1.000 ± 0.000** | 1.000 | 1.000 | 2e-6 (float32 round-off) | 41–44 s |
 | `linear` | 1.000 | 0.940 ± 0.010 | 0.995 | 1.000 | 9.4 | 6–13 s |
 | `soft` | 1.000 | 0.879 ± 0.021 | 1.000 | 1.000 | 0.005 | 6–9 s |
-| `mlp` | 1.000 | 0.717 ± 0.012 | 0.648 | 1.000 | — | — |
-| `transformer` | 1.000 | 0.166 ± 0.045 | 0.271 | 0.040 | — | — |
+| `mlp` | 1.000 | 0.717 ± 0.012 | 0.648 | 1.000 | — | 10–16 s |
+| `transformer` | 1.000 | 0.166 ± 0.045 | 0.271 | 0.040 | — | 37–48 s |
 
 **Per path, two-hop.** Both chains behave alike in every variant:
 
@@ -77,10 +77,16 @@ sha256 `c26bd12d…`. NVIDIA GB10; the GPU gate opened at 19:13 UTC.
 ## What to read into it, and what not
 
 - **The real finding.** On unseen chains, exact functorial structure is the only
-  variant with zero errors, and the only one whose relation maps actually are
-  inverses (defect 0). The unconstrained linear maps decode correctly most of the
-  time without being inverses (defect 9.4). They get round trips right but drift
-  on genuine two-hop chains.
+  variant with zero errors.
+- **Being inverses is not what does it.**
+  - The soft penalty made `capital_of` and `country_of` nearly inverse (defect
+    0.005), yet `soft` composed worse than `linear`, whose maps are far from
+    inverse (defect 9.4).
+  - What `functorial` adds is the rest of the structure: every map is an isometry
+    into one shared frame, and the connection is flat. So "size of the capital of
+    x" is the same map as a direct country → size transport.
+  - The unconstrained maps fit each relation by score ranking alone. They get
+    round trips right, but their errors compound on genuine two-hop chains.
 - **A design flaw in the three-hop family.** Both chosen three-step chains contain
   an inverse pair (`country_of ∘ capital_of`), so they reduce to a round trip plus
   one relation. That is easier than two-hop, which is why `linear` and `soft`
