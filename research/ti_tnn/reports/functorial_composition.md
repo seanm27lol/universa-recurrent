@@ -7,12 +7,13 @@ frozen at `4b56a03` before any run.
 > [controls run](functorial_composition_controls.md)).** The numbers below stand. Three
 > interpretations do not:
 > - **"The gap comes from the maps obeying composition laws exactly."** Wrong mechanism. The
->   functorial model is, in capacity, typed embeddings in one shared space. Plain identity maps score
->   0.9996, and orthogonal maps that are *not* inverses score 1.000. What matters is that the maps
->   preserve geometry, not the laws.
-> - **"Exact beats soft."** That comparison used different equations. A soft penalty toward
->   orthogonality scores 1.000. The soft model here lost because its penalty targeted only the
->   inverse pair, which left its maps far from orthogonal.
+>   functorial model is, in capacity, typed embeddings in one shared space. Plain identity maps miss
+>   1 of 2,560 chains, and orthogonal maps that are *not* inverses miss none. So exact inverse tying
+>   and flatness showed no measured advantage. Geometry-preserving maps look like a useful inductive
+>   bias here; they are not shown to be the only mechanism.
+> - **"Exact beats soft."** That comparison used different equations. A soft penalty toward the exact
+>   model's equations (orthogonality of every map plus the inverse pair) scores 1.000. The soft model
+>   here penalized only the inverse pair, and its maps ended far from orthogonal.
 > - **The laws do not guarantee the 1.000.** A model satisfying every law can fit every one-hop fact
 >   and still miss every chain (`test_exact_laws_do_not_guarantee_correct_chains`). The 1.000 is
 >   learned.
@@ -77,7 +78,9 @@ information.
 1/256.
 
 **Results file.** `runs/titnn_composition/20261016T152240/composition.json`,
-sha256 `c26bd12d…`. NVIDIA GB10; the GPU gate opened at 19:13 UTC.
+sha256 `c26bd12d…`; a byte-identical copy is in
+[`experiments/results/ti_tnn/functorial_composition/`](../../../experiments/results/ti_tnn/).
+NVIDIA GB10; the GPU gate opened at 19:13 UTC.
 
 ## Predictions (frozen before any run)
 
