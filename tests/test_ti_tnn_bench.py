@@ -441,3 +441,107 @@ def test_moe_weight_is_rounded_like_the_full_pass():
         y_full, _ = ffn(x)
         y_step = decode.moe_step(ffn, x)
     assert y_full.dtype == y_step.dtype and torch.equal(y_full, y_step)
+
+
+def lm_point(kind, quality, compute, seeds=(0, 1, 2)):
+    return {"kind": kind, "quality": {"mean": quality}, "compute": {"mean": compute}, "seeds": list(seeds)}
+
+
+def planned_lm(**overrides):
+    """A complete planned part B in which no candidate is drastically efficient."""
+    v = {n: lm_point("dense", 40.0, 100.0) for n in frontier.EXPECTED["lm"]}
+    v["dense_d256_l8"] = lm_point("dense", 48.0, 20.0)
+    v["mod_c50"], v["mod_c30"] = lm_point("mod", 41.0, 50.0), lm_point("mod", 42.0, 30.0)
+    v["ti_tnn_adaptive_c50"] = lm_point("ti_tnn_adaptive", 40.5, 60.0)
+    v["ti_tnn_adaptive_c30"] = lm_point("ti_tnn_adaptive", 41.5, 35.0)
+    v.update(overrides)
+    return v
+
+
+def test_an_unplanned_candidate_cannot_change_the_frozen_verdict():
+    """Review: an extra candidate used to satisfy 'some candidate is drastically efficient'."""
+    v = planned_lm()
+    j = frontier.judge(frontier.planned_only(v, "lm"), "dense", False, 0.02, True)
+    assert j["efficiency"]["holds"] is False and j["equal_compute"]["holds"] is True
+    extra = dict(v, ti_tnn_adaptive_c10=lm_point("ti_tnn_adaptive", 40.0, 10.0))
+    inv = frontier.inventory(extra, "lm")
+    assert inv["complete"] and inv["unexpected_excluded"] == ["ti_tnn_adaptive_c10"]
+    j2 = frontier.judge(frontier.planned_only(extra, "lm"), "dense", False, 0.02, True)
+    assert j2["efficiency"]["holds"] is False and j2 == j
+
+
+def manifest_rows(variant, fingerprints, init="legacy", deviations=()):
+    return [{"variant": variant, "seed": s, "path": f"runs/x/{variant}-seed{s}/result.json", "config_fingerprint": f,
+             "init_policy": init, "deviations": list(deviations)} for s, f in zip((0, 1, 2), fingerprints)]
+
+
+def test_inventory_rejects_inconsistent_configs_protocol_deviations_and_other_inits():
+    v = planned_lm()
+    ok = [row for n in frontier.EXPECTED["lm"] for row in manifest_rows(n, ["a", "a", "a"])]
+    assert frontier.inventory(v, "lm", ok)["complete"]
+    mixed = [r for r in ok if r["variant"] != "mod_c30"] + manifest_rows("mod_c30", ["a", "a", "b"])
+    assert frontier.inventory(v, "lm", mixed)["inconsistent_configs"] == ["mod_c30"]
+    off = [r for r in ok if r["variant"] != "dense"] + manifest_rows("dense", ["a"] * 3, deviations=["lr=0.001"])
+    assert not frontier.inventory(v, "lm", off)["complete"]
+    init = [r for r in ok if r["variant"] != "moe_top1"] + manifest_rows("moe_top1", ["a"] * 3, init="dense")
+    assert frontier.inventory(v, "lm", init)["wrong_init"] == ["moe_top1"]
+    # a later control is named apart and never enters the frozen verdict
+    r = {"config": {"ffn": "moe_top1", "seed": 0}, "model_config": {"d_model": 512, "n_layers": 8, "expert_init": "dense"}}
+    assert frontier.name_of(r, (512, 8, 4)) == "moe_top1_initdense"
+
+
+def latency_doc(c30_seeds=(0, 1, 2), agreement=1.0, cand_ms=1.0, dense_ms=2.0, logit_diff=0.01, windows=2):
+    cfg = {"windows": str(windows), "rounds": "3", "warmup_tokens": "8", "context": 512}
+    check = lambda trained: dict({"max_abs_logit_difference_where_routing_agrees": logit_diff, "max_abs_full_logit": 10.0,
+                                  "top1_token_agreement": 1.0}, **({"decision_agreement": agreement} if trained else {}))
+    row = lambda name, seed, ms, trained: {"name": name, "seed": seed, "dir": f"runs/e/{name}-seed{seed}",
+                                           "weights": "trained" if trained else "random_init", "ms_per_token_median": ms,
+                                           "timed_tokens": 3 * windows * 504, "checks": [check(trained)] * windows}
+    runs = [row("ti_tnn_adaptive_c30", s, cand_ms, True) for s in c30_seeds] + [row("dense", None, dense_ms, False)]
+    return {"config": cfg, "runs": runs}
+
+
+LAT_MANIFEST = [{"variant": "ti_tnn_adaptive_c30", "path": f"runs/e/ti_tnn_adaptive_c30-seed{s}/result.json"} for s in (0, 1, 2)]
+
+
+def test_latency_needs_valid_execution_and_every_planned_seed():
+    """Review: 0% routing agreement, or one seed only, used to pass the speed prediction."""
+    assert frontier.latency_prediction(latency_doc(), LAT_MANIFEST)["holds"] is True
+    assert frontier.latency_prediction(latency_doc(cand_ms=1.5), LAT_MANIFEST)["holds"] is False
+    bad = frontier.latency_prediction(latency_doc(agreement=0.0), LAT_MANIFEST)
+    assert bad["holds"] is None and any("routing-decision agreement" in r for r in bad["untestable_because"])
+    assert frontier.latency_prediction(latency_doc(c30_seeds=(0,)), LAT_MANIFEST)["holds"] is None
+    assert frontier.latency_prediction(latency_doc(c30_seeds=(0, 1, 1)), LAT_MANIFEST)["holds"] is None
+    assert frontier.latency_prediction(latency_doc(logit_diff=0.6), LAT_MANIFEST)["holds"] is None  # > 5% of 10
+    stray = latency_doc()
+    stray["runs"][0]["dir"] = "runs/other/ti_tnn_adaptive_c30-seed0"
+    assert frontier.latency_prediction(stray, LAT_MANIFEST)["holds"] is None
+
+
+def test_latency_script_runs_end_to_end_and_records_its_checks(tmp_path):
+    """The queue runs latency.py unattended after training; run it on tiny saved models."""
+    latency = importlib.import_module("latency")
+    data = tmp_path / "data"
+    data.mkdir()
+    np.random.default_rng(0).integers(0, 50, 200).astype(np.uint16).tofile(data / "validation.bin")
+    for ffn, seed in (("ti_tnn_adaptive", 0), ("dense", 0)):
+        c = cfg(ffn, context=16, target_compute=0.3)
+        torch.manual_seed(seed)
+        model = models.LanguageModel(c)
+        run = tmp_path / "runs" / f"{ffn}-seed{seed}"
+        run.mkdir(parents=True)
+        (run / "result.json").write_text(json.dumps({"config": {"ffn": ffn, "seed": seed, "bridge_cost": 0.01},
+                                                     "model_config": vars(c)}))
+        if ffn == "ti_tnn_adaptive":
+            torch.save(model.state_dict(), run / "model.pt")
+    out = tmp_path / "latency.json"
+    latency.main([str(tmp_path / "runs"), "--data", str(data), "--windows", "2", "--rounds", "1", "--warmup-tokens", "2",
+                  "--device", "cpu", "--out", str(out)])
+    doc = json.loads(out.read_text())
+    assert doc["config"]["context"] == 16
+    rows = {r["weights"]: r for r in doc["runs"]}
+    assert rows["trained"]["name"].startswith("ti_tnn_adaptive_c30") and rows["random_init"]["name"].startswith("dense")
+    assert "decision_agreement" in rows["trained"]["checks"][0]
+    for r in rows.values():
+        assert len(r["checks"]) == 2 and r["timed_tokens"] == 2 * 14
+        assert frontier.latency_row_problems(r, doc["config"]) == []  # fp32 on CPU: exact agreement

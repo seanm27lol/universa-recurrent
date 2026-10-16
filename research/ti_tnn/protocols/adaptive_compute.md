@@ -182,3 +182,34 @@ runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json`.
     attention scores and routers. The conclusions use the compute actually measured on held-out data.
   - **Unused fields.** The `ffn_macs_per_token_per_layer_*` fields in `lm.py` results predate the
     adaptive variants and do not apply to them; the frontier does not use them.
+- **2026-10-16, about 23:30 UTC: second evaluation fixes, from a follow-up review.** Part A was still
+  running; no part B run had finished and no latency had been measured. Only evaluation code changed
+  (`frontier.py`, and `latency.py`, which runs at the queue's end).
+  1. **Execution validity gates the speed verdict.** Prediction 8 is now untestable unless every
+     measured model's execution is valid, under this rule (fixed before any latency measurement):
+     - every row has the configured number of checked windows (2) and timed tokens (3 rounds × 2
+       windows × 504);
+     - on every checked window, the largest |decoded − full| logit, over positions where every
+       routing decision agrees, is at most 5% of the window's largest full-pass logit;
+     - for trained models (the adaptive checkpoints), routing decisions agree on at least 99% of
+       (token, layer) pairs, and top-1 tokens on at least 99% of positions;
+     - `ti_tnn_adaptive_c30` appears for seeds 0, 1 and 2 exactly once, from the planned runs' own
+       checkpoints, and the dense reference appears exactly once.
+
+     Raw timings and diagnostics are kept when validity fails. The token-agreement check does not
+     apply to models timed at random initialization, whose near-flat logits make top-1 ties noise.
+  2. **The verdict uses only the planned variants.** Unplanned runs, such as the separate
+     initialization control, are listed and excluded. Before this fix, an extra candidate could
+     satisfy "some candidate". The inventory also requires one configuration fingerprint across each
+     variant's seeds, the protocol's fixed settings (budget, optimizer, schedule, task) and the legacy
+     expert initialization. `frontier.py` writes a run manifest: path, sha256, configuration
+     fingerprint, initialization policy, training budget and source version. Run files do not record
+     their source, so it is declared here: `runs/titnn_bench/lm` came from the real-benchmark
+     relaunch at `316c18f`, and `runs/titnn_efficiency` from `64ecc86`.
+- **The initialization control** is a separate experiment with its own frozen brief
+  (`protocols/adaptive_compute_init_control.md`) and analysis. It runs after this queue and never
+  enters this protocol's verdict.
+
+**Evaluate with:** `python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm
+runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source
+runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json`.

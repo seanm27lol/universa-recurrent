@@ -65,18 +65,27 @@ def build(entry: dict, device) -> models.LanguageModel:
 
 @torch.no_grad()
 def check(model, w, logits, taken, device) -> dict:
-    """Decoded logits and routing decisions against the full forward pass under the same autocast."""
+    """One decoded window against the full forward pass under the same autocast: routing decisions,
+    top-1 tokens, and the largest logit difference over the positions where every routing decision
+    agreed (all positions for non-adaptive models), with the window's largest full-pass logit for scale."""
     with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"):
         full_logits, stats = model(w)
     full_logits = full_logits[0].float()
-    out = {"max_abs_logit_difference": float((full_logits - logits).abs().max()),
-           "top1_token_agreement": float((full_logits.argmax(-1) == logits.argmax(-1)).float().mean())}
+    agree = torch.ones(len(logits), dtype=torch.bool, device=logits.device)
+    out = {}
     if model.cfg.ffn in models.ADAPTIVE_KINDS:
         full = torch.stack([s["choice"][0] for s in stats], 1).cpu()
         n_opt = len(models.option_costs(model.cfg))
+        agree = (full == taken).all(1).to(logits.device)
         out.update({"decision_agreement": float((full == taken).float().mean()),
+                    "positions_with_all_decisions_agreeing": float(agree.float().mean()),
                     "decoded_option_share": torch.bincount(taken.reshape(-1), minlength=n_opt).div(taken.numel()).tolist(),
                     "full_pass_option_share": torch.bincount(full.reshape(-1), minlength=n_opt).div(full.numel()).tolist()})
+    diff = (full_logits - logits).abs()
+    out.update({"max_abs_logit_difference": float(diff.max()),
+                "max_abs_logit_difference_where_routing_agrees": float(diff[agree].max()) if agree.any() else None,
+                "max_abs_full_logit": float(full_logits.abs().max()),
+                "top1_token_agreement": float((full_logits.argmax(-1) == logits.argmax(-1)).float().mean())})
     return out
 
 
@@ -115,8 +124,9 @@ def main(argv=None):
     for i, entry in enumerate(entries):
         ms = [1e3 * s for s in times[i]]
         row = {"name": entry["name"], "seed": entry["seed"], "dir": entry["dir"],
+               "weights": "trained" if entry["result"]["config"]["ffn"] in models.ADAPTIVE_KINDS else "random_init",
                "ms_per_token_mean": statistics.fmean(ms), "ms_per_token_median": statistics.median(ms),
-               "timed_tokens": len(ms)}
+               "timed_tokens": len(ms), "checks": checks[i]}
         c = checks[i]
         row.update({"max_abs_logit_difference": max(x["max_abs_logit_difference"] for x in c),
                     "top1_token_agreement": statistics.fmean(x["top1_token_agreement"] for x in c),
@@ -133,8 +143,9 @@ def main(argv=None):
            "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
            "measured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps({"config": {k: str(v) for k, v in vars(args).items()}, "environment": env,
-                                    "runs": out}, indent=2))
+    config = {k: str(v) for k, v in vars(args).items()}
+    config["context"] = ctx
+    args.out.write_text(json.dumps({"config": config, "environment": env, "runs": out}, indent=2))
     print(f"-> {args.out}")
 
 
