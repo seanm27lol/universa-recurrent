@@ -106,7 +106,9 @@ are generalization, not fitting.
   SCAN file hashes are in each result.
 - **Summary.** `runs/titnn_bench/summary.json` has sha256 `223662cf…`. It was built
   by `bench/summarize.py` from the per-run `result.json` files, which are in the
-  git-ignored `runs/titnn_bench/`.
+  git-ignored `runs/titnn_bench/`. Byte-identical copies of all 75 and the summary are in
+  [`experiments/results/ti_tnn/real_benchmarks/`](../../../experiments/results/ti_tnn/), where
+  `make_tables.py` rebuilds the summary from them.
 - **Co-tenancy.** A GPU log ran from 01:36 UTC on 2026-10-16, which covers seeds 1
   and 2. Beyond the rf-moe dashboard (451 MiB), three small processes (229–375 MiB)
   appeared once each, for one 30-second sample. The seed-0 WikiText runs started

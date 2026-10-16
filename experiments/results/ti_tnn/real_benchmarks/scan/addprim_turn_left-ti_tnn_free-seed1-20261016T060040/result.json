@@ -1,0 +1,133 @@
+{
+  "config": {
+    "split": "addprim_turn_left",
+    "ffn": "ti_tnn",
+    "seed": 1,
+    "data": "runs/titnn_data/scan",
+    "experts": 8,
+    "d_model": 256,
+    "layers": 4,
+    "heads": 4,
+    "context": 72,
+    "d_edge": 64,
+    "balance_coef": 0.01,
+    "bridge_cost": 0.0,
+    "steps": 5000,
+    "batch": 128,
+    "lr": 0.0005,
+    "warmup_frac": 0.05,
+    "weight_decay": 0.1,
+    "eval_batch": 512,
+    "log_every": 500,
+    "device": "cuda",
+    "out": "runs/titnn_bench/scan"
+  },
+  "model_config": {
+    "vocab_size": 22,
+    "context": 72,
+    "d_model": 256,
+    "n_layers": 4,
+    "n_heads": 4,
+    "ffn": "ti_tnn",
+    "n_experts": 8,
+    "d_edge": 64,
+    "balance_coef": 0.01,
+    "bridge_cost": 0.0,
+    "bridge_threshold": 0.5,
+    "dropout": 0.0
+  },
+  "data": {
+    "train": {
+      "file": "add_prim_split/tasks_train_addprim_turn_left.txt",
+      "sha256": "1b3fed86055dd7689d217f1b90cc8960aeb1cf200f4f209dc47935761b05304c",
+      "examples": 21890
+    },
+    "test": {
+      "file": "add_prim_split/tasks_test_addprim_turn_left.txt",
+      "sha256": "15a82c2d25ac7c3c1fff7e18051fb085974ef3617de895c520d02144396a10e2",
+      "examples": 1208
+    }
+  },
+  "vocab_size": 22,
+  "parameters": {
+    "total": 18060292,
+    "active_top1": 3380228,
+    "expert_or_mlp_params_per_layer": 524288
+  },
+  "train_seconds": 338.94917273521423,
+  "train_log": [
+    {
+      "step": 0,
+      "loss": 3.121100425720215,
+      "elapsed": 0.6636488437652588
+    },
+    {
+      "step": 500,
+      "loss": 0.05410231277346611,
+      "elapsed": 34.25888133049011
+    },
+    {
+      "step": 1000,
+      "loss": 0.027367109432816505,
+      "elapsed": 68.02842259407043
+    },
+    {
+      "step": 1500,
+      "loss": 0.014321617782115936,
+      "elapsed": 101.68218421936035
+    },
+    {
+      "step": 2000,
+      "loss": 0.004192143678665161,
+      "elapsed": 135.48500990867615
+    },
+    {
+      "step": 2500,
+      "loss": 0.00499677425250411,
+      "elapsed": 169.2237491607666
+    },
+    {
+      "step": 3000,
+      "loss": 0.0007418357999995351,
+      "elapsed": 203.07035040855408
+    },
+    {
+      "step": 3500,
+      "loss": 0.0008839492802508175,
+      "elapsed": 237.18195629119873
+    },
+    {
+      "step": 4000,
+      "loss": 7.131851452868432e-05,
+      "elapsed": 271.18929719924927
+    },
+    {
+      "step": 4500,
+      "loss": 3.1957159080775455e-05,
+      "elapsed": 305.1000409126282
+    },
+    {
+      "step": 4999,
+      "loss": 2.1620797269861214e-05,
+      "elapsed": 338.94911217689514
+    }
+  ],
+  "test": {
+    "exact_match": 0.9163907284768212,
+    "n": 1208,
+    "expert_runs_per_token": 1.4407308641113812,
+    "fire_rate": 0.4407308635455144
+  },
+  "train_sample": {
+    "exact_match": 1.0,
+    "n": 2000,
+    "expert_runs_per_token": 1.4303425561498713,
+    "fire_rate": 0.4303425561692738
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10"
+  }
+}

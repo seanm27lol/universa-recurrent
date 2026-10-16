@@ -1,0 +1,1134 @@
+{
+  "lm": {
+    "dense": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "validation_perplexity": {
+        "mean": 39.84821694736393,
+        "sd": 0.09569975606700096,
+        "n": 3,
+        "values": [
+          39.896476294416104,
+          39.73799592771143,
+          39.91017861996424
+        ]
+      },
+      "test_perplexity": {
+        "mean": 39.62554348244829,
+        "sd": 0.2522183647992027,
+        "n": 3,
+        "values": [
+          39.71467861659254,
+          39.34086073585226,
+          39.821091094900076
+        ]
+      },
+      "inference_expert_runs_per_token": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "fire_rate": null,
+      "ffn_macs_inference": {
+        "mean": 2097152.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          2097152,
+          2097152,
+          2097152
+        ]
+      },
+      "ffn_macs_training": {
+        "mean": 2097152.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          2097152,
+          2097152,
+          2097152
+        ]
+      },
+      "train_tokens_per_second": {
+        "mean": 45190.76908800768,
+        "sd": 2510.875147607869,
+        "n": 3,
+        "values": [
+          42292.0389482629,
+          46589.96753973329,
+          46690.30077602683
+        ]
+      },
+      "parameters_total": 51176960,
+      "runs": [
+        "../../../runs/titnn_bench/lm/dense-seed0-20261015T163352/result.json",
+        "../../../runs/titnn_bench/lm/dense-seed1-20261016T000124/result.json",
+        "../../../runs/titnn_bench/lm/dense-seed2-20261016T063728/result.json"
+      ]
+    },
+    "moe_top1": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "validation_perplexity": {
+        "mean": 39.574393967568575,
+        "sd": 0.4630936623962804,
+        "n": 3,
+        "values": [
+          39.04084220202567,
+          39.81038632769988,
+          39.87195337298018
+        ]
+      },
+      "test_perplexity": {
+        "mean": 39.68976123554824,
+        "sd": 0.5123513057605013,
+        "n": 3,
+        "values": [
+          39.09888299673871,
+          39.959684855927875,
+          40.010715853978134
+        ]
+      },
+      "inference_expert_runs_per_token": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "fire_rate": null,
+      "ffn_macs_inference": {
+        "mean": 2101248.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          2101248.0,
+          2101248.0,
+          2101248.0
+        ]
+      },
+      "ffn_macs_training": {
+        "mean": 2101248.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          2101248.0,
+          2101248.0,
+          2101248.0
+        ]
+      },
+      "train_tokens_per_second": {
+        "mean": 29849.91725215082,
+        "sd": 1588.2824698137024,
+        "n": 3,
+        "values": [
+          28015.93206592816,
+          30770.77720280869,
+          30763.042487715604
+        ]
+      },
+      "parameters_total": 168650240,
+      "runs": [
+        "../../../runs/titnn_bench/lm/moe_top1-seed0-20261015T173429/result.json",
+        "../../../runs/titnn_bench/lm/moe_top1-seed1-20261016T005641/result.json",
+        "../../../runs/titnn_bench/lm/moe_top1-seed2-20261016T073246/result.json"
+      ]
+    },
+    "moe_top2": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "validation_perplexity": {
+        "mean": 37.92074933179368,
+        "sd": 0.7451567594900944,
+        "n": 3,
+        "values": [
+          37.65646662230644,
+          38.7620271919531,
+          37.34375418112149
+        ]
+      },
+      "test_perplexity": {
+        "mean": 38.105287303789346,
+        "sd": 0.5577069109788112,
+        "n": 3,
+        "values": [
+          37.937960073785035,
+          38.72750286348007,
+          37.65039897410293
+        ]
+      },
+      "inference_expert_runs_per_token": {
+        "mean": 2.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "fire_rate": null,
+      "ffn_macs_inference": {
+        "mean": 4198400.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          4198400.0,
+          4198400.0,
+          4198400.0
+        ]
+      },
+      "ffn_macs_training": {
+        "mean": 4198400.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          4198400.0,
+          4198400.0,
+          4198400.0
+        ]
+      },
+      "train_tokens_per_second": {
+        "mean": 26889.685797804505,
+        "sd": 1441.0246075084317,
+        "n": 3,
+        "values": [
+          25225.745951735178,
+          27716.17293487641,
+          27727.138506801934
+        ]
+      },
+      "parameters_total": 168650240,
+      "runs": [
+        "../../../runs/titnn_bench/lm/moe_top2-seed0-20261015T184142/result.json",
+        "../../../runs/titnn_bench/lm/moe_top2-seed1-20261016T015827/result.json",
+        "../../../runs/titnn_bench/lm/moe_top2-seed2-20261016T083400/result.json"
+      ]
+    },
+    "ti_tnn_charged": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "validation_perplexity": {
+        "mean": 39.59452682934758,
+        "sd": 0.8144786159912212,
+        "n": 3,
+        "values": [
+          39.69639317448302,
+          38.73390677180299,
+          40.35328054175672
+        ]
+      },
+      "test_perplexity": {
+        "mean": 39.7594850363156,
+        "sd": 0.8999971776278413,
+        "n": 3,
+        "values": [
+          39.89905220745349,
+          38.79785747712038,
+          40.58154542437293
+        ]
+      },
+      "inference_expert_runs_per_token": {
+        "mean": 1.0012060801188152,
+        "sd": 0.00039017004397573957,
+        "n": 3,
+        "values": [
+          1.0011868476867676,
+          1.0008258819580078,
+          1.00160551071167
+        ]
+      },
+      "fire_rate": {
+        "mean": 0.0012060801188151042,
+        "sd": 0.00039017004397573957,
+        "n": 3,
+        "values": [
+          0.0011868476867675781,
+          0.0008258819580078125,
+          0.0016055107116699219
+        ]
+      },
+      "ffn_macs_inference": {
+        "mean": 2104526.4583333335,
+        "sd": 894.9564400697924,
+        "n": 3,
+        "values": [
+          2104482.34375,
+          2103654.375,
+          2105442.65625
+        ]
+      },
+      "ffn_macs_training": {
+        "mean": 4395520.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          4395520.0,
+          4395520.0,
+          4395520.0
+        ]
+      },
+      "train_tokens_per_second": {
+        "mean": 24906.55798353419,
+        "sd": 1795.4931123101187,
+        "n": 3,
+        "values": [
+          22833.303328383434,
+          25945.805907393118,
+          25940.564714826003
+        ]
+      },
+      "parameters_total": 170227208,
+      "runs": [
+        "../../../runs/titnn_bench/lm/ti_tnn_charged-seed0-20261015T195625/result.json",
+        "../../../runs/titnn_bench/lm/ti_tnn_charged-seed1-20261016T030419/result.json",
+        "../../../runs/titnn_bench/lm/ti_tnn_charged-seed2-20261016T093923/result.json"
+      ]
+    },
+    "ti_tnn_free": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "validation_perplexity": {
+        "mean": 39.240527357463264,
+        "sd": 0.1760234806121307,
+        "n": 3,
+        "values": [
+          39.29881537547728,
+          39.042753143736554,
+          39.38001355317595
+        ]
+      },
+      "test_perplexity": {
+        "mean": 39.37525838752104,
+        "sd": 0.44689146711086697,
+        "n": 3,
+        "values": [
+          39.45606433795109,
+          38.89347713672166,
+          39.77623368789038
+        ]
+      },
+      "inference_expert_runs_per_token": {
+        "mean": 1.4425455729166667,
+        "sd": 0.007492629669790915,
+        "n": 3,
+        "values": [
+          1.4509029388427734,
+          1.4364290237426758,
+          1.4403047561645508
+        ]
+      },
+      "fire_rate": {
+        "mean": 0.4425455729166667,
+        "sd": 0.007492629669790915,
+        "n": 3,
+        "values": [
+          0.45090293884277344,
+          0.4364290237426758,
+          0.4403047561645508
+        ]
+      },
+      "ffn_macs_inference": {
+        "mean": 3116853.3333333335,
+        "sd": 17186.294231379612,
+        "n": 3,
+        "values": [
+          3136023.125,
+          3102823.4375,
+          3111713.4375
+        ]
+      },
+      "ffn_macs_training": {
+        "mean": 4395520.0,
+        "sd": 0.0,
+        "n": 3,
+        "values": [
+          4395520.0,
+          4395520.0,
+          4395520.0
+        ]
+      },
+      "train_tokens_per_second": {
+        "mean": 25898.239254052216,
+        "sd": 55.02515097933215,
+        "n": 3,
+        "values": [
+          25836.28860374872,
+          25916.99349351044,
+          25941.435664897494
+        ]
+      },
+      "parameters_total": 170227208,
+      "runs": [
+        "../../../runs/titnn_bench/lm/ti_tnn_free-seed0-20261015T213442/result.json",
+        "../../../runs/titnn_bench/lm/ti_tnn_free-seed1-20261016T040945/result.json",
+        "../../../runs/titnn_bench/lm/ti_tnn_free-seed2-20261016T104445/result.json"
+      ]
+    }
+  },
+  "scan": {
+    "addprim_jump": {
+      "dense": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.00021628168526689162,
+          "sd": 0.0003746108676288774,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.0006488450558006748
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_jump-dense-seed0-20261015T222907/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-dense-seed1-20261016T050620/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-dense-seed2-20261016T114017/result.json"
+        ]
+      },
+      "moe_top1": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.00017302534821351327,
+          "sd": 0.00029968869410310187,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.0005190760446405398
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top1-seed0-20261015T223431/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top1-seed1-20261016T051149/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top1-seed2-20261016T114540/result.json"
+        ]
+      },
+      "moe_top2": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.00034605069642702654,
+          "sd": 0.0004912975470023596,
+          "n": 3,
+          "values": [
+            0.0,
+            0.00012976901116013495,
+            0.0009083830781209447
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top2-seed0-20261015T224123/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top2-seed1-20261016T051810/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-moe_top2-seed2-20261016T115201/result.json"
+        ]
+      },
+      "ti_tnn_charged": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.0007353577299074313,
+          "sd": 0.0011631049104376462,
+          "n": 3,
+          "values": [
+            0.0,
+            0.00012976901116013495,
+            0.002076304178562159
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 1.3406663244431615e-06,
+          "sd": 2.3221021899321762e-06,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            4.021998973329484e-06
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed0-20261015T224813/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed1-20261016T052503/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed2-20261016T115922/result.json"
+        ]
+      },
+      "ti_tnn_free": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.379458449697981,
+          "sd": 0.05595867649780532,
+          "n": 3,
+          "values": [
+            0.41398923142523264,
+            0.3148951486229652,
+            0.4094909690457451
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed0-20261015T225508/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed1-20261016T053156/result.json",
+          "../../../runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed2-20261016T120645/result.json"
+        ]
+      }
+    },
+    "addprim_turn_left": {
+      "dense": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9649558498896247,
+          "sd": 0.01882861159959377,
+          "n": 3,
+          "values": [
+            0.9859271523178808,
+            0.9594370860927153,
+            0.9495033112582781
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_turn_left-dense-seed0-20261015T225816/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-dense-seed1-20261016T053504/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-dense-seed2-20261016T120924/result.json"
+        ]
+      },
+      "moe_top1": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9257726269315674,
+          "sd": 0.04730388678609208,
+          "n": 3,
+          "values": [
+            0.8716887417218543,
+            0.9461920529801324,
+            0.9594370860927153
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed0-20261015T230323/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed1-20261016T054028/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed2-20261016T121444/result.json"
+        ]
+      },
+      "moe_top2": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.8256070640176599,
+          "sd": 0.015316433870174286,
+          "n": 3,
+          "values": [
+            0.8352649006622517,
+            0.8079470198675497,
+            0.8336092715231788
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed0-20261015T231004/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed1-20261016T054710/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed2-20261016T122126/result.json"
+        ]
+      },
+      "ti_tnn_charged": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.8595474613686535,
+          "sd": 0.021272311117227424,
+          "n": 3,
+          "values": [
+            0.8625827814569537,
+            0.8369205298013245,
+            0.8791390728476821
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed0-20261015T231719/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed1-20261016T055355/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed2-20261016T122841/result.json"
+        ]
+      },
+      "ti_tnn_free": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.8446467991169978,
+          "sd": 0.06292116839706485,
+          "n": 3,
+          "values": [
+            0.8187086092715232,
+            0.9163907284768212,
+            0.7988410596026491
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.37407748021526915,
+          "sd": 0.058383116396060926,
+          "n": 3,
+          "values": [
+            0.3495019683614373,
+            0.4407308635455144,
+            0.33199960873885587
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed0-20261015T232431/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed1-20261016T060040/result.json",
+          "../../../runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed2-20261016T123557/result.json"
+        ]
+      }
+    },
+    "length": {
+      "dense": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.021428571428571425,
+          "sd": 0.01262432962414145,
+          "n": 3,
+          "values": [
+            0.007908163265306122,
+            0.02346938775510204,
+            0.03290816326530612
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/length-dense-seed0-20261015T220458/result.json",
+          "../../../runs/titnn_bench/scan/length-dense-seed1-20261016T044205/result.json",
+          "../../../runs/titnn_bench/scan/length-dense-seed2-20261016T111550/result.json"
+        ]
+      },
+      "moe_top1": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.0018707482993197278,
+          "sd": 0.0019146820151696772,
+          "n": 3,
+          "values": [
+            0.0017857142857142857,
+            0.0,
+            0.003826530612244898
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/length-moe_top1-seed0-20261015T221011/result.json",
+          "../../../runs/titnn_bench/scan/length-moe_top1-seed1-20261016T044700/result.json",
+          "../../../runs/titnn_bench/scan/length-moe_top1-seed2-20261016T112017/result.json"
+        ]
+      },
+      "moe_top2": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.000510204081632653,
+          "sd": 0.0008836993916167741,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.001530612244897959
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/length-moe_top2-seed0-20261015T221520/result.json",
+          "../../../runs/titnn_bench/scan/length-moe_top2-seed1-20261016T045233/result.json",
+          "../../../runs/titnn_bench/scan/length-moe_top2-seed2-20261016T112556/result.json"
+        ]
+      },
+      "ti_tnn_charged": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.02074829931972789,
+          "sd": 0.016910655086338863,
+          "n": 3,
+          "values": [
+            0.025255102040816328,
+            0.0020408163265306124,
+            0.03494897959183674
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/length-ti_tnn_charged-seed0-20261015T222036/result.json",
+          "../../../runs/titnn_bench/scan/length-ti_tnn_charged-seed1-20261016T045821/result.json",
+          "../../../runs/titnn_bench/scan/length-ti_tnn_charged-seed2-20261016T113146/result.json"
+        ]
+      },
+      "ti_tnn_free": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.0039115646258503405,
+          "sd": 0.006775028669061935,
+          "n": 3,
+          "values": [
+            0.01173469387755102,
+            0.0,
+            0.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.47869631881109403,
+          "sd": 0.04019208104568388,
+          "n": 3,
+          "values": [
+            0.5132731518744369,
+            0.48821714210947204,
+            0.4345986624493731
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/length-ti_tnn_free-seed0-20261015T222623/result.json",
+          "../../../runs/titnn_bench/scan/length-ti_tnn_free-seed1-20261016T050337/result.json",
+          "../../../runs/titnn_bench/scan/length-ti_tnn_free-seed2-20261016T113703/result.json"
+        ]
+      }
+    },
+    "simple": {
+      "dense": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9999202933205803,
+          "sd": 0.0001380560184575889,
+          "n": 3,
+          "values": [
+            1.0,
+            0.9997608799617408,
+            1.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/simple-dense-seed0-20261015T213725/result.json",
+          "../../../runs/titnn_bench/scan/simple-dense-seed1-20261016T041258/result.json",
+          "../../../runs/titnn_bench/scan/simple-dense-seed2-20261016T104729/result.json"
+        ]
+      },
+      "moe_top1": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9996811732823211,
+          "sd": 0.0002761120369151778,
+          "n": 3,
+          "values": [
+            0.9995217599234816,
+            0.9995217599234816,
+            1.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/simple-moe_top1-seed0-20261015T214247/result.json",
+          "../../../runs/titnn_bench/scan/simple-moe_top1-seed1-20261016T041825/result.json",
+          "../../../runs/titnn_bench/scan/simple-moe_top1-seed2-20261016T105238/result.json"
+        ]
+      },
+      "moe_top2": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9999202933205803,
+          "sd": 0.0001380560184575889,
+          "n": 3,
+          "values": [
+            1.0,
+            0.9997608799617408,
+            1.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": null,
+        "runs": [
+          "../../../runs/titnn_bench/scan/simple-moe_top2-seed0-20261015T214908/result.json",
+          "../../../runs/titnn_bench/scan/simple-moe_top2-seed1-20261016T042515/result.json",
+          "../../../runs/titnn_bench/scan/simple-moe_top2-seed2-20261016T105858/result.json"
+        ]
+      },
+      "ti_tnn_charged": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9999202933205803,
+          "sd": 0.0001380560184575889,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            0.9997608799617408
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 4.1634754801178765e-06,
+          "sd": 7.211351067631387e-06,
+          "n": 3,
+          "values": [
+            1.249042644035363e-05,
+            0.0,
+            0.0
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_charged-seed0-20261015T215558/result.json",
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_charged-seed1-20261016T043205/result.json",
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_charged-seed2-20261016T110621/result.json"
+        ]
+      },
+      "ti_tnn_free": {
+        "seeds": [
+          0,
+          1,
+          2
+        ],
+        "test_exact_match": {
+          "mean": 0.9998405866411605,
+          "sd": 0.0001380560184575889,
+          "n": 3,
+          "values": [
+            0.9997608799617408,
+            0.9997608799617408,
+            1.0
+          ]
+        },
+        "train_sample_exact_match": {
+          "mean": 1.0,
+          "sd": 0.0,
+          "n": 3,
+          "values": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        "fire_rate": {
+          "mean": 0.4023113975445663,
+          "sd": 0.04626093878869229,
+          "n": 3,
+          "values": [
+            0.4519156630177722,
+            0.39467426095590696,
+            0.36034426866001973
+          ]
+        },
+        "runs": [
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_free-seed0-20261015T220251/result.json",
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_free-seed1-20261016T043928/result.json",
+          "../../../runs/titnn_bench/scan/simple-ti_tnn_free-seed2-20261016T111343/result.json"
+        ]
+      }
+    }
+  }
+}
