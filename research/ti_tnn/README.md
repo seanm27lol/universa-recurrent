@@ -1,5 +1,16 @@
 # TI-TNN: typed branches, a calibrated router and a sheaf bridge
 
+**What's in this folder**
+
+| File | What it is |
+|---|---|
+| `README.md` (this file) | The idea, the mathematics, results so far, limits |
+| [`ti_tnn_train.py`](ti_tnn_train.py) | The model and the toy benchmarks (routing, compositional isolation, unsupervised routing) |
+| [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
+| [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment |
+| [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
+| [`../../tests/test_ti_tnn.py`](../../tests/test_ti_tnn.py) | Tests for every property the claims rely on |
+
 **Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
 with 3 seeds (2026-10-14; re-run 2026-10-15 after an isolation fix).** Nothing here is
 a result about language models.
