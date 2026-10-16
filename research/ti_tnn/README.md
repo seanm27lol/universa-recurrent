@@ -284,6 +284,20 @@ fed another country's Trait-B stalk.
     order failed on the unlogged seed 0.
   - **What it shows.** On real data, the bridge does not earn its compute. Its toy
     result relied on isolation that real text does not provide.
+- **Functorial composition, 5 GPU seeds, 2026-10-16**
+  ([report](reports/functorial_composition.md), [frozen brief](protocols/functorial_composition.md)).
+  - **Setup.** Trained only on single relations ("capital of France", "size of
+    Paris"). The step models share typed embeddings and step-by-step application
+    and differ only in their relation maps.
+  - **Unseen two-hop chains** ("size of the capital of France"):
+    - exact functorial maps (flat-sheaf transports): **1.000 on every seed**;
+    - unconstrained linear: 0.940;
+    - linear plus a soft inverse penalty: 0.879;
+    - a small network: 0.717;
+    - a transformer: 0.166 (chance).
+  - **Exact beats soft.** The soft penalty made composition worse, as in HOMYMOLY.
+  - **Predictions.** Five of six held. The margin over unconstrained linear was
+    0.06, short of the predicted 0.10.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.

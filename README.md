@@ -295,6 +295,10 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
 - **Categorical version (opt-in).** Functorial branches and a flat sheaf bridge
   guarantee that translations between branches compose exactly. Whether that helps is
   untested.
+- **Functorial composition (5 seeds).** Trained on single relations only, exact
+  functorial relation maps answer unseen two-step chains ("size of the capital of
+  France") perfectly (1.000 on every seed). The same step-by-step interface with
+  unconstrained maps scores 0.72–0.94, and a transformer is at chance.
 - **Real benchmarks (3 seeds).** On WikiText-103, the bridge does not earn its
   compute. Top-2 mixture of experts reaches perplexity 37.92, top-1 39.57, and TI-TNN
   39.59 (bridge charged; its gate shuts off) or 39.24 (bridge free, at 44% more
@@ -303,6 +307,7 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
 
 [TI-TNN README](research/ti_tnn/README.md) ·
 [real-benchmark report](research/ti_tnn/reports/real_benchmarks.md) ·
+[composition report](research/ti_tnn/reports/functorial_composition.md) ·
 [categorical proposal](research/ti_tnn/cdl_proposal.md) ·
 [unsupervised-routing brief](research/ti_tnn/protocols/unsupervised_routing.md) ·
 [claim ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15)
