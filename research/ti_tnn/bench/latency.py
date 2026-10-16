@@ -63,6 +63,23 @@ def build(entry: dict, device) -> models.LanguageModel:
     return model.to(device).eval()
 
 
+@torch.no_grad()
+def check(model, w, logits, taken, device) -> dict:
+    """Decoded logits and routing decisions against the full forward pass under the same autocast."""
+    with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"):
+        full_logits, stats = model(w)
+    full_logits = full_logits[0].float()
+    out = {"max_abs_logit_difference": float((full_logits - logits).abs().max()),
+           "top1_token_agreement": float((full_logits.argmax(-1) == logits.argmax(-1)).float().mean())}
+    if model.cfg.ffn in models.ADAPTIVE_KINDS:
+        full = torch.stack([s["choice"][0] for s in stats], 1).cpu()
+        n_opt = len(models.option_costs(model.cfg))
+        out.update({"decision_agreement": float((full == taken).float().mean()),
+                    "decoded_option_share": torch.bincount(taken.reshape(-1), minlength=n_opt).div(taken.numel()).tolist(),
+                    "full_pass_option_share": torch.bincount(full.reshape(-1), minlength=n_opt).div(full.numel()).tolist()})
+    return out
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("roots", nargs="+", type=Path)
@@ -81,21 +98,15 @@ def main(argv=None):
     windows = [torch.from_numpy(tokens[i * ctx:(i + 1) * ctx].astype(np.int64))[None].to(device)
                for i in range(args.windows)]
     times = {i: [] for i in range(len(entries))}
-    agreement = {}
+    checks = {i: [] for i in range(len(entries))}
     for rnd in range(args.rounds):
         for i, entry in enumerate(entries):
             model = build(entry, device)
             for w in windows:
                 logits, seconds, taken = decode.decode(model, w, timed=True, autocast=device.type == "cuda")
                 times[i].extend(seconds[args.warmup_tokens:])
-                if rnd == 0 and w is windows[0] and model.cfg.ffn in models.ADAPTIVE_KINDS:
-                    with torch.no_grad(), torch.autocast(device_type=device.type, dtype=torch.bfloat16,
-                                                         enabled=device.type == "cuda"):
-                        _, stats = model(w)
-                    full = torch.stack([s["choice"][0] for s in stats], 1).cpu()
-                    agreement[i] = {"decision_agreement": float((full == taken).float().mean()),
-                                    "decoded_option_share": torch.bincount(taken.reshape(-1), minlength=len(
-                                        models.option_costs(model.cfg))).div(taken.numel()).tolist()}
+                if rnd == 0:  # check the decoded execution against the full forward pass, in the same precision
+                    checks[i].append(check(model, w, logits, taken, device))
             del model
             if device.type == "cuda":
                 torch.cuda.empty_cache()
@@ -106,9 +117,18 @@ def main(argv=None):
         row = {"name": entry["name"], "seed": entry["seed"], "dir": entry["dir"],
                "ms_per_token_mean": statistics.fmean(ms), "ms_per_token_median": statistics.median(ms),
                "timed_tokens": len(ms)}
-        row.update(agreement.get(i, {}))
+        c = checks[i]
+        row.update({"max_abs_logit_difference": max(x["max_abs_logit_difference"] for x in c),
+                    "top1_token_agreement": statistics.fmean(x["top1_token_agreement"] for x in c),
+                    "checked_windows": len(c)})
+        if "decision_agreement" in c[0]:
+            row.update({"decision_agreement": statistics.fmean(x["decision_agreement"] for x in c),
+                        "decision_agreement_min_window": min(x["decision_agreement"] for x in c),
+                        "decoded_option_share": np.mean([x["decoded_option_share"] for x in c], 0).tolist(),
+                        "full_pass_option_share": np.mean([x["full_pass_option_share"] for x in c], 0).tolist()})
         out.append(row)
-        print(f"{entry['name']:>28} seed {entry['seed']}: {row['ms_per_token_median']:.3f} ms/token (median)")
+        print(f"{entry['name']:>28} seed {entry['seed']}: {row['ms_per_token_median']:.3f} ms/token (median); "
+              f"decisions agree {row.get('decision_agreement', 1.0):.4f}, max logit diff {row['max_abs_logit_difference']:.3g}")
     env = {"torch": torch.__version__, "python": platform.python_version(), "platform": platform.platform(),
            "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
            "measured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}

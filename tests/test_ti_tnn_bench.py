@@ -390,3 +390,54 @@ def test_pass_bar_for_accuracy_uses_an_absolute_band():
     j = frontier.judge(v, "dense", True, 0.02, False)
     assert j["close_threshold"] == pytest.approx(0.97) and j["efficiency"]["holds"]
     assert j["efficiency"]["per_candidate"]["ti_tnn_adaptive_c30"]["cheapest_baseline_as_good"] == 100.0
+
+
+def test_untestable_comparisons_never_count_as_passed():
+    """Review fixture: candidate A beats the small baseline, B is cheaper than every baseline."""
+    v = {"dense": point("dense", 40.0, 100.0), "small": point("dense", 50.0, 20.0),
+         "ti_tnn_adaptive_c50": point("ti_tnn_adaptive", 45.0, 30.0),
+         "ti_tnn_adaptive_c30": point("ti_tnn_adaptive", 39.0, 10.0)}
+    j = frontier.judge(v, "dense", False, 0.02, True)
+    eq = j["equal_compute"]["per_candidate"]
+    assert eq["ti_tnn_adaptive_c50"]["holds"] is True and eq["ti_tnn_adaptive_c30"]["holds"] is None
+    assert j["equal_compute"]["holds"] is None  # one untestable candidate: "every candidate" is untestable
+    assert j["matched_cap"]["holds"] is None  # no mod twins at all
+    assert frontier.all_of([True, False, None]) is False and frontier.all_of([True, None]) is None
+    assert frontier.all_of([True, True]) is True and frontier.all_of([]) is None
+
+
+def test_inventory_requires_every_variant_with_three_distinct_seeds():
+    full = {n: {"seeds": [0, 1, 2]} for n in frontier.EXPECTED["lm"]}
+    assert frontier.inventory(full, "lm")["complete"]
+    dup = dict(full, mod_c30={"seeds": [0, 1, 1]})
+    assert not frontier.inventory(dup, "lm")["complete"]
+    short = {n: v for n, v in full.items() if n != "ti_tnn_adaptive_c30"}
+    assert frontier.inventory(short, "lm")["missing"] == ["ti_tnn_adaptive_c30"]
+
+
+@pytest.mark.parametrize("ffn", ["moe_top1", "moe_top2", "ti_tnn_adaptive"])
+def test_cached_decoding_matches_the_full_pass_under_bf16(ffn):
+    """The precision latency is measured in: routing decisions agree and logits stay close."""
+    torch.manual_seed(6)
+    model = models.LanguageModel(cfg(ffn, context=12, n_layers=3)).eval()
+    if ffn in models.ADAPTIVE_KINDS:
+        for block in model.blocks:
+            torch.nn.init.normal_(block.router.weight, std=1.0)
+    idx = torch.randint(0, 50, (1, 12))
+    with torch.no_grad(), torch.autocast(device_type="cpu", dtype=torch.bfloat16):
+        full, stats = model(idx)
+    logits, _, taken = decode.decode(model, idx, autocast=True)
+    assert (full[0].float() - logits).abs().max() < 0.05
+    if ffn in models.ADAPTIVE_KINDS:
+        assert torch.equal(taken, torch.stack([s["choice"][0] for s in stats], 1))
+
+
+def test_moe_weight_is_rounded_like_the_full_pass():
+    """Multiplying a bf16 output by a Python float rounds differently from the full pass's bf16 weight."""
+    torch.manual_seed(7)
+    ffn = models.MoEFFN(cfg("moe_top2"), 2).eval()
+    x = torch.randn(1, 16)
+    with torch.no_grad(), torch.autocast(device_type="cpu", dtype=torch.bfloat16):
+        y_full, _ = ffn(x)
+        y_step = decode.moe_step(ffn, x)
+    assert y_full.dtype == y_step.dtype and torch.equal(y_full, y_step)
