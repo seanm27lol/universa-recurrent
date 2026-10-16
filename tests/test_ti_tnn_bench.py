@@ -130,8 +130,12 @@ def test_lm_trains_and_evaluates_end_to_end(tmp_path):
         result = lm.train(args)
         assert result["steps"] == 10 and result["validation"]["windows"] == (600 - 1) // 16
         assert result["validation"]["perplexity"] > 1
-        if ffn != "dense":
+        if ffn in models.ADAPTIVE_KINDS:
+            assert len(result["validation"]["option_share_by_layer"]) == 1
+            assert 0 <= result["validation"]["realized_compute"] <= 1
+        elif ffn != "dense":
             assert len(result["validation"]["expert_share_by_layer"]) == 1
+        assert result["validation"]["non_embedding_macs_per_token"] > 0
 
 
 scan_spec = importlib.util.spec_from_file_location("ti_tnn_scan", BENCH / "scan.py")
@@ -205,3 +209,184 @@ def test_summary_groups_runs_by_variant_and_seed(tmp_path):
     s = summ.summarize(*summ.load([tmp_path / "lm"]))
     assert s["lm"]["ti_tnn_free"]["validation_perplexity"]["mean"] == pytest.approx(31.0)
     assert s["lm"]["ti_tnn_free"]["seeds"] == [0, 1]
+
+
+decode = importlib.import_module("decode")
+
+
+@pytest.mark.parametrize("ffn", ["dense", "moe_top1", "moe_top2", "mod", "ti_tnn_adaptive"])
+def test_token_by_token_decoding_matches_the_full_forward_pass(ffn):
+    """Equal logits mean no routing decision or attention read depends on a later token."""
+    torch.manual_seed(3)
+    model = models.LanguageModel(cfg(ffn, context=12, n_layers=3)).eval()
+    if ffn in models.ADAPTIVE_KINDS:  # make every option common
+        for block in model.blocks:
+            torch.nn.init.normal_(block.router.weight, std=1.0)
+    idx = torch.randint(0, 50, (1, 12))
+    with torch.no_grad():
+        full, stats = model(idx)
+    logits, _, taken = decode.decode(model, idx)
+    assert torch.allclose(logits, full[0], atol=1e-5)
+    if ffn in models.ADAPTIVE_KINDS:
+        assert torch.equal(taken, torch.stack([s["choice"][0] for s in stats], 1))
+        assert len(taken.unique()) == len(models.option_costs(model.cfg))
+
+
+@pytest.mark.parametrize("ffn", models.ADAPTIVE_KINDS)
+def test_a_skipped_token_is_unchanged_and_invisible_to_later_tokens(ffn):
+    torch.manual_seed(4)
+    c = cfg(ffn, n_layers=1)
+    block = models.AdaptiveBlock(c).eval()
+    x = torch.randn(1, 6, 16)
+    x[..., 0] = 0.0
+    x2 = x.clone()
+    x2[0, 2, 0] = 5.0  # only token 2 differs, and only in the feature the skip logit reads
+    with torch.no_grad():
+        block.router.weight.zero_()
+        block.router.bias.zero_()
+        block.router.bias[-1] = 1.0   # the full branch, unless ...
+        block.router.weight[0, 0] = 1.0  # ... the skip logit x[0] beats it
+        y_all, s_all = block(x)
+        y, s = block(x2)
+    assert (s_all["choice"] == len(models.option_costs(c)) - 1).all()
+    assert s["choice"][0].tolist() == [s_all["choice"][0, 0].item()] * 2 + [0] + [s_all["choice"][0, 0].item()] * 3
+    assert torch.equal(y[0, 2], x2[0, 2])  # skipped: the residual passes through
+    assert torch.allclose(y[0, :2], y_all[0, :2], atol=1e-6)  # earlier tokens never see later ones
+    assert not torch.allclose(y[0, 3:], y_all[0, 3:])  # later tokens lost token 2 as a key
+
+
+@pytest.mark.parametrize("ffn", models.ADAPTIVE_KINDS)
+def test_straight_through_router_learns_from_every_option(ffn):
+    """Even tokens that skipped send the router a gradient (no absorbing skip)."""
+    torch.manual_seed(5)
+    block = models.AdaptiveBlock(cfg(ffn, n_layers=1)).train()
+    with torch.no_grad():
+        block.router.weight.zero_()
+        block.router.bias.zero_()
+        block.router.bias[0] = 3.0  # everyone skips
+    y, s = block(torch.randn(2, 5, 16))
+    assert (s["choice"] == 0).all()
+    (y ** 2).sum().backward()
+    assert block.router.weight.grad.abs().sum() > 0
+    assert all(p.grad is None or p.grad.abs().sum() == 0 for p in block.branches.parameters())  # unused branches learn nothing
+
+
+def test_compute_accounting_matches_the_analytic_count():
+    c = cfg("dense", context=8)
+    model = models.LanguageModel(c).eval()
+    idx = torch.randint(0, 50, (2, 8))
+    with torch.no_grad():
+        _, stats = model(idx)
+    got = models.macs_per_token(c, stats, (2, 8))["non_embedding"]
+    assert got == pytest.approx(models.full_block_macs_per_token(c, 8))
+    a = cfg("ti_tnn_adaptive", context=8)
+    assert models.option_costs(a) == [0.0, 0.5, 1.0] and models.option_costs(cfg("mod")) == [0.0, 1.0]
+    stats = [{"choice": torch.zeros(2, 8, dtype=torch.long)}] * 2  # all skip: only the compute routers run
+    assert models.macs_per_token(a, stats, (2, 8))["non_embedding"] == 2 * 16 * 3
+    full = [{"choice": torch.full((2, 8), 2)}] * 2  # all full: dense cost plus the routers
+    assert models.macs_per_token(a, full, (2, 8))["non_embedding"] == pytest.approx(
+        models.full_block_macs_per_token(a, 8) + 2 * (16 * 3 + 16 * 4))
+
+
+def test_dual_ascent_prices_compute_only_while_the_cap_binds():
+    model = models.LanguageModel(cfg("mod", target_compute=0.5, dual_lr=0.1))
+    over = [{"realized_cost": torch.tensor(0.9)}] * 2
+    under = [{"realized_cost": torch.tensor(0.1)}] * 2
+    model.dual_update(over)
+    assert float(model.cost_price) == pytest.approx(0.04)
+    for _ in range(3):
+        model.dual_update(under)
+    assert float(model.cost_price) == 0.0
+    model.dual_update(over)
+    assert float(model.cost_price) > 0
+
+
+def test_default_sizes_are_unchanged():
+    """The reference variants keep their shapes, so earlier runs remain valid baselines."""
+    big = dict(vocab_size=50257, context=512, d_model=512, n_layers=8, n_heads=8)
+    for ffn, total in (("dense", 51_176_960), ("moe_top1", 168_650_240), ("moe_top2", 168_650_240)):  # PR #33 runs
+        assert models.parameter_counts(models.LanguageModel(models.ModelConfig(ffn=ffn, **big)))["total"] == total
+
+
+hops_spec = importlib.util.spec_from_file_location("ti_tnn_hops", BENCH / "hops.py")
+hops = importlib.util.module_from_spec(hops_spec)
+sys.modules["ti_tnn_hops"] = hops  # dataclasses resolve their module through sys.modules
+hops_spec.loader.exec_module(hops)
+
+
+def follow(seq, x, k):
+    """Answer a query by reading the facts stated in this sequence."""
+    task = hops.Task()
+    f = {int(seq[1 + 2 * i]): int(seq[2 + 2 * i]) for i in range(task.facts)}
+    for _ in range(k):
+        x = f[x]
+    return x
+
+
+def test_hop_sequences_are_answerable_from_their_own_facts():
+    task = hops.Task()
+    b = hops.make_batch(16, task, torch.Generator().manual_seed(0))
+    assert b["tokens"].shape == (16, task.length) and int(b["tokens"].max()) < task.vocab
+    q = hops.KIND_NAMES.index("query")
+    easy = hops.KIND_NAMES.index("easy")
+    for i in range(16):
+        seq, tgt, kind, k = b["tokens"][i], b["targets"][i], b["kind"][i], b["hops"][i]
+        assert int((kind == q).sum()) == task.queries
+        for p in (kind == q).nonzero().flatten().tolist():
+            hop = int(seq[p - 1]) - (1 + task.symbols) + 1  # the H_k token just before
+            assert hop == int(k[p]) and 1 <= hop <= task.max_hops
+            assert int(tgt[p]) == follow(seq, int(seq[p]), hop) != int(seq[p])
+        for p in (kind == easy).nonzero().flatten().tolist():  # easy: the next count, from this token alone
+            c = int(seq[p]) - (1 + task.symbols + task.max_hops)
+            assert int(tgt[p]) - (1 + task.symbols + task.max_hops) == (c + 1) % task.counts
+        assert (tgt[kind != q][kind[kind != q] != easy] == -100).all()  # facts and hop tokens are not scored
+
+
+def test_hop_eval_set_is_fixed_and_counts_compute_by_kind():
+    args = hops.parse_args(["--ffn", "ti_tnn_adaptive", "--device", "cpu", "--d-model", "16", "--layers", "2",
+                            "--heads", "2", "--experts", "2", "--steps", "3", "--batch", "4", "--eval-sequences", "8"])
+    r1 = hops.train(args)
+    r2 = hops.train(args)
+    assert r1["eval"] == r2["eval"]  # same seed, same fixed evaluation sequences
+    e = r1["eval"]
+    assert set(e["accuracy_by_hops"]) == {"1", "2", "3"} and 0 <= e["hard_accuracy"] <= 1
+    assert set(e["relative_compute_by_kind"]) == set(hops.KIND_NAMES)
+    dense = hops.train(hops.parse_args(["--ffn", "dense", "--device", "cpu", "--d-model", "16", "--layers", "2",
+                                        "--heads", "2", "--steps", "2", "--batch", "4", "--eval-sequences", "8"]))
+    assert dense["eval"]["relative_compute"] == 1.0
+    assert dense["eval"]["non_embedding_macs_per_token"] == pytest.approx(dense["same_size_dense_non_embedding_macs_per_token"])
+
+
+frontier = importlib.import_module("frontier")
+
+
+def point(kind, quality, compute):
+    return {"kind": kind, "quality": {"mean": quality}, "compute": {"mean": compute}}
+
+
+def test_pass_bar_requires_half_the_compute_of_the_cheapest_baseline_as_good():
+    lower_is_better = False  # perplexity
+    base = {"dense": point("dense", 40.0, 100.0), "dense_d256_l8": point("dense", 44.0, 30.0),
+            "mod_c30": point("mod", 41.5, 35.0)}
+    # 40.5 is within 2% of dense; the cheapest baseline at least as good (perplexity <= 40.5) is dense at 100
+    win = dict(base, ti_tnn_adaptive_c30=point("ti_tnn_adaptive", 40.5, 45.0))
+    j = frontier.judge(win, "dense", lower_is_better, 0.02, True)
+    assert j["efficiency"]["holds"] and j["matched_cap"]["holds"] and j["equal_compute"]["holds"]
+    # the same quality at 60 is only 1.7x cheaper: not drastic
+    j = frontier.judge(dict(base, ti_tnn_adaptive_c30=point("ti_tnn_adaptive", 40.5, 60.0)), "dense", lower_is_better, 0.02, True)
+    assert not j["efficiency"]["holds"] and j["equal_compute"]["holds"]
+    # cheap but not close: 42.0 misses the 2% band, and loses to mod at the same cap
+    j = frontier.judge(dict(base, ti_tnn_adaptive_c30=point("ti_tnn_adaptive", 42.0, 33.0)), "dense", lower_is_better, 0.02, True)
+    assert not j["efficiency"]["holds"] and not j["matched_cap"]["holds"]
+    assert j["equal_compute"]["per_candidate"]["ti_tnn_adaptive_c30"]["holds"]  # beats the d256 model at <= 33
+    # below every baseline's compute: equal-compute is untestable, not passed
+    j = frontier.judge(dict(base, ti_tnn_adaptive_c30=point("ti_tnn_adaptive", 45.0, 10.0)), "dense", lower_is_better, 0.02, True)
+    assert j["equal_compute"]["per_candidate"]["ti_tnn_adaptive_c30"]["holds"] is None and j["equal_compute"]["holds"] is None
+
+
+def test_pass_bar_for_accuracy_uses_an_absolute_band():
+    v = {"dense": point("dense", 0.99, 100.0), "dense_d128_l4": point("dense", 0.60, 50.0),
+         "ti_tnn_adaptive_c30": point("ti_tnn_adaptive", 0.975, 20.0)}
+    j = frontier.judge(v, "dense", True, 0.02, False)
+    assert j["close_threshold"] == pytest.approx(0.97) and j["efficiency"]["holds"]
+    assert j["efficiency"]["per_candidate"]["ti_tnn_adaptive_c30"]["cheapest_baseline_as_good"] == 100.0
