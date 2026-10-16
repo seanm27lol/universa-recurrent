@@ -278,6 +278,31 @@ Two follow-up measurements were each run once and closed, both negative:
 [technical closeout report](docs/phase_two_technical_report.md) ·
 [implementation README](research/open_weight_lingua/README.md)
 
+### TI-TNN: typed routing with a sheaf bridge (exploratory)
+
+A router sends each question to a small typed branch instead of running the whole
+network. The motivating case is Qwen3-235B-A22B, which spends about 22 billion active
+parameters per token even on a one-fact capital question. When a question needs two
+branches, a gated sheaf bridge combines them. Results so far, on synthetic toy tasks:
+
+- **Composition.** When two traits are learned by separate branches, the bridge
+  composes them. Held-out XOR is 1.000 on three GPU seeds, and switching the bridge off
+  gives chance (0.500, 0.477, 0.508). The single-branch cap at chance comes from
+  isolation enforced by construction, not from the architecture alone.
+- **No labels.** Without routing labels, the router still routes consistently by
+  question type, but only into as many groups as the task needs (2–3 branches). It
+  stops using the bridge where it isn't needed.
+- **Categorical version (opt-in).** Functorial branches and a flat sheaf bridge
+  guarantee that translations between branches compose exactly. Whether that helps is
+  untested.
+
+None of this is yet a result about language models.
+
+[TI-TNN README](research/ti_tnn/README.md) ·
+[categorical proposal](research/ti_tnn/cdl_proposal.md) ·
+[unsupervised-routing brief](research/ti_tnn/protocols/unsupervised_routing.md) ·
+[claim ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15)
+
 ## Limits
 
 This is a small research prototype with two completed, bounded phases of
@@ -308,6 +333,9 @@ ones that failed.
 | Understand the neural versions | [v1 recurrence](docs/neural_recurrence.md), [v2 multiple hypotheses](docs/neural_v2.md), [dual outputs](docs/dual_outputs.md), [architecture](docs/architecture.md) |
 | Know what phase one established | [Findings](docs/phase_one_results.md), [technical report](docs/phase_one_technical_report.md) |
 | Know what phase two established | [Paper draft](paper/nla_three_families.md), [Qwen findings](docs/phase_two_results.md), [technical report](docs/phase_two_technical_report.md), [implementation](research/open_weight_lingua/README.md) |
+| See how the models answer program questions (attention knockouts, Phases 8–19) | [Status and reports](research/open_weight_lingua/README.md), [handoff](research/open_weight_lingua/HANDOFF.md), [claim ledger](docs/claims.md) |
+| Explore TI-TNN (typed routing, sheaf bridge) | [TI-TNN README](research/ti_tnn/README.md), [categorical proposal](research/ti_tnn/cdl_proposal.md), [ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15) |
+| Find every research directory | [Research index](research/README.md) |
 | See every claim and its status | [Claim ledger](docs/claims.md) |
 | See what is closed and what is not planned | [Roadmap](docs/roadmap.md) |
 | See what a release checked | [0.5.0 audit](docs/release_audit_0.5.0.md) |
