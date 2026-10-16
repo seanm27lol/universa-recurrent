@@ -9,6 +9,8 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
+| [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN): models, training, data preparation, summary |
+| [`reports/`](reports/) | Reports on the real benchmarks |
 | [`../../tests/test_ti_tnn.py`](../../tests/test_ti_tnn.py) | Tests for every property the claims rely on |
 
 **Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
@@ -266,6 +268,22 @@ fed another country's Trait-B stalk.
     need it.
   - **What it shows.** Without labels, routing follows what conflicts in the
     task, not human-named categories.
+- **Real benchmarks, 3 GPU seeds, 2026-10-16**
+  ([report](reports/real_benchmarks.md), [frozen protocol](protocols/real_benchmarks.md)).
+  - **Setup.** A TI-TNN feed-forward layer (top-1 experts plus a gated sheaf bridge,
+    no routing labels) was compared with dense, top-1 and top-2 mixtures of experts.
+    Same decoder, data and budget for every variant.
+  - **WikiText-103.** Top-2 is best: perplexity 37.92 against 39.57 for top-1 and
+    39.85 for dense. TI-TNN with a firing charge shuts its gate and matches top-1
+    (39.59). Without the charge it fires on 44% of tokens for 39.24, worse than
+    interpolating top-1 and top-2 at the same compute (about 38.84).
+  - **SCAN.** No variant solves add-jump (about 0) or length (under 0.04). On
+    add-turn-left, every mixture variant, TI-TNN included, is worse than dense.
+  - **Predictions.** Six of nine held. Top-1 beat dense on only two of three seeds;
+    the charged TI-TNN fell outside a two-sided ±2% band on one seed; throughput
+    order failed on the unlogged seed 0.
+  - **What it shows.** On real data, the bridge does not earn its compute. Its toy
+    result relied on isolation that real text does not provide.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.
