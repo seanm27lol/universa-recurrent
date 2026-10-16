@@ -43,13 +43,16 @@ def expert(experts: models.Experts, h: torch.Tensor, e: int) -> torch.Tensor:
 
 
 def moe_step(ffn: models.MoEFFN, h: torch.Tensor) -> torch.Tensor:
+    """The same arithmetic as MoEFFN.forward: each weight is rounded to the expert output's dtype (bf16
+    under autocast) before the multiply, and the weighted outputs are summed in that dtype."""
     probs = F.softmax(ffn.router(h).float(), dim=-1)[0]
     p, e = probs.topk(ffn.top_k)
     if ffn.top_k > 1:
         p = p / p.sum()
     out = None
-    for pj, ej in zip(p.tolist(), e.tolist()):
-        o = expert(ffn.experts, h, ej) * pj
+    for j, ej in enumerate(e.tolist()):
+        o = expert(ffn.experts, h, ej)
+        o = o * p[j].to(o.dtype)
         out = o if out is None else out + o
     return out
 

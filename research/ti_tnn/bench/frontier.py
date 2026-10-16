@@ -22,6 +22,34 @@ import ti_tnn_models as models  # research/ti_tnn/bench is on sys.path when this
 
 CANDIDATE = "ti_tnn_adaptive"
 LM_KINDS = ("dense", "moe_top1", "moe_top2", "mod", "ti_tnn_adaptive")  # the earlier ti_tnn bridge runs are not in the frontier
+SEEDS = (0, 1, 2)
+# The planned run inventory (protocol): every variant, each with exactly these seeds.
+EXPECTED = {
+    "hops": ["dense", "dense_d128_l2", "dense_d128_l3", "dense_d128_l4", "dense_d128_l6", "moe_top1",
+             "mod_c50", "mod_c30", "mod_c15", "ti_tnn_adaptive_c50", "ti_tnn_adaptive_c30", "ti_tnn_adaptive_c15"],
+    "lm": ["dense", "moe_top1", "moe_top2", "dense_d512_l4", "dense_d384_l8", "dense_d256_l8",
+           "mod_c50", "mod_c30", "ti_tnn_adaptive_c50", "ti_tnn_adaptive_c30"],
+}
+A_VALIDITY = 0.90  # part A is read only if the 8-layer dense reference reaches this hard accuracy
+
+
+def all_of(outcomes) -> bool | None:
+    """Three-valued AND: any failure fails; otherwise any untestable outcome is untestable; else it holds."""
+    outcomes = list(outcomes)
+    if any(o is False for o in outcomes):
+        return False
+    if not outcomes or any(o is None for o in outcomes):
+        return None
+    return True
+
+
+def inventory(variants: dict, part: str) -> dict:
+    """Missing variants, and variants whose seeds are not exactly SEEDS (duplicates included)."""
+    missing = [n for n in EXPECTED[part] if n not in variants]
+    bad_seeds = {n: v["seeds"] for n, v in variants.items() if sorted(v["seeds"]) != list(SEEDS)}
+    unexpected = [n for n in variants if n not in EXPECTED[part]]
+    return {"complete": not missing and not bad_seeds, "missing": missing, "bad_seeds": bad_seeds,
+            "unexpected": unexpected}
 
 
 def stat(values):
@@ -115,11 +143,12 @@ def judge(variants: dict, reference: str, higher_is_better: bool, close: float, 
         twin = n.replace(CANDIDATE, "mod")
         if twin in base:
             cap[n] = {"mod": q(base[twin]), "holds": bool(better(q(v), q(base[twin]), higher_is_better))}
+        else:  # a missing matched-cap baseline makes the comparison untestable, not passed
+            cap[n] = {"mod": None, "holds": None}
     return {"reference": reference, "reference_quality": ref_q, "close_threshold": threshold,
-            "efficiency": {"holds": any(e["holds"] for e in eff.values()), "per_candidate": eff},
-            "equal_compute": {"holds": None if all(e["holds"] is None for e in eq.values())
-                              else all(e["holds"] is not False for e in eq.values()), "per_candidate": eq},
-            "matched_cap": {"holds": all(e["holds"] for e in cap.values()) if cap else None, "per_candidate": cap}}
+            "efficiency": {"holds": any(e["holds"] for e in eff.values()) if eff else None, "per_candidate": eff},
+            "equal_compute": {"holds": all_of(e["holds"] for e in eq.values()), "per_candidate": eq},
+            "matched_cap": {"holds": all_of(e["holds"] for e in cap.values()), "per_candidate": cap}}
 
 
 def difficulty_tracking(variants: dict) -> dict:
@@ -132,7 +161,7 @@ def difficulty_tracking(variants: dict) -> dict:
         easy = v["relative_compute_by_kind"]["easy"]["mean"]
         longest = max(h, key=int)
         out[n] = {"compute_by_hops": h, "easy": easy, "holds": bool(h[longest] > h["1"] and easy < min(h.values()))}
-    return {"holds": all(o["holds"] for o in out.values()) if out else None, "per_candidate": out}
+    return {"holds": all_of(o["holds"] for o in out.values()), "per_candidate": out}
 
 
 def table(variants: dict, quality: str, fmt: str) -> str:
@@ -154,12 +183,24 @@ def main(argv=None):
     summary = {}
     if args.hops:
         A = load(args.hops, "hops")
-        summary["hops"] = {"variants": A, "predictions": judge(A, "dense", True, 0.02, False),
+        inv = inventory(A, "hops")
+        ref = A.get("dense", {}).get("quality", {}).get("mean")
+        valid = ref is not None and ref >= A_VALIDITY
+        summary["hops"] = {"variants": A, "inventory": inv, "validity": {"reference_hard_accuracy": ref, "holds": valid},
+                           "predictions": judge(A, "dense", True, 0.02, False) if "dense" in A else {},
                            "difficulty_tracking": difficulty_tracking(A)}
+        summary["hops"]["readable"] = bool(inv["complete"] and valid)
         print("## Part A: variable-hop lookups (hard-query accuracy)\n\n" + table(A, "Hard accuracy", ".3f") + "\n")
     if args.lm:
         B = load(args.lm, "lm")
-        summary["lm"] = {"variants": B, "predictions": judge(B, "dense", False, 0.02, True)}
+        inv = inventory(B, "lm")
+        summary["lm"] = {"variants": B, "inventory": inv,
+                         "predictions": judge(B, "dense", False, 0.02, True) if "dense" in B else {}}
+        pr = summary["lm"]["predictions"]
+        # The decision rule: validated only if predictions 5 (efficiency) and 6 (equal compute) both hold,
+        # on the complete run inventory.
+        summary["lm"]["validated"] = (None if not inv["complete"] or not pr
+                                      else all_of([pr["efficiency"]["holds"], pr["equal_compute"]["holds"]]))
         if args.latency and args.latency.exists():
             lat = json.loads(args.latency.read_text())["runs"]
             by = defaultdict(list)
@@ -173,6 +214,12 @@ def main(argv=None):
                 "candidate_ms": statistics.fmean(c30) if c30 else None, "dense_ms": dense}
         print("## Part B: WikiText-103 (validation perplexity)\n\n" + table(B, "Perplexity", ".2f") + "\n")
     for part, s in summary.items():
+        if not s["inventory"]["complete"]:
+            print(f"{part}: INCOMPLETE run inventory, not a valid test: {json.dumps(s['inventory'])}")
+        if part == "hops":
+            print(f"hops: reference validity (>= {A_VALIDITY}) holds = {s['validity']['holds']}; readable = {s['readable']}")
+        else:
+            print(f"lm: TI-TNN efficiency validated (predictions 5 and 6) = {s['validated']}")
         print(f"{part}: " + json.dumps({k: (v["holds"] if isinstance(v, dict) and "holds" in v else v)
                                          for k, v in s["predictions"].items() if k not in ("reference", "reference_quality",
                                                                                            "close_threshold")}))

@@ -145,3 +145,40 @@ happens.
 **Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_efficiency.sh`, then
 `python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm runs/titnn_bench/lm
 runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json`.
+
+## Execution record (appended after freezing; nothing above was changed)
+
+- **2026-10-16 20:49 UTC.** The queue started at `64ecc86`, with the idle-GPU gate and a GPU co-tenancy log
+  running from the start.
+- **2026-10-16, about 21:30 UTC: evaluation fixes from an outside review,** made while part A was running.
+  No results had been summarized; one part A result line (`mod_c30`, seed 0) had been seen in the queue
+  log. The fixes touch only evaluation code the queue had not yet used: `frontier.py` runs after the
+  queue, and `decode.py` and `latency.py` run only at its end. The training code is unchanged.
+  1. **Untestable counted as passed.** `frontier.py` treated a mix of passing and untestable candidates
+     as passed, contradicting the rule above ("counts as untestable, not held"). Now any failure fails,
+     and otherwise any untestable comparison makes the prediction untestable. A missing matched-cap
+     baseline is untestable.
+  2. **No completeness checks.** The evaluator also failed to check that the run inventory was
+     complete. It now requires every planned variant, each with exactly seeds 0, 1 and 2 and no
+     duplicates. It also enforces part A's validity condition and computes the decision rule
+     explicitly. A queued run can fail without stopping the queue, so these checks matter.
+  3. **Decoder arithmetic.** The cached decoder multiplied bf16 expert outputs by Python floats. That
+     rounds differently from the full pass, which rounds the weight to bf16 first: 189 of 200 random
+     cases differed on CPU. The arithmetic now matches (200 of 200). `latency.py` now checks every
+     decoded window against the full forward pass in the same precision: routing-decision agreement,
+     largest logit difference and top-1 token agreement. Latency is reported alongside these checks.
+- **Declared confounds** (not fixable without changing the frozen training):
+  - **Initialization.** Experts are initialized at std D^-1/2 (up) and H^-1/2 (down), and miss the GPT-2
+    residual scaling the dense MLP gets. At width 512 and 8 layers, the dense down-projection starts at
+    std 0.005, against 0.0221 for experts. So `ti_tnn_adaptive` (experts) against `mod` (dense MLP), in
+    predictions 3 and 7, also compares two initializations. So did dense against the mixtures in the
+    real benchmark. Neither direction is established. An initialization-matched control will be frozen
+    separately before it runs.
+  - **Compute scope.** "Half the compute" in predictions 1 and 5 is half the decoder's MACs; the output
+    layer is excluded. At the reference size the decoder is 27.27M MACs per token and the output layer
+    25.73M. Halving the decoder cuts total forward MACs by 25.7%. The report states decoder and total
+    MACs separately, with measured latency.
+  - **The cap.** The cap is a training target, not a guaranteed budget, and its priced cost omits
+    attention scores and routers. The conclusions use the compute actually measured on held-out data.
+  - **Unused fields.** The `ffn_macs_per_token_per_layer_*` fields in `lm.py` results predate the
+    adaptive variants and do not apply to them; the frontier does not use them.
