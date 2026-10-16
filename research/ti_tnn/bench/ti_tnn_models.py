@@ -1,6 +1,6 @@
 """A small GPT-style decoder whose feed-forward block can be dense, a mixture of experts, or TI-TNN.
 
-Feed-forward variants (every expert has the dense block's shape, D -> 4D -> D):
+Feed-forward variants (every full expert has the dense block's shape, D -> mD -> D, m = ffn_mult = 4):
 
     dense     one MLP per layer
     moe_top1  Switch-style mixture of experts: each token runs its top-1 expert, scaled by its
@@ -16,6 +16,23 @@ Feed-forward variants (every expert has the dense block's shape, D -> 4D -> D):
 
 All mixture variants use the Switch load-balancing loss. No variant gets routing labels: on real
 text there are none.
+
+Adaptive-compute variants (`ffn` names the whole block for these): each token, at each layer, chooses
+how much of the block to run. Skipped tokens leave the block unchanged and are not keys or values in its
+attention (as in Mixture-of-Depths, Raposo et al. 2024).
+
+    mod              skip the block, or run it with the dense MLP. Mixture-of-Depths-style, but token
+                     choice rather than expert choice, so every decision is causal.
+    ti_tnn_adaptive  skip the block, or run it with a small or a full feed-forward layer; each is a
+                     top-1 mixture of typed experts (small experts are D -> D -> D, a quarter of the
+                     MLP). The choice of compute replaces the Noul gate and the bridge, which did not
+                     earn their compute on WikiText-103.
+
+The compute choice is a hard argmax in the forward pass and straight-through in the backward pass:
+every option is evaluated for every token in training, so the router sees each option's first-order
+value and no option is absorbing. A cap on mean compute (`target_compute`, a fraction of a full block's
+projection and MLP multiply-accumulates) is enforced by a Lagrange multiplier updated by dual ascent:
+the price of compute rises while the cap is exceeded and falls to zero when it is not binding.
 """
 from __future__ import annotations
 
@@ -27,14 +44,27 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-FFN_KINDS = ("dense", "moe_top1", "moe_top2", "ti_tnn")
+FFN_KINDS = ("dense", "moe_top1", "moe_top2", "ti_tnn", "mod", "ti_tnn_adaptive")
+ADAPTIVE_KINDS = ("mod", "ti_tnn_adaptive")
 
 
-def variant_name(ffn: str, bridge_cost: float) -> str:
-    """ti_tnn runs are named by their bridge charge ("ti_tnn_charged" / "ti_tnn_free"); others by ffn."""
-    if ffn != "ti_tnn":
-        return ffn
-    return "ti_tnn_free" if bridge_cost == 0 else ("ti_tnn_charged" if bridge_cost == 0.01 else f"ti_tnn_cost{bridge_cost:g}")
+def size_tag(d_model: int, n_layers: int, ffn_mult: int, reference: tuple = (512, 8, 4)) -> str:
+    """"" for the reference size, else e.g. "d384_l8" or "d512_l8_m1"."""
+    if (d_model, n_layers, ffn_mult) == tuple(reference):
+        return ""
+    return f"d{d_model}_l{n_layers}" + (f"_m{ffn_mult}" if ffn_mult != 4 else "")
+
+
+def variant_name(ffn: str, bridge_cost: float, target_compute: float = 1.0, size: str = "") -> str:
+    """ti_tnn runs are named by their bridge charge ("ti_tnn_charged" / "ti_tnn_free"), adaptive runs by
+    their compute cap ("mod_c50"), others by ffn; a size tag is appended for non-reference sizes."""
+    if ffn == "ti_tnn":
+        name = "ti_tnn_free" if bridge_cost == 0 else ("ti_tnn_charged" if bridge_cost == 0.01 else f"ti_tnn_cost{bridge_cost:g}")
+    elif ffn in ADAPTIVE_KINDS:
+        name = f"{ffn}_c{round(100 * target_compute)}"
+    else:
+        name = ffn
+    return f"{name}_{size}" if size else name
 
 
 @dataclass
@@ -51,12 +81,18 @@ class ModelConfig:
     bridge_cost: float = 0.01      # auxiliary-loss charge per unit of expected bridge firing
     bridge_threshold: float = 0.5
     dropout: float = 0.0
+    ffn_mult: int = 4              # hidden width of the dense MLP and of every full expert, in units of d_model
+    small_mult: int = 1            # ti_tnn_adaptive: hidden width of the small experts
+    target_compute: float = 1.0    # adaptive variants: cap on mean block compute, as a fraction of a full block
+    dual_lr: float = 0.01          # adaptive variants: dual-ascent step for the price of compute
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
             raise ValueError(f"ffn must be one of {FFN_KINDS}")
         if self.d_model % self.n_heads:
             raise ValueError("d_model must be divisible by n_heads")
+        if not 0 < self.target_compute <= 1:
+            raise ValueError("target_compute must be in (0, 1]")
 
 
 class CausalSelfAttention(nn.Module):
@@ -67,30 +103,40 @@ class CausalSelfAttention(nn.Module):
         self.proj = nn.Linear(cfg.d_model, cfg.d_model, bias=False)
         self.dropout = cfg.dropout
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, key_mask: torch.Tensor | None = None) -> torch.Tensor:
+        """key_mask [B, T] (bool): only these tokens are keys and values. Every query also sees itself, so a
+        token that skips the block still gets the output it would have had if it ran (for the router's
+        straight-through gradient)."""
         B, T, D = x.shape
         q, k, v = self.qkv(x).split(D, dim=-1)
         q, k, v = (t.view(B, T, self.n_heads, D // self.n_heads).transpose(1, 2) for t in (q, k, v))
-        y = F.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=self.dropout if self.training else 0.0)
+        drop = self.dropout if self.training else 0.0
+        if key_mask is None:
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=True, dropout_p=drop)
+        else:
+            eye = torch.eye(T, dtype=torch.bool, device=x.device)
+            allowed = eye.logical_or(key_mask[:, None, :]).tril()
+            y = F.scaled_dot_product_attention(q, k, v, attn_mask=allowed[:, None], dropout_p=drop)
         return self.proj(y.transpose(1, 2).reshape(B, T, D))
 
 
 class DenseFFN(nn.Module):
     def __init__(self, cfg: ModelConfig):
         super().__init__()
-        self.up = nn.Linear(cfg.d_model, 4 * cfg.d_model, bias=False)
-        self.down = nn.Linear(4 * cfg.d_model, cfg.d_model, bias=False)
+        self.up = nn.Linear(cfg.d_model, cfg.ffn_mult * cfg.d_model, bias=False)
+        self.down = nn.Linear(cfg.ffn_mult * cfg.d_model, cfg.d_model, bias=False)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         return self.down(F.gelu(self.up(x))), {}
 
 
 class Experts(nn.Module):
-    """E MLPs of the dense block's shape, run only on the tokens assigned to each."""
+    """E MLPs (the dense block's shape unless hidden_mult says otherwise), run only on the tokens assigned to each."""
 
-    def __init__(self, cfg: ModelConfig):
+    def __init__(self, cfg: ModelConfig, hidden_mult: int | None = None):
         super().__init__()
-        D, H, E = cfg.d_model, 4 * cfg.d_model, cfg.n_experts
+        D, E = cfg.d_model, cfg.n_experts
+        H = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
         self.w_up = nn.Parameter(torch.empty(E, D, H))
         self.w_down = nn.Parameter(torch.empty(E, H, D))
         nn.init.normal_(self.w_up, std=D ** -0.5)
@@ -115,11 +161,11 @@ def balance_loss(probs: torch.Tensor, top1: torch.Tensor, n_experts: int) -> tor
 
 
 class MoEFFN(nn.Module):
-    def __init__(self, cfg: ModelConfig, top_k: int):
+    def __init__(self, cfg: ModelConfig, top_k: int, hidden_mult: int | None = None):
         super().__init__()
         self.cfg, self.top_k = cfg, top_k
         self.router = nn.Linear(cfg.d_model, cfg.n_experts, bias=False)
-        self.experts = Experts(cfg)
+        self.experts = Experts(cfg, hidden_mult)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         shape = x.shape
@@ -206,13 +252,62 @@ class Block(nn.Module):
         return x + h, stats
 
 
+def branch_mults(cfg: ModelConfig) -> List[int]:
+    """Hidden widths (in units of d_model) of an adaptive block's options after skip."""
+    return [cfg.ffn_mult] if cfg.ffn == "mod" else [cfg.small_mult, cfg.ffn_mult]
+
+
+def option_costs(cfg: ModelConfig) -> List[float]:
+    """Compute of each option (skip first) as a fraction of a full block: projections 4D^2 plus MLP 2mD^2."""
+    return [0.0] + [(4 + 2 * m) / (4 + 2 * cfg.ffn_mult) for m in branch_mults(cfg)]
+
+
+class AdaptiveBlock(nn.Module):
+    """A decoder block in which each token chooses its compute: skip, or run with one of the branches."""
+
+    def __init__(self, cfg: ModelConfig):
+        super().__init__()
+        self.cfg = cfg
+        self.ln1, self.ln2 = nn.LayerNorm(cfg.d_model), nn.LayerNorm(cfg.d_model)
+        self.attn = CausalSelfAttention(cfg)
+        if cfg.ffn == "mod":
+            self.branches = nn.ModuleList([DenseFFN(cfg)])
+        else:
+            self.branches = nn.ModuleList([MoEFFN(cfg, 1, m) for m in branch_mults(cfg)])
+        self.router = nn.Linear(cfg.d_model, 1 + len(self.branches))
+        self.register_buffer("costs", torch.tensor(option_costs(cfg)), persistent=False)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+        probs = F.softmax(self.router(x).float(), dim=-1)
+        choice = probs.argmax(-1)
+        weight = F.one_hot(choice, probs.shape[-1]).to(probs.dtype)
+        if self.training:  # hard choice forward; every option's value reaches the router backward
+            weight = weight + probs - probs.detach()
+        run = choice > 0
+        h = x + self.attn(self.ln1(x), key_mask=run)
+        hn = self.ln2(h)
+        y = x * weight[..., :1]
+        aux = torch.zeros((), device=x.device)
+        for i, branch in enumerate(self.branches):
+            out, s = branch(hn)
+            y = y + (h + out) * weight[..., i + 1:i + 2]
+            if "aux_loss" in s:
+                aux = aux + s["aux_loss"]
+        stats = {"choice": choice, "aux_loss": aux, "expected_cost": (probs * self.costs).sum(-1).mean(),
+                 "realized_cost": self.costs[choice].mean().detach()}
+        return y.to(x.dtype), stats
+
+
 class LanguageModel(nn.Module):
     def __init__(self, cfg: ModelConfig):
         super().__init__()
         self.cfg = cfg
         self.tok = nn.Embedding(cfg.vocab_size, cfg.d_model)
         self.pos = nn.Embedding(cfg.context, cfg.d_model)
-        self.blocks = nn.ModuleList([Block(cfg) for _ in range(cfg.n_layers)])
+        block = AdaptiveBlock if cfg.ffn in ADAPTIVE_KINDS else Block
+        self.blocks = nn.ModuleList([block(cfg) for _ in range(cfg.n_layers)])
+        if cfg.ffn in ADAPTIVE_KINDS:
+            self.register_buffer("cost_price", torch.zeros(()))  # the Lagrange multiplier on mean compute
         self.ln_f = nn.LayerNorm(cfg.d_model)
         self.head = nn.Linear(cfg.d_model, cfg.vocab_size, bias=False)
         self.head.weight = self.tok.weight  # tied embeddings
@@ -236,24 +331,36 @@ class LanguageModel(nn.Module):
         stats = []
         for block in self.blocks:
             x, s = block(x)
+            if "expected_cost" in s:  # the priced compute, averaged over layers
+                s["aux_loss"] = s["aux_loss"] + self.cost_price * s["expected_cost"] / len(self.blocks)
             stats.append(s)
         return self.head(self.ln_f(x)), stats
+
+    @torch.no_grad()
+    def dual_update(self, stats: List[Dict[str, torch.Tensor]]) -> None:
+        """Raise the price of compute while mean realized compute exceeds the cap; never below zero."""
+        if self.cfg.ffn not in ADAPTIVE_KINDS:
+            return
+        realized = torch.stack([s["realized_cost"] for s in stats]).mean()
+        self.cost_price.add_(self.cfg.dual_lr * (realized - self.cfg.target_compute)).clamp_(min=0.0)
 
 
 def parameter_counts(model: LanguageModel) -> Dict[str, int]:
     """Total parameters, and parameters a single token uses (embeddings counted once; experts at top-1)."""
     cfg = model.cfg
     total = sum(p.numel() for p in model.parameters())
-    per_expert = 8 * cfg.d_model ** 2
+    per_expert = 2 * cfg.ffn_mult * cfg.d_model ** 2
     unused = 0
-    if cfg.ffn != "dense":
+    if cfg.ffn in ("moe_top1", "moe_top2", "ti_tnn", "ti_tnn_adaptive"):
         unused = cfg.n_layers * (cfg.n_experts - 1) * per_expert
+    if cfg.ffn == "ti_tnn_adaptive":  # the small experts, and the full branch a token at top-1 skips
+        unused += cfg.n_layers * cfg.n_experts * 2 * cfg.small_mult * cfg.d_model ** 2
     return {"total": total, "active_top1": total - unused, "expert_or_mlp_params_per_layer": per_expert}
 
 
 def ffn_macs_per_token(cfg: ModelConfig, expert_runs: float) -> float:
     """Feed-forward multiply-accumulates per token per layer, from layer shapes (bridge included)."""
-    mlp = 8 * cfg.d_model ** 2
+    mlp = 2 * cfg.ffn_mult * cfg.d_model ** 2
     if cfg.ffn == "dense":
         return mlp
     router = cfg.d_model * cfg.n_experts
@@ -261,3 +368,43 @@ def ffn_macs_per_token(cfg: ModelConfig, expert_runs: float) -> float:
     if cfg.ffn == "ti_tnn":
         macs += cfg.d_model + (expert_runs - 1) * 3 * cfg.d_model * cfg.d_edge  # gate + bridge where fired
     return macs
+
+
+def attention_macs(cfg: ModelConfig, run: torch.Tensor) -> torch.Tensor:
+    """Attention multiply-accumulates summed over the running tokens of a [B, T] mask: q, k, v and output
+    projections (4D^2) plus scores and values (2D per key; keys are the running tokens up to and including
+    the query)."""
+    D = cfg.d_model
+    keys = run.long().cumsum(-1)
+    return (run.long() * (4 * D * D + 2 * D * keys)).sum()
+
+
+def macs_per_token(cfg: ModelConfig, stats: List[Dict[str, torch.Tensor]], shape: tuple) -> Dict[str, float]:
+    """Forward multiply-accumulates per token, from the routing decisions actually made.
+
+    "non_embedding" covers the decoder blocks (attention scores included); "head" is the tied output
+    projection (V x D per token), which no variant reduces. Routers are counted; layer norms are not.
+    """
+    B, T = shape
+    D, N = cfg.d_model, B * T
+    total = 0.0
+    for s in stats:
+        if "choice" in s:
+            choice = s["choice"]
+            run = choice > 0
+            mults = torch.tensor([0] + branch_mults(cfg), device=choice.device)
+            total += float(attention_macs(cfg, run)) + float((2 * D * D * mults[choice]).sum())
+            total += D * (1 + len(branch_mults(cfg))) * N  # the compute router, for every token
+            if cfg.ffn == "ti_tnn_adaptive":
+                total += D * cfg.n_experts * float(run.sum())  # the chosen branch's expert router
+        else:
+            run = torch.ones(B, T, dtype=torch.bool)
+            runs = float(s["expert_runs"]) if "expert_runs" in s else 1.0
+            total += float(attention_macs(cfg, run)) + ffn_macs_per_token(cfg, runs) * N
+    return {"non_embedding": total / N, "head": float(cfg.vocab_size * D)}
+
+
+def full_block_macs_per_token(cfg: ModelConfig, T: int) -> float:
+    """Non-embedding MACs per token of the same-size dense model over a T-token window (the reference)."""
+    D = cfg.d_model
+    return cfg.n_layers * (4 * D * D + D * (T + 1) + 2 * cfg.ffn_mult * D * D)
