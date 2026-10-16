@@ -287,18 +287,25 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
 
 - **Composition.** When two traits are learned by separate branches, the bridge
   composes them. Held-out XOR is 1.000 on three GPU seeds, and switching the bridge off
-  gives chance (0.500, 0.477, 0.508). The single-branch cap at chance comes from
-  isolation enforced by construction, not from the architecture alone.
+  gives chance (0.500, 0.477, 0.508). A single branch is expected to stay at chance
+  because the training isolates the traits; that is observed, not proved, and it
+  does not come from the architecture alone. The unconstrained bridge is
+  algebraically an ordinary two-input MLP, so this shows fusion works, not that sheaf
+  structure helps.
 - **No labels.** Without routing labels, the router still routes consistently by
   question type, but only into as many groups as the task needs (2–3 branches). It
   stops using the bridge where it isn't needed.
 - **Categorical version (opt-in).** Functorial branches and a flat sheaf bridge
   guarantee that translations between branches compose exactly. Whether that helps is
   untested.
-- **Functorial composition (5 seeds).** Trained on single relations only, exact
-  functorial relation maps answer unseen two-step chains ("size of the capital of
+- **Functorial composition (5 seeds).** Trained on single relations only, the
+  "functorial" model answers unseen two-step chains ("size of the capital of
   France") perfectly (1.000 on every seed). The same step-by-step interface with
   unconstrained maps scores 0.72–0.94, and a transformer is at chance.
+  [Controls](research/ti_tnn/reports/functorial_composition_controls.md) show the category
+  laws are not what does it. Plain shared embeddings (0.9996) and any
+  geometry-preserving maps (1.000) compose as well, so the model reduces to typed
+  embeddings in one shared space.
 - **Real benchmarks (3 seeds).** On WikiText-103, the bridge does not earn its
   compute. Top-2 mixture of experts reaches perplexity 37.92, top-1 39.57, and TI-TNN
   39.59 (bridge charged; its gate shuts off) or 39.24 (bridge free, at 44% more
