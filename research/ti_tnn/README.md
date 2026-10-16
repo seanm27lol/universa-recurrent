@@ -64,11 +64,13 @@ separate in a trained network is something one checks afterwards, by inspection.
 TI-TNN asks whether that separation can be built in instead.
 
 1. **Isolation by construction.** The router sends each query to one typed branch.
-   With private branch embeddings, gradient masking, no coupling through the bridge
-   in training, and a router that ignores the entity token, a single branch cannot
-   hold both traits of a held-out country (see [The mathematics](#the-mathematics)),
-   so it is capped at chance on XOR(A, B). Only the sheaf bridge reads two branches
-   together.
+   Private branch embeddings, gradient masking, no coupling through the bridge in
+   training, and a router that ignores the entity token close the direct paths by
+   which one branch could hold both traits of a held-out country (see
+   [The mathematics](#the-mathematics)). So a single branch is expected to stay at
+   chance on XOR(A, B). Only the sheaf bridge reads two branches together. The
+   expectation is not a proof: a weak indirect channel through shared parameters
+   remains (assumption list below). The evidence is the controls.
 2. **Evidence (3-seed GPU run, after the fixes in #27).**
    - With the bridge, held-out XOR is 1.000 on every seed.
    - With the bridge switched off at evaluation, it falls to 0.500, 0.477 and 0.508
@@ -88,7 +90,9 @@ Each country c has traits A(c), B(c) in {0, 1}, independent and balanced, and
 S(c) = A(c) XOR B(c). For a fixed A, S equals B or 1 − B, so S is independent of A:
 the mutual information I(S; A) = 0, and likewise I(S; B) = 0. A predictor that sees
 only A, or only B, is therefore right with probability exactly 1/2 on balanced
-held-out countries, whatever it learned elsewhere.
+held-out countries, whatever it learned elsewhere. Whether a trained branch really
+sees only one trait is a property of the whole training system, not just its inputs
+(see the assumptions below).
 
 The bridge computes, for stalks s_u (Branch 0) and s_v (Branch 1),
 
@@ -100,6 +104,12 @@ F_u and F_v are learned restriction maps onto an edge space. F_u s_u − F_v s_v
 the coboundary of a one-edge cellular sheaf with fixed orientation u → v (Hansen and
 Ghrist; Bodnar et al.). XOR is not linearly separable (Minsky and Papert), so the
 tanh layer is what lets the bridge compute it.
+
+Algebraically, F_u s_u − F_v s_v = [F_u, −F_v] [s_u; s_v], and the sign is absorbed
+by the learned F_v. So this unconstrained bridge is an ordinary one-hidden-layer MLP
+on the two stalks side by side. The XOR result shows that fusing two branches'
+states works, not that sheaf structure helps. The constrained bridge in
+[`cdl.py`](cdl.py) is a different case.
 
 Routing is trained with the straight-through Gumbel-Softmax (Jang, Gu and Poole;
 Maddison, Mnih and Teh). Its probabilities are trained with the Brier score, a
@@ -125,6 +135,13 @@ mixtures of experts (Shazeer et al.).
    balanced in A, B and XOR.
 6. *Two-way scoring.* Combined accuracy compares only the two status tokens, so
    chance is 50%.
+
+*Not closed:* parameters every query shares (the normalization before the output
+layer, the output layer itself and the optimizer's statistics) carry a weak indirect
+channel. A Trait-B query updates them, which changes the gradient a later Trait-A
+query sends into Branch 0. The tests check gradients within one step, not across
+steps. So the cap is an expectation, confirmed by the controls (`routed_nobridge`
+0.492), not something the architecture guarantees.
 
 The `dense` variant mixes every branch's output on every query, so its branches are
 not isolated. It is a compute baseline, not a test of the cap.
@@ -250,7 +267,7 @@ fed another country's Trait-B stalk.
   `7fa5e8a2fdff49b29c8e866f14f178a28466582dc7ff460959345baf2a38fda3`).
   - **Setup.** The routing benchmark trained with no routing or gate labels:
     answer cross-entropy plus compute, with each bridge firing charged one
-    branch.
+    branch. "Unsupervised" means only that: the answers are still supervised.
   - **All four predictions held, on every seed.**
     - Both unsupervised variants reach 1.000, also on length-10 queries.
     - Routing is perfectly consistent by query type (purity 1.000).
@@ -276,7 +293,8 @@ fed another country's Trait-B stalk.
   - **WikiText-103.** Top-2 is best: perplexity 37.92 against 39.57 for top-1 and
     39.85 for dense. TI-TNN with a firing charge shuts its gate and matches top-1
     (39.59). Without the charge it fires on 44% of tokens for 39.24, worse than
-    interpolating top-1 and top-2 at the same compute (about 38.84).
+    interpolating top-1 and top-2 at the same compute (about 38.84; a linear estimate
+    between two measured models, not a measured model).
   - **SCAN.** No variant solves add-jump (about 0) or length (under 0.04). On
     add-turn-left, every mixture variant, TI-TNN included, is worse than dense.
   - **Predictions.** Six of nine held. Top-1 beat dense on only two of three seeds;
@@ -290,12 +308,28 @@ fed another country's Trait-B stalk.
     Paris"). The step models share typed embeddings and step-by-step application
     and differ only in their relation maps.
   - **Unseen two-hop chains** ("size of the capital of France"):
-    - exact functorial maps (flat-sheaf transports): **1.000 on every seed**;
+    - the "functorial" maps (flat-sheaf transports): **1.000 on every seed**;
     - unconstrained linear: 0.940;
     - linear plus a soft inverse penalty: 0.879;
     - a small network: 0.717;
     - a transformer: 0.166 (chance).
-  - **Exact beats soft.** The soft penalty made composition worse, as in HOMYMOLY.
+  - **What the functorial model is.** Its scores are E_s Q_sᵀ Q_t E_tᵀ = Z_s Z_tᵀ with
+    Z_k = E_k Q_kᵀ. So it has exactly the capacity of typed embeddings in one shared
+    space, scored by dot product. Here the relations form a tree, so flatness adds
+    nothing beyond tying the inverse pair.
+  - **Learned, not guaranteed.** The laws do not force correct chains. A
+    construction that satisfies every law and fits every one-hop fact can still get
+    every two-hop chain wrong (`tests/test_ti_tnn_composition.py`). Training found
+    solutions that generalize.
+  - **Not a clean exact-against-soft comparison.** The soft penalty targeted only the
+    inverse pair; the exact model also imposes orthogonality.
+  - **Controls, 5 seeds** ([report](reports/functorial_composition_controls.md)). The
+    mechanism is geometry, not the category laws:
+    - identity maps in one shared space: 0.9996;
+    - untied orthogonal maps (not inverses): 1.000;
+    - a soft penalty toward orthogonality: 1.000.
+    Only maps free to stretch and shear fall short (linear 0.940, inverse-only soft
+    0.879). Four of five predictions held; "tying the inverse pair matters" failed.
   - **Predictions.** Five of six held. The margin over unconstrained linear was
     0.06, short of the predicted 0.10.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
@@ -309,9 +343,13 @@ helps when the traits are not cleanly isolated by construction.
 
 - Synthetic toy tasks. They test whether the mechanism *can* work under stated
   assumptions, not whether it helps a real model.
-- The chance-level cap is a consequence of the isolation assumptions, not of the
-  architecture alone. Remove them and a single branch can compose
-  (`nobridge_shared_emb`).
+- The chance-level cap is expected under the isolation assumptions and observed; it
+  is not proved (a weak cross-step channel through shared parameters remains), and
+  it does not come from the architecture alone. Remove the assumptions and a single
+  branch can compose (`nobridge_shared_emb`).
+- Despite the name, `TypeInformedTreeNN` does no recursive tree traversal. It is one
+  router over four token-wise residual branches, optionally combining two through
+  the bridge.
 - Compute is multiply-accumulates counted from layer shapes, not measured speed.
 - The depth/score head is not trained by any loss.
 
