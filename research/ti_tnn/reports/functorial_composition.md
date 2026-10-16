@@ -3,6 +3,22 @@
 **Protocol:** [`protocols/functorial_composition.md`](../protocols/functorial_composition.md),
 frozen at `4b56a03` before any run.
 
+> **Correction (2026-10-16, after an outside review and a
+> [controls run](functorial_composition_controls.md)).** The numbers below stand. Three
+> interpretations do not:
+> - **"The gap comes from the maps obeying composition laws exactly."** Wrong mechanism. The
+>   functorial model is, in capacity, typed embeddings in one shared space. Plain identity maps score
+>   0.9996, and orthogonal maps that are *not* inverses score 1.000. What matters is that the maps
+>   preserve geometry, not the laws.
+> - **"Exact beats soft."** That comparison used different equations. A soft penalty toward
+>   orthogonality scores 1.000. The soft model here lost because its penalty targeted only the
+>   inverse pair, which left its maps far from orthogonal.
+> - **The laws do not guarantee the 1.000.** A model satisfying every law can fit every one-hop fact
+>   and still miss every chain (`test_exact_laws_do_not_guarantee_correct_chains`). The 1.000 is
+>   learned.
+>
+> The text below is the original report.
+
 ## The question
 
 Every model was trained only on single relations ("capital of France", "size of

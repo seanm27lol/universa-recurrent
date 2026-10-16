@@ -128,5 +128,31 @@ are generalization, not fitting.
 - **Compute.** Counted MACs and measured training throughput of unoptimized expert
   loops. Inference speed was not measured.
 
+## Errata and caveats (added 2026-10-16, after an outside review)
+
+None of these changes a perplexity or an exact-match score above.
+
+- **Firing rates and expert runs are batch-averaged.** `evaluate` averages each
+  batch's rate with equal weight. The 482 validation windows form 15 batches of 32 and
+  one of 2, so the last two windows count about 15 times too much. The error is at most
+  (1/16 − 2/482) ≈ 0.058 times the spread of the per-batch rates. For the charged
+  TI-TNN (0.1–0.2%) that is negligible. For the free TI-TNN (44%) it is a fraction of
+  a point. The per-batch rates were not saved, so the exact token-weighted values
+  cannot be recomputed. Mixture expert runs (exactly 1 or 2) are unaffected.
+- **Experts and the dense MLP start from different initializations.** Experts are
+  initialized at std D^-1/2 (up) and H^-1/2 (down), and miss the GPT-2 residual
+  scaling the dense MLP gets. The dense down-projection starts at std 0.005, against
+  0.0221 for experts. So dense against the mixtures also compares two
+  initializations. Which way this cuts is not established.
+- **SCAN's routing losses include padding.** Cross-entropy ignores padded positions,
+  but the balance loss and the gate charge average over them. Right padding cannot
+  change any real token's output, but batch composition changes the routing
+  objective slightly. It affects the mixture and TI-TNN variants, not dense.
+- **The interpolation is an estimate.** "About 38.84 at the same compute" interpolates
+  linearly between the measured top-1 and top-2 models; no model was measured there.
+- **The bridge is an MLP.** W_e tanh(F_u o_u − F_v o_v) is algebraically a
+  one-hidden-layer MLP on the two expert outputs side by side. Its failure here is a
+  result about that fusion layer, not about sheaf structure in general.
+
 Code: [`bench/`](../bench/): `ti_tnn_models.py`, `lm.py`, `scan.py`, `prep_wikitext.py`,
 `summarize.py`, `run_all.sh`.
