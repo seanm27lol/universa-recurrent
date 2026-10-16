@@ -67,6 +67,18 @@ K = len(BRANCH_NAMES)
 
 
 # =========================================================================== model
+def _cdl():
+    """research/ti_tnn/cdl.py, loaded by path (this script also runs without being a package)."""
+    import importlib.util
+    import sys
+    if "ti_tnn_cdl" not in sys.modules:
+        spec = importlib.util.spec_from_file_location("ti_tnn_cdl", Path(__file__).with_name("cdl.py"))
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["ti_tnn_cdl"] = module
+        spec.loader.exec_module(module)
+    return sys.modules["ti_tnn_cdl"]
+
+
 class JevCalibratedRouter(nn.Module):
     """Layer-1 router: Choice over K branches, Noul bridge gate, depth Score (untrained here)."""
 
@@ -95,6 +107,7 @@ class JevCalibratedRouter(nn.Module):
             "routing_weights": routing_weights,
             "noul_prob": torch.sigmoid(self.noul_bridge_head(pooled)),
             "depth_score": torch.sigmoid(self.score_depth_head(pooled)),
+            "pooled": pooled,
         }
 
 
@@ -151,10 +164,17 @@ class TypeInformedTreeNN(nn.Module):
 
     def __init__(self, vocab_size: int, d_model=128, d_stalk=64, d_edge=32,
                  branch_costs=(1.0, 1.0, 1.5, 4.0), bridge_threshold=0.5, dense=False, use_bridge=True,
-                 branch_embeddings="shared", router_context="all"):
+                 branch_embeddings="shared", router_context="all", branch_kind="mlp", bridge_kind="coboundary",
+                 category=None, functorial_weight=0.1, functorial_floor=0.05):
         super().__init__()
         if branch_embeddings not in ("shared", "private") or router_context not in ("all", "context_only"):
             raise ValueError("unknown branch_embeddings or router_context")
+        if branch_kind not in ("mlp", "cdl") or bridge_kind not in ("coboundary", "functorial"):
+            raise ValueError("unknown branch_kind or bridge_kind")
+        if branch_kind == "cdl" and category is None:
+            raise ValueError("CDL branches need a QueryCategory")
+        self.branch_kind, self.bridge_kind = branch_kind, bridge_kind
+        self.functorial_weight, self.functorial_floor = functorial_weight, functorial_floor
         self.num_branches = len(self.BRANCH_NAMES)
         self.dense, self.use_bridge = dense, use_bridge
         self.branch_embeddings, self.router_context = branch_embeddings, router_context
@@ -164,11 +184,18 @@ class TypeInformedTreeNN(nn.Module):
         if branch_embeddings == "private":
             self.branch_vectorizer = nn.Embedding(vocab_size, d_model * self.num_branches)
         self.router = JevCalibratedRouter(d_model, self.num_branches)
-        self.branches = nn.ModuleList([TypedSpecialistBranch(d_model, d_stalk, c) for c in branch_costs])
+        if branch_kind == "cdl":
+            self.branches = nn.ModuleList([_cdl().CDLSpecialistBranch(d_model, d_stalk, c, category) for c in branch_costs])
+        else:
+            self.branches = nn.ModuleList([TypedSpecialistBranch(d_model, d_stalk, c) for c in branch_costs])
         self.register_buffer("branch_flop_costs", torch.tensor(branch_costs))
-        self.sheaf_bridge = SheafRestrictionBridge(d_stalk, d_edge, d_model)
+        self.sheaf_bridge = (_cdl().FunctorialSheafBridge(len(branch_costs), d_stalk, d_model)
+                             if bridge_kind == "functorial" else SheafRestrictionBridge(d_stalk, d_edge, d_model))
         self.reconstruct_norm = nn.LayerNorm(d_model)
         self.detokenizer = nn.Linear(d_model, vocab_size)
+        if branch_kind == "cdl":  # created last, so the default model's initialization order is unchanged
+            self.category = category
+            self.morphism_head = nn.Linear(d_model, len(category.names))
 
     def forward(self, input_ids: torch.Tensor, tau: float = 0.5, force_route: Optional[torch.Tensor] = None,
                 bridge: str = "auto", reference: bool = False, grad_allow: Optional[torch.Tensor] = None,
@@ -228,13 +255,20 @@ class TypeInformedTreeNN(nn.Module):
         # Training needs every branch output for the straight-through routing gradient.
         execute = torch.ones_like(need) if (self.training or self.dense or reference) else need
 
+        morph = None
+        if self.branch_kind == "cdl":  # which generator each query applies: hard in both modes
+            m_logits = self.morphism_head(route["pooled"])
+            morph = (F.gumbel_softmax(m_logits, tau=tau, hard=True, dim=-1) if self.training
+                     else F.one_hot(m_logits.argmax(-1), m_logits.shape[-1]).to(m_logits.dtype))
+
         reconstructed = torch.zeros_like(h0)
         stalks = h0.new_zeros(B, K, L, self.d_stalk)
         for k, branch in enumerate(self.branches):
             rows = execute[:, k].nonzero(as_tuple=True)[0]
             if rows.numel() == 0:
                 continue
-            out_k, stalk_k = branch(branch_in[k][rows])
+            out_k, stalk_k = (branch(branch_in[k][rows], steps=[morph[rows]]) if morph is not None
+                              else branch(branch_in[k][rows]))
             if grad_allow is not None:
                 keep = grad_allow[rows, k].view(-1, 1, 1)
                 out_k = torch.where(keep, out_k, out_k.detach())
@@ -249,7 +283,10 @@ class TypeInformedTreeNN(nn.Module):
                 u_idx = torch.minimum(top1, top2)[bridge_rows]  # fixed edge orientation: lower index first
                 v_idx = torch.maximum(top1, top2)[bridge_rows]
                 v_rows = bridge_rows if partner_perm is None else partner_perm[bridge_rows]
-                correction = self.sheaf_bridge(stalks[bridge_rows, u_idx], stalks[v_rows, v_idx])
+                if self.bridge_kind == "functorial":
+                    correction = self.sheaf_bridge(stalks[bridge_rows, u_idx], stalks[v_rows, v_idx], u_idx, v_idx)
+                else:
+                    correction = self.sheaf_bridge(stalks[bridge_rows, u_idx], stalks[v_rows, v_idx])
                 reconstructed = reconstructed.index_add(0, bridge_rows, gate[bridge_rows].view(-1, 1, 1) * correction)
 
         return {
@@ -273,8 +310,17 @@ class TypeInformedTreeNN(nn.Module):
         brier_noul = F.mse_loss(route["noul_prob"].squeeze(-1), target_bridge.float())
         expected_cost = (route["choice_probs"] * self.branch_flop_costs).sum(-1).mean()
         total = loss_task + alpha_brier * (brier_choice + brier_noul) + lambda_flops * expected_cost
-        return {"total_loss": total, "task_loss": loss_task,
-                "brier_calibration_loss": brier_choice + brier_noul, "expected_cost": expected_cost}
+        out = {"total_loss": total, "task_loss": loss_task,
+               "brier_calibration_loss": brier_choice + brier_noul, "expected_cost": expected_cost}
+        return self._add_functorial(out, route)
+
+    def _add_functorial(self, losses: Dict[str, torch.Tensor], route) -> Dict[str, torch.Tensor]:
+        """With CDL branches and the functorial bridge, add the router-weighted naturality defect."""
+        if self.branch_kind == "cdl" and self.bridge_kind == "functorial" and self.functorial_weight:
+            nat = _cdl().naturality_loss(self.branches, self.sheaf_bridge, route["choice_probs"], self.functorial_floor)
+            losses["functorial_loss"] = nat
+            losses["total_loss"] = losses["total_loss"] + self.functorial_weight * nat
+        return losses
 
     def compute_unsupervised_loss(self, out, answer, lambda_flops=0.05, bridge_cost=1.0) -> Dict[str, torch.Tensor]:
         """No routing or gate labels: task cross-entropy plus the expected compute, which now also
@@ -284,7 +330,8 @@ class TypeInformedTreeNN(nn.Module):
         expected_cost = ((route["choice_probs"] * self.branch_flop_costs).sum(-1)
                          + (bridge_cost * route["noul_prob"].squeeze(-1) if self.use_bridge else 0.0)).mean()
         total = loss_task + lambda_flops * expected_cost
-        return {"total_loss": total, "task_loss": loss_task, "expected_cost": expected_cost}
+        return self._add_functorial({"total_loss": total, "task_loss": loss_task, "expected_cost": expected_cost},
+                                    route)
 
     def macs_per_query(self, length: int, branch_execs: float, bridge_execs: float) -> float:
         """Branch + bridge multiply-accumulates per query (shared embedding/router/detokenizer excluded)."""
