@@ -6,6 +6,20 @@ part B result or latency existed; the protocol's execution record lists them. **
 [`experiments/results/ti_tnn/adaptive_compute/`](../../../experiments/results/ti_tnn/) (every run, the
 latency diagnostics and the evaluator's output with its run manifest).
 
+> **Part A validity (2026-10-17, found during follow-up diagnostics).** The 8-layer dense reference's
+> perfect score on part A is not robust; it was partly selected. Before freezing, the task design was
+> changed until the dense model learned it on seeds 0, 1 and 2, and the frozen runs then used those same
+> seeds. On four fresh seeds (100–103), the same model with the same code and task:
+> - learned 1-hop lookups (0.96–1.00);
+> - learned 2-hop chaining on only 2 of 4 seeds;
+> - learned 3-hop chaining on none (0.05–0.26).
+>
+> So part A's validity condition was met on seeds chosen in design. Multi-step chaining is a fragile
+> learning event even for the reference. Part A's verdict stands as recorded, since every variant was
+> scored on the same seeds 0–2. But "the adaptive models failed where dense succeeded" mostly reflects
+> that fragility, not a measured gap in what the architectures can learn. Part B (WikiText-103) is not
+> affected. The diagnostic runs are exploratory and kept with the follow-up work.
+>
 > **Corrections (2026-10-17, after a third outside review).** The verdict and every number stand.
 > Corrected in place below:
 > - **The 30%-cap model is not dominated.** On the decoder axis, no measured model is both cheaper
@@ -143,7 +157,9 @@ the dense model's total arithmetic.
 | `ti_tnn_adaptive_c50` / `c30` / `c15` | 0.238 / 0.141 / 0.143 | 0.42 / 0.14 / 0.15 | about 0.14 | about 0.14 | 0.75 / 0.46 / 0.25M |
 
 - **Easy tokens** (the count) were learned perfectly by every variant.
-- **The validity condition holds:** the reference scored 1.000.
+- **The validity condition holds:** the reference scored 1.000. As the note at the top explains, those
+  seeds had been used to choose the task design, and on fresh seeds the reference learns 3-hop chaining
+  on none of 4.
 - **The hop queries were not learned.** Apart from one seed each of `mod_c50`, `mod_c30` and
   `ti_tnn_adaptive_c50`, which learned 1-hop queries only, every adaptive model stayed at chance on
   them.
