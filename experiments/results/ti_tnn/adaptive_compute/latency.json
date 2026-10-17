@@ -1,0 +1,885 @@
+{
+  "config": {
+    "roots": "[PosixPath('runs/titnn_bench/lm'), PosixPath('runs/titnn_efficiency/lm')]",
+    "data": "runs/titnn_data/wikitext103",
+    "windows": "2",
+    "rounds": "3",
+    "warmup_tokens": "8",
+    "device": "cuda",
+    "out": "runs/titnn_efficiency/latency.json",
+    "context": 512
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10",
+    "measured_at": "2026-10-17T16:05:31Z"
+  },
+  "runs": [
+    {
+      "name": "dense",
+      "seed": null,
+      "dir": "runs/titnn_bench/lm/dense-seed0-20261015T163352",
+      "weights": "random_init",
+      "ms_per_token_mean": 2.2258880211252268,
+      "ms_per_token_median": 2.2052687127143145,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.390625,
+          "top1_token_agreement": 0.98046875
+        },
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.453125,
+          "top1_token_agreement": 0.984375
+        }
+      ],
+      "max_abs_logit_difference": 0.015625,
+      "top1_token_agreement": 0.982421875,
+      "checked_windows": 2
+    },
+    {
+      "name": "moe_top1",
+      "seed": null,
+      "dir": "runs/titnn_bench/lm/moe_top1-seed0-20261015T173429",
+      "weights": "random_init",
+      "ms_per_token_mean": 2.438981353185785,
+      "ms_per_token_median": 2.421061508357525,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 2.828125,
+          "max_abs_logit_difference_where_routing_agrees": 2.828125,
+          "max_abs_full_logit": 2.5625,
+          "top1_token_agreement": 0.9609375
+        },
+        {
+          "max_abs_logit_difference": 2.4921875,
+          "max_abs_logit_difference_where_routing_agrees": 2.4921875,
+          "max_abs_full_logit": 2.46875,
+          "top1_token_agreement": 0.947265625
+        }
+      ],
+      "max_abs_logit_difference": 2.828125,
+      "top1_token_agreement": 0.9541015625,
+      "checked_windows": 2
+    },
+    {
+      "name": "moe_top2",
+      "seed": null,
+      "dir": "runs/titnn_bench/lm/moe_top2-seed0-20261015T184142",
+      "weights": "random_init",
+      "ms_per_token_mean": 3.1442008339726026,
+      "ms_per_token_median": 3.1188009306788445,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 2.53125,
+          "max_abs_logit_difference_where_routing_agrees": 2.53125,
+          "max_abs_full_logit": 2.46875,
+          "top1_token_agreement": 0.943359375
+        },
+        {
+          "max_abs_logit_difference": 2.08984375,
+          "max_abs_logit_difference_where_routing_agrees": 2.08984375,
+          "max_abs_full_logit": 2.578125,
+          "top1_token_agreement": 0.927734375
+        }
+      ],
+      "max_abs_logit_difference": 2.53125,
+      "top1_token_agreement": 0.935546875,
+      "checked_windows": 2
+    },
+    {
+      "name": "dense_d256_l8",
+      "seed": null,
+      "dir": "runs/titnn_efficiency/lm/dense_d256_l8-seed0-20261016T212546",
+      "weights": "random_init",
+      "ms_per_token_mean": 1.4227526311678862,
+      "ms_per_token_median": 1.4053676277399063,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 0.01171875,
+          "max_abs_logit_difference_where_routing_agrees": 0.01171875,
+          "max_abs_full_logit": 2.234375,
+          "top1_token_agreement": 0.984375
+        },
+        {
+          "max_abs_logit_difference": 0.01171875,
+          "max_abs_logit_difference_where_routing_agrees": 0.01171875,
+          "max_abs_full_logit": 2.1875,
+          "top1_token_agreement": 0.990234375
+        }
+      ],
+      "max_abs_logit_difference": 0.01171875,
+      "top1_token_agreement": 0.9873046875,
+      "checked_windows": 2
+    },
+    {
+      "name": "dense_d384_l8",
+      "seed": null,
+      "dir": "runs/titnn_efficiency/lm/dense_d384_l8-seed0-20261016T203419",
+      "weights": "random_init",
+      "ms_per_token_mean": 1.744939778714623,
+      "ms_per_token_median": 1.7259290907531977,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.203125,
+          "top1_token_agreement": 0.9765625
+        },
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.21875,
+          "top1_token_agreement": 0.98046875
+        }
+      ],
+      "max_abs_logit_difference": 0.015625,
+      "top1_token_agreement": 0.978515625,
+      "checked_windows": 2
+    },
+    {
+      "name": "dense_d512_l4",
+      "seed": null,
+      "dir": "runs/titnn_efficiency/lm/dense_d512_l4-seed0-20261016T194505",
+      "weights": "random_init",
+      "ms_per_token_mean": 1.5963088622792234,
+      "ms_per_token_median": 1.585816964507103,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.453125,
+          "top1_token_agreement": 0.978515625
+        },
+        {
+          "max_abs_logit_difference": 0.015625,
+          "max_abs_logit_difference_where_routing_agrees": 0.015625,
+          "max_abs_full_logit": 2.5625,
+          "top1_token_agreement": 0.990234375
+        }
+      ],
+      "max_abs_logit_difference": 0.015625,
+      "top1_token_agreement": 0.984375,
+      "checked_windows": 2
+    },
+    {
+      "name": "mod_c30",
+      "seed": 0,
+      "dir": "runs/titnn_efficiency/lm/mod_c30-seed0-20261016T224907",
+      "weights": "trained",
+      "ms_per_token_mean": 1.647908112284279,
+      "ms_per_token_median": 1.5769610181450844,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.99951171875,
+          "positions_with_all_decisions_agreeing": 0.998046875,
+          "decoded_option_share": [
+            0.687255859375,
+            0.312744140625
+          ],
+          "full_pass_option_share": [
+            0.687255859375,
+            0.312744140625
+          ],
+          "max_abs_logit_difference": 4.4921875,
+          "max_abs_logit_difference_where_routing_agrees": 1.046875,
+          "max_abs_full_logit": 24.125,
+          "top1_token_agreement": 1.0
+        },
+        {
+          "decision_agreement": 0.999267578125,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.712646484375,
+            0.287353515625
+          ],
+          "full_pass_option_share": [
+            0.71240234375,
+            0.28759765625
+          ],
+          "max_abs_logit_difference": 5.12109375,
+          "max_abs_logit_difference_where_routing_agrees": 0.5,
+          "max_abs_full_logit": 27.875,
+          "top1_token_agreement": 0.998046875
+        }
+      ],
+      "max_abs_logit_difference": 5.12109375,
+      "top1_token_agreement": 0.9990234375,
+      "checked_windows": 2,
+      "decision_agreement": 0.9993896484375,
+      "decision_agreement_min_window": 0.999267578125,
+      "decoded_option_share": [
+        0.699951171875,
+        0.300048828125
+      ],
+      "full_pass_option_share": [
+        0.6998291015625,
+        0.3001708984375
+      ]
+    },
+    {
+      "name": "mod_c30",
+      "seed": 1,
+      "dir": "runs/titnn_efficiency/lm/mod_c30-seed1-20261017T041101",
+      "weights": "trained",
+      "ms_per_token_mean": 1.622705559139066,
+      "ms_per_token_median": 1.5684568788856268,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.998046875,
+          "positions_with_all_decisions_agreeing": 0.984375,
+          "decoded_option_share": [
+            0.705078125,
+            0.294921875
+          ],
+          "full_pass_option_share": [
+            0.70556640625,
+            0.29443359375
+          ],
+          "max_abs_logit_difference": 3.53125,
+          "max_abs_logit_difference_where_routing_agrees": 1.28125,
+          "max_abs_full_logit": 21.375,
+          "top1_token_agreement": 0.986328125
+        },
+        {
+          "decision_agreement": 0.99951171875,
+          "positions_with_all_decisions_agreeing": 0.99609375,
+          "decoded_option_share": [
+            0.713623046875,
+            0.286376953125
+          ],
+          "full_pass_option_share": [
+            0.713134765625,
+            0.286865234375
+          ],
+          "max_abs_logit_difference": 4.80078125,
+          "max_abs_logit_difference_where_routing_agrees": 0.125,
+          "max_abs_full_logit": 23.625,
+          "top1_token_agreement": 0.994140625
+        }
+      ],
+      "max_abs_logit_difference": 4.80078125,
+      "top1_token_agreement": 0.990234375,
+      "checked_windows": 2,
+      "decision_agreement": 0.998779296875,
+      "decision_agreement_min_window": 0.998046875,
+      "decoded_option_share": [
+        0.7093505859375,
+        0.2906494140625
+      ],
+      "full_pass_option_share": [
+        0.7093505859375,
+        0.2906494140625
+      ]
+    },
+    {
+      "name": "mod_c30",
+      "seed": 2,
+      "dir": "runs/titnn_efficiency/lm/mod_c30-seed2-20261017T093321",
+      "weights": "trained",
+      "ms_per_token_mean": 1.6302215736162253,
+      "ms_per_token_median": 1.566680846735835,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.9990234375,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.6962890625,
+            0.3037109375
+          ],
+          "full_pass_option_share": [
+            0.69677734375,
+            0.30322265625
+          ],
+          "max_abs_logit_difference": 3.65625,
+          "max_abs_logit_difference_where_routing_agrees": 0.671875,
+          "max_abs_full_logit": 23.75,
+          "top1_token_agreement": 0.998046875
+        },
+        {
+          "decision_agreement": 0.99951171875,
+          "positions_with_all_decisions_agreeing": 0.99609375,
+          "decoded_option_share": [
+            0.69921875,
+            0.30078125
+          ],
+          "full_pass_option_share": [
+            0.69873046875,
+            0.30126953125
+          ],
+          "max_abs_logit_difference": 3.4609375,
+          "max_abs_logit_difference_where_routing_agrees": 3.4609375,
+          "max_abs_full_logit": 23.5,
+          "top1_token_agreement": 0.994140625
+        }
+      ],
+      "max_abs_logit_difference": 3.65625,
+      "top1_token_agreement": 0.99609375,
+      "checked_windows": 2,
+      "decision_agreement": 0.999267578125,
+      "decision_agreement_min_window": 0.9990234375,
+      "decoded_option_share": [
+        0.69775390625,
+        0.30224609375
+      ],
+      "full_pass_option_share": [
+        0.69775390625,
+        0.30224609375
+      ]
+    },
+    {
+      "name": "mod_c50",
+      "seed": 0,
+      "dir": "runs/titnn_efficiency/lm/mod_c50-seed0-20261016T220741",
+      "weights": "trained",
+      "ms_per_token_mean": 1.9108772471241613,
+      "ms_per_token_median": 1.8899389542639256,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.997802734375,
+          "positions_with_all_decisions_agreeing": 0.98828125,
+          "decoded_option_share": [
+            0.48291015625,
+            0.51708984375
+          ],
+          "full_pass_option_share": [
+            0.482177734375,
+            0.517822265625
+          ],
+          "max_abs_logit_difference": 3.17333984375,
+          "max_abs_logit_difference_where_routing_agrees": 0.71875,
+          "max_abs_full_logit": 21.5,
+          "top1_token_agreement": 0.98828125
+        },
+        {
+          "decision_agreement": 0.9951171875,
+          "positions_with_all_decisions_agreeing": 0.970703125,
+          "decoded_option_share": [
+            0.4951171875,
+            0.5048828125
+          ],
+          "full_pass_option_share": [
+            0.494140625,
+            0.505859375
+          ],
+          "max_abs_logit_difference": 5.34375,
+          "max_abs_logit_difference_where_routing_agrees": 1.09375,
+          "max_abs_full_logit": 22.5,
+          "top1_token_agreement": 0.9765625
+        }
+      ],
+      "max_abs_logit_difference": 5.34375,
+      "top1_token_agreement": 0.982421875,
+      "checked_windows": 2,
+      "decision_agreement": 0.9964599609375,
+      "decision_agreement_min_window": 0.9951171875,
+      "decoded_option_share": [
+        0.489013671875,
+        0.510986328125
+      ],
+      "full_pass_option_share": [
+        0.4881591796875,
+        0.5118408203125
+      ]
+    },
+    {
+      "name": "mod_c50",
+      "seed": 1,
+      "dir": "runs/titnn_efficiency/lm/mod_c50-seed1-20261017T032931",
+      "weights": "trained",
+      "ms_per_token_mean": 1.9278975373636635,
+      "ms_per_token_median": 1.893266336992383,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.99658203125,
+          "positions_with_all_decisions_agreeing": 0.978515625,
+          "decoded_option_share": [
+            0.468505859375,
+            0.531494140625
+          ],
+          "full_pass_option_share": [
+            0.469482421875,
+            0.530517578125
+          ],
+          "max_abs_logit_difference": 2.765625,
+          "max_abs_logit_difference_where_routing_agrees": 1.65625,
+          "max_abs_full_logit": 23.875,
+          "top1_token_agreement": 0.994140625
+        },
+        {
+          "decision_agreement": 0.996826171875,
+          "positions_with_all_decisions_agreeing": 0.9765625,
+          "decoded_option_share": [
+            0.48779296875,
+            0.51220703125
+          ],
+          "full_pass_option_share": [
+            0.487548828125,
+            0.512451171875
+          ],
+          "max_abs_logit_difference": 2.40625,
+          "max_abs_logit_difference_where_routing_agrees": 1.109375,
+          "max_abs_full_logit": 23.875,
+          "top1_token_agreement": 0.984375
+        }
+      ],
+      "max_abs_logit_difference": 2.765625,
+      "top1_token_agreement": 0.9892578125,
+      "checked_windows": 2,
+      "decision_agreement": 0.9967041015625,
+      "decision_agreement_min_window": 0.99658203125,
+      "decoded_option_share": [
+        0.4781494140625,
+        0.5218505859375
+      ],
+      "full_pass_option_share": [
+        0.478515625,
+        0.521484375
+      ]
+    },
+    {
+      "name": "mod_c50",
+      "seed": 2,
+      "dir": "runs/titnn_efficiency/lm/mod_c50-seed2-20261017T085155",
+      "weights": "trained",
+      "ms_per_token_mean": 1.874756450036777,
+      "ms_per_token_median": 1.8736191559582949,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.99365234375,
+          "positions_with_all_decisions_agreeing": 0.958984375,
+          "decoded_option_share": [
+            0.51025390625,
+            0.48974609375
+          ],
+          "full_pass_option_share": [
+            0.51220703125,
+            0.48779296875
+          ],
+          "max_abs_logit_difference": 3.953125,
+          "max_abs_logit_difference_where_routing_agrees": 1.625,
+          "max_abs_full_logit": 21.625,
+          "top1_token_agreement": 0.974609375
+        },
+        {
+          "decision_agreement": 0.9970703125,
+          "positions_with_all_decisions_agreeing": 0.978515625,
+          "decoded_option_share": [
+            0.520751953125,
+            0.479248046875
+          ],
+          "full_pass_option_share": [
+            0.521240234375,
+            0.478759765625
+          ],
+          "max_abs_logit_difference": 3.76953125,
+          "max_abs_logit_difference_where_routing_agrees": 1.390625,
+          "max_abs_full_logit": 21.75,
+          "top1_token_agreement": 0.98828125
+        }
+      ],
+      "max_abs_logit_difference": 3.953125,
+      "top1_token_agreement": 0.9814453125,
+      "checked_windows": 2,
+      "decision_agreement": 0.995361328125,
+      "decision_agreement_min_window": 0.99365234375,
+      "decoded_option_share": [
+        0.5155029296875,
+        0.4844970703125
+      ],
+      "full_pass_option_share": [
+        0.5167236328125,
+        0.4832763671875
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c30",
+      "seed": 0,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed0-20261017T011725",
+      "weights": "trained",
+      "ms_per_token_mean": 1.8676183424845694,
+      "ms_per_token_median": 1.8910018261522055,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.999267578125,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.5419921875,
+            0.31982421875,
+            0.13818359375
+          ],
+          "full_pass_option_share": [
+            0.541748046875,
+            0.320068359375,
+            0.13818359375
+          ],
+          "max_abs_logit_difference": 3.828125,
+          "max_abs_logit_difference_where_routing_agrees": 1.40625,
+          "max_abs_full_logit": 27.25,
+          "top1_token_agreement": 0.98046875
+        },
+        {
+          "decision_agreement": 0.9990234375,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.569580078125,
+            0.287841796875,
+            0.142578125
+          ],
+          "full_pass_option_share": [
+            0.569580078125,
+            0.287841796875,
+            0.142578125
+          ],
+          "max_abs_logit_difference": 2.6875,
+          "max_abs_logit_difference_where_routing_agrees": 1.7354736328125,
+          "max_abs_full_logit": 23.125,
+          "top1_token_agreement": 0.994140625
+        }
+      ],
+      "max_abs_logit_difference": 3.828125,
+      "top1_token_agreement": 0.9873046875,
+      "checked_windows": 2,
+      "decision_agreement": 0.9991455078125,
+      "decision_agreement_min_window": 0.9990234375,
+      "decoded_option_share": [
+        0.5557861328125,
+        0.3038330078125,
+        0.140380859375
+      ],
+      "full_pass_option_share": [
+        0.5556640625,
+        0.303955078125,
+        0.140380859375
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c30",
+      "seed": 1,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed1-20261017T063919",
+      "weights": "trained",
+      "ms_per_token_mean": 1.888921892574727,
+      "ms_per_token_median": 1.9286752212792635,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.999267578125,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.55615234375,
+            0.288818359375,
+            0.155029296875
+          ],
+          "full_pass_option_share": [
+            0.5556640625,
+            0.28955078125,
+            0.15478515625
+          ],
+          "max_abs_logit_difference": 1.921875,
+          "max_abs_logit_difference_where_routing_agrees": 1.33984375,
+          "max_abs_full_logit": 22.875,
+          "top1_token_agreement": 0.998046875
+        },
+        {
+          "decision_agreement": 0.999755859375,
+          "positions_with_all_decisions_agreeing": 0.998046875,
+          "decoded_option_share": [
+            0.568359375,
+            0.26708984375,
+            0.16455078125
+          ],
+          "full_pass_option_share": [
+            0.568359375,
+            0.266845703125,
+            0.164794921875
+          ],
+          "max_abs_logit_difference": 0.69140625,
+          "max_abs_logit_difference_where_routing_agrees": 0.4765625,
+          "max_abs_full_logit": 22.625,
+          "top1_token_agreement": 0.994140625
+        }
+      ],
+      "max_abs_logit_difference": 1.921875,
+      "top1_token_agreement": 0.99609375,
+      "checked_windows": 2,
+      "decision_agreement": 0.99951171875,
+      "decision_agreement_min_window": 0.999267578125,
+      "decoded_option_share": [
+        0.562255859375,
+        0.2779541015625,
+        0.1597900390625
+      ],
+      "full_pass_option_share": [
+        0.56201171875,
+        0.2781982421875,
+        0.1597900390625
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c30",
+      "seed": 2,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed2-20261017T120145",
+      "weights": "trained",
+      "ms_per_token_mean": 1.8911647721854035,
+      "ms_per_token_median": 1.933475024998188,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 1.0,
+          "positions_with_all_decisions_agreeing": 1.0,
+          "decoded_option_share": [
+            0.54931640625,
+            0.30908203125,
+            0.1416015625
+          ],
+          "full_pass_option_share": [
+            0.54931640625,
+            0.30908203125,
+            0.1416015625
+          ],
+          "max_abs_logit_difference": 1.453125,
+          "max_abs_logit_difference_where_routing_agrees": 1.453125,
+          "max_abs_full_logit": 22.375,
+          "top1_token_agreement": 0.99609375
+        },
+        {
+          "decision_agreement": 0.9990234375,
+          "positions_with_all_decisions_agreeing": 0.994140625,
+          "decoded_option_share": [
+            0.556396484375,
+            0.302001953125,
+            0.1416015625
+          ],
+          "full_pass_option_share": [
+            0.556640625,
+            0.301513671875,
+            0.141845703125
+          ],
+          "max_abs_logit_difference": 2.985595703125,
+          "max_abs_logit_difference_where_routing_agrees": 1.375,
+          "max_abs_full_logit": 25.75,
+          "top1_token_agreement": 1.0
+        }
+      ],
+      "max_abs_logit_difference": 2.985595703125,
+      "top1_token_agreement": 0.998046875,
+      "checked_windows": 2,
+      "decision_agreement": 0.99951171875,
+      "decision_agreement_min_window": 0.9990234375,
+      "decoded_option_share": [
+        0.5528564453125,
+        0.3055419921875,
+        0.1416015625
+      ],
+      "full_pass_option_share": [
+        0.552978515625,
+        0.3052978515625,
+        0.1417236328125
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c50",
+      "seed": 0,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed0-20261017T000313",
+      "weights": "trained",
+      "ms_per_token_mean": 2.4028087902392836,
+      "ms_per_token_median": 2.4315014015883207,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.999755859375,
+          "positions_with_all_decisions_agreeing": 0.998046875,
+          "decoded_option_share": [
+            0.153076171875,
+            0.651123046875,
+            0.19580078125
+          ],
+          "full_pass_option_share": [
+            0.15283203125,
+            0.6513671875,
+            0.19580078125
+          ],
+          "max_abs_logit_difference": 2.171875,
+          "max_abs_logit_difference_where_routing_agrees": 1.59375,
+          "max_abs_full_logit": 22.0,
+          "top1_token_agreement": 0.9921875
+        },
+        {
+          "decision_agreement": 0.996337890625,
+          "positions_with_all_decisions_agreeing": 0.982421875,
+          "decoded_option_share": [
+            0.192138671875,
+            0.603759765625,
+            0.2041015625
+          ],
+          "full_pass_option_share": [
+            0.19482421875,
+            0.600830078125,
+            0.204345703125
+          ],
+          "max_abs_logit_difference": 5.701171875,
+          "max_abs_logit_difference_where_routing_agrees": 2.25,
+          "max_abs_full_logit": 22.625,
+          "top1_token_agreement": 0.986328125
+        }
+      ],
+      "max_abs_logit_difference": 5.701171875,
+      "top1_token_agreement": 0.9892578125,
+      "checked_windows": 2,
+      "decision_agreement": 0.998046875,
+      "decision_agreement_min_window": 0.996337890625,
+      "decoded_option_share": [
+        0.172607421875,
+        0.62744140625,
+        0.199951171875
+      ],
+      "full_pass_option_share": [
+        0.173828125,
+        0.6260986328125,
+        0.2000732421875
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c50",
+      "seed": 1,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed1-20261017T052511",
+      "weights": "trained",
+      "ms_per_token_mean": 2.40515428687638,
+      "ms_per_token_median": 2.3900375235825777,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.99951171875,
+          "positions_with_all_decisions_agreeing": 0.99609375,
+          "decoded_option_share": [
+            0.19873046875,
+            0.56298828125,
+            0.23828125
+          ],
+          "full_pass_option_share": [
+            0.198486328125,
+            0.5634765625,
+            0.238037109375
+          ],
+          "max_abs_logit_difference": 1.3125,
+          "max_abs_logit_difference_where_routing_agrees": 1.3125,
+          "max_abs_full_logit": 22.25,
+          "top1_token_agreement": 0.9921875
+        },
+        {
+          "decision_agreement": 0.998779296875,
+          "positions_with_all_decisions_agreeing": 0.990234375,
+          "decoded_option_share": [
+            0.20166015625,
+            0.539794921875,
+            0.258544921875
+          ],
+          "full_pass_option_share": [
+            0.200439453125,
+            0.540771484375,
+            0.2587890625
+          ],
+          "max_abs_logit_difference": 2.724609375,
+          "max_abs_logit_difference_where_routing_agrees": 1.0,
+          "max_abs_full_logit": 21.75,
+          "top1_token_agreement": 0.990234375
+        }
+      ],
+      "max_abs_logit_difference": 2.724609375,
+      "top1_token_agreement": 0.9912109375,
+      "checked_windows": 2,
+      "decision_agreement": 0.9991455078125,
+      "decision_agreement_min_window": 0.998779296875,
+      "decoded_option_share": [
+        0.2001953125,
+        0.5513916015625,
+        0.2484130859375
+      ],
+      "full_pass_option_share": [
+        0.199462890625,
+        0.5521240234375,
+        0.2484130859375
+      ]
+    },
+    {
+      "name": "ti_tnn_adaptive_c50",
+      "seed": 2,
+      "dir": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed2-20261017T104736",
+      "weights": "trained",
+      "ms_per_token_mean": 2.3499010386384,
+      "ms_per_token_median": 2.3366129025816917,
+      "timed_tokens": 3024,
+      "checks": [
+        {
+          "decision_agreement": 0.998779296875,
+          "positions_with_all_decisions_agreeing": 0.990234375,
+          "decoded_option_share": [
+            0.23291015625,
+            0.503173828125,
+            0.263916015625
+          ],
+          "full_pass_option_share": [
+            0.23291015625,
+            0.50341796875,
+            0.263671875
+          ],
+          "max_abs_logit_difference": 5.125,
+          "max_abs_logit_difference_where_routing_agrees": 1.21875,
+          "max_abs_full_logit": 23.25,
+          "top1_token_agreement": 0.982421875
+        },
+        {
+          "decision_agreement": 0.998291015625,
+          "positions_with_all_decisions_agreeing": 0.98828125,
+          "decoded_option_share": [
+            0.258056640625,
+            0.47705078125,
+            0.264892578125
+          ],
+          "full_pass_option_share": [
+            0.2578125,
+            0.477294921875,
+            0.264892578125
+          ],
+          "max_abs_logit_difference": 1.8515625,
+          "max_abs_logit_difference_where_routing_agrees": 1.5859375,
+          "max_abs_full_logit": 23.25,
+          "top1_token_agreement": 0.9921875
+        }
+      ],
+      "max_abs_logit_difference": 5.125,
+      "top1_token_agreement": 0.9873046875,
+      "checked_windows": 2,
+      "decision_agreement": 0.99853515625,
+      "decision_agreement_min_window": 0.998291015625,
+      "decoded_option_share": [
+        0.2454833984375,
+        0.4901123046875,
+        0.264404296875
+      ],
+      "full_pass_option_share": [
+        0.245361328125,
+        0.4903564453125,
+        0.2642822265625
+      ]
+    }
+  ]
+}
