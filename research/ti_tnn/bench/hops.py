@@ -124,6 +124,8 @@ def parse_args(argv=None):
                    help="adaptive variants: initial compute-router bias toward the full option")
     p.add_argument("--skip-keeps-kv", action="store_true",
                    help="adaptive variants: a skipped token still writes its key and value")
+    p.add_argument("--shared-expert-frac", type=float, default=0.0,
+                   help="mixtures: share of the hidden width given to an always-on shared MLP")
     p.add_argument("--hop-curriculum-frac", type=float, default=0.0,
                    help="train on at most 1 hop, then 2, ... up to max_hops, in equal stages over this fraction of steps")
     p.add_argument("--balanced-loss", action="store_true",
@@ -157,6 +159,8 @@ def variant_name(args) -> str:
         name += "_kv"
     if args.balanced_loss:
         name += "_bal"
+    if args.shared_expert_frac > 0:
+        name += f"_sh{round(100 * args.shared_expert_frac)}"
     if args.hop_curriculum_frac > 0:
         name += f"_cur{round(100 * args.hop_curriculum_frac)}"
     if args.steps != 6000:
@@ -266,7 +270,7 @@ def train(args, task: Task | None = None) -> dict:
                              balance_coef=args.balance_coef, bridge_cost=args.bridge_cost, ffn_mult=args.ffn_mult,
                              small_mult=args.small_mult, target_compute=args.target_compute, dual_lr=args.dual_lr,
                              expert_init=args.expert_init, router_full_bias=args.router_full_bias,
-                             skip_keeps_kv=args.skip_keeps_kv)
+                             skip_keeps_kv=args.skip_keeps_kv, shared_expert_frac=args.shared_expert_frac)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for p in model.parameters() if p.dim() >= 2]
     no_decay = [p for p in model.parameters() if p.dim() < 2]
