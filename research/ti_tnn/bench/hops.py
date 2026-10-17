@@ -24,7 +24,7 @@ import json
 import math
 import platform
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -124,6 +124,8 @@ def parse_args(argv=None):
                    help="adaptive variants: initial compute-router bias toward the full option")
     p.add_argument("--skip-keeps-kv", action="store_true",
                    help="adaptive variants: a skipped token still writes its key and value")
+    p.add_argument("--hop-curriculum-frac", type=float, default=0.0,
+                   help="train on at most 1 hop, then 2, ... up to max_hops, in equal stages over this fraction of steps")
     p.add_argument("--balanced-loss", action="store_true",
                    help="weight easy tokens and hard queries equally in the loss (default: per scored position)")
     for field, default in asdict(Task()).items():
@@ -155,6 +157,10 @@ def variant_name(args) -> str:
         name += "_kv"
     if args.balanced_loss:
         name += "_bal"
+    if args.hop_curriculum_frac > 0:
+        name += f"_cur{round(100 * args.hop_curriculum_frac)}"
+    if args.steps != 6000:
+        name += f"_s{args.steps}"
     return name
 
 
@@ -230,6 +236,15 @@ def task_of(args) -> Task:
     return Task(**{f: getattr(args, f"task_{f}") for f in asdict(Task())})
 
 
+def curriculum_task(task: Task, step: int, steps: int, frac: float) -> Task:
+    """The training task at a step: hop counts up to s in stage s of max_hops equal stages spanning the
+    first `frac` of training, then the full task (the full task throughout when frac is 0)."""
+    if frac <= 0:
+        return task
+    stage = 1 + int(step / max(1.0, frac * steps / task.max_hops))
+    return replace(task, max_hops=min(task.max_hops, stage))
+
+
 def task_loss(logits: torch.Tensor, b: dict, balanced: bool) -> torch.Tensor:
     """Mean cross-entropy over scored positions; or, balanced, the mean over easy tokens and the mean over
     hard queries, weighted equally (the hard queries are otherwise about 12% of the scored positions)."""
@@ -264,7 +279,7 @@ def train(args, task: Task | None = None) -> dict:
     for step in range(args.steps):
         for g in opt.param_groups:
             g["lr"] = lr_at(step, args.steps, args)
-        b = to(make_batch(args.batch, task, gen), device)
+        b = to(make_batch(args.batch, curriculum_task(task, step, args.steps, args.hop_curriculum_frac), gen), device)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
             logits, stats = model(b["tokens"])
             loss = task_loss(logits, b, args.balanced_loss)

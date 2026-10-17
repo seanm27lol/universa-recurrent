@@ -722,3 +722,14 @@ def test_balanced_loss_weights_easy_and_hard_equally():
     kind = b["kind"].reshape(-1)
     easy, query = ce[kind == hops.KIND_NAMES.index("easy")].mean(), ce[kind == hops.KIND_NAMES.index("query")].mean()
     assert torch.allclose(hops.task_loss(logits, b, True), 0.5 * easy + 0.5 * query)
+
+
+
+def test_hop_curriculum_adds_hop_counts_in_stages():
+    task = hops.Task()
+    stages = [hops.curriculum_task(task, step, 6000, 0.5).max_hops for step in (0, 999, 1000, 1999, 2000, 5999)]
+    assert stages == [1, 1, 2, 2, 3, 3]
+    assert hops.curriculum_task(task, 0, 6000, 0.0) is task  # no curriculum: the frozen task
+    b = hops.make_batch(8, hops.curriculum_task(task, 0, 6000, 0.5), torch.Generator().manual_seed(0))
+    assert set(b["hops"][b["kind"] == hops.KIND_NAMES.index("query")].tolist()) == {1}
+    assert hops.variant_name(hops.parse_args(["--ffn", "dense", "--hop-curriculum-frac", "0.5", "--steps", "18000"])) == "dense_cur50_s18000"
