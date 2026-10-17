@@ -87,6 +87,7 @@ class ModelConfig:
     target_compute: float = 1.0    # adaptive variants: cap on mean block compute, as a fraction of a full block
     dual_lr: float = 0.01          # adaptive variants: dual-ascent step for the price of compute
     expert_init: str = "legacy"    # "legacy": std D^-1/2 up, H^-1/2 down; "dense": the dense MLP's rule
+    router_full_bias: float = 0.0  # adaptive variants: initial compute-router bias toward the full option
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
@@ -323,6 +324,10 @@ class LanguageModel(nn.Module):
         for name, p in self.named_parameters():  # scaled init for residual projections (GPT-2)
             if name.endswith("proj.weight") or name.endswith("down.weight"):
                 nn.init.normal_(p, std=0.02 / math.sqrt(2 * cfg.n_layers))
+        if cfg.ffn in ADAPTIVE_KINDS and cfg.router_full_bias:  # start close to the full model (no draws)
+            with torch.no_grad():
+                for block in self.blocks:
+                    block.router.bias[-1] += cfg.router_full_bias
 
     @staticmethod
     def _init(m):
@@ -345,12 +350,14 @@ class LanguageModel(nn.Module):
         return self.head(self.ln_f(x)), stats
 
     @torch.no_grad()
-    def dual_update(self, stats: List[Dict[str, torch.Tensor]]) -> None:
-        """Raise the price of compute while mean realized compute exceeds the cap; never below zero."""
+    def dual_update(self, stats: List[Dict[str, torch.Tensor]], target: float | None = None) -> None:
+        """Raise the price of compute while mean realized compute exceeds the cap (cfg.target_compute, or a
+        scheduled `target`); never below zero."""
         if self.cfg.ffn not in ADAPTIVE_KINDS:
             return
+        cap = self.cfg.target_compute if target is None else target
         realized = torch.stack([s["realized_cost"] for s in stats]).mean()
-        self.cost_price.add_(self.cfg.dual_lr * (realized - self.cfg.target_compute)).clamp_(min=0.0)
+        self.cost_price.add_(self.cfg.dual_lr * (realized - cap)).clamp_(min=0.0)
 
 
 def parameter_counts(model: LanguageModel) -> Dict[str, int]:
@@ -445,3 +452,12 @@ def init_diagnostics(model: LanguageModel, idx: torch.Tensor) -> Dict[str, list]
         out["mean_top_probability_by_layer"] = [float(p.max(-1).values.mean()) for p in routing]
         out["mean_router_probabilities_by_layer"] = [p.mean(0).tolist() for p in routing]
     return out
+
+
+def cap_schedule(target: float, step: int, steps: int, warmup_frac: float) -> float:
+    """The compute cap at a training step: full compute at step 0, falling linearly to `target` over the
+    first warmup_frac of training (constant `target` when warmup_frac is 0)."""
+    if warmup_frac <= 0:
+        return target
+    progress = min(1.0, step / max(1, warmup_frac * steps))
+    return 1.0 - (1.0 - target) * progress
