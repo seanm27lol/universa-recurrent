@@ -25,7 +25,8 @@ import ti_tnn_models as models  # research/ti_tnn/bench is on sys.path when this
 
 
 def variant_name(args) -> str:
-    return models.variant_name(args.ffn, args.bridge_cost)
+    return models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
+                               models.size_tag(args.d_model, args.layers, args.ffn_mult))
 
 
 def parse_args(argv=None):
@@ -41,6 +42,11 @@ def parse_args(argv=None):
     p.add_argument("--d-edge", type=int, default=128)
     p.add_argument("--balance-coef", type=float, default=0.01)
     p.add_argument("--bridge-cost", type=float, default=0.01)
+    p.add_argument("--ffn-mult", type=int, default=4, help="MLP and full-expert hidden width, in units of d_model")
+    p.add_argument("--small-mult", type=int, default=1, help="ti_tnn_adaptive small-expert hidden width")
+    p.add_argument("--target-compute", type=float, default=1.0, help="adaptive variants: cap on mean block compute")
+    p.add_argument("--dual-lr", type=float, default=0.01, help="adaptive variants: dual-ascent step for the price")
+    p.add_argument("--save-model", action="store_true", help="save the trained weights (for bench/latency.py)")
     p.add_argument("--batch", type=int, default=32, help="sequences per step")
     p.add_argument("--tokens", type=float, default=1e8, help="training token budget")
     p.add_argument("--lr", type=float, default=6e-4)
@@ -84,6 +90,7 @@ def evaluate(model, tokens: np.ndarray, context: int, batch: int, device, max_wi
     total_loss, total_tokens = 0.0, 0
     runs, fires, counted = [], [], 0
     usage = None
+    macs, choices = 0.0, None
     for start in range(0, n, batch):
         idx = list(range(start, min(n, start + batch)))
         chunk = np.stack([tokens[i * context:i * context + context + 1] for i in idx]).astype(np.int64)
@@ -93,6 +100,11 @@ def evaluate(model, tokens: np.ndarray, context: int, batch: int, device, max_wi
         loss = F.cross_entropy(logits.float().reshape(-1, logits.shape[-1]), t[:, 1:].reshape(-1), reduction="sum")
         total_loss += loss.item()
         total_tokens += t[:, 1:].numel()
+        macs += models.macs_per_token(model.cfg, stats, t[:, :-1].shape)["non_embedding"] * t[:, 1:].numel()
+        if stats and "choice" in stats[0]:
+            n_opt = len(models.option_costs(model.cfg))
+            c = torch.stack([torch.bincount(s["choice"].reshape(-1), minlength=n_opt) for s in stats]).float().cpu()
+            choices = c if choices is None else choices + c
         if stats and "top1" in stats[0]:
             runs.append(float(np.mean([float(s["expert_runs"]) for s in stats])))
             if "fire_rate" in stats[0]:
@@ -102,7 +114,15 @@ def evaluate(model, tokens: np.ndarray, context: int, batch: int, device, max_wi
             counted += 1
     model.train()
     loss = total_loss / total_tokens
-    out = {"loss": loss, "perplexity": math.exp(loss), "tokens": total_tokens, "windows": n}
+    out = {"loss": loss, "perplexity": math.exp(loss), "tokens": total_tokens, "windows": n,
+           "non_embedding_macs_per_token": macs / total_tokens,
+           "head_macs_per_token": float(model.cfg.vocab_size * model.cfg.d_model)}
+    if choices is not None:  # adaptive variants: share of tokens taking each option, by layer
+        share = (choices / choices.sum(1, keepdim=True))
+        costs = torch.tensor(models.option_costs(model.cfg))
+        out.update({"option_share_by_layer": share.tolist(), "option_share": share.mean(0).tolist(),
+                    "realized_compute_by_layer": (share * costs).sum(1).tolist(),
+                    "realized_compute": float((share * costs).sum(1).mean())})
     if counted:
         share = (usage / usage.sum(1, keepdim=True)).tolist()
         out.update({"expert_runs_per_token": float(np.mean(runs)), "expert_share_by_layer": share,
@@ -120,7 +140,9 @@ def train(args) -> dict:
     train_tokens = load_split(args.data, "train")
     cfg = models.ModelConfig(vocab_size=meta["vocab_size"], context=args.context, d_model=args.d_model,
                              n_layers=args.layers, n_heads=args.heads, ffn=args.ffn, n_experts=args.experts,
-                             d_edge=args.d_edge, balance_coef=args.balance_coef, bridge_cost=args.bridge_cost)
+                             d_edge=args.d_edge, balance_coef=args.balance_coef, bridge_cost=args.bridge_cost,
+                             ffn_mult=args.ffn_mult, small_mult=args.small_mult,
+                             target_compute=args.target_compute, dual_lr=args.dual_lr)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for n, p in model.named_parameters() if p.dim() >= 2]
     no_decay = [p for n, p in model.named_parameters() if p.dim() < 2]
@@ -147,13 +169,18 @@ def train(args) -> dict:
         (loss + aux).backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
+        model.dual_update(stats)
         if step % args.log_every == 0 or step == steps - 1:
             fire = [float(s["fire_rate"]) for s in stats if "fire_rate" in s]
+            realized = [float(s["realized_cost"]) for s in stats if "realized_cost" in s]
             entry = {"step": step, "loss": loss.item(), "aux": aux.item(), "lr": opt.param_groups[0]["lr"],
-                     "elapsed": time.time() - t0, "fire_rate": float(np.mean(fire)) if fire else None}
+                     "elapsed": time.time() - t0, "fire_rate": float(np.mean(fire)) if fire else None,
+                     "realized_compute": float(np.mean(realized)) if realized else None,
+                     "cost_price": float(model.cost_price) if hasattr(model, "cost_price") else None}
             log.append(entry)
-            print(f"  [{args.ffn} seed {args.seed}] step {step}/{steps} loss {entry['loss']:.4f} aux {entry['aux']:.4f} "
-                  f"fire {entry['fire_rate']} {entry['elapsed']:.0f}s", flush=True)
+            print(f"  [{variant_name(args)} seed {args.seed}] step {step}/{steps} loss {entry['loss']:.4f} "
+                  f"aux {entry['aux']:.4f} fire {entry['fire_rate']} compute {entry['realized_compute']} "
+                  f"price {entry['cost_price']} {entry['elapsed']:.0f}s", flush=True)
         if (step + 1) % eval_every == 0 and step + 1 < steps:
             q = evaluate(model, val_tokens, args.context, args.batch, device, args.quick_eval_windows)
             curve.append({"step": step + 1, "tokens": (step + 1) * args.batch * args.context, "val_loss": q["loss"]})
@@ -170,11 +197,15 @@ def train(args) -> dict:
         "parameters": params,
         "compute": {"ffn_macs_per_token_per_layer_inference": models.ffn_macs_per_token(cfg, runs_inf),
                     "ffn_macs_per_token_per_layer_training": models.ffn_macs_per_token(cfg, runs_train),
-                    "dense_ffn_macs_per_token_per_layer": 8 * cfg.d_model ** 2},
+                    "dense_ffn_macs_per_token_per_layer": 2 * cfg.ffn_mult * cfg.d_model ** 2,
+                    "non_embedding_macs_per_token_inference": final["validation"]["non_embedding_macs_per_token"],
+                    "same_size_dense_non_embedding_macs_per_token": models.full_block_macs_per_token(cfg, args.context),
+                    "head_macs_per_token": float(cfg.vocab_size * cfg.d_model)},
         "timing": {"train_seconds": train_seconds,
                    "train_tokens_per_second": steps * args.batch * args.context / train_seconds,
                    "peak_memory_bytes": torch.cuda.max_memory_allocated() if device.type == "cuda" else None},
         "validation": final["validation"], "test": final["test"], "val_curve": curve, "train_log": log,
+        "_state": model.state_dict() if args.save_model else None,
     }
 
 
@@ -186,9 +217,12 @@ def main(argv=None):
     torch.backends.cuda.matmul.allow_tf32 = True
     result = train(args)
     result["environment"] = env
+    state = result.pop("_state")
     out_dir = args.out / f"{variant_name(args)}-seed{args.seed}-{time.strftime('%Y%m%dT%H%M%S')}"
     out_dir.mkdir(parents=True, exist_ok=False)
     (out_dir / "result.json").write_text(json.dumps(result, indent=2))
+    if state is not None:  # runs/ is git-ignored; weights are never committed
+        torch.save(state, out_dir / "model.pt")
     v, t = result["validation"], result["test"]
     print(f"{args.ffn} seed {args.seed}: validation perplexity {v['perplexity']:.2f}, test {t['perplexity']:.2f}, "
           f"{result['timing']['train_tokens_per_second']:.0f} tokens/s -> {out_dir}")
