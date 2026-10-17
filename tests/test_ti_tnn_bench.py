@@ -643,3 +643,34 @@ def test_init_diagnostics_script_reconstructs_the_run_and_matches_lm(tmp_path):
                                 "--data", str(tmp_path), "--tokens", "640", "--log-every", "1000"] + small))
     assert d["residual_rms_by_layer"] == pytest.approx(r["init_diagnostics"]["residual_rms_by_layer"], rel=1e-6)
     assert d["mean_top_probability_by_layer"] == pytest.approx(r["init_diagnostics"]["mean_top_probability_by_layer"], rel=1e-6)
+
+
+
+def test_cap_schedule_starts_full_and_reaches_the_target():
+    assert models.cap_schedule(0.3, 0, 100, 0.0) == 0.3  # no warm-up: the frozen behavior
+    assert models.cap_schedule(0.3, 0, 100, 0.5) == 1.0
+    assert models.cap_schedule(0.3, 25, 100, 0.5) == pytest.approx(0.65)
+    assert models.cap_schedule(0.3, 50, 100, 0.5) == pytest.approx(0.3) == models.cap_schedule(0.3, 99, 100, 0.5)
+
+
+def test_router_full_bias_starts_adaptive_models_on_the_full_option():
+    torch.manual_seed(0)
+    plain = models.LanguageModel(cfg("ti_tnn_adaptive"))
+    torch.manual_seed(0)
+    biased = models.LanguageModel(cfg("ti_tnn_adaptive", router_full_bias=5.0))
+    for (n, a), (_, b) in zip(plain.state_dict().items(), biased.state_dict().items()):
+        if n.endswith("router.bias") and "branches" not in n:
+            assert torch.equal(b, a + torch.tensor([0.0, 0.0, 5.0]))
+        else:
+            assert torch.equal(a, b), n  # no other parameter changes, no random numbers drawn
+    with torch.no_grad():
+        _, stats = biased.eval()(torch.randint(0, 50, (2, 8)))
+    assert all((s["choice"] == 2).all() for s in stats)
+
+
+def test_hop_defaults_keep_the_frozen_variant_names():
+    args = hops.parse_args(["--ffn", "mod", "--target-compute", "0.3"])
+    assert hops.variant_name(args) == "mod_c30"
+    fixed = hops.parse_args(["--ffn", "mod", "--target-compute", "0.3", "--expert-init", "dense",
+                             "--cap-warmup-frac", "0.5", "--router-full-bias", "3"])
+    assert hops.variant_name(fixed) == "mod_c30_initdense_warm50_bias3"

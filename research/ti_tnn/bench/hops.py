@@ -117,6 +117,11 @@ def parse_args(argv=None):
     p.add_argument("--bridge-cost", type=float, default=0.01)
     p.add_argument("--target-compute", type=float, default=1.0)
     p.add_argument("--dual-lr", type=float, default=0.01)
+    p.add_argument("--expert-init", choices=models.EXPERT_INITS, default="legacy")
+    p.add_argument("--cap-warmup-frac", type=float, default=0.0,
+                   help="adaptive variants: anneal the cap from full compute to the target over this fraction of steps")
+    p.add_argument("--router-full-bias", type=float, default=0.0,
+                   help="adaptive variants: initial compute-router bias toward the full option")
     for field, default in asdict(Task()).items():
         p.add_argument(f"--{field.replace('_', '-')}", dest=f"task_{field}", type=int, default=default,
                        help=f"task: {field}")
@@ -134,8 +139,15 @@ def parse_args(argv=None):
 
 
 def variant_name(args) -> str:
-    return models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
+    name = models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
                                models.size_tag(args.d_model, args.layers, args.ffn_mult, REFERENCE_SIZE))
+    if args.expert_init != "legacy":
+        name += f"_init{args.expert_init}"
+    if args.cap_warmup_frac > 0:
+        name += f"_warm{round(100 * args.cap_warmup_frac)}"
+    if args.router_full_bias:
+        name += f"_bias{args.router_full_bias:g}"
+    return name
 
 
 def lr_at(step: int, steps: int, args) -> float:
@@ -217,7 +229,8 @@ def train(args, task: Task | None = None) -> dict:
     cfg = models.ModelConfig(vocab_size=task.vocab, context=task.length, d_model=args.d_model, n_layers=args.layers,
                              n_heads=args.heads, ffn=args.ffn, n_experts=args.experts, d_edge=args.d_edge,
                              balance_coef=args.balance_coef, bridge_cost=args.bridge_cost, ffn_mult=args.ffn_mult,
-                             small_mult=args.small_mult, target_compute=args.target_compute, dual_lr=args.dual_lr)
+                             small_mult=args.small_mult, target_compute=args.target_compute, dual_lr=args.dual_lr,
+                             expert_init=args.expert_init, router_full_bias=args.router_full_bias)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for p in model.parameters() if p.dim() >= 2]
     no_decay = [p for p in model.parameters() if p.dim() < 2]
@@ -239,7 +252,7 @@ def train(args, task: Task | None = None) -> dict:
         (loss + aux).backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        model.dual_update(stats)
+        model.dual_update(stats, models.cap_schedule(args.target_compute, step, args.steps, args.cap_warmup_frac))
         if step % args.log_every == 0 or step == args.steps - 1:
             realized = [float(s["realized_cost"]) for s in stats if "realized_cost" in s]
             entry = {"step": step, "loss": loss.item(), "aux": aux.item(), "elapsed": time.time() - t0,
@@ -252,6 +265,7 @@ def train(args, task: Task | None = None) -> dict:
     result = evaluate(model, task, args.eval_sequences, 256, device)
     return {"config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
             "task": asdict(task), "model_config": vars(cfg), "parameters": models.parameter_counts(model),
+            "source": __import__("lm").source_version(),
             "same_size_dense_non_embedding_macs_per_token": models.full_block_macs_per_token(cfg, task.length),
             "train_seconds": train_seconds, "eval": result, "train_log": log}
 
