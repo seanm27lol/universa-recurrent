@@ -313,10 +313,20 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
   39.59 (bridge charged; its gate shuts off) or 39.24 (bridge free, at 44% more
   feed-forward compute). On SCAN, no variant solves the compositional splits. On the
   add-turn-left split, every mixture variant, TI-TNN included, is worse than dense.
+- **Adaptive compute (3 seeds).** Can TI-TNN be close in quality at drastically less
+  compute, if each token chooses to skip a layer or run small or full experts? Not in
+  this test.
+  - At 30% of the decoder's compute, perplexity is 49.1 against dense's 39.85; at 50%,
+    45.3.
+  - A plain 4-layer dense model does better at 50% (43.7).
+  - TI-TNN beats plain layer skipping at the same cap, but with 4× the parameters.
+  - On a lookup task built to favor it, the adaptive models, and even a full-compute
+    mixture of experts, mostly failed to learn at all.
 
 [TI-TNN README](research/ti_tnn/README.md) ·
 [real-benchmark report](research/ti_tnn/reports/real_benchmarks.md) ·
 [composition report](research/ti_tnn/reports/functorial_composition.md) ·
+[adaptive-compute report](research/ti_tnn/reports/adaptive_compute.md) ·
 [categorical proposal](research/ti_tnn/cdl_proposal.md) ·
 [unsupervised-routing brief](research/ti_tnn/protocols/unsupervised_routing.md) ·
 [claim ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15)
