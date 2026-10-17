@@ -89,6 +89,7 @@ class ModelConfig:
     expert_init: str = "legacy"    # "legacy": std D^-1/2 up, H^-1/2 down; "dense": the dense MLP's rule
     router_full_bias: float = 0.0  # adaptive variants: initial compute-router bias toward the full option
     skip_keeps_kv: bool = False    # adaptive variants: a skipped token still writes its key and value (costs 2D^2)
+    shared_expert_frac: float = 0.0  # mixtures: this share of each layer's hidden width is an always-on shared MLP
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
@@ -127,10 +128,11 @@ class CausalSelfAttention(nn.Module):
 
 
 class DenseFFN(nn.Module):
-    def __init__(self, cfg: ModelConfig):
+    def __init__(self, cfg: ModelConfig, hidden: int | None = None):
         super().__init__()
-        self.up = nn.Linear(cfg.d_model, cfg.ffn_mult * cfg.d_model, bias=False)
-        self.down = nn.Linear(cfg.ffn_mult * cfg.d_model, cfg.d_model, bias=False)
+        hidden = cfg.ffn_mult * cfg.d_model if hidden is None else hidden
+        self.up = nn.Linear(cfg.d_model, hidden, bias=False)
+        self.down = nn.Linear(hidden, cfg.d_model, bias=False)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         return self.down(F.gelu(self.up(x))), {}
@@ -139,10 +141,10 @@ class DenseFFN(nn.Module):
 class Experts(nn.Module):
     """E MLPs (the dense block's shape unless hidden_mult says otherwise), run only on the tokens assigned to each."""
 
-    def __init__(self, cfg: ModelConfig, hidden_mult: int | None = None):
+    def __init__(self, cfg: ModelConfig, hidden_mult: int | None = None, hidden: int | None = None):
         super().__init__()
         D, E = cfg.d_model, cfg.n_experts
-        H = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
+        H = hidden if hidden is not None else (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
         self.w_up = nn.Parameter(torch.empty(E, D, H))
         self.w_down = nn.Parameter(torch.empty(E, H, D))
         # "dense" matches the dense MLP: std 0.02 up, and the GPT-2 residual scaling 0.02 / sqrt(2L) down.
@@ -175,7 +177,14 @@ class MoEFFN(nn.Module):
         super().__init__()
         self.cfg, self.top_k = cfg, top_k
         self.router = nn.Linear(cfg.d_model, cfg.n_experts, bias=False)
-        self.experts = Experts(cfg, hidden_mult)
+        self.shared = None
+        if cfg.shared_expert_frac > 0:  # split the width: an always-on shared MLP plus narrower routed experts
+            total = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * cfg.d_model
+            shared = round(cfg.shared_expert_frac * total)
+            self.experts = Experts(cfg, hidden=total - shared)
+            self.shared = DenseFFN(cfg, hidden=shared)
+        else:
+            self.experts = Experts(cfg, hidden_mult)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         shape = x.shape
@@ -188,6 +197,8 @@ class MoEFFN(nn.Module):
         tokens = torch.arange(N, device=x.device).repeat_interleave(self.top_k)
         outs = self.experts(x, tokens, top_e.reshape(-1))
         y = torch.zeros_like(x, dtype=outs.dtype).index_add_(0, tokens, outs * top_p.reshape(-1, 1).to(outs.dtype))
+        if self.shared is not None:
+            y = y + self.shared(x)[0]
         stats = {"aux_loss": self.cfg.balance_coef * balance_loss(probs, top_e[:, 0], self.cfg.n_experts),
                  "expert_runs": torch.tensor(float(self.top_k)), "top1": top_e[:, 0]}
         return y.reshape(shape), stats

@@ -733,3 +733,26 @@ def test_hop_curriculum_adds_hop_counts_in_stages():
     b = hops.make_batch(8, hops.curriculum_task(task, 0, 6000, 0.5), torch.Generator().manual_seed(0))
     assert set(b["hops"][b["kind"] == hops.KIND_NAMES.index("query")].tolist()) == {1}
     assert hops.variant_name(hops.parse_args(["--ffn", "dense", "--hop-curriculum-frac", "0.5", "--steps", "18000"])) == "dense_cur50_s18000"
+
+
+
+@pytest.mark.parametrize("ffn", ["moe_top1", "moe_top2", "ti_tnn_adaptive"])
+def test_shared_expert_splits_the_width_and_decodes_exactly(ffn):
+    torch.manual_seed(9)
+    c = cfg(ffn, context=12, n_layers=2, shared_expert_frac=0.5)
+    model = models.LanguageModel(c).eval()
+    ffns = [m for m in model.modules() if isinstance(m, models.MoEFFN)]
+    for m in ffns:  # half the width shared, half routed: the same compute as without sharing
+        total = m.shared.up.out_features + m.experts.w_up.shape[-1]
+        assert m.shared.up.out_features == m.experts.w_up.shape[-1] == total // 2
+    if ffn in models.ADAPTIVE_KINDS:
+        for block in model.blocks:
+            torch.nn.init.normal_(block.router.weight, std=1.0)
+    idx = torch.randint(0, 50, (1, 12))
+    with torch.no_grad():
+        full, _ = model(idx)
+    logits, _, _ = decode.decode(model, idx)
+    assert torch.allclose(logits, full[0], atol=1e-5)
+    torch.manual_seed(9)
+    plain = models.LanguageModel(cfg(ffn, context=12, n_layers=2))
+    assert all(m.shared is None for m in plain.modules() if isinstance(m, models.MoEFFN))  # off by default

@@ -64,6 +64,8 @@ def moe_step(ffn: models.MoEFFN, h: torch.Tensor) -> torch.Tensor:
         o = expert(ffn.experts, h, ej)
         o = o * p[j].to(o.dtype)
         out = o if out is None else out + o
+    if ffn.shared is not None:
+        out = out + ffn.shared.down(F.gelu(ffn.shared.up(h)))
     return out
 
 
