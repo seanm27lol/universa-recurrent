@@ -302,10 +302,12 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
   "functorial" model answers unseen two-step chains ("size of the capital of
   France") perfectly (1.000 on every seed). The same step-by-step interface with
   unconstrained maps scores 0.72–0.94, and a transformer is at chance.
-  [Controls](research/ti_tnn/reports/functorial_composition_controls.md) show the category
-  laws are not what does it. Plain shared embeddings (0.9996) and any
-  geometry-preserving maps (1.000) compose as well, so the model reduces to typed
-  embeddings in one shared space.
+  The model is, in capacity, typed embeddings in one shared space. In the
+  [controls](research/ti_tnn/reports/functorial_composition_controls.md), exact inverse
+  tying and the flat parametrization showed no measured advantage: shared embeddings
+  missed 1 of 2,560 chains, and untied orthogonal maps none. That points to
+  geometry-preserving maps as a useful inductive bias on this one synthetic world, not
+  a guarantee.
 - **Real benchmarks (3 seeds).** On WikiText-103, the bridge does not earn its
   compute. Top-2 mixture of experts reaches perplexity 37.92, top-1 39.57, and TI-TNN
   39.59 (bridge charged; its gate shuts off) or 39.24 (bridge free, at 44% more

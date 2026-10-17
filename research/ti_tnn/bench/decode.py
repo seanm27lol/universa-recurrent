@@ -2,8 +2,14 @@
 
 Each step does only the work its routing decisions call for: a token that skips a block computes
 nothing there and adds no key or value to that layer's cache, and a mixture layer runs only the chosen
-expert. The logits equal the full forward pass's in eval mode (tests/test_ti_tnn_bench.py checks this
-for every variant), which also shows that no routing decision depends on a later token.
+expert.
+
+Equivalence with the full forward pass is tested, not guaranteed. On small random models in fp32 the
+logits match for every variant, which also shows that no routing decision depends on a later token
+(tests/test_ti_tnn_bench.py). Under bf16 on the GPU, the trained adaptive checkpoints of the
+adaptive-compute benchmark did not match within tolerance. One differing routing decision changes the
+cache that every later token reads, and the cause was not isolated (reports/adaptive_compute.md).
+latency.py records these checks with every timing.
 """
 from __future__ import annotations
 

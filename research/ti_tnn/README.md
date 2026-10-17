@@ -204,7 +204,9 @@ fed another country's Trait-B stalk.
   (compute capability 12.1), PyTorch 2.10.0+cu130, Python 3.11.14, aarch64. The
   configuration is the one first tried on CPU; nothing was tuned after seeing
   results.
-- **Results files** stay on the GPU host (`runs/` is not committed):
+- **Results files** (byte-identical copies in
+  [`experiments/results/ti_tnn/`](../../experiments/results/ti_tnn/), with every other
+  completed TI-TNN experiment's; `runs/` itself is not committed):
   - `routing.json` sha256
     `3fe33e3294f4c62a3229bff523199185e528c0c291e559c330adb27864a14fc0`;
   - `compositional.json` sha256
@@ -342,13 +344,17 @@ fed another country's Trait-B stalk.
     solutions that generalize.
   - **Not a clean exact-against-soft comparison.** The soft penalty targeted only the
     inverse pair; the exact model also imposes orthogonality.
-  - **Controls, 5 seeds** ([report](reports/functorial_composition_controls.md)). The
-    mechanism is geometry, not the category laws:
-    - identity maps in one shared space: 0.9996;
-    - untied orthogonal maps (not inverses): 1.000;
-    - a soft penalty toward orthogonality: 1.000.
-    Only maps free to stretch and shear fall short (linear 0.940, inverse-only soft
-    0.879). Four of five predictions held; "tying the inverse pair matters" failed.
+  - **Controls, 5 seeds on one world** ([report](reports/functorial_composition_controls.md)).
+    Exact inverse tying and the flat parametrization showed no measured advantage:
+    - identity maps in one shared space: 2,559 of 2,560 chains correct;
+    - untied orthogonal maps (not inverses): all 2,560;
+    - a soft penalty toward the exact model's equations (orthogonality plus the
+      inverse pair): all 2,560.
+
+    Only maps free to stretch and shear fell short: linear 2,406 and inverse-only
+    soft 2,251. This supports geometry preservation as a useful inductive bias here,
+    not as the only mechanism, and not beyond this world. Four of five predictions
+    held; "tying the inverse pair matters" failed.
   - **Predictions.** Five of six held. The margin over unconstrained linear was
     0.06, short of the predicted 0.10.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
