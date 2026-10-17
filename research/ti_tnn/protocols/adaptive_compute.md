@@ -1,0 +1,215 @@
+# TI-TNN: close in quality at drastically less compute? (frozen brief)
+
+**Status: FROZEN 2026-10-16 (UTC), before any run of the adaptive variants that reports quality.**
+Branch `ti-tnn-adaptive-compute`, based on `main` at `fd25199`.
+
+**Pilots before freezing** (none of their quality numbers for `mod` or `ti_tnn_adaptive` was looked at):
+- *Timing and compute cap.* 200 steps of part A for `dense`, `moe_top1`, `mod_c30` and
+  `ti_tnn_adaptive_c30`, and 300 steps of part B for the three new dense sizes, `mod_c30` and
+  `ti_tnn_adaptive_c30`. Only throughput and the compute and price fields of the training log were read.
+  The cap holds: realized compute settles at 0.21–0.33 against a cap of 0.30.
+- *Part A task design, dense baseline only.* The first task setting, with hops 1–4 equally likely,
+  could not be learned. The 8-layer dense model stayed at chance on every hop count: hard-query accuracy
+  0.14 after 6,000 or 20,000 steps, or with twice the queries, or with learning rate 3e-3. Hops 1–4 with
+  half the queries one-hop were learned on seed 0 (1.000). Seeds 1 and 2 learned hops 1–2 but not 4
+  (0.20 and 0.30). Training 2.5 times longer fixed seed 2 (1.000) but made seed 1 worse (0.39, with 2-hop failing too). Capping
+  the task at 3 hops, with half the queries one-hop, was learned on all three seeds (1.000 each in 6,000
+  steps). That is the frozen setting.
+  So those dense-baseline numbers were seen before freezing; no adaptive model was trained on the
+  final task before freezing.
+
+## The question
+
+The goal for TI-TNN is efficiency: quality close to a standard model's at drastically less compute. The
+earlier TI-TNN layer could not show that. It always runs at least one full expert, the same as a top-1
+mixture of experts, and the bridge only adds compute
+([real-benchmark report](../reports/real_benchmarks.md)). A mixture of experts already avoids touching
+most of its parameters. What it does not do is spend less on easy tokens than on hard ones; that is
+what this tests.
+
+So the test is a frontier: quality against compute per token, for TI-TNN with adaptive compute and for
+the alternatives at several sizes. The pass bar is fixed here, before any run.
+
+## Architectures (`research/ti_tnn/bench/ti_tnn_models.py`)
+
+The same GPT-style decoder as the real benchmark. Two new block kinds let each token, at each layer,
+choose how much of the block to run:
+
+| Variant | Options per token per layer | Cost (fraction of a full block) |
+|---|---|---|
+| `mod` | skip the block; or run it with the dense MLP | 0; 1 |
+| `ti_tnn_adaptive` | skip; or run it with a small typed-expert layer (8 experts, D → D → D, top-1); or with a full one (8 experts, D → 4D → D, top-1) | 0; 0.5; 1 |
+
+- **Skipping.** A skipped token leaves the block unchanged and is not a key or value in its attention,
+  as in Mixture-of-Depths (Raposo et al. 2024). `mod` is Mixture-of-Depths-style with *token choice*
+  rather than expert choice, so every decision is causal and the model can decode one token at a time.
+- **Cost.** A block's cost counts its projections (4D²) and MLP (2mD²): a full block is 12D², and a small
+  one 6D².
+- **Training.** The choice is a hard argmax forward and straight-through backward. Every option is
+  computed for every token in training, so the router sees each option's first-order value and no
+  option is absorbing. Training therefore costs more than the dense model: the claim is about inference.
+- **The compute cap.** Mean block compute must stay at or below a cap. A Lagrange multiplier enforces it,
+  updated by dual ascent with step 0.01. The price of compute rises while the cap is exceeded and falls
+  to zero when it is not binding. Caps: 0.5, 0.3 and 0.15 in part A; 0.5 and 0.3 in part B.
+- **What TI-TNN keeps and drops.** It keeps typed experts behind a router. The choice of compute
+  replaces the Noul gate, and the bridge is dropped because it did not earn its compute.
+- **A deviation from the plan.** The plan said the cheap path would be chosen by the Jev router's
+  *calibrated confidence*. Calibration needs a label saying when the cheap path was good enough, and
+  text has none. The design instead prices compute: the router runs the expensive option when its
+  first-order value exceeds the current price. No Brier term is used.
+
+**Baselines.** Dense models at several sizes, `moe_top1`, `moe_top2` and `mod`. The dense models trace
+the ordinary quality-against-compute curve; `mod` isolates what TI-TNN's typed and small branches add to
+plain skipping.
+
+**Compute** is non-embedding forward multiply-accumulates per token: the decoder blocks, attention
+scores included, counted from the decisions each model actually made on the evaluation data. Routers
+are counted; layer norms are not. The tied output layer (V × D per token) is the same for every variant
+at one width and is reported separately.
+
+## Part A: variable-hop lookups (`bench/hops.py`) — where it should win first
+
+- **Task.** Each sequence states 8 facts "a f(a)" (f is a random 8-cycle on 8 of 32 symbols), then a
+  stream of mostly easy tokens: a count, where each target follows from the current token alone. 12 hard
+  queries "H_k x" are mixed in, answered at x by f^k(x): k = 1 for half of them, and 2 or 3 (equally
+  likely) for the rest.
+  T = 128 tokens, 87 of them easy and 12 scored queries.
+- **Why it favors adaptive compute.** A k-hop answer needs about k + 1 layers, an easy token about one.
+  If TI-TNN cannot win here, it will not win on text. The facts are given in context, not stored in
+  weights.
+- **Model.** Width 128, 4 heads, 8 experts, context 128. 6,000 steps of 64 fresh sequences,
+  AdamW (0.9, 0.95), weight decay 0.1, learning rate 1e-3, 2% warmup, cosine to 10%, bf16 autocast.
+- **Variants.** `dense` at 2, 3, 4, 6 and 8 layers, `moe_top1`, and `mod` and `ti_tnn_adaptive` at caps
+  0.5, 0.3 and 0.15. All but the shallower dense models have 8 layers.
+- **Score.** Hard accuracy = mean exact accuracy over hop counts, on 2,048 fixed evaluation sequences
+  (the same for every run). Easy accuracy is reported. Seeds 0, 1, 2.
+
+## Part B: WikiText-103 (`bench/lm.py`) — the real test
+
+- **Same setup as the real benchmark.** Data, tokenizer, 100M-token budget, optimizer, schedule, data
+  order and scoring as in [`real_benchmarks.md`](real_benchmarks.md). Validation perplexity is the
+  quality measure.
+- **Reused runs.** The `dense`, `moe_top1` and `moe_top2` runs (8 layers, width 512) are reused from
+  that benchmark. Their code path is unchanged: outputs and losses are bitwise identical
+  under the new code (checked before freezing).
+- **New runs.** Dense at 4 layers × 512, 8 × 384 and 8 × 256; `mod` and `ti_tnn_adaptive` at caps 0.5
+  and 0.3. Seeds 0, 1, 2.
+- **Latency** (`bench/latency.py`). Median milliseconds per token, decoding one token at a time (batch 1)
+  with key/value caches, so skipped blocks really are skipped. Every variant decodes the same two
+  validation windows in three interleaved rounds after all training. Adaptive runs use their trained
+  weights; the others are timed at a random initialization, since their latency does not depend on the
+  weights. Token-by-token decoding gives the same logits as the full forward pass (tested).
+
+## Predictions (recorded before any run; all one-sided; means over 3 seeds)
+
+"Candidate" means a `ti_tnn_adaptive` variant. "Baseline" means every other variant in the same part.
+"The cheapest baseline as good" is the baseline with the least compute among those whose quality is at
+least the candidate's. If there is none, it is the best baseline.
+
+**Part A** (quality = hard accuracy; reference = 8-layer dense):
+- **A-validity** (a condition for reading part A, not a prediction): the reference's hard accuracy is
+  at least 0.90.
+1. **Drastic efficiency.** Some candidate is within 0.02 of the reference's hard accuracy, using at most
+   half the compute of the cheapest baseline as good.
+2. **Equal compute.** Every candidate is more accurate than every baseline that uses no more compute.
+3. **Against plain skipping.** At each cap, `ti_tnn_adaptive` is more accurate than `mod`.
+4. **Compute follows difficulty.** In every candidate, 3-hop queries get more compute than 1-hop ones,
+   and easy tokens get less than queries of any hop count.
+
+**Part B** (quality = validation perplexity; reference = dense, 8 × 512):
+5. **Drastic efficiency.** Some candidate's perplexity is at most 1.02 × the reference's, using at most
+   half the compute of the cheapest baseline as good.
+6. **Equal compute.** Every candidate has lower perplexity than every baseline that uses no more compute.
+7. **Against plain skipping.** At each cap, `ti_tnn_adaptive` has lower perplexity than `mod`.
+8. **Real speed.** `ti_tnn_adaptive_c30` decodes in at most 0.6 × the reference's median milliseconds
+   per token.
+
+**The decision rule.** TI-TNN's efficiency claim is validated only if 5 and 6 hold. Predictions 1–4
+holding alone is a necessary condition met, not validation. Prediction 2 or 6 counts as untestable, not
+held, for a candidate cheaper than every baseline.
+
+`bench/frontier.py` applies these rules exactly as written. Every variant and seed is reported whatever
+happens.
+
+## Limits
+
+- **Scale.** A 51M-parameter dense reference trained on 100M tokens. Efficiency claims about large
+  models do not follow from this either way.
+- **Parameters.** `ti_tnn_adaptive` has 202M parameters, more than `moe_top1` (169M) or dense (51M).
+  A win could come partly from parameters; `mod` (51M) and `moe_top1` bound that.
+- **Latency.** Batch-1 decoding in eager PyTorch on one GB10 is dominated by kernel launches. It shows
+  whether skipped layers save real time, not what an optimized server would see.
+- **Training cost.** The adaptive variants train at more than full compute.
+- **Not tested.** Composition (see the [functorial composition report](../reports/functorial_composition.md)).
+
+**Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_efficiency.sh`, then
+`python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm runs/titnn_bench/lm
+runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json`.
+
+## Execution record (appended after freezing; nothing above was changed)
+
+- **2026-10-16 20:49 UTC.** The queue started at `64ecc86`, with the idle-GPU gate and a GPU co-tenancy log
+  running from the start.
+- **2026-10-16, about 21:30 UTC: evaluation fixes from an outside review,** made while part A was running.
+  No results had been summarized; one part A result line (`mod_c30`, seed 0) had been seen in the queue
+  log. The fixes touch only evaluation code the queue had not yet used: `frontier.py` runs after the
+  queue, and `decode.py` and `latency.py` run only at its end. The training code is unchanged.
+  1. **Untestable counted as passed.** `frontier.py` treated a mix of passing and untestable candidates
+     as passed, contradicting the rule above ("counts as untestable, not held"). Now any failure fails,
+     and otherwise any untestable comparison makes the prediction untestable. A missing matched-cap
+     baseline is untestable.
+  2. **No completeness checks.** The evaluator also failed to check that the run inventory was
+     complete. It now requires every planned variant, each with exactly seeds 0, 1 and 2 and no
+     duplicates. It also enforces part A's validity condition and computes the decision rule
+     explicitly. A queued run can fail without stopping the queue, so these checks matter.
+  3. **Decoder arithmetic.** The cached decoder multiplied bf16 expert outputs by Python floats. That
+     rounds differently from the full pass, which rounds the weight to bf16 first: 189 of 200 random
+     cases differed on CPU. The arithmetic now matches (200 of 200). `latency.py` now checks every
+     decoded window against the full forward pass in the same precision: routing-decision agreement,
+     largest logit difference and top-1 token agreement. Latency is reported alongside these checks.
+- **Declared confounds** (not fixable without changing the frozen training):
+  - **Initialization.** Experts are initialized at std D^-1/2 (up) and H^-1/2 (down), and miss the GPT-2
+    residual scaling the dense MLP gets. At width 512 and 8 layers, the dense down-projection starts at
+    std 0.005, against 0.0221 for experts. So `ti_tnn_adaptive` (experts) against `mod` (dense MLP), in
+    predictions 3 and 7, also compares two initializations. So did dense against the mixtures in the
+    real benchmark. Neither direction is established. An initialization-matched control will be frozen
+    separately before it runs.
+  - **Compute scope.** "Half the compute" in predictions 1 and 5 is half the decoder's MACs; the output
+    layer is excluded. At the reference size the decoder is 27.27M MACs per token and the output layer
+    25.73M. Halving the decoder cuts total forward MACs by 25.7%. The report states decoder and total
+    MACs separately, with measured latency.
+  - **The cap.** The cap is a training target, not a guaranteed budget, and its priced cost omits
+    attention scores and routers. The conclusions use the compute actually measured on held-out data.
+  - **Unused fields.** The `ffn_macs_per_token_per_layer_*` fields in `lm.py` results predate the
+    adaptive variants and do not apply to them; the frontier does not use them.
+- **2026-10-16, about 23:30 UTC: second evaluation fixes, from a follow-up review.** Part A was still
+  running; no part B run had finished and no latency had been measured. Only evaluation code changed
+  (`frontier.py`, and `latency.py`, which runs at the queue's end).
+  1. **Execution validity gates the speed verdict.** Prediction 8 is now untestable unless every
+     measured model's execution is valid, under this rule (fixed before any latency measurement):
+     - every row has the configured number of checked windows (2) and timed tokens (3 rounds × 2
+       windows × 504);
+     - on every checked window, the largest |decoded − full| logit, over positions where every
+       routing decision agrees, is at most 5% of the window's largest full-pass logit;
+     - for trained models (the adaptive checkpoints), routing decisions agree on at least 99% of
+       (token, layer) pairs, and top-1 tokens on at least 99% of positions;
+     - `ti_tnn_adaptive_c30` appears for seeds 0, 1 and 2 exactly once, from the planned runs' own
+       checkpoints, and the dense reference appears exactly once.
+
+     Raw timings and diagnostics are kept when validity fails. The token-agreement check does not
+     apply to models timed at random initialization, whose near-flat logits make top-1 ties noise.
+  2. **The verdict uses only the planned variants.** Unplanned runs, such as the separate
+     initialization control, are listed and excluded. Before this fix, an extra candidate could
+     satisfy "some candidate". The inventory also requires one configuration fingerprint across each
+     variant's seeds, the protocol's fixed settings (budget, optimizer, schedule, task) and the legacy
+     expert initialization. `frontier.py` writes a run manifest: path, sha256, configuration
+     fingerprint, initialization policy, training budget and source version. Run files do not record
+     their source, so it is declared here: `runs/titnn_bench/lm` came from the real-benchmark
+     relaunch at `316c18f`, and `runs/titnn_efficiency` from `64ecc86`.
+- **The initialization control** is a separate experiment with its own frozen brief
+  (`protocols/adaptive_compute_init_control.md`) and analysis. It runs after this queue and never
+  enters this protocol's verdict.
+
+**Evaluate with:** `python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm
+runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source
+runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json`.
