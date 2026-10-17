@@ -38,6 +38,16 @@ def attention_step(attn: models.CausalSelfAttention, h: torch.Tensor, cache: Cac
     return attn.proj(y.reshape(1, D))
 
 
+def kv_append(attn: models.CausalSelfAttention, h: torch.Tensor, cache: Cache) -> None:
+    """Write this token's key and value to the cache without attending (a skipped but visible token)."""
+    D = h.shape[-1]
+    H = attn.n_heads
+    _, k, v = attn.qkv(h).split(D, dim=-1)
+    cache.k[:, :, cache.n] = k.view(1, H, D // H).to(cache.k.dtype)
+    cache.v[:, :, cache.n] = v.view(1, H, D // H).to(cache.v.dtype)
+    cache.n += 1
+
+
 def expert(experts: models.Experts, h: torch.Tensor, e: int) -> torch.Tensor:
     return F.gelu(h @ experts.w_up[e]) @ experts.w_down[e]
 
@@ -70,6 +80,8 @@ def block_step(block, x: torch.Tensor, cache: Cache) -> tuple[torch.Tensor, int]
     if isinstance(block, models.AdaptiveBlock):
         choice = int(block.router(x).argmax(-1))
         if choice == 0:
+            if block.cfg.skip_keeps_kv:  # still a key and value for later tokens
+                kv_append(block.attn, block.ln1(x), cache)
             return x, 0
         h = x + attention_step(block.attn, block.ln1(x), cache)
         return h + ffn_step(block.branches[choice - 1], block.ln2(h)), choice

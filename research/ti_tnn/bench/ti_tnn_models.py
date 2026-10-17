@@ -88,6 +88,7 @@ class ModelConfig:
     dual_lr: float = 0.01          # adaptive variants: dual-ascent step for the price of compute
     expert_init: str = "legacy"    # "legacy": std D^-1/2 up, H^-1/2 down; "dense": the dense MLP's rule
     router_full_bias: float = 0.0  # adaptive variants: initial compute-router bias toward the full option
+    skip_keeps_kv: bool = False    # adaptive variants: a skipped token still writes its key and value (costs 2D^2)
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
@@ -267,8 +268,10 @@ def branch_mults(cfg: ModelConfig) -> List[int]:
 
 
 def option_costs(cfg: ModelConfig) -> List[float]:
-    """Compute of each option (skip first) as a fraction of a full block: projections 4D^2 plus MLP 2mD^2."""
-    return [0.0] + [(4 + 2 * m) / (4 + 2 * cfg.ffn_mult) for m in branch_mults(cfg)]
+    """Compute of each option (skip first) as a fraction of a full block: projections 4D^2 plus MLP 2mD^2.
+    With skip_keeps_kv, skipping still pays the key and value projections (2D^2)."""
+    full = 4 + 2 * cfg.ffn_mult
+    return [2 / full if cfg.skip_keeps_kv else 0.0] + [(4 + 2 * m) / full for m in branch_mults(cfg)]
 
 
 class AdaptiveBlock(nn.Module):
@@ -293,7 +296,10 @@ class AdaptiveBlock(nn.Module):
         if self.training:  # hard choice forward; every option's value reaches the router backward
             weight = weight + probs - probs.detach()
         run = choice > 0
-        h = x + self.attn(self.ln1(x), key_mask=run)
+        # Without skip_keeps_kv a skipped token is not a key or value here. That eligibility is a hard mask with
+        # no gradient, so the router never learns what a token's visibility is worth to later tokens.
+        # skip_keeps_kv keeps every token visible, so skipping saves only the token's own update.
+        h = x + self.attn(self.ln1(x), key_mask=None if self.cfg.skip_keeps_kv else run)
         hn = self.ln2(h)
         y = x * weight[..., :1]
         aux = torch.zeros((), device=x.device)
@@ -408,7 +414,12 @@ def macs_per_token(cfg: ModelConfig, stats: List[Dict[str, torch.Tensor]], shape
             choice = s["choice"]
             run = choice > 0
             mults = torch.tensor([0] + branch_mults(cfg), device=choice.device)
-            total += float(attention_macs(cfg, run)) + float((2 * D * D * mults[choice]).sum())
+            if cfg.skip_keeps_kv:  # running tokens attend to every earlier token; skipped ones write k and v
+                pos = torch.arange(1, choice.shape[-1] + 1, device=choice.device)
+                total += float((run.long() * (4 * D * D + 2 * D * pos)).sum()) + float((~run).sum()) * 2 * D * D
+            else:
+                total += float(attention_macs(cfg, run))
+            total += float((2 * D * D * mults[choice]).sum())
             total += D * (1 + len(branch_mults(cfg))) * N  # the compute router, for every token
             if cfg.ffn == "ti_tnn_adaptive":
                 total += D * cfg.n_experts * float(run.sum())  # the chosen branch's expert router

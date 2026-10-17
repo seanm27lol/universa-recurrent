@@ -674,3 +674,51 @@ def test_hop_defaults_keep_the_frozen_variant_names():
     fixed = hops.parse_args(["--ffn", "mod", "--target-compute", "0.3", "--expert-init", "dense",
                              "--cap-warmup-frac", "0.5", "--router-full-bias", "3"])
     assert hops.variant_name(fixed) == "mod_c30_initdense_warm50_bias3"
+
+
+
+def test_visible_skip_keeps_a_skipped_token_readable_and_decodes_exactly():
+    torch.manual_seed(8)
+    c = cfg("ti_tnn_adaptive", context=12, n_layers=3, skip_keeps_kv=True)
+    assert models.option_costs(c) == [pytest.approx(2 / 12), 0.5, 1.0]
+    model = models.LanguageModel(c).eval()
+    for block in model.blocks:
+        torch.nn.init.normal_(block.router.weight, std=1.0)
+    idx = torch.randint(0, 50, (1, 12))
+    with torch.no_grad():
+        full, stats = model(idx)
+    logits, _, taken = decode.decode(model, idx)
+    assert torch.allclose(logits, full[0], atol=1e-5) and (taken == 0).any()
+    block = models.AdaptiveBlock(cfg("mod", n_layers=1, skip_keeps_kv=True)).eval()
+    x = torch.randn(1, 6, 16)
+    x[..., 0] = 0.0
+    with torch.no_grad():
+        block.router.weight.zero_()
+        block.router.bias.copy_(torch.tensor([0.0, 1.0]))
+        block.router.weight[0, 0] = 1.0
+        x2 = x.clone()
+        x2[0, 2, 0] = 5.0  # token 2 skips ...
+        y, s = block(x2)
+        x3 = x2.clone()
+        x3[0, 2, 1:] += 1.0  # ... and its content still reaches later tokens
+        y3, _ = block(x3)
+    assert s["choice"][0, 2] == 0 and torch.equal(y[0, 2], x2[0, 2])
+    assert not torch.allclose(y[0, 3:], y3[0, 3:])
+
+
+def test_visible_skip_accounting_charges_keys_and_values():
+    a = cfg("mod", context=8, skip_keeps_kv=True)
+    skip = [{"choice": torch.zeros(2, 8, dtype=torch.long)}] * 2
+    assert models.macs_per_token(a, skip, (2, 8))["non_embedding"] == 2 * (2 * 16 * 16 + 16 * 2)
+
+
+def test_balanced_loss_weights_easy_and_hard_equally():
+    task = hops.Task()
+    b = hops.make_batch(4, task, torch.Generator().manual_seed(0))
+    logits = torch.randn(4, task.length, task.vocab)
+    plain = hops.task_loss(logits, b, False)
+    assert torch.equal(plain, torch.nn.functional.cross_entropy(logits.reshape(-1, task.vocab), b["targets"].reshape(-1), ignore_index=-100))
+    ce = torch.nn.functional.cross_entropy(logits.reshape(-1, task.vocab), b["targets"].reshape(-1), ignore_index=-100, reduction="none")
+    kind = b["kind"].reshape(-1)
+    easy, query = ce[kind == hops.KIND_NAMES.index("easy")].mean(), ce[kind == hops.KIND_NAMES.index("query")].mean()
+    assert torch.allclose(hops.task_loss(logits, b, True), 0.5 * easy + 0.5 * query)
