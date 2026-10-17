@@ -9,7 +9,7 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
-| [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN): models, training, data preparation, summary |
+| [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
 | [`reports/`](reports/) | Reports on the real benchmarks |
 | [`../../tests/test_ti_tnn.py`](../../tests/test_ti_tnn.py) | Tests for every property the claims rely on |
 
@@ -304,6 +304,25 @@ fed another country's Trait-B stalk.
     order failed on the unlogged seed 0.
   - **What it shows.** On real data, the bridge does not earn its compute. Its toy
     result relied on isolation that real text does not provide.
+- **Adaptive compute, 3 GPU seeds, 2026-10-17**
+  ([report](reports/adaptive_compute.md), [frozen protocol](protocols/adaptive_compute.md)).
+  - **Setup.** Each token, at each layer, skips the block or runs it with small or full
+    typed experts, under a cap of 50% or 30% of a full block's compute. It is compared
+    with dense models of several sizes, mixtures of experts, and plain layer skipping
+    (Mixture-of-Depths-style).
+  - **Not validated.** At 30% compute, perplexity is 49.1 against dense's 39.85; at
+    50%, 45.3. The bar was within 2% at half the compute.
+  - **A smaller dense model wins at 50%.** The 4-layer dense model reaches 43.7 with
+    slightly less compute.
+  - **Against plain skipping.** TI-TNN is better at both caps (49.1 against 52.9;
+    45.3 against 46.7), but with 4× the parameters and a different expert
+    initialization.
+  - **Speed.** The latency prediction was untestable: cached decoding didn't match the
+    full pass within the tolerance fixed in advance. Raw, the 30% model ran at 0.87×
+    the dense model's time per token.
+  - **Lookup task.** On the task built to favor adaptive compute, the adaptive models
+    mostly never learned the multi-step lookups, and neither did a full-compute
+    mixture of experts. The 8-layer dense model scored 1.000.
 - **Functorial composition, 5 GPU seeds, 2026-10-16**
   ([report](reports/functorial_composition.md), [frozen brief](protocols/functorial_composition.md)).
   - **Setup.** Trained only on single relations ("capital of France", "size of
