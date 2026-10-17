@@ -4,7 +4,10 @@ Checks every file against manifest.json first (sha256), then prints:
 - the toy benchmarks' held-out results;
 - the real benchmarks, recomputed with research/ti_tnn/bench/summarize.py and checked against the
   bundled summary.json;
-- both composition runs, as exact correct/total counts per path.
+- both composition runs, as exact correct/total counts per path;
+- the adaptive-compute verdict, recomputed with research/ti_tnn/bench/frontier.py from the bundled runs
+  and checked against the bundled frontier.json. Every hash in that file's run manifest must match a
+  bundled run, so the bundle holds exactly the files that were evaluated.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -103,6 +106,46 @@ def composition_tables(bundle: Path = HERE) -> dict:
     return out
 
 
+def adaptive_tables(bundle: Path = HERE) -> dict:
+    """Rebuild the frozen adaptive-compute verdict from the bundle and check it against frontier.json."""
+    sys.path.insert(0, str(BENCH))
+    import frontier  # research/ti_tnn/bench/frontier.py
+    manifest = json.loads((bundle / "manifest.json").read_text())
+    original = {str(bundle / f["path"]): f["original_path"] for f in manifest["files"]}
+    by_original = {f["original_path"]: f["sha256"] for f in manifest["files"]}
+    recorded = json.loads((bundle / "adaptive_compute/frontier.json").read_text())
+    for part in ("hops", "lm"):  # the evaluated files are exactly the bundled ones
+        for row in recorded[part]["manifest"]:
+            if by_original.get(row["path"]) != row["sha256"]:
+                raise ValueError(f"{row['path']}: evaluated file is not the bundled one")
+    sources = {str(bundle / "real_benchmarks/lm"): "316c18f", str(bundle / "adaptive_compute"): "64ecc86"}
+    A, mA = frontier.load([bundle / "adaptive_compute/hops"], "hops", sources)
+    B, mB = frontier.load([bundle / "real_benchmarks/lm", bundle / "adaptive_compute/lm"], "lm", sources)
+    for m in mA + mB:  # judge with the paths the evaluator saw
+        m["path"] = original[str(Path(m["path"]))]
+    out = {}
+    for part, V, man, ref, higher, close, ratio in (("hops", A, mA, "dense", True, 0.02, False),
+                                                   ("lm", B, mB, "dense", False, 0.02, True)):
+        inv = frontier.inventory(V, part, man)
+        P = frontier.planned_only(V, part)
+        pred = frontier.judge(P, ref, higher, close, ratio)
+        if part == "lm":
+            pred["latency"] = frontier.latency_prediction(
+                json.loads((bundle / "adaptive_compute/latency.json").read_text()), man)
+        for k in ("efficiency", "equal_compute", "matched_cap") + (("latency",) if part == "lm" else ()):
+            if pred[k]["holds"] != recorded[part]["predictions"][k]["holds"]:
+                raise ValueError(f"{part} {k}: rebuilt {pred[k]['holds']}, recorded {recorded[part]['predictions'][k]['holds']}")
+        for n, v in P.items():
+            if abs(v["quality"]["mean"] - recorded[part]["variants"][n]["quality"]["mean"]) > 1e-12:
+                raise ValueError(f"{part} {n}: rebuilt quality differs")
+        out[part] = {"complete": inv["complete"], "variants": P,
+                     "predictions": {k: pred[k]["holds"] for k in pred if isinstance(pred[k], dict) and "holds" in pred[k]}}
+    out["lm"]["validated"] = frontier.all_of([out["lm"]["predictions"]["efficiency"], out["lm"]["predictions"]["equal_compute"]])
+    if out["lm"]["validated"] != recorded["lm"]["validated"]:
+        raise ValueError("the rebuilt decision differs from the recorded one")
+    return out
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--json", type=Path, help="also write every table as JSON")
@@ -133,8 +176,17 @@ def main(argv=None):
             c, n = d["two_hop_correct_total"]
             paths = "  ".join(f"{k.split(':')[1]} {a}/{b}" for k, (a, b) in d["correct_total"].items() if k.startswith("two_hop:"))
             print(f"  {v:12s} {c}/{n}   ({paths})")
+    adaptive = adaptive_tables()
+    print("\nAdaptive compute (3 seeds), rebuilt and matching frontier.json")
+    for part, label, fmt in (("lm", "WikiText-103 validation perplexity", ".2f"), ("hops", "lookup hard accuracy", ".3f")):
+        print(f"  {label}; inventory complete = {adaptive[part]['complete']}")
+        for n, v in sorted(adaptive[part]["variants"].items(), key=lambda kv: kv[1]["compute"]["mean"]):
+            print(f"    {n:22s} {v['quality']['mean']:{fmt}}  decoder MACs {v['compute']['mean'] / 1e6:.2f}M")
+        print(f"    predictions: {adaptive[part]['predictions']}")
+    print(f"  efficiency validated (predictions 5 and 6): {adaptive['lm']['validated']}")
     if args.json:
-        args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp}, indent=2, default=list))
+        args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
+                                         "adaptive_compute": adaptive}, indent=2, default=list))
 
 
 if __name__ == "__main__":

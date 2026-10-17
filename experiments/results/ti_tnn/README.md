@@ -9,7 +9,8 @@ python experiments/results/ti_tnn/make_tables.py   # needs PyTorch (summarize.py
 
 The script first checks every file against [`manifest.json`](manifest.json) (sha256). Then it prints
 the toy benchmarks, the WikiText-103 and SCAN tables, and both composition runs as exact correct/total
-counts. It also rebuilds the real-benchmark summary and checks it against the bundled `summary.json`.
+counts. It also rebuilds the real-benchmark summary and the adaptive-compute verdict, and checks them
+against the bundled `summary.json` and `frontier.json`.
 
 ## The policy exception
 
@@ -33,6 +34,7 @@ records the declared source version and command.
 | `real_benchmarks/` | 76 (15 WikiText-103, 60 SCAN, summary) | [brief](../../../research/ti_tnn/protocols/real_benchmarks.md) | [report](../../../research/ti_tnn/reports/real_benchmarks.md) | `316c18f` |
 | `functorial_composition/` | 1 | [brief](../../../research/ti_tnn/protocols/functorial_composition.md) | [report](../../../research/ti_tnn/reports/functorial_composition.md) | `4b56a03` |
 | `functorial_composition_controls/` | 1 | [brief](../../../research/ti_tnn/protocols/functorial_composition_controls.md) | [report](../../../research/ti_tnn/reports/functorial_composition_controls.md) | `c624e42` |
+| `adaptive_compute/` | 59 (36 lookup-task runs, 21 new WikiText-103 runs, `latency.json`, `frontier.json`) | [brief](../../../research/ti_tnn/protocols/adaptive_compute.md) | [report](../../../research/ti_tnn/reports/adaptive_compute.md) | `64ecc86` (training); `d9a8c1f` (evaluation) |
 
 **Source versions.**
 - The run files do not record their source version. The manifest takes it from each protocol's
@@ -40,7 +42,14 @@ records the declared source version and command.
 - The toy rerun preceded its commit by 16 minutes, so the manifest says "the working tree committed
   as", not "ran from".
 
-**Initialization.** Every mixture run in `real_benchmarks/` used the legacy expert initialization
+**Adaptive compute.** The WikiText-103 comparison reuses `dense`, `moe_top1` and `moe_top2` from
+`real_benchmarks/lm/`. `frontier.json` holds the evaluator's output, including its run manifest with every
+evaluated file's hash; `make_tables.py` checks those hashes against this bundle. `latency.json` holds the
+per-window execution checks behind the "untestable" latency verdict. The 12 adaptive checkpoints
+(`model.pt`) are weights and stay out.
+
+**Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
+initialization
 (see the [errata](../../../research/ti_tnn/reports/real_benchmarks.md#errata-and-caveats-added-2026-10-16-after-an-outside-review)).
 
 Experiments still running are added here only after they finish and are reported.

@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 81
+    assert len(manifest["files"]) == 140
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
 
@@ -41,3 +41,13 @@ def test_real_benchmarks_rebuild_the_bundled_summary():
     pytest.importorskip("torch")  # summarize.py imports the model module
     real = tables.real_benchmark_tables()  # raises if the rebuilt summary differs from summary.json
     assert real["lm"]["moe_top2"]["validation_perplexity"]["mean"] == pytest.approx(37.92, abs=0.005)
+
+
+def test_adaptive_compute_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")  # frontier.py imports the model module
+    a = tables.adaptive_tables()  # raises unless every evaluated file is bundled and every verdict matches
+    assert a["lm"]["complete"] and a["hops"]["complete"]
+    assert a["lm"]["validated"] is False
+    assert a["lm"]["predictions"] == {"efficiency": False, "equal_compute": False, "matched_cap": True, "latency": None}
+    assert a["hops"]["predictions"] == {"efficiency": False, "equal_compute": False, "matched_cap": False}
+    assert a["lm"]["variants"]["ti_tnn_adaptive_c30"]["quality"]["mean"] == pytest.approx(49.09, abs=0.005)

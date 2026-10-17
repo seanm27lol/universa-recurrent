@@ -35,6 +35,13 @@
       "report": "research/ti_tnn/reports/functorial_composition_controls.md",
       "source": "c624e42",
       "command": "python research/ti_tnn/composition.py --device cpu --variants functorial ortho_tied ortho_untied shared soft_full soft linear --out runs/titnn_composition_controls"
+    },
+    "adaptive_compute": {
+      "what": "adaptive compute: part A lookup task (36 runs) and part B WikiText-103 (21 new runs; dense, moe_top1 and moe_top2 are reused from real_benchmarks/lm), batch-1 latency, and the evaluator's verdict with its run manifest",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute.md",
+      "report": "research/ti_tnn/reports/adaptive_compute.md",
+      "source": "64ecc86 (training); evaluation by frontier.py and latency.py at d9a8c1f, per the protocol's execution record",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_efficiency.sh; python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json"
     }
   },
   "files": [
@@ -604,6 +611,419 @@
       "original_path": "runs/titnn_composition_controls/20261016T173618/composition.json",
       "sha256": "76bf11e201d88331bb9e35e97e146e9ba08a13a2923d40c129cbaf90a81a3694",
       "bytes": 102081
+    },
+    {
+      "path": "adaptive_compute/frontier.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/frontier.json",
+      "sha256": "314b63cae374015906b3ff6e2e427661b3a5eb70165c6c1e06c7fd4def7ba7bd",
+      "bytes": 92117
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed0-20261016T170037/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed0-20261016T170037/result.json",
+      "sha256": "434331b99415c1179d47b14057c4410f45fc026f95cda25f0b879569379c37e9",
+      "bytes": 4462
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed1-20261016T174949/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed1-20261016T174949/result.json",
+      "sha256": "71bc5abfb864724f5fc6bf3fecd9955a6742ecb0d5f664612355f4654be91a5b",
+      "bytes": 4463
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed2-20261016T183806/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed2-20261016T183806/result.json",
+      "sha256": "25cc1305a8a09e7f4b84a6953e26ee809d9ed1e50bf7dddd8abce1fca8e0afdc",
+      "bytes": 4468
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed0-20261016T165112/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed0-20261016T165112/result.json",
+      "sha256": "08da04af131565c9babaebad02ba4dc6accc51405af4876e245a47e9b5876940",
+      "bytes": 4510
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed1-20261016T173857/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed1-20261016T173857/result.json",
+      "sha256": "3cdb750706cca407784eb9fb462110d3085d32890e22724465fd9daf3de2f1a7",
+      "bytes": 4493
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed2-20261016T182739/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed2-20261016T182739/result.json",
+      "sha256": "765eedee742ad2dc360507ad832025a7667d8c80c9d1f49f10119947d2ed5f0f",
+      "bytes": 4490
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed0-20261016T165323/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed0-20261016T165323/result.json",
+      "sha256": "4827c8594d87821f220a46ac3d621562947302c334fb334d995a49a64cd17ad4",
+      "bytes": 4497
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed1-20261016T174305/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed1-20261016T174305/result.json",
+      "sha256": "0e23b5a1d9b9aaf6a116fcc279b46e535e72a0099f55195d832cd1129fa7c176",
+      "bytes": 4481
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed2-20261016T182923/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed2-20261016T182923/result.json",
+      "sha256": "0b846ee6c60139cb7650b457ac4584c495dbdd23fd70a914988a9f98c5520ac8",
+      "bytes": 4496
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed0-20261016T165510/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed0-20261016T165510/result.json",
+      "sha256": "0789bb0f2976d4d36d5b0edb78318813f4c97917ec638c29622146f40002081e",
+      "bytes": 4515
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed1-20261016T174449/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed1-20261016T174449/result.json",
+      "sha256": "949f121aacbbf9153ee384e4a695079e47325c912c5940c27973932f4b0001db",
+      "bytes": 4465
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed2-20261016T183145/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed2-20261016T183145/result.json",
+      "sha256": "3f557f4db71dcf774acb59a2a0c06e73470bbc93bbfaa415b77b0f9e1c6aeae6",
+      "bytes": 4495
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed0-20261016T165805/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed0-20261016T165805/result.json",
+      "sha256": "a52e36e0078f52225a413f6e89d3d332a99fcc1f90cc766122f0b611c4809372",
+      "bytes": 4510
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed1-20261016T174701/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed1-20261016T174701/result.json",
+      "sha256": "3c833d3ecf09581aded47c42a598f274787b8b1582826bdc22d2cbe78353948e",
+      "bytes": 4508
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed2-20261016T183525/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed2-20261016T183525/result.json",
+      "sha256": "e349260aa3c8efdcd12feb28f12419d7c808e576e62b616612bba376806c1ef2",
+      "bytes": 4496
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed0-20261016T171407/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed0-20261016T171407/result.json",
+      "sha256": "9c9c841d7e35a6f372ff957bb41d5c4e387763048dad5284d129680f360c9839",
+      "bytes": 5124
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed1-20261016T180315/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed1-20261016T180315/result.json",
+      "sha256": "d6b5763e6db924fe0c6acd248abe16d333798be5281c701f4becd991b7968518",
+      "bytes": 5203
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed2-20261016T185206/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed2-20261016T185206/result.json",
+      "sha256": "ea4c055d0d18f007885115914d60d72b04d9dc85513d4267a4737f5112954724",
+      "bytes": 5120
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed0-20261016T171102/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed0-20261016T171102/result.json",
+      "sha256": "2a7bcf2966d11ebf3e64d834778bd921af459594e434c2d932f8ffb8fc0ee941",
+      "bytes": 4928
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed1-20261016T180011/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed1-20261016T180011/result.json",
+      "sha256": "c7b0af916c2912b6c1bb6c1718cbffe8d2f5b0c50e72d11ca5096b0636fa9220",
+      "bytes": 4947
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed2-20261016T184902/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed2-20261016T184902/result.json",
+      "sha256": "04003b94600aa3db76377507221b18193ace2ab66f9f552be331ec7c78471678",
+      "bytes": 4826
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed0-20261016T170757/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed0-20261016T170757/result.json",
+      "sha256": "1f9149ac3b269c2f1646c783fc9a6fbb47920322f6b643f34b20a34eba3d652d",
+      "bytes": 4809
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed1-20261016T175707/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed1-20261016T175707/result.json",
+      "sha256": "9c7cf5470dddaa84e149e3d1181e8e14bb0960294727bbb763ada6007dacde71",
+      "bytes": 4875
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed2-20261016T184557/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed2-20261016T184557/result.json",
+      "sha256": "c9e2fd69b3eef883e0be909db621c3c223e65631950057a6c2d3c8f81d75c755",
+      "bytes": 4848
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed0-20261016T170523/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed0-20261016T170523/result.json",
+      "sha256": "35c4ee824ce5e7fb71afb63a0ff99a7119b96e0ffddd35aea925197847c91d00",
+      "bytes": 4731
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed1-20261016T175433/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed1-20261016T175433/result.json",
+      "sha256": "9a3ea894082605766a006f3616bf424a05bea18d9a343ce9c34cc0ba08c2a64e",
+      "bytes": 4725
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed2-20261016T184252/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed2-20261016T184252/result.json",
+      "sha256": "24914284a678e515b589f76a25dc8cfb2e7e8807fcf74490bb38685922c914d7",
+      "bytes": 4727
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed0-20261016T173731/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed0-20261016T173731/result.json",
+      "sha256": "ad7b450be85b0b3545a2231bd21ef04cee5df5245d072d2f3ca8bc4a15e0b9aa",
+      "bytes": 5275
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed1-20261016T182530/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed1-20261016T182530/result.json",
+      "sha256": "5ddb0e581f14716d2c97303e77e6f9144c0c2d669d8cb2ecc9e1b40849ec27ec",
+      "bytes": 5244
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed2-20261016T191414/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed2-20261016T191414/result.json",
+      "sha256": "223600b78b9ab5dd7ca5697e0582ba1c944cd5b1b6466c93fa37162aa14075c8",
+      "bytes": 5105
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed0-20261016T172953/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed0-20261016T172953/result.json",
+      "sha256": "0059539597ae0a7443c4c66fe1d49015ba7c146b27992ad3d912f11fa971ad35",
+      "bytes": 5082
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed1-20261016T181821/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed1-20261016T181821/result.json",
+      "sha256": "76e1fbf157122c95bf786a31add24ddf3d5fa6dc5275b940f7437039696c3e29",
+      "bytes": 5088
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed2-20261016T190642/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed2-20261016T190642/result.json",
+      "sha256": "61aecccd4ea3b6625cac413149a761bae81535178e6f3bfe87887159b4ee22b5",
+      "bytes": 5090
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed0-20261016T172115/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed0-20261016T172115/result.json",
+      "sha256": "12fba2a27d8b4f22dfc26830802033d1d9aceb6b315234c62de8e4e02619d295",
+      "bytes": 5047
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed1-20261016T181046/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed1-20261016T181046/result.json",
+      "sha256": "42c945535c7ad56e17e653bc2f8101e990f3181ce2d933db57c0bdd8802a3d73",
+      "bytes": 5062
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed2-20261016T185939/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed2-20261016T185939/result.json",
+      "sha256": "eca93f174518b94d49d71fb55431ad7fa116d60868c6216619484993a6da2b59",
+      "bytes": 5075
+    },
+    {
+      "path": "adaptive_compute/latency.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/latency.json",
+      "sha256": "5e54a8592dab6eca4f22fee5709d6e676c1fa7382ee79697e53fd002887ee70a",
+      "bytes": 28149
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed0-20261016T212546/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed0-20261016T212546/result.json",
+      "sha256": "42082d8170350bbcc2e7ce6f87b455631fb3005f596fbb8433926cfe9d125063",
+      "bytes": 19642
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed1-20261017T024803/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed1-20261017T024803/result.json",
+      "sha256": "ea17fbc3d04e34775d6dea87bda02f6f57d2da4f1cf7ea28055901ec2acbcc25",
+      "bytes": 19643
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed2-20261017T080957/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed2-20261017T080957/result.json",
+      "sha256": "cbd3d9a6cdbac40b708cae06ffaf844f76b33d8673aeacd611c2e63a4368d72e",
+      "bytes": 19644
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed0-20261016T203419/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed0-20261016T203419/result.json",
+      "sha256": "d56b0f0fe44d948afe58f0ab90bda460e0b184162ef4032bf0c9548a01fdd70f",
+      "bytes": 19672
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed1-20261017T022111/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed1-20261017T022111/result.json",
+      "sha256": "9cda0728c47561d2502238f1bd3435ca17dc57301c9f9209507514463635c6a0",
+      "bytes": 19678
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed2-20261017T074307/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed2-20261017T074307/result.json",
+      "sha256": "1315322bc43e70d18ee526b48d870577c6857e5f983f0ec1b57887691a4a347c",
+      "bytes": 19676
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed0-20261016T194505/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed0-20261016T194505/result.json",
+      "sha256": "19ef723c40d9520b4d0d58c51ca940bcd188ff598061bd4876e1f45b91b7c5b5",
+      "bytes": 19661
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed1-20261017T014823/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed1-20261017T014823/result.json",
+      "sha256": "bb4c4f84e854b5a0686905fdf360d814fb172afc977dbe3af318e210e985cddc",
+      "bytes": 19666
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed2-20261017T071014/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed2-20261017T071014/result.json",
+      "sha256": "4bb2af090673c2403c237db7d8cc086fb08e98013cde333b9e754744869523a7",
+      "bytes": 19660
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed0-20261016T224907/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed0-20261016T224907/result.json",
+      "sha256": "5a6c032f9745ac703b3848587d41f9d80cda7cfe343ea07e994c5abdc64cdf9d",
+      "bytes": 24440
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed1-20261017T041101/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed1-20261017T041101/result.json",
+      "sha256": "5dc5c45e3985277eac89cc475036fd06b721274a9cb3aead1e524e0de2c0fe25",
+      "bytes": 24487
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed2-20261017T093321/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed2-20261017T093321/result.json",
+      "sha256": "90cefb22c353e80884d3f3c4107c525b02e3f669fbea865fb14fddcdcb614acd",
+      "bytes": 24457
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed0-20261016T220741/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed0-20261016T220741/result.json",
+      "sha256": "6974928e5cf5e391f90e8b580dcdd07ce2229d060228084baef6191ad82862d5",
+      "bytes": 24453
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed1-20261017T032931/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed1-20261017T032931/result.json",
+      "sha256": "e9d0d9e394a4ab1162279182b602975c28e5a1e433dfa47dae85ba92857bc9f9",
+      "bytes": 24440
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed2-20261017T085155/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed2-20261017T085155/result.json",
+      "sha256": "2d6f479995f7cf8cf1a1c6697a198fcf946ee6f9f6144f63f97df020e7b0ef3e",
+      "bytes": 24496
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed0-20261017T011725/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed0-20261017T011725/result.json",
+      "sha256": "56ec011bf998ee84a3561d3c31314373f8b66dfa3e0f6727d43abaf34e53728a",
+      "bytes": 25035
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed1-20261017T063919/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed1-20261017T063919/result.json",
+      "sha256": "c7899bd93e5bb90414b88f4f22be0e33393a3b9d241738117c339edfc9b429e9",
+      "bytes": 24991
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed2-20261017T120145/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed2-20261017T120145/result.json",
+      "sha256": "e7f0ae3b0506bf6d0e87ed99df7e67581033f3998e439f1062ea547344ef7865",
+      "bytes": 25041
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed0-20261017T000313/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed0-20261017T000313/result.json",
+      "sha256": "32ebbe53df6203218fdb30537f14194cd0ce7ce885747fa72d2dee847a569acd",
+      "bytes": 24991
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed1-20261017T052511/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed1-20261017T052511/result.json",
+      "sha256": "2b3a26c3b356e7619592ce6507c4b7983070725f753a238dc4a29cc93ce5f77d",
+      "bytes": 24966
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed2-20261017T104736/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed2-20261017T104736/result.json",
+      "sha256": "69a7c6b0e01d80ed9aa7558785177166bae20c01ebd5c681868757ab711e5058",
+      "bytes": 24953
     }
   ]
 }
