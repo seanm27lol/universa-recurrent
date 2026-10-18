@@ -845,3 +845,18 @@ def test_shared_control_evaluation():
     assert hops.variant_name(hops.parse_args(["--ffn", "ti_tnn_adaptive", "--target-compute", "0.3", "--expert-init", "dense",
         "--shared-expert-frac", "0.5", "--cap-warmup-frac", "0.5", "--skip-keeps-kv", "--experts", "1", "--steps", "18000"])) == frontier.SC_ONE_EXPERT_TI
     assert hops.variant_name(hops.parse_args(["--ffn", "dense", "--ffn-mult", "2", "--steps", "18000"])) == frontier.SC_SHARED_ONLY
+
+
+
+def test_active_max_counts_every_expert_a_token_can_run():
+    for ffn, k in (("moe_top1", 1), ("moe_top2", 2), ("ti_tnn", 2)):
+        for shared in (0.0, 0.5):
+            if ffn == "ti_tnn" and shared:
+                continue  # the bridge model has no shared-expert option
+            model = models.LanguageModel(cfg(ffn, shared_expert_frac=shared))
+            c = models.parameter_counts(model)
+            bank = next(m for m in model.modules() if isinstance(m, models.Experts))
+            per_expert = (bank.w_up.numel() + bank.w_down.numel()) // bank.w_up.shape[0]
+            assert c["active_max"] == c["active_top1"] + (k - 1) * per_expert * model.cfg.n_layers
+    dense = models.parameter_counts(models.LanguageModel(cfg("dense")))
+    assert dense["active_max"] == dense["active_top1"] == dense["total"]

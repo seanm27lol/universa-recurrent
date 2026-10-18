@@ -378,24 +378,30 @@ class LanguageModel(nn.Module):
 
 
 def parameter_counts(model: LanguageModel) -> Dict[str, int]:
-    """Total parameters, and parameters a single token uses at most (embeddings counted once; one expert
-    per routed bank; in an adaptive block, only its widest branch). Counted from the instantiated modules,
+    """Total parameters, and parameters a single token uses (embeddings counted once): `active_top1` with one
+    expert per routed bank (the historical field), `active_max` with as many as the layer can run (top-k, or
+    the bridge's two); in an adaptive block, only its widest branch. Counted from the instantiated modules,
     so shared experts and narrowed expert banks are handled (before 2026-10-18 the count assumed
     full-width banks and went negative for shared-expert models)."""
     cfg = model.cfg
     total = sum(p.numel() for p in model.parameters())
     per_expert = 2 * cfg.ffn_mult * cfg.d_model ** 2
-    unused, skip = 0, set()
+    unused, unused_k, skip = 0, 0, set()
     for block in model.blocks:
         if isinstance(block, AdaptiveBlock) and len(block.branches) > 1:
             for small in block.branches[:-1]:  # a token runs at most one branch: count only the widest
-                unused += sum(p.numel() for p in small.parameters())
+                n = sum(p.numel() for p in small.parameters())
+                unused, unused_k = unused + n, unused_k + n
                 skip |= {id(m) for m in small.modules()}
     for m in model.modules():
-        if isinstance(m, Experts) and id(m) not in skip:
-            E = m.w_up.shape[0]
-            unused += (m.w_up.numel() + m.w_down.numel()) * (E - 1) // E
-    return {"total": total, "active_top1": total - unused, "expert_or_mlp_params_per_layer": per_expert}
+        k = m.top_k if isinstance(m, MoEFFN) else 2 if isinstance(m, TITNNFFN) else None
+        if k is not None and id(m.experts) not in skip:  # experts a token can run: k (top-k, or the bridge's two)
+            E = m.experts.w_up.shape[0]
+            bank = m.experts.w_up.numel() + m.experts.w_down.numel()
+            unused += bank * (E - 1) // E
+            unused_k += bank * (E - min(k, E)) // E
+    return {"total": total, "active_top1": total - unused, "active_max": total - unused_k,
+            "expert_or_mlp_params_per_layer": per_expert}
 
 
 def ffn_macs_per_token(cfg: ModelConfig, expert_runs: float) -> float:
