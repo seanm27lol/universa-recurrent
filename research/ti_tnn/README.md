@@ -320,6 +320,9 @@ fed another country's Trait-B stalk.
   - **Speed.** The latency prediction was untestable: cached decoding didn't match the
     full pass within the tolerance fixed in advance. Raw, the 30% model ran at 0.87×
     the dense model's time per token.
+  - **Initialization control** ([report](reports/adaptive_compute_init_control.md)). With experts
+    initialized like the dense MLP, TI-TNN at 30% improves from 49.09 to 46.94 and its lead over
+    plain skipping grows. The top-1 mixture's edge over dense disappears (39.99 against 39.85).
   - **Lookup task.** On the task built to favor adaptive compute, the adaptive models
     mostly never learned the multi-step lookups, and neither did a full-compute
     mixture of experts. The 8-layer dense model scored 1.000.

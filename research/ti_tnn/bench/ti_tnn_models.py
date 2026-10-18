@@ -45,6 +45,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 FFN_KINDS = ("dense", "moe_top1", "moe_top2", "ti_tnn", "mod", "ti_tnn_adaptive")
+EXPERT_INITS = ("legacy", "dense")
 ADAPTIVE_KINDS = ("mod", "ti_tnn_adaptive")
 
 
@@ -85,6 +86,7 @@ class ModelConfig:
     small_mult: int = 1            # ti_tnn_adaptive: hidden width of the small experts
     target_compute: float = 1.0    # adaptive variants: cap on mean block compute, as a fraction of a full block
     dual_lr: float = 0.01          # adaptive variants: dual-ascent step for the price of compute
+    expert_init: str = "legacy"    # "legacy": std D^-1/2 up, H^-1/2 down; "dense": the dense MLP's rule
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
@@ -93,6 +95,8 @@ class ModelConfig:
             raise ValueError("d_model must be divisible by n_heads")
         if not 0 < self.target_compute <= 1:
             raise ValueError("target_compute must be in (0, 1]")
+        if self.expert_init not in EXPERT_INITS:
+            raise ValueError(f"expert_init must be one of {EXPERT_INITS}")
 
 
 class CausalSelfAttention(nn.Module):
@@ -139,8 +143,12 @@ class Experts(nn.Module):
         H = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
         self.w_up = nn.Parameter(torch.empty(E, D, H))
         self.w_down = nn.Parameter(torch.empty(E, H, D))
-        nn.init.normal_(self.w_up, std=D ** -0.5)
-        nn.init.normal_(self.w_down, std=H ** -0.5)
+        # "dense" matches the dense MLP: std 0.02 up, and the GPT-2 residual scaling 0.02 / sqrt(2L) down.
+        # Only the standard deviation changes at the same sampling sites, so the same random numbers are
+        # drawn and every other parameter is identical.
+        up, down = (D ** -0.5, H ** -0.5) if cfg.expert_init == "legacy" else (0.02, 0.02 / math.sqrt(2 * cfg.n_layers))
+        nn.init.normal_(self.w_up, std=up)
+        nn.init.normal_(self.w_down, std=down)
 
     def forward(self, x: torch.Tensor, tokens: torch.Tensor, experts: torch.Tensor) -> torch.Tensor:
         """x [N, D]; (tokens[i], experts[i]) pairs to run. Returns one output row per pair."""
@@ -408,3 +416,32 @@ def full_block_macs_per_token(cfg: ModelConfig, T: int) -> float:
     """Non-embedding MACs per token of the same-size dense model over a T-token window (the reference)."""
     D = cfg.d_model
     return cfg.n_layers * (4 * D * D + D * (T + 1) + 2 * cfg.ffn_mult * D * D)
+
+
+@torch.no_grad()
+def init_diagnostics(model: LanguageModel, idx: torch.Tensor) -> Dict[str, list]:
+    """The residual stream's RMS after each block, and each layer's routing probabilities, for one batch.
+
+    Matching raw weight scales does not match activation scales: a top-1 mixture also multiplies its
+    expert's output by the router probability. This records what the initialization actually produced.
+    """
+    was_training = model.training
+    model.eval()
+    rms, routing, hooks = [], [], []
+    for block in model.blocks:
+        hooks.append(block.register_forward_hook(lambda m, i, o: rms.append(float(o[0].float().pow(2).mean().sqrt()))))
+        router = getattr(block, "router", None) or getattr(getattr(block, "ffn", None), "router", None)
+        if router is not None:
+            hooks.append(router.register_forward_hook(
+                lambda m, i, o: routing.append(F.softmax(o.float(), -1).reshape(-1, o.shape[-1]))))
+    try:
+        model(idx)
+    finally:
+        for h in hooks:
+            h.remove()
+        model.train(was_training)
+    out = {"residual_rms_by_layer": rms}
+    if routing:
+        out["mean_top_probability_by_layer"] = [float(p.max(-1).values.mean()) for p in routing]
+        out["mean_router_probabilities_by_layer"] = [p.mean(0).tolist() for p in routing]
+    return out

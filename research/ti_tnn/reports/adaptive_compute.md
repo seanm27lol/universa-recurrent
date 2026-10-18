@@ -6,6 +6,11 @@ part B result or latency existed; the protocol's execution record lists them. **
 [`experiments/results/ti_tnn/adaptive_compute/`](../../../experiments/results/ti_tnn/) (every run, the
 latency diagnostics and the evaluator's output with its run manifest).
 
+> **Initialization control (2026-10-18).** Retrained with dense-matched experts
+> ([report](adaptive_compute_init_control.md)), `ti_tnn_adaptive_c30` improves from 49.09 to 46.94, and
+> its lead over plain skipping grows (prediction 7 survives the initialization confound). The top-1
+> mixture's edge over dense disappears (39.99 against 39.85). The verdict below is unchanged.
+>
 > **Part A validity (2026-10-17, found during follow-up diagnostics).** The 8-layer dense reference's
 > perfect score on part A is not robust; it was partly selected. Before freezing, the task design was
 > changed until the dense model learned it on seeds 0, 1 and 2, and the frozen runs then used those same
