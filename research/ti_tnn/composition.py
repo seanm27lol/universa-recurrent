@@ -25,6 +25,17 @@ with the target kind's embeddings (tied). They differ only in the relation maps:
     transformer  a 2-layer transformer reading the relation tokens and the entity, scoring with the
                  same tied embeddings; it never sees two relation tokens in training
 
+Controls added after the first run (protocols/functorial_composition_controls.md). The functorial
+model's scores are E_s Q_s^T Q_t E_t^T = Z_s Z_t^T with Z_k = E_k Q_k^T, so it has the capacity of
+typed embeddings in one shared space; and the relations here form a tree, so flatness adds nothing
+beyond tying the inverse pair. These variants separate the pieces:
+
+    shared        identity maps: typed embeddings in one shared space, scored by dot product
+    ortho_tied    an orthogonal map per relation, with country_of = capital_of^T
+    ortho_untied  an independent orthogonal map per relation (the inverse pair not tied)
+    soft_full     unconstrained maps, softly penalized toward every equation the exact model obeys:
+                  each map orthogonal, and country_of the inverse of capital_of
+
     python research/ti_tnn/composition.py --device cuda    # 5 seeds, every variant
 """
 from __future__ import annotations
@@ -64,7 +75,8 @@ FAMILIES = {
     "three_hop": [["country_of", "capital_of", "size_of"], ["capital_of", "country_of", "region_of"]],
     "round_trip": [["capital_of", "country_of"], ["country_of", "capital_of"]],
 }
-VARIANTS = ("functorial", "soft", "linear", "mlp", "transformer")
+VARIANTS = ("functorial", "soft", "linear", "mlp", "transformer", "shared", "ortho_tied", "ortho_untied", "soft_full")
+MATRIX_KINDS = ("functorial", "soft", "linear", "shared", "ortho_tied", "ortho_untied", "soft_full")
 
 
 class World:
@@ -111,8 +123,13 @@ class StepModel(nn.Module):
         self.embed = nn.ParameterDict({k: nn.Parameter(torch.randn(n, d) / d ** 0.5) for k, n in world.sizes.items()})
         if kind == "functorial":
             self.bridge = _cdl().FunctorialSheafBridge(len(KINDS), d, d)  # only its transports are used
-        elif kind in ("soft", "linear"):
+        elif kind in ("soft", "linear", "soft_full"):
             self.maps = nn.ParameterDict({r: nn.Parameter(torch.eye(d) + 0.02 * torch.randn(d, d)) for r in RELATIONS})
+        elif kind in ("ortho_tied", "ortho_untied"):
+            free = [r for r in RELATIONS if not (kind == "ortho_tied" and r == "country_of")]
+            self.ortho = nn.ModuleDict({r: _cdl().orthogonal_square(d) for r in free})
+        elif kind == "shared":
+            self.register_buffer("eye", torch.eye(d))
         elif kind == "mlp":
             self.nets = nn.ModuleDict({r: nn.Sequential(nn.Linear(d, 2 * d), nn.GELU(), nn.Linear(2 * d, d)) for r in RELATIONS})
         else:
@@ -123,6 +140,12 @@ class StepModel(nn.Module):
         if self.kind == "functorial":
             src, dst = RELATIONS[r]
             return self.bridge.transport(KINDS.index(src), KINDS.index(dst))
+        if self.kind == "shared":
+            return self.eye
+        if self.kind == "ortho_tied" and r == "country_of":
+            return self.ortho["capital_of"].weight.T
+        if self.kind in ("ortho_tied", "ortho_untied"):
+            return self.ortho[r].weight
         return self.maps[r]
 
     def step(self, r: str, h: torch.Tensor) -> torch.Tensor:
@@ -138,12 +161,15 @@ class StepModel(nn.Module):
         return h @ self.embed[dst].T  # logits over the target kind's entities
 
     def penalty(self) -> torch.Tensor:
-        if self.kind != "soft":
+        if self.kind not in ("soft", "soft_full"):
             return torch.zeros((), device=next(self.parameters()).device)
         d = self.maps["capital_of"].shape[0]
         a, b = self.maps["capital_of"], self.maps["country_of"]
         eye = torch.eye(d, device=a.device, dtype=a.dtype)
-        return ((b @ a - eye).pow(2).sum() + (a @ b - eye).pow(2).sum()) / d
+        inverse = ((b @ a - eye).pow(2).sum() + (a @ b - eye).pow(2).sum()) / d
+        if self.kind == "soft":
+            return inverse
+        return inverse + sum((m.T @ m - eye).pow(2).sum() for m in self.maps.values()) / d
 
 
 class TransformerModel(nn.Module):
@@ -204,9 +230,12 @@ def evaluate(model: nn.Module, world: World) -> Dict:
             per_path["/".join(path)] = {"accuracy": (pred == y).float().mean().item(), "n": len(x),
                                         "chance": 1.0 / world.sizes[RELATIONS[path[-1]][1]]}
         out[family] = {"accuracy": statistics.fmean(p["accuracy"] for p in per_path.values()), "paths": per_path}
-    if getattr(model, "kind", None) in ("functorial", "soft", "linear"):
+    if getattr(model, "kind", None) in MATRIX_KINDS:
         a, b = model.relation_matrix("capital_of"), model.relation_matrix("country_of")
-        out["inverse_defect"] = ((b @ a - torch.eye(a.shape[0], device=a.device)).norm() / a.shape[0] ** 0.5).item()
+        eye = torch.eye(a.shape[0], device=a.device)
+        out["inverse_defect"] = ((b @ a - eye).norm() / a.shape[0] ** 0.5).item()
+        out["orthogonality_defect"] = max(((m.T @ m - eye).norm() / a.shape[0] ** 0.5).item()
+                                          for m in (model.relation_matrix(r) for r in RELATIONS))
     return out
 
 

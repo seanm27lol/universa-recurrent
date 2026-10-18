@@ -1,0 +1,4188 @@
+{
+  "world": {
+    "sizes": {
+      "country": 256,
+      "capital": 256,
+      "region": 8,
+      "size": 6
+    }
+  },
+  "families": {
+    "one_hop": [
+      [
+        "capital_of"
+      ],
+      [
+        "country_of"
+      ],
+      [
+        "region_of"
+      ],
+      [
+        "size_of"
+      ]
+    ],
+    "two_hop": [
+      [
+        "capital_of",
+        "size_of"
+      ],
+      [
+        "country_of",
+        "region_of"
+      ]
+    ],
+    "three_hop": [
+      [
+        "country_of",
+        "capital_of",
+        "size_of"
+      ],
+      [
+        "capital_of",
+        "country_of",
+        "region_of"
+      ]
+    ],
+    "round_trip": [
+      [
+        "capital_of",
+        "country_of"
+      ],
+      [
+        "country_of",
+        "capital_of"
+      ]
+    ]
+  },
+  "runs": [
+    {
+      "seed": 0,
+      "variant": "functorial",
+      "train_seconds": 76.1,
+      "final_loss": 4.806162905879319e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 1.878895886875398e-06,
+        "orthogonality_defect": 1.878895886875398e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7423667907714844,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016760262660682201,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00047330354573205113,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021631283743772656,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011984487355221063,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.354292756645009e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.806162905879319e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "ortho_tied",
+      "train_seconds": 25.8,
+      "final_loss": 4.7075875045266e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 1.9423609955993015e-06,
+        "orthogonality_defect": 1.9423609955993015e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7458930015563965,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.001652832143008709,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00046560043119825423,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002124773891409859,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011760204506572336,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.209157047327608e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.7075875045266e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "ortho_untied",
+      "train_seconds": 26.8,
+      "final_loss": 4.439567419467494e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.41269388794898987,
+        "orthogonality_defect": 4.5339261305343825e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7461905479431152,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0015658998163416982,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00044103609980084,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020099633547943085,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011111266212537885,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 6.804204895161092e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.439567419467494e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "shared",
+      "train_seconds": 4.2,
+      "final_loss": 5.124605377204716e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0,
+        "orthogonality_defect": 0.0
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7471554279327393,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0017507165903225541,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00049714429769665,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002283145731780678,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00012698817590717226,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.818473386578262e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 5.124605377204716e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "soft_full",
+      "train_seconds": 7.0,
+      "final_loss": 4.555464329314418e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0009365284349769354,
+        "orthogonality_defect": 0.0009473190293647349
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.747093439102173,
+          "penalty": 0.4656665325164795
+        },
+        {
+          "step": 500,
+          "loss": 0.001677077729254961,
+          "penalty": 2.5148754502879456e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00045966601464897394,
+          "penalty": 2.5439983346586814e-06
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020760501502081752,
+          "penalty": 1.2450686881493311e-06
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011430191807448864,
+          "penalty": 2.1314558580343146e-06
+        },
+        {
+          "step": 2500,
+          "loss": 6.987766391830519e-05,
+          "penalty": 3.376808990651625e-06
+        },
+        {
+          "step": 2999,
+          "loss": 4.555464329314418e-05,
+          "penalty": 5.008927018934628e-06
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "soft",
+      "train_seconds": 5.5,
+      "final_loss": 1.9975233954028226e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.84765625,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.8515625,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.84375,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.005843775812536478,
+        "orthogonality_defect": 9.62487506866455
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.747093439102173,
+          "penalty": 0.14912143349647522
+        },
+        {
+          "step": 500,
+          "loss": 0.0005116056418046355,
+          "penalty": 1.694071397650987e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00015659640484955162,
+          "penalty": 5.217931902734563e-05
+        },
+        {
+          "step": 1500,
+          "loss": 7.630268373759463e-05,
+          "penalty": 7.206809823401272e-05
+        },
+        {
+          "step": 2000,
+          "loss": 4.483815064304508e-05,
+          "penalty": 5.758748739026487e-05
+        },
+        {
+          "step": 2500,
+          "loss": 2.9052907848381437e-05,
+          "penalty": 4.423100108397193e-05
+        },
+        {
+          "step": 2999,
+          "loss": 1.9975233954028226e-05,
+          "penalty": 6.64440231048502e-05
+        }
+      ]
+    },
+    {
+      "seed": 0,
+      "variant": "linear",
+      "train_seconds": 4.8,
+      "final_loss": 8.673352567711845e-06,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.94140625,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.92578125,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.95703125,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 0.990234375,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 0.98828125,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 0.9921875,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 9.433796882629395,
+        "orthogonality_defect": 10.722938537597656
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.747093439102173,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0002558604464866221,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 8.16861356724985e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 3.8416685129050165e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 2.14993651752593e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 1.325154607911827e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 8.673352567711845e-06,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "functorial",
+      "train_seconds": 75.5,
+      "final_loss": 4.809841266251169e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 2.5801466563279973e-06,
+        "orthogonality_defect": 2.587504923212691e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7451179027557373,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016806046478450298,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00047443091170862317,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021673586161341518,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00012002445146208629,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.362230826402083e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.809841266251169e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "ortho_tied",
+      "train_seconds": 25.0,
+      "final_loss": 4.726923361886293e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 2.3166651317296783e-06,
+        "orthogonality_defect": 2.3166651317296783e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.745232582092285,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016627891454845667,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00046837725676596165,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021366772125475109,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011819221981568262,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.242112042149529e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.726923361886293e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "ortho_untied",
+      "train_seconds": 26.5,
+      "final_loss": 4.455469024833292e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.3598944842815399,
+        "orthogonality_defect": 5.206183686823351e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7461817264556885,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0015758813824504614,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004435269511304796,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020200437575113028,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011158769484609365,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 6.831886275904253e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.455469024833292e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "shared",
+      "train_seconds": 5.1,
+      "final_loss": 5.099704867461696e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0,
+        "orthogonality_defect": 0.0
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7414278984069824,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0017426260747015476,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004947580164298415,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00022719895059708506,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00012636740575544536,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.780781015753746e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 5.099704867461696e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "soft_full",
+      "train_seconds": 8.2,
+      "final_loss": 4.436492235981859e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0009670532890595496,
+        "orthogonality_defect": 0.0009846535976976156
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7404396533966064,
+          "penalty": 0.46396851539611816
+        },
+        {
+          "step": 500,
+          "loss": 0.0016678734682500362,
+          "penalty": 2.4717395717743784e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00045404216507449746,
+          "penalty": 2.4453099740640027e-06
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002040558902081102,
+          "penalty": 1.393851448483474e-06
+        },
+        {
+          "step": 2000,
+          "loss": 0.0001119158769142814,
+          "penalty": 1.6802343907329487e-06
+        },
+        {
+          "step": 2500,
+          "loss": 6.82155805407092e-05,
+          "penalty": 3.5668058444571216e-06
+        },
+        {
+          "step": 2999,
+          "loss": 4.436492235981859e-05,
+          "penalty": 5.3540011322184e-06
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "soft",
+      "train_seconds": 6.5,
+      "final_loss": 1.9800269001279958e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.873046875,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.87109375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.875,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.004895701073110104,
+        "orthogonality_defect": 9.437849998474121
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7404396533966064,
+          "penalty": 0.14513945579528809
+        },
+        {
+          "step": 500,
+          "loss": 0.0005074824439361691,
+          "penalty": 2.1182971977395937e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00015523952606599778,
+          "penalty": 5.14914354425855e-05
+        },
+        {
+          "step": 1500,
+          "loss": 7.564853149233386e-05,
+          "penalty": 4.3677398934960365e-05
+        },
+        {
+          "step": 2000,
+          "loss": 4.443073339643888e-05,
+          "penalty": 8.454278577119112e-05
+        },
+        {
+          "step": 2500,
+          "loss": 2.8786447728634812e-05,
+          "penalty": 5.551651702262461e-05
+        },
+        {
+          "step": 2999,
+          "loss": 1.9800269001279958e-05,
+          "penalty": 4.738875577459112e-05
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "variant": "linear",
+      "train_seconds": 5.6,
+      "final_loss": 8.77067486726446e-06,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.943359375,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.93359375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.953125,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 0.99609375,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 0.9921875,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 9.248332023620605,
+        "orthogonality_defect": 10.524628639221191
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7404396533966064,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0002586886112112552,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 8.261094626504928e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 3.8860904169268906e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 2.1744408513768576e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 1.3400669558905065e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 8.77067486726446e-06,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "functorial",
+      "train_seconds": 74.7,
+      "final_loss": 4.788795195054263e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 1.8394252947473433e-06,
+        "orthogonality_defect": 1.8716057184064994e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7445178031921387,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016716518439352512,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00047195132356137037,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021566911891568452,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011946899758186191,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.328927313210443e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.788795195054263e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "ortho_tied",
+      "train_seconds": 21.9,
+      "final_loss": 4.777166395797394e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 2.202989435318159e-06,
+        "orthogonality_defect": 2.204086285928497e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7460591793060303,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016707605682313442,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004714397364296019,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021534993720706552,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011923931015189737,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.313750393223017e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.777166395797394e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "ortho_untied",
+      "train_seconds": 23.3,
+      "final_loss": 4.404412175063044e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.3681776225566864,
+        "orthogonality_defect": 4.372516741568688e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7440741062164307,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0015663548838347197,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004405043146107346,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020041289099026471,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011059188545914367,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 6.760517862858251e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.404412175063044e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "shared",
+      "train_seconds": 5.0,
+      "final_loss": 5.106352546135895e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0,
+        "orthogonality_defect": 0.0
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7421905994415283,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0017450586892664433,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.000495242653414607,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00022744009038433433,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.0001265087048523128,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.790651579853147e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 5.106352546135895e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "soft_full",
+      "train_seconds": 7.7,
+      "final_loss": 4.6044042392168194e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0009794365614652634,
+        "orthogonality_defect": 0.0009790334152057767
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7416908740997314,
+          "penalty": 0.46382424235343933
+        },
+        {
+          "step": 500,
+          "loss": 0.0016905870288610458,
+          "penalty": 2.606457746878732e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.000463991891592741,
+          "penalty": 2.6608481675793882e-06
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002096996468026191,
+          "penalty": 1.4004160675540334e-06
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011550314229680225,
+          "penalty": 2.146693987015169e-06
+        },
+        {
+          "step": 2500,
+          "loss": 7.062117219902575e-05,
+          "penalty": 3.0539351882907795e-06
+        },
+        {
+          "step": 2999,
+          "loss": 4.6044042392168194e-05,
+          "penalty": 5.339895324141253e-06
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "soft",
+      "train_seconds": 6.5,
+      "final_loss": 1.987884570553433e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.892578125,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.86328125,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.921875,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.005833918694406748,
+        "orthogonality_defect": 9.89906120300293
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7416908740997314,
+          "penalty": 0.14456406235694885
+        },
+        {
+          "step": 500,
+          "loss": 0.0005080499686300755,
+          "penalty": 2.650770329637453e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00015549817180726677,
+          "penalty": 7.42099218768999e-05
+        },
+        {
+          "step": 1500,
+          "loss": 7.587280560983345e-05,
+          "penalty": 6.967228546272963e-05
+        },
+        {
+          "step": 2000,
+          "loss": 4.4583564886124805e-05,
+          "penalty": 7.319819997064769e-05
+        },
+        {
+          "step": 2500,
+          "loss": 2.8891097826999612e-05,
+          "penalty": 3.45668158843182e-05
+        },
+        {
+          "step": 2999,
+          "loss": 1.987884570553433e-05,
+          "penalty": 6.28651469014585e-05
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "variant": "linear",
+      "train_seconds": 5.8,
+      "final_loss": 8.687089575687423e-06,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.94921875,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.93359375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.96484375,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 0.99609375,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 0.99609375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 0.99609375,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 9.387042999267578,
+        "orthogonality_defect": 11.002177238464355
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7416908740997314,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0002580345899332315,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 8.198316936613992e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 3.851807559840381e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 2.1548372387769632e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 1.3275175660965033e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 8.687089575687423e-06,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "functorial",
+      "train_seconds": 74.1,
+      "final_loss": 4.810342215932906e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 1.9591516320360824e-06,
+        "orthogonality_defect": 1.979656190087553e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.744448184967041,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016784393228590488,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004739775322377682,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002165923942811787,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011998627451248467,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.361032476183027e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.810342215932906e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "ortho_tied",
+      "train_seconds": 26.2,
+      "final_loss": 4.7121393436100334e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 2.2903052467881935e-06,
+        "orthogonality_defect": 2.299274228789727e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7468373775482178,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016593020409345627,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00046714593190699816,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.0002130613720510155,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011783534137066454,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.222125714179128e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.7121393436100334e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "ortho_untied",
+      "train_seconds": 26.5,
+      "final_loss": 4.3932945118285716e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.3856177031993866,
+        "orthogonality_defect": 4.4550092752615456e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7435314655303955,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0015540309250354767,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004370815586298704,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00019907276146113873,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00010999389633070678,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 6.73492977512069e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.3932945118285716e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "shared",
+      "train_seconds": 4.2,
+      "final_loss": 5.148061609361321e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0,
+        "orthogonality_defect": 0.0
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7488765716552734,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0017491456819698215,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004975685151293874,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00022879989410284907,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.0001273795060114935,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.84856456448324e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 5.148061609361321e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "soft_full",
+      "train_seconds": 6.7,
+      "final_loss": 4.577850631903857e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0009275868651457131,
+        "orthogonality_defect": 0.0009275705670006573
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7484302520751953,
+          "penalty": 0.46296679973602295
+        },
+        {
+          "step": 500,
+          "loss": 0.0016813172260299325,
+          "penalty": 2.5653896955191158e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00046134472358971834,
+          "penalty": 2.633632902870886e-06
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020847018458880484,
+          "penalty": 1.3814602652928443e-06
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011481111141620204,
+          "penalty": 1.9356757547939196e-06
+        },
+        {
+          "step": 2500,
+          "loss": 7.020815246505663e-05,
+          "penalty": 3.2245393413177226e-06
+        },
+        {
+          "step": 2999,
+          "loss": 4.577850631903857e-05,
+          "penalty": 5.089557816972956e-06
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "soft",
+      "train_seconds": 5.7,
+      "final_loss": 1.988734038604889e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.90234375,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.91015625,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.89453125,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.005163755267858505,
+        "orthogonality_defect": 9.650174140930176
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7484302520751953,
+          "penalty": 0.148987278342247
+        },
+        {
+          "step": 500,
+          "loss": 0.0005096540553495288,
+          "penalty": 9.000389582070056e-06
+        },
+        {
+          "step": 1000,
+          "loss": 0.00015612364222761244,
+          "penalty": 5.568934648181312e-05
+        },
+        {
+          "step": 1500,
+          "loss": 7.607803127029911e-05,
+          "penalty": 4.5149958168622106e-05
+        },
+        {
+          "step": 2000,
+          "loss": 4.4670177885564044e-05,
+          "penalty": 6.473262328654528e-05
+        },
+        {
+          "step": 2500,
+          "loss": 2.8929398467880674e-05,
+          "penalty": 8.097945101326331e-05
+        },
+        {
+          "step": 2999,
+          "loss": 1.988734038604889e-05,
+          "penalty": 5.5162570788525045e-05
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "variant": "linear",
+      "train_seconds": 5.1,
+      "final_loss": 8.705948857823387e-06,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.921875,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.94140625,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.90234375,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 0.998046875,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 0.99609375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 9.434174537658691,
+        "orthogonality_defect": 10.661556243896484
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7484302520751953,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0002568839699961245,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 8.198432624340057e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 3.855567774735391e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 2.158224924642127e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 1.3293803931446746e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 8.705948857823387e-06,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "functorial",
+      "train_seconds": 76.4,
+      "final_loss": 4.7792262193979695e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 1.8299381281394744e-06,
+        "orthogonality_defect": 1.8299381281394744e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7452542781829834,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0016769941430538893,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00047257367987185717,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021568949159700423,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011937763338210061,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.318637653952464e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.7792262193979695e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "ortho_tied",
+      "train_seconds": 26.4,
+      "final_loss": 4.72876345156692e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 2.2201872980076587e-06,
+        "orthogonality_defect": 2.2258025182964047e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.741492986679077,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.001660042442381382,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.00046772370114922523,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00021344890410546213,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011811287549789995,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.240274862851948e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.72876345156692e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "ortho_untied",
+      "train_seconds": 27.4,
+      "final_loss": 4.395424184622243e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.3551822602748871,
+        "orthogonality_defect": 4.367743713373784e-06
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.743969202041626,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0015684301033616066,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004400723264552653,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020004395628347993,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011036079376935959,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 6.748002488166094e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 4.395424184622243e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "shared",
+      "train_seconds": 4.1,
+      "final_loss": 5.130577119416557e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.998046875,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.99609375,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0,
+        "orthogonality_defect": 0.0
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.7467949390411377,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0017537581734359264,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 0.0004977860953658819,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 0.00022857513977214694,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 0.00012713915202766657,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 7.827820081729442e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 5.130577119416557e-05,
+          "penalty": 0.0
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "soft_full",
+      "train_seconds": 7.2,
+      "final_loss": 4.5133587263990194e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.0009463057504035532,
+        "orthogonality_defect": 0.0009498584549874067
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.746762752532959,
+          "penalty": 0.4630128741264343
+        },
+        {
+          "step": 500,
+          "loss": 0.0016776362899690866,
+          "penalty": 2.5426441425224766e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.00045838826918043196,
+          "penalty": 2.4958999347290955e-06
+        },
+        {
+          "step": 1500,
+          "loss": 0.00020661794405896217,
+          "penalty": 1.2389302810333902e-06
+        },
+        {
+          "step": 2000,
+          "loss": 0.00011357349285390228,
+          "penalty": 2.0657039385696407e-06
+        },
+        {
+          "step": 2500,
+          "loss": 6.933567055966705e-05,
+          "penalty": 3.140375838484033e-06
+        },
+        {
+          "step": 2999,
+          "loss": 4.5133587263990194e-05,
+          "penalty": 5.2368959586601704e-06
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "soft",
+      "train_seconds": 6.8,
+      "final_loss": 1.9773027815972455e-05,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.880859375,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.87109375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.890625,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 0.005280742421746254,
+        "orthogonality_defect": 9.459249496459961
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.746762752532959,
+          "penalty": 0.1455545723438263
+        },
+        {
+          "step": 500,
+          "loss": 0.0005062606069259346,
+          "penalty": 1.373442319163587e-05
+        },
+        {
+          "step": 1000,
+          "loss": 0.0001548281725263223,
+          "penalty": 3.60902413376607e-05
+        },
+        {
+          "step": 1500,
+          "loss": 7.552478928118944e-05,
+          "penalty": 6.786292942706496e-05
+        },
+        {
+          "step": 2000,
+          "loss": 4.434238144312985e-05,
+          "penalty": 5.253234849078581e-05
+        },
+        {
+          "step": 2500,
+          "loss": 2.876677353924606e-05,
+          "penalty": 4.9198388296645135e-05
+        },
+        {
+          "step": 2999,
+          "loss": 1.9773027815972455e-05,
+          "penalty": 5.2338800742290914e-05
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "variant": "linear",
+      "train_seconds": 5.0,
+      "final_loss": 8.716891898075119e-06,
+      "eval": {
+        "one_hop": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "region_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.125
+            },
+            "size_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.16666666666666666
+            }
+          }
+        },
+        "two_hop": {
+          "accuracy": 0.943359375,
+          "paths": {
+            "capital_of/size_of": {
+              "accuracy": 0.9453125,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "country_of/region_of": {
+              "accuracy": 0.94140625,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "three_hop": {
+          "accuracy": 0.994140625,
+          "paths": {
+            "country_of/capital_of/size_of": {
+              "accuracy": 0.99609375,
+              "n": 256,
+              "chance": 0.16666666666666666
+            },
+            "capital_of/country_of/region_of": {
+              "accuracy": 0.9921875,
+              "n": 256,
+              "chance": 0.125
+            }
+          }
+        },
+        "round_trip": {
+          "accuracy": 1.0,
+          "paths": {
+            "capital_of/country_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            },
+            "country_of/capital_of": {
+              "accuracy": 1.0,
+              "n": 256,
+              "chance": 0.00390625
+            }
+          }
+        },
+        "inverse_defect": 9.401562690734863,
+        "orthogonality_defect": 10.530159950256348
+      },
+      "log": [
+        {
+          "step": 0,
+          "loss": 3.746762752532959,
+          "penalty": 0.0
+        },
+        {
+          "step": 500,
+          "loss": 0.0002573951205704361,
+          "penalty": 0.0
+        },
+        {
+          "step": 1000,
+          "loss": 8.213474211515859e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 1500,
+          "loss": 3.862785524688661e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2000,
+          "loss": 2.1615889636450447e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2500,
+          "loss": 1.3318016499397345e-05,
+          "penalty": 0.0
+        },
+        {
+          "step": 2999,
+          "loss": 8.716891898075119e-06,
+          "penalty": 0.0
+        }
+      ]
+    }
+  ],
+  "config": {
+    "variants": [
+      "functorial",
+      "ortho_tied",
+      "ortho_untied",
+      "shared",
+      "soft_full",
+      "soft",
+      "linear"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "countries": 256,
+    "regions": 8,
+    "sizes": 6,
+    "d": 128,
+    "steps": 3000,
+    "lr": 0.003,
+    "soft_weight": 1.0,
+    "log_every": 500,
+    "device": "cpu",
+    "out": "runs/titnn_composition_controls"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39"
+  }
+}

@@ -213,3 +213,9 @@ runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json`.
 **Evaluate with:** `python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm
 runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source
 runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json`.
+- **2026-10-17: which latency rule was applied (clarification, after the results).** The 23:30 entry
+  says every measured model's execution must be valid. The evaluator (`frontier.py` at `d9a8c1f`) checks
+  only the rows prediction 8 compares: the three `ti_tnn_adaptive_c30` seeds and the dense reference.
+  That is the rule that was applied. It does not change the verdict: the c30 rows themselves failed the
+  check, so prediction 8 is untestable either way. Other rows (for example the random-initialization
+  mixtures, whose logits differ by up to 110% of their scale) are reported, not judged.
