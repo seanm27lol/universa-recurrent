@@ -1,0 +1,2841 @@
+{
+  "config": {
+    "worlds": [
+      200,
+      201,
+      202
+    ],
+    "inits": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "families": [
+      "specialists",
+      "shared_dense",
+      "moe",
+      "endpoint",
+      "answer_only"
+    ],
+    "d": 32,
+    "hidden": 64,
+    "steps": 1500,
+    "lr": 0.01,
+    "threads": 4,
+    "out": "runs/titnn_typed"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39"
+  },
+  "runs": [
+    {
+      "family": "specialists",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 0,
+      "train_loss": 6.974302323214943e-06,
+      "train_seconds": 2.24,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 0,
+      "train_loss": 8.187749699573033e-06,
+      "train_seconds": 0.85,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 0,
+      "train_loss": 0.011201513931155205,
+      "train_seconds": 2.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 0,
+      "train_loss": 0.15165820717811584,
+      "train_seconds": 1.48,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.4583333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 0.6666666666666666,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.38095238095238093,
+        "largest_city_of": 0.6190476190476191,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 197,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 260,
+          "total": 302
+        },
+        "length3": {
+          "correct": 124,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1574,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 0,
+      "train_loss": 1.0335583283449523e-05,
+      "train_seconds": 0.99,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 12,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 213,
+          "total": 302
+        },
+        "length3": {
+          "correct": 57,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 1,
+      "train_loss": 6.977308657951653e-06,
+      "train_seconds": 1.82,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 1,
+      "train_loss": 8.05557101557497e-06,
+      "train_seconds": 0.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 1,
+      "train_loss": 0.012034524232149124,
+      "train_seconds": 2.85,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 1,
+      "train_loss": 0.15163972973823547,
+      "train_seconds": 1.51,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5416666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5833333333333334,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.47619047619047616,
+        "largest_city_of": 0.5238095238095238,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 197,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 260,
+          "total": 302
+        },
+        "length3": {
+          "correct": 124,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1574,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 1,
+      "train_loss": 9.725739801069722e-06,
+      "train_seconds": 0.86,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 21,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 213,
+          "total": 302
+        },
+        "length3": {
+          "correct": 58,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 2,
+      "train_loss": 7.0090727604110725e-06,
+      "train_seconds": 1.7,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 2,
+      "train_loss": 8.004963092389517e-06,
+      "train_seconds": 0.82,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 2,
+      "train_loss": 0.012605831027030945,
+      "train_seconds": 2.83,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 2,
+      "train_loss": 0.15165621042251587,
+      "train_seconds": 1.5,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.625,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.42857142857142855,
+        "largest_city_of": 0.5714285714285714,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 197,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 260,
+          "total": 302
+        },
+        "length3": {
+          "correct": 124,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1574,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 2,
+      "train_loss": 9.733688784763217e-06,
+      "train_seconds": 0.97,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 24,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 212,
+          "total": 302
+        },
+        "length3": {
+          "correct": 58,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 3,
+      "train_loss": 6.921916792634875e-06,
+      "train_seconds": 1.81,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 3,
+      "train_loss": 7.288881079148268e-06,
+      "train_seconds": 0.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 3,
+      "train_loss": 0.014031711965799332,
+      "train_seconds": 2.65,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 3,
+      "train_loss": 0.15165181457996368,
+      "train_seconds": 1.44,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.625,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.42857142857142855,
+        "largest_city_of": 0.5714285714285714,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 197,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 260,
+          "total": 302
+        },
+        "length3": {
+          "correct": 124,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1574,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 3,
+      "train_loss": 9.364771358377766e-06,
+      "train_seconds": 0.98,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 20,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 216,
+          "total": 302
+        },
+        "length3": {
+          "correct": 61,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 4,
+      "train_loss": 6.9472430368477944e-06,
+      "train_seconds": 1.7,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 4,
+      "train_loss": 7.3173223427147605e-06,
+      "train_seconds": 0.85,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 4,
+      "train_loss": 0.014585401862859726,
+      "train_seconds": 2.58,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 4,
+      "train_loss": 0.15163595974445343,
+      "train_seconds": 1.29,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.6666666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.4583333333333333,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.6190476190476191,
+        "largest_city_of": 0.38095238095238093,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 197,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 260,
+          "total": 302
+        },
+        "length3": {
+          "correct": 124,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1574,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 200,
+      "world_identity": "74ec965ea39df892e358fb808c342a902b82c86517cefbfb5a21a1d2386e3fe0",
+      "init": 4,
+      "train_loss": 9.92065452010138e-06,
+      "train_seconds": 0.97,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 21
+      },
+      "paths": {
+        "length2": {
+          "correct": 15,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 213,
+          "total": 302
+        },
+        "length3": {
+          "correct": 58,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 0,
+      "train_loss": 6.892804776725825e-06,
+      "train_seconds": 1.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 0,
+      "train_loss": 7.921309588709846e-06,
+      "train_seconds": 0.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 0,
+      "train_loss": 0.011518404819071293,
+      "train_seconds": 2.86,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 0,
+      "train_loss": 0.1372072845697403,
+      "train_seconds": 1.46,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.625,
+        "country_of": 1.0,
+        "largest_city_of": 0.5833333333333334,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.5263157894736842,
+        "largest_city_of": 0.47368421052631576,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 203,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 264,
+          "total": 302
+        },
+        "length3": {
+          "correct": 125,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1605,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 0,
+      "train_loss": 1.0388705959485378e-05,
+      "train_seconds": 0.97,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 18,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 218,
+          "total": 302
+        },
+        "length3": {
+          "correct": 60,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 1,
+      "train_loss": 7.124707735783886e-06,
+      "train_seconds": 1.82,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 1,
+      "train_loss": 7.515166089433478e-06,
+      "train_seconds": 0.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 1,
+      "train_loss": 0.01169157586991787,
+      "train_seconds": 2.67,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 1,
+      "train_loss": 0.1372029185295105,
+      "train_seconds": 1.4,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.625,
+        "country_of": 1.0,
+        "largest_city_of": 0.5833333333333334,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.5263157894736842,
+        "largest_city_of": 0.47368421052631576,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 203,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 264,
+          "total": 302
+        },
+        "length3": {
+          "correct": 125,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1605,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 1,
+      "train_loss": 1.005115427687997e-05,
+      "train_seconds": 1.01,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 16,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 218,
+          "total": 302
+        },
+        "length3": {
+          "correct": 59,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 2,
+      "train_loss": 6.844859399279812e-06,
+      "train_seconds": 1.66,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 2,
+      "train_loss": 7.779093721183017e-06,
+      "train_seconds": 0.77,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 2,
+      "train_loss": 0.01349608600139618,
+      "train_seconds": 2.61,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 2,
+      "train_loss": 0.1372508704662323,
+      "train_seconds": 1.31,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.4583333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 0.75,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.3157894736842105,
+        "largest_city_of": 0.6842105263157895,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 203,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 264,
+          "total": 302
+        },
+        "length3": {
+          "correct": 125,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1605,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 2,
+      "train_loss": 1.0041953828476835e-05,
+      "train_seconds": 1.02,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 23,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 218,
+          "total": 302
+        },
+        "length3": {
+          "correct": 52,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 3,
+      "train_loss": 6.808920261391904e-06,
+      "train_seconds": 1.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 3,
+      "train_loss": 7.244545031426242e-06,
+      "train_seconds": 0.9,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 3,
+      "train_loss": 0.0104129109531641,
+      "train_seconds": 2.74,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 3,
+      "train_loss": 0.13720811903476715,
+      "train_seconds": 1.49,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.7083333333333334,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.3684210526315789,
+        "largest_city_of": 0.631578947368421,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 203,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 264,
+          "total": 302
+        },
+        "length3": {
+          "correct": 125,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1605,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 3,
+      "train_loss": 9.354315807286184e-06,
+      "train_seconds": 0.96,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 11,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 216,
+          "total": 302
+        },
+        "length3": {
+          "correct": 58,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 4,
+      "train_loss": 7.110602837201441e-06,
+      "train_seconds": 1.72,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 4,
+      "train_loss": 7.5143279900657944e-06,
+      "train_seconds": 0.78,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "moe",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 4,
+      "train_loss": 0.0129390899091959,
+      "train_seconds": 2.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 285,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 302,
+          "total": 302
+        },
+        "length3": {
+          "correct": 206,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 2046,
+        "total": 2046
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 4,
+      "train_loss": 0.13722078502178192,
+      "train_seconds": 1.48,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.7083333333333334,
+        "country_of": 1.0,
+        "largest_city_of": 0.5,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.631578947368421,
+        "largest_city_of": 0.3684210526315789,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 203,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 264,
+          "total": 302
+        },
+        "length3": {
+          "correct": 125,
+          "total": 206
+        }
+      },
+      "intermediate": {
+        "correct": 1605,
+        "total": 2046
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 201,
+      "world_identity": "b86485c58601858d6fafca82e74711a92eb3451e2e1ab5f4efb4dce582858e57",
+      "init": 4,
+      "train_loss": 1.0144432962988503e-05,
+      "train_seconds": 0.99,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 19
+      },
+      "paths": {
+        "length2": {
+          "correct": 19,
+          "total": 285
+        },
+        "round_trip": {
+          "correct": 218,
+          "total": 302
+        },
+        "length3": {
+          "correct": 57,
+          "total": 206
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 0,
+      "train_loss": 7.105802069418132e-06,
+      "train_seconds": 1.86,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 0,
+      "train_loss": 8.06754451332381e-06,
+      "train_seconds": 0.94,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "moe",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 0,
+      "train_loss": 0.013133000582456589,
+      "train_seconds": 3.13,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 0,
+      "train_loss": 0.15889029204845428,
+      "train_seconds": 1.55,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5416666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5416666666666666,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.5,
+        "largest_city_of": 0.5,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 220,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 286,
+          "total": 330
+        },
+        "length3": {
+          "correct": 133,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 1744,
+        "total": 2298
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 0,
+      "train_loss": 1.1099867151642684e-05,
+      "train_seconds": 1.06,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 20,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 238,
+          "total": 330
+        },
+        "length3": {
+          "correct": 53,
+          "total": 234
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 1,
+      "train_loss": 7.323036697926e-06,
+      "train_seconds": 1.89,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 1,
+      "train_loss": 8.208259714592714e-06,
+      "train_seconds": 0.9,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "moe",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 1,
+      "train_loss": 0.014410627074539661,
+      "train_seconds": 3.0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 1,
+      "train_loss": 0.15895861387252808,
+      "train_seconds": 1.47,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5833333333333334,
+        "country_of": 1.0,
+        "largest_city_of": 0.5,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.5454545454545454,
+        "largest_city_of": 0.45454545454545453,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 220,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 286,
+          "total": 330
+        },
+        "length3": {
+          "correct": 133,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 1744,
+        "total": 2298
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 1,
+      "train_loss": 1.0601163921819534e-05,
+      "train_seconds": 0.99,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 19,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 239,
+          "total": 330
+        },
+        "length3": {
+          "correct": 59,
+          "total": 234
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 2,
+      "train_loss": 7.314898539334536e-06,
+      "train_seconds": 1.82,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 2,
+      "train_loss": 8.2695032688207e-06,
+      "train_seconds": 0.89,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "moe",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 2,
+      "train_loss": 0.010920710861682892,
+      "train_seconds": 3.0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 2,
+      "train_loss": 0.15886054933071136,
+      "train_seconds": 1.48,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.6666666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.4166666666666667,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.6363636363636364,
+        "largest_city_of": 0.36363636363636365,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 220,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 286,
+          "total": 330
+        },
+        "length3": {
+          "correct": 133,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 1744,
+        "total": 2298
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 2,
+      "train_loss": 1.0839582500921097e-05,
+      "train_seconds": 0.99,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 23,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 239,
+          "total": 330
+        },
+        "length3": {
+          "correct": 56,
+          "total": 234
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 3,
+      "train_loss": 7.227926289488096e-06,
+      "train_seconds": 1.83,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 3,
+      "train_loss": 7.757313142064959e-06,
+      "train_seconds": 0.86,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "moe",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 3,
+      "train_loss": 0.010375039651989937,
+      "train_seconds": 2.92,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 3,
+      "train_loss": 0.15889300405979156,
+      "train_seconds": 1.51,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.625,
+        "country_of": 1.0,
+        "largest_city_of": 0.4583333333333333,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.5909090909090909,
+        "largest_city_of": 0.4090909090909091,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 220,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 286,
+          "total": 330
+        },
+        "length3": {
+          "correct": 133,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 1744,
+        "total": 2298
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 3,
+      "train_loss": 1.0328847565688193e-05,
+      "train_seconds": 0.98,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 23,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 240,
+          "total": 330
+        },
+        "length3": {
+          "correct": 52,
+          "total": 234
+        }
+      },
+      "intermediate": null
+    },
+    {
+      "family": "specialists",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 4,
+      "train_loss": 7.151146746764425e-06,
+      "train_seconds": 1.82,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "shared_dense",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 4,
+      "train_loss": 7.55389282858232e-06,
+      "train_seconds": 0.87,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "moe",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 4,
+      "train_loss": 0.01044740155339241,
+      "train_seconds": 3.03,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 327,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 330,
+          "total": 330
+        },
+        "length3": {
+          "correct": 234,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 2298,
+        "total": 2298
+      }
+    },
+    {
+      "family": "endpoint",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 4,
+      "train_loss": 0.15888221561908722,
+      "train_seconds": 1.54,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.5833333333333334,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 0.45454545454545453,
+        "largest_city_of": 0.5454545454545454,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 220,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 286,
+          "total": 330
+        },
+        "length3": {
+          "correct": 133,
+          "total": 234
+        }
+      },
+      "intermediate": {
+        "correct": 1744,
+        "total": 2298
+      }
+    },
+    {
+      "family": "answer_only",
+      "world": 202,
+      "world_identity": "b140f84af4aebbec1d1dc26219558a1967807a3ce6c68049012cc9373ec7289b",
+      "init": 4,
+      "train_loss": 9.791503543965518e-06,
+      "train_seconds": 1.04,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "same_endpoint": {
+        "capital_of": 1.0,
+        "largest_city_of": 1.0,
+        "countries": 22
+      },
+      "paths": {
+        "length2": {
+          "correct": 15,
+          "total": 327
+        },
+        "round_trip": {
+          "correct": 241,
+          "total": 330
+        },
+        "length3": {
+          "correct": 55,
+          "total": 234
+        }
+      },
+      "intermediate": null
+    }
+  ]
+}

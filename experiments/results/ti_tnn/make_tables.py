@@ -8,6 +8,8 @@ Checks every file against manifest.json first (sha256), then prints:
 - the adaptive-compute verdict, recomputed with research/ti_tnn/bench/frontier.py from the bundled runs
   and checked against the bundled frontier.json. Every hash in that file's run manifest must match a
   bundled run, so the bundle holds exactly the files that were evaluated.
+- the learned-relation-operator verdict, recomputed with research/ti_tnn/bench/typed_composition.py
+  and checked against the bundled verdict.json.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -205,6 +207,20 @@ def learning_tables(bundle: Path = HERE) -> dict:
             "part_a_v2": rebuilt, "part_a_v2_variants": V}
 
 
+def typed_composition_tables(bundle: Path = HERE) -> dict:
+    """Learned relation operators (integration plan PR 4): the frozen verdict rebuilt with
+    typed_composition.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import typed_composition  # research/ti_tnn/bench/typed_composition.py
+    root = bundle / "typed_composition/20261018T145735"
+    result = json.loads((root / "typed_composition.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = typed_composition.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt typed-composition verdict differs from verdict.json")
+    return rebuilt
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -289,9 +305,17 @@ def main(argv=None):
         print(f"  {n:32s} comparison keeps its sign = {f['holds']}; perplexity "
               + ", ".join(f"{k} {v:.2f}" for k, v in f["mean_perplexity"].items()))
     print(f"  latency: {control['latency']['holds']}")
+    typed = typed_composition_tables()
+    print("\nLearned relation operators (3 worlds x 5 inits), rebuilt and matching verdict.json; lowest value per family")
+    for n, f in typed["families"].items():
+        paths = "  ".join(f"{k} {v:.3f}" for k, v in sorted(f["paths_min"].items()))
+        print(f"  {n:13s} atomic {f['atomic_min']:.3f}  same-endpoint {f['same_endpoint_min']:.3f}  {paths}  "
+              f"competent runs {f['competent_runs']}/15")
+    print(f"  predictions: {typed['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
-                                         "adaptive_compute": adaptive}, indent=2, default=list))
+                                         "adaptive_compute": adaptive, "typed_composition": typed},
+                                        indent=2, default=list))
 
 
 if __name__ == "__main__":

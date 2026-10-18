@@ -9,10 +9,10 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment (with a status map) |
 | [`integration_plan.md`](integration_plan.md) | Proposed: typed execution with relation-specific specialists, calibrated routing and explicit intermediate values, in nine ordered PRs |
-| [`integrated/`](integrated/) | The integration's code, as it lands (planned) |
+| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4) |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
 | [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
-| [`reports/`](reports/) | Reports on the real benchmarks |
+| [`reports/`](reports/) | Reports on the real benchmarks and the integration experiments |
 | [`../../tests/test_ti_tnn.py`](../../tests/test_ti_tnn.py) | Tests for every property the claims rely on |
 
 **Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
@@ -384,6 +384,19 @@ fed another country's Trait-B stalk.
     held; "tying the inverse pair matters" failed.
   - **Predictions.** Five of six held. The margin over unconstrained linear was
     0.06, short of the predicted 0.10.
+- **Learned relation operators in the typed runtime, 75 CPU runs, 2026-10-18**
+  ([report](reports/typed_composition_v1.md), [frozen protocol](protocols/typed_composition_v1.md)).
+  - **Setup.** Small networks, trained on single facts only, replace the lookup tables of the typed
+    runtime ([`integrated/`](integrated/)). There are 3 fresh worlds and 5 initializations, and the
+    correct program is supplied.
+  - **Learning the facts.** Separate specialists, one shared network and a flat mixture of experts
+    learned every fact in every run.
+  - **Keeping same-endpoint relations apart.** The shared networks never confused `capital_of` with
+    `largest_city_of` (both Country → City). An endpoint-only control, which gives the two one
+    operator, scored 0.32–0.50 on the weaker of the two.
+  - **Chains are not a finding.** Chains through the runtime scored 1.000, which is guaranteed once
+    the facts are learned, because modules pass discrete values. That checks the plumbing, not learned
+    composition. A model with no typed interface answered 4–8% of 2-step chains.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.
