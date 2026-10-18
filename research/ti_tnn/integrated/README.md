@@ -1,6 +1,6 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: plan PRs 3–5 implemented and tested.**
+**Status: plan PRs 3–6 implemented and tested.**
 - **PR 3:** typed contracts, a finite world, an immutable module registry, a type-checked runtime and an
   independent reference evaluator.
 - **PR 4:** small learned networks as relation operators (`modules.py`), confirmed against a frozen
@@ -10,6 +10,10 @@
   against a frozen protocol ([report](../reports/semantic_interventions_v1.md)). On learned modules
   every recorded value was the value consumed. Four deliberately faulty module sets were each caught by
   their own check.
+- **PR 6:** a learned interpreter (Jev) that turns controlled-language questions into programs, with
+  calibrated abstention ([report](../reports/typed_routing_v1.md)). In distribution it answered 98–100%
+  of supported questions with 2 errors in 13,714. Under a phrasing shift, 59 of the 100 answers it
+  accepted were wrong.
 
 The [integration plan](../integration_plan.md) says what lands next.
 
@@ -76,7 +80,8 @@ cases:
 | [`verification.py`](verification.py) | 5 (done) | The independent checker: schema, types, semantics against the facts, integrity, provenance (never authenticated) |
 | [`interventions.py`](interventions.py) | 5 (done) | Replay, a probe on module calls, disabled unexecuted computation, interventions, law defects |
 | [`faults.py`](faults.py) | 5 (done) | Deliberately faulty module sets, used only as positive controls |
-| `routing.py`, `calibration.py` | 6 | Jev as a planning policy; versioned calibration and abstention |
+| [`routing.py`](routing.py) | 6 (done) | Jev as a planning policy: an interpreter proposes a program (or refuses), and the runtime type-checks and runs it |
+| [`calibration.py`](calibration.py) | 6 (done) | Versioned Platt calibration of answer correctness, a Clopper–Pearson-bounded threshold, binding to interpreter, registry and policy |
 | `recurrence.py`, `costs.py` | 7 | Bounded recurrence with explicit continuation state; complete cost accounting |
 | `updates.py`, `update_checks.py` | 8 | Offline module replacement with fixed external checks and rollback |
 
