@@ -7,7 +7,9 @@
 | `README.md` (this file) | The idea, the mathematics, results so far, limits |
 | [`ti_tnn_train.py`](ti_tnn_train.py) | The model and the toy benchmarks (routing, compositional isolation, unsupervised routing) |
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
-| [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment |
+| [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment (with a status map) |
+| [`integration_plan.md`](integration_plan.md) | Proposed: typed execution with relation-specific specialists, calibrated routing and explicit intermediate values, in nine ordered PRs |
+| [`integrated/`](integrated/) | The integration's code, as it lands (planned) |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
 | [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
 | [`reports/`](reports/) | Reports on the real benchmarks |
@@ -16,6 +18,13 @@
 **Status: exploratory toy benchmarks. Implemented, tested locally, and run on a GPU
 with 3 seeds (2026-10-14; re-run 2026-10-15 after an isolation fix).** Nothing here is
 a result about language models.
+
+**Two kinds of routing live here.** The original TI-TNN (`ti_tnn_train.py`) routes each *question* to
+a typed branch. The adaptive-compute work (`bench/`) routes each *token at each layer* to skip, small
+or full compute. They are different decisions, evaluated separately. **CDL** (categorical deep
+learning) is the language the [integration plan](integration_plan.md) uses to declare which operations
+exist and how they compose. Declaring a law is not evidence that it helps; see the guarantee boundaries
+in that plan.
 
 ## A concrete example
 
@@ -391,6 +400,8 @@ helps when the traits are not cleanly isolated by construction.
   the bridge.
 - Compute is multiply-accumulates counted from layer shapes, not measured speed.
 - The depth/score head is not trained by any loss.
+- Categorical laws and router calibration do not detect semantic changes: two counterexamples are kept in
+  `tests/test_ti_tnn_guarantee_boundaries.py`.
 
 ## Primary sources
 

@@ -172,3 +172,17 @@ TI-TNN result stays reproducible.
   linear-relation (span) parameterization would lift that. That's future work.
 - The exact laws are guaranteed structure, not evidence of better performance or
   interpretability. Only the experiment above can show either.
+
+## Status map (appended 2026-10-18; the proposal above is unchanged)
+
+| Part | Status | Where |
+|---|---|---|
+| Structural laws (composition, identity, inverse pairs; flat transports) | Implemented and tested, exact by parameterization | `cdl.py`, `tests/test_ti_tnn.py` |
+| Starting every orthogonal map in SO(d), so naturality is reachable | Implemented and tested | `cdl.orthogonal_square`, `tests/test_ti_tnn.py` |
+| Standalone transport experiments: composition of relations learned one at a time | Run (5 seeds each), on a separate embedding model, not the routed system | [first run](reports/functorial_composition.md), [controls](reports/functorial_composition_controls.md) |
+| The integrated experiment proposed above (categorical branches inside the routed model, with naturality) | Not run | Superseded by the [integration plan](integration_plan.md), which keeps semantic relations and frame changes separate |
+
+The controls found that the standalone result is explained by a shared embedding space with
+geometry-preserving maps; the category laws showed no measured advantage there. They do not count as
+evidence for the integrated system.
+
