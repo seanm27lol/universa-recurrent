@@ -1,0 +1,78 @@
+{
+  "complete": true,
+  "families": {
+    "specialists": {
+      "cases": 150,
+      "activated": 150,
+      "gate_pass": {
+        "identity_and_scope": 150,
+        "types_and_laws": 150,
+        "intended_behavior": 150,
+        "unaffected_behavior": 150,
+        "trace_and_continuation": 150,
+        "calibration_and_resources": 150
+      },
+      "unaffected_changed_from_base_total": 0,
+      "cases_with_unaffected_changes": 0,
+      "intended_wrong_total": 0,
+      "atomic_changed_by_relation": {},
+      "base_competent": 15
+    },
+    "shared_same_data": {
+      "cases": 150,
+      "activated": 0,
+      "gate_pass": {
+        "identity_and_scope": 0,
+        "types_and_laws": 134,
+        "intended_behavior": 150,
+        "unaffected_behavior": 77,
+        "trace_and_continuation": 150,
+        "calibration_and_resources": 0
+      },
+      "unaffected_changed_from_base_total": 4387,
+      "cases_with_unaffected_changes": 73,
+      "intended_wrong_total": 0,
+      "atomic_changed_by_relation": {
+        "largest_city_of": 373
+      },
+      "base_competent": 15
+    },
+    "shared_rehearsal": {
+      "cases": 150,
+      "activated": 0,
+      "gate_pass": {
+        "identity_and_scope": 0,
+        "types_and_laws": 150,
+        "intended_behavior": 150,
+        "unaffected_behavior": 150,
+        "trace_and_continuation": 150,
+        "calibration_and_resources": 0
+      },
+      "unaffected_changed_from_base_total": 0,
+      "cases_with_unaffected_changes": 0,
+      "intended_wrong_total": 0,
+      "atomic_changed_by_relation": {},
+      "base_competent": 15
+    }
+  },
+  "predictions": {
+    "1_specialist_updates_pass_and_activate": true,
+    "2_every_activation_rolls_back_exactly": true,
+    "3_shared_updates_fail_write_locality": true,
+    "4_faulty_candidates_caught_as_designed": true,
+    "5_same_data_shared_interferes_through_capital_of": true,
+    "6_rehearsal_keeps_behavior": true
+  },
+  "faulty_suite": {
+    "valid_table_edit": 3,
+    "lawful_answer_flip": 3,
+    "broken_inverse": 3,
+    "ill_typed": 3,
+    "out_of_scope_state_edit": 3,
+    "stale_revision": 3,
+    "failed_rollback": 3,
+    "unauthorized": 3,
+    "stale_identity": 3,
+    "shared_storage": 3
+  }
+}
