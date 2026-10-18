@@ -1,0 +1,104 @@
+{
+  "complete": true,
+  "systems": {
+    "recurrent": {
+      "module_applications_mean": [
+        8.018181818181818,
+        9.668549905838042
+      ],
+      "macs_mean": [
+        62352.48484848485,
+        77419.81167608286
+      ],
+      "wall_us_median": [
+        369.667,
+        513.6125
+      ],
+      "module_us_median": [
+        307.4425,
+        419.1475
+      ],
+      "bookkeeping_share_median": [
+        0.18723235442014413,
+        0.2050655741650469
+      ],
+      "state_bytes_mean": [
+        3454.4313131313133,
+        4003.3126177024483
+      ],
+      "accuracy": [
+        1.0,
+        1.0
+      ]
+    },
+    "fixed_depth": {
+      "module_applications_mean": [
+        32.0,
+        32.0
+      ],
+      "macs_mean": [
+        240640.0,
+        252928.0
+      ],
+      "wall_us_median": [
+        1674.254,
+        1711.9985
+      ],
+      "module_us_median": [
+        1634.278,
+        1669.79
+      ],
+      "bookkeeping_share_median": [
+        0.02351035505493343,
+        0.02462230630716583
+      ],
+      "state_bytes_mean": [
+        10903.456565656566,
+        10935.411487758945
+      ],
+      "accuracy": [
+        1.0,
+        1.0
+      ]
+    },
+    "recurrent_table": {
+      "module_applications_mean": [
+        8.018181818181818,
+        9.668549905838042
+      ],
+      "macs_mean": [
+        0.0,
+        0.0
+      ],
+      "wall_us_median": [
+        58.481,
+        89.385
+      ],
+      "module_us_median": [
+        2.304,
+        3.04
+      ],
+      "bookkeeping_share_median": [
+        0.9658459573583775,
+        0.969887023101456
+      ],
+      "state_bytes_mean": [
+        3454.4313131313133,
+        4003.3126177024483
+      ],
+      "accuracy": [
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "predictions": {
+    "1_atomic_competence": true,
+    "2_recurrent_matches_reference": true,
+    "3_fixed_depth_agrees": true,
+    "4_pause_resume_identical": true,
+    "5_timed_equals_scored": true,
+    "6_fewer_applications": true,
+    "7_lower_latency": true
+  }
+}

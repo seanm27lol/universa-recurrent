@@ -13,6 +13,8 @@ Checks every file against manifest.json first (sha256), then prints:
 - the execution-record and intervention verdict, recomputed with
   research/ti_tnn/bench/semantic_interventions.py and checked against its bundled verdict.json;
 - the learned-interpreter verdict, recomputed with research/ti_tnn/bench/typed_questions.py and checked
+  against its bundled verdict.json;
+- the bounded-recurrence verdict, recomputed with research/ti_tnn/bench/typed_recurrence.py and checked
   against its bundled verdict.json.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
@@ -254,6 +256,22 @@ def typed_routing_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def typed_recurrence_tables(bundle: Path = HERE) -> dict:
+    """Bounded recurrence and cost accounting (integration plan PR 7): the frozen verdict rebuilt with
+    typed_recurrence.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import typed_recurrence  # research/ti_tnn/bench/typed_recurrence.py
+    root = bundle / "typed_recurrence/20261018T162814"
+    result = json.loads((root / "typed_recurrence.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = typed_recurrence.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt typed-recurrence verdict differs from verdict.json")
+    rec = [r for r in result["runs"] if r["system"] == "recurrent"]
+    return dict(rebuilt, queries=sum(r["queries"] for r in rec),
+                pause_points=sum(r["pause_resume"]["pause_points"] for r in rec))
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -340,6 +358,14 @@ def main(argv=None):
         print(f"  {n:18s} " + "  ".join(f"{s}: coverage {v['coverage_min']:.3f}-{v['coverage_max']:.3f}, accepted errors "
                                          f"{v['accepted_errors_total']}/{v['answered_total']}" for s, v in f.items()))
     print(f"  predictions: {routing['predictions']}")
+    recur = typed_recurrence_tables()
+    print(f"\nBounded recurrence ({recur['queries']} queries, {recur['pause_points']} pause points), rebuilt and "
+          "matching verdict.json; ranges over runs")
+    for n, f in recur["systems"].items():
+        print(f"  {n:15s} accuracy {f['accuracy'][0]:.3f}  applications {f['module_applications_mean'][0]:.2f}-"
+              f"{f['module_applications_mean'][1]:.2f}  wall {f['wall_us_median'][0]:.0f}-{f['wall_us_median'][1]:.0f} us  "
+              f"bookkeeping {f['bookkeeping_share_median'][0]:.2f}-{f['bookkeeping_share_median'][1]:.2f}")
+    print(f"  predictions: {recur['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},

@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 285
+    assert len(manifest["files"]) == 287
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -100,3 +100,11 @@ def test_typed_routing_verdict_rebuilds_from_the_bundle():
     t = routing["systems"]["typed_specialists"]
     assert (t["test"]["accepted_errors_total"], t["test"]["answered_total"]) == (2, 13714)
     assert (t["shift"]["accepted_errors_total"], t["shift"]["answered_total"]) == (59, 100)
+
+
+def test_typed_recurrence_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    recur = tables.typed_recurrence_tables()  # raises unless it matches the recorded verdict.json
+    assert recur["complete"] and all(recur["predictions"].values())
+    assert (recur["queries"], recur["pause_points"]) == (15480, 53970)
+    assert recur["systems"]["recurrent"]["accuracy"] == [1.0, 1.0]
