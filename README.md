@@ -287,27 +287,46 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
 
 - **Composition.** When two traits are learned by separate branches, the bridge
   composes them. Held-out XOR is 1.000 on three GPU seeds, and switching the bridge off
-  gives chance (0.500, 0.477, 0.508). The single-branch cap at chance comes from
-  isolation enforced by construction, not from the architecture alone.
+  gives chance (0.500, 0.477, 0.508). A single branch is expected to stay at chance
+  because the training isolates the traits; that is observed, not proved, and it
+  does not come from the architecture alone. The unconstrained bridge is
+  algebraically an ordinary two-input MLP, so this shows fusion works, not that sheaf
+  structure helps.
 - **No labels.** Without routing labels, the router still routes consistently by
   question type, but only into as many groups as the task needs (2–3 branches). It
   stops using the bridge where it isn't needed.
 - **Categorical version (opt-in).** Functorial branches and a flat sheaf bridge
   guarantee that translations between branches compose exactly. Whether that helps is
   untested.
-- **Functorial composition (5 seeds).** Trained on single relations only, exact
-  functorial relation maps answer unseen two-step chains ("size of the capital of
+- **Functorial composition (5 seeds).** Trained on single relations only, the
+  "functorial" model answers unseen two-step chains ("size of the capital of
   France") perfectly (1.000 on every seed). The same step-by-step interface with
   unconstrained maps scores 0.72–0.94, and a transformer is at chance.
+  The model is, in capacity, typed embeddings in one shared space. In the
+  [controls](research/ti_tnn/reports/functorial_composition_controls.md), exact inverse
+  tying and the flat parametrization showed no measured advantage: shared embeddings
+  missed 1 of 2,560 chains, and untied orthogonal maps none. That points to
+  geometry-preserving maps as a useful inductive bias on this one synthetic world, not
+  a guarantee.
 - **Real benchmarks (3 seeds).** On WikiText-103, the bridge does not earn its
   compute. Top-2 mixture of experts reaches perplexity 37.92, top-1 39.57, and TI-TNN
   39.59 (bridge charged; its gate shuts off) or 39.24 (bridge free, at 44% more
   feed-forward compute). On SCAN, no variant solves the compositional splits. On the
   add-turn-left split, every mixture variant, TI-TNN included, is worse than dense.
+- **Adaptive compute (3 seeds).** Can TI-TNN be close in quality at drastically less
+  compute, if each token chooses to skip a layer or run small or full experts? Not in
+  this test.
+  - At 30% of the decoder's compute, perplexity is 49.1 against dense's 39.85; at 50%,
+    45.3.
+  - A plain 4-layer dense model does better at 50% (43.7).
+  - TI-TNN beats plain layer skipping at the same cap, but with 4× the parameters.
+  - On a lookup task built to favor it, the adaptive models, and even a full-compute
+    mixture of experts, mostly failed to learn at all.
 
 [TI-TNN README](research/ti_tnn/README.md) ·
 [real-benchmark report](research/ti_tnn/reports/real_benchmarks.md) ·
 [composition report](research/ti_tnn/reports/functorial_composition.md) ·
+[adaptive-compute report](research/ti_tnn/reports/adaptive_compute.md) ·
 [categorical proposal](research/ti_tnn/cdl_proposal.md) ·
 [unsupervised-routing brief](research/ti_tnn/protocols/unsupervised_routing.md) ·
 [claim ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15)

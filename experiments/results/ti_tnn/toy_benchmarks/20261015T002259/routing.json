@@ -1,0 +1,742 @@
+{
+  "config": {
+    "benchmark": "both",
+    "device": "auto",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "steps": 3000,
+    "batch": 512,
+    "length": 6,
+    "stress_length": 10,
+    "n_countries": 64,
+    "comp_countries": 512,
+    "n_fillers": 48,
+    "queries_per_country": 16,
+    "eval_size": 8192,
+    "eval_seed": 999001,
+    "lr": 0.002,
+    "d_model": 128,
+    "d_stalk": 64,
+    "d_edge": 32,
+    "tau_start": 1.0,
+    "tau_end": 0.3,
+    "alpha_brier": 0.5,
+    "lambda_flops": 0.05,
+    "bridge_threshold": 0.5,
+    "log_every": 500,
+    "out": "runs/titnn"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "device": "cuda",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10",
+    "capability": "12.1"
+  },
+  "world": {
+    "vocab_size": 191,
+    "types": [
+      [
+        "region_of",
+        "country",
+        0,
+        0
+      ],
+      [
+        "size_of",
+        "capital",
+        1,
+        0
+      ],
+      [
+        "capital_of",
+        "country",
+        2,
+        1
+      ],
+      [
+        "country_of",
+        "capital",
+        2,
+        1
+      ],
+      [
+        "echo",
+        "filler",
+        3,
+        0
+      ]
+    ]
+  },
+  "variants": {
+    "sparse": {
+      "dense": false,
+      "use_bridge": true
+    },
+    "sparse_nobridge": {
+      "dense": false,
+      "use_bridge": false
+    },
+    "dense": {
+      "dense": true,
+      "use_bridge": true
+    }
+  },
+  "runs": [
+    {
+      "seed": 0,
+      "variant": "sparse",
+      "train_seconds": 42.5,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.019012287259101868,
+        "route_brier": 0.0028353529050946236,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 295848.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.57568359375,
+            "task_acc_by_type": {
+              "region_of": 0.6856788396835327,
+              "size_of": 0.8573163151741028,
+              "capital_of": 0.23095379769802094,
+              "country_of": 0.11517366766929626,
+              "echo": 1.0
+            }
+          },
+          "bridge_off": {
+            "task_acc": 0.8466796875,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.782243549823761,
+              "country_of": 0.45581960678100586,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.05327693745493889,
+        "route_brier": 0.02034755051136017,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 493080.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "sparse_nobridge",
+      "train_seconds": 29.6,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.018542353063821793,
+        "route_brier": 0.0028199306689202785,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 196608.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.5802001953125,
+            "task_acc_by_type": {
+              "region_of": 0.40173590183258057,
+              "size_of": 0.5476623773574829,
+              "capital_of": 0.5248950123786926,
+              "country_of": 0.4290066957473755,
+              "echo": 1.0
+            }
+          },
+          "bridge_off": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.04966732859611511,
+        "route_brier": 0.018959853798151016,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 327680.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "dense",
+      "train_seconds": 47.6,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.025845728814601898,
+        "route_brier": 0.00320490263402462,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 835584.0
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.10330505669116974,
+        "route_brier": 0.05158666521310806,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 1392640.0
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "sparse",
+      "train_seconds": 38.3,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.01775786466896534,
+        "route_brier": 0.0024493131786584854,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 295848.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.5784912109375,
+            "task_acc_by_type": {
+              "region_of": 0.9516429305076599,
+              "size_of": 0.8567091226577759,
+              "capital_of": 0.03119375929236412,
+              "country_of": 0.07129798829555511,
+              "echo": 1.0
+            }
+          },
+          "bridge_off": {
+            "task_acc": 0.6705322265625,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.09358128160238266,
+              "country_of": 0.27605119347572327,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.07489227503538132,
+        "route_brier": 0.03947385400533676,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 493080.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "sparse_nobridge",
+      "train_seconds": 30.4,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.017012130469083786,
+        "route_brier": 0.002442000200971961,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 196608.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.5870361328125,
+            "task_acc_by_type": {
+              "region_of": 0.48357099294662476,
+              "size_of": 0.4098360538482666,
+              "capital_of": 0.5002999305725098,
+              "country_of": 0.5460085272789001,
+              "echo": 1.0
+            }
+          },
+          "bridge_off": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.07042314857244492,
+        "route_brier": 0.03776879608631134,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 327680.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "dense",
+      "train_seconds": 39.9,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.02605583891272545,
+        "route_brier": 0.0031972541473805904,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 835584.0
+      },
+      "stress_eval": {
+        "task_acc": 0.9859619140625,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.9291871786117554
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.11057895421981812,
+        "route_brier": 0.05815596133470535,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 1392640.0
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "sparse",
+      "train_seconds": 38.1,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.018442725762724876,
+        "route_brier": 0.0027458108961582184,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 295848.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.5732421875,
+            "task_acc_by_type": {
+              "region_of": 0.7755734920501709,
+              "size_of": 0.9180327653884888,
+              "capital_of": 0.13857227563858032,
+              "country_of": 0.05789152905344963,
+              "echo": 0.9895319938659668
+            }
+          },
+          "bridge_off": {
+            "task_acc": 0.72021484375,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.4481103718280792,
+              "country_of": 0.1639244258403778,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.0713791474699974,
+        "route_brier": 0.037247397005558014,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375,
+        "branch_bridge_macs_per_query": 493080.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "sparse_nobridge",
+      "train_seconds": 40.2,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.015805330127477646,
+        "route_brier": 0.002346120309084654,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 196608.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "controls": {
+          "oracle_routing": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          },
+          "random_routing_bridge_off": {
+            "task_acc": 0.5819091796875,
+            "task_acc_by_type": {
+              "region_of": 0.5158090591430664,
+              "size_of": 0.5112324953079224,
+              "capital_of": 0.43371325731277466,
+              "country_of": 0.45460084080696106,
+              "echo": 1.0
+            }
+          },
+          "bridge_off": {
+            "task_acc": 1.0,
+            "task_acc_by_type": {
+              "region_of": 1.0,
+              "size_of": 0.9999999403953552,
+              "capital_of": 0.9999999403953552,
+              "country_of": 0.9999999403953552,
+              "echo": 1.0
+            }
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0,
+          "answer_agreement_vs_run_everything": 1.0
+        }
+      },
+      "stress_eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.057881854474544525,
+        "route_brier": 0.029730062931776047,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0,
+        "branch_bridge_macs_per_query": 327680.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "dense",
+      "train_seconds": 42.8,
+      "eval": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.02623767964541912,
+        "route_brier": 0.0032350020483136177,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 835584.0
+      },
+      "stress_eval": {
+        "task_acc": 0.9996337890625,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.9981526732444763
+        },
+        "route_acc": 1.0,
+        "route_ece": 0.10882911831140518,
+        "route_brier": 0.051038384437561035,
+        "noul_acc": 1.0,
+        "branch_execs_per_query": 4.0,
+        "bridge_execs_per_query": 1.0,
+        "branch_bridge_macs_per_query": 1392640.0
+      }
+    }
+  ]
+}
