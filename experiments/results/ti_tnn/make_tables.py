@@ -244,6 +244,21 @@ def frontier_names(learning: dict) -> list:
     return [n for n in frontier.V2_EXPECTED if n in learning["part_a_v2_variants"]]
 
 
+def wikitext_fixed_tables(bundle: Path = HERE) -> dict:
+    """Rebuild the WikiText-103 fixed-recipe verdict from the bundle and check it against the recorded one."""
+    sys.path.insert(0, str(BENCH))
+    import frontier  # research/ti_tnn/bench/frontier.py
+    V, rows = frontier.load([bundle / "real_benchmarks/lm", bundle / "adaptive_compute/lm",
+                             bundle / "adaptive_compute_init_control/lm", bundle / "adaptive_compute_wikitext_fixed/lm"],
+                            "lm", namer=frontier.lm_name)
+    rebuilt = frontier.evaluate_wikitext_fixed(V, rows)
+    recorded = json.loads((bundle / "adaptive_compute_wikitext_fixed/frontier_wf_wikitext_fixed.json").read_text())
+    for key in ("fixes_help_on_text", "beats_plain_skipping", "efficiency", "equal_compute"):
+        if rebuilt[key]["holds"] != recorded[key]["holds"]:
+            raise ValueError(f"wikitext fixed {key}: rebuilt {rebuilt[key]['holds']}, recorded {recorded[key]['holds']}")
+    return rebuilt
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--json", type=Path, help="also write every table as JSON")
@@ -297,6 +312,10 @@ def main(argv=None):
         print(f"  {n:58s} {v['quality']['mean']:.3f}  learned {v2['learned_by_variant'][n]}/5")
     print(f"  validity {v2['validity']['holds']}; fixed mixture {v2['fixed_moe']['holds']}; "
           f"learning fixes work {v2['learning_fixes_work']}; TI-TNN passes {v2['ti_tnn_passes']}")
+    wf = wikitext_fixed_tables()
+    print(f"\nWikiText-103 with the lookup fixes, rebuilt and matching the recorded verdict: "
+          f"{wf['candidate']['quality']['mean']:.2f} (initialization only {wf['fixes_help_on_text']['init_only']:.2f}); "
+          f"fixes help = {wf['fixes_help_on_text']['holds']}, beats plain skipping = {wf['beats_plain_skipping']['holds']}")
     control = init_control_tables()
     print("\nWikiText-103 initialization control, rebuilt and matching the recorded analysis")
     for n, f in control["families"].items():
