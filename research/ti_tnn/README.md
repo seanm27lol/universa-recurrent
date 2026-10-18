@@ -9,7 +9,7 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment (with a status map) |
 | [`integration_plan.md`](integration_plan.md) | Proposed: typed execution with relation-specific specialists, calibrated routing and explicit intermediate values, in nine ordered PRs |
-| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4); execution records, an independent checker and interventions (PR 5); a learned interpreter with calibrated abstention (PR 6) |
+| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4); execution records, an independent checker and interventions (PR 5); a learned interpreter with calibrated abstention (PR 6); bounded recurrence and cost accounting (PR 7) |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
 | [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
 | [`reports/`](reports/) | Reports on the real benchmarks and the integration experiments |
@@ -415,6 +415,15 @@ fed another country's Trait-B stalk.
   - **Under unseen phrasings,** it answered almost nothing, but 59 of the 100 answers it accepted were
     wrong. Most were unseen phrasings of ambiguous or unsupported relations, read as supported programs.
     Calibration fit in distribution did not bound risk under the shift.
+- **Bounded recurrence with a complete continuation state, 15 CPU units, 2026-10-18**
+  ([report](reports/typed_recurrence_v1.md), [frozen protocol](protocols/typed_recurrence_v1.md)).
+  - **The task.** "The first airport reached from X that operator O runs", on a route network with
+    dead ends and cycles.
+  - **Correctness.** Learned modules answered all 15,480 queries correctly, each with the right reason
+    for stopping.
+  - **Pause/resume.** Runs paused after any iteration resumed exactly from JSON (53,970 of 53,970).
+  - **Cost.** Stopping early cost 22–31% of unrolling to the budget. Recording the state was about a
+    fifth of the time.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.

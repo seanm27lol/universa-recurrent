@@ -99,6 +99,13 @@
       "report": "research/ti_tnn/reports/typed_routing_v1.md",
       "source": "fd0aa20 (committed immediately before the run; the run file does not record its commit)",
       "command": "python research/ti_tnn/bench/typed_questions.py --worlds 400 401 402 --inits 0 1 2 3 4"
+    },
+    "typed_recurrence": {
+      "what": "bounded recurrence on route worlds 500-502 (48 countries), inits 0-4: recurrence with learned specialists, the fixed-depth control and recurrence with tables; answers, stopping reasons, pause/resume at every pause point, applications, MACs and timing, one CPU thread; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_recurrence_v1.md",
+      "report": "research/ti_tnn/reports/typed_recurrence_v1.md",
+      "source": "7ba0b79 (committed immediately before the run; the run file does not record its commit)",
+      "command": "OMP_NUM_THREADS=1 python research/ti_tnn/bench/typed_recurrence.py --worlds 500 501 502 --inits 0 1 2 3 4"
     }
   },
   "files": [
@@ -2403,6 +2410,20 @@
       "original_path": "runs/titnn_routing/20261018T160927/verdict.json",
       "sha256": "1fcd7aeea27e3c4a4f9a0f1ec6ce98778fc7f8ce46a891661db9947b67dd8b8a",
       "bytes": 2201
+    },
+    {
+      "path": "typed_recurrence/20261018T162814/typed_recurrence.json",
+      "experiment": "typed_recurrence",
+      "original_path": "runs/titnn_recurrence/20261018T162814/typed_recurrence.json",
+      "sha256": "e1dcd05c28e10f1d390eb1faea76971180de1cf5672d816b99894fe878606a2e",
+      "bytes": 51720
+    },
+    {
+      "path": "typed_recurrence/20261018T162814/verdict.json",
+      "experiment": "typed_recurrence",
+      "original_path": "runs/titnn_recurrence/20261018T162814/verdict.json",
+      "sha256": "fcbd69f505d0177af1d21113fd1c5a1af6545b3b40988da4332ae0a66c450c2e",
+      "bytes": 2018
     }
   ]
 }

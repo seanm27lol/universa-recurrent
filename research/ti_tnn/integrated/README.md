@@ -1,6 +1,6 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: plan PRs 3–6 implemented and tested.**
+**Status: plan PRs 3–7 implemented and tested.**
 - **PR 3:** typed contracts, a finite world, an immutable module registry, a type-checked runtime and an
   independent reference evaluator.
 - **PR 4:** small learned networks as relation operators (`modules.py`), confirmed against a frozen
@@ -14,6 +14,11 @@
   calibrated abstention ([report](../reports/typed_routing_v1.md)). In distribution it answered 98–100%
   of supported questions with 2 errors in 13,714. Under a phrasing shift, 59 of the 100 answers it
   accepted were wrong.
+- **PR 7:** bounded recurrence on a route network, with a continuation state that holds the whole run,
+  and cost accounting ([report](../reports/typed_recurrence_v1.md)).
+  - Every answer and stopping reason was correct, and runs paused anywhere resumed exactly.
+  - Stopping early cost about a quarter of unrolling.
+  - Recording the state cost about a fifth of the time.
 
 The [integration plan](../integration_plan.md) says what lands next.
 
@@ -82,7 +87,8 @@ cases:
 | [`faults.py`](faults.py) | 5 (done) | Deliberately faulty module sets, used only as positive controls |
 | [`routing.py`](routing.py) | 6 (done) | Jev as a planning policy: an interpreter proposes a program (or refuses), and the runtime type-checks and runs it |
 | [`calibration.py`](calibration.py) | 6 (done) | Versioned Platt calibration of answer correctness, a Clopper–Pearson-bounded threshold, binding to interpreter, registry and policy |
-| `recurrence.py`, `costs.py` | 7 | Bounded recurrence with explicit continuation state; complete cost accounting |
+| [`recurrence.py`](recurrence.py) | 7 (done) | Until-queries with early stopping, dead-end, cycle and budget abstention; a JSON continuation state; exact pause/resume; a fixed-depth control |
+| [`costs.py`](costs.py) | 7 (done) | Module applications, MACs from layer shapes, state size, and wall time split into module time and bookkeeping |
 | `updates.py`, `update_checks.py` | 8 | Offline module replacement with fixed external checks and rollback |
 
 ## Limits, already known
