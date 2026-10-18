@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 150
+    assert len(manifest["files"]) == 279
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -60,3 +60,14 @@ def test_init_control_verdict_rebuilds_from_the_bundle():
     assert c["complete"] and c["holds"] is False and c["latency"]["holds"] is None
     assert c["families"]["ti_tnn_adaptive_c30_initdense"]["holds"] is True
     assert c["families"]["moe_top1_initdense"]["holds"] is False
+
+
+def test_lookup_learning_work_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    learning = tables.learning_tables()  # raises unless part A v2's verdict matches the recorded one
+    assert len(learning["init_check"]) == 3 and len(learning["diagnostics"]) == 75
+    v2 = learning["part_a_v2"]
+    assert v2["inventory"]["complete"] and v2["validity"]["holds"] is False and v2["fixed_moe"]["holds"] is True
+    assert v2["learning_fixes_work"] is False and v2["ti_tnn_passes"] is None
+    assert v2["learned_by_variant"]["moe_top1_initdense_sh50_s18000"] == 5
+    assert v2["learned_by_variant"]["dense_s18000"] == 3
