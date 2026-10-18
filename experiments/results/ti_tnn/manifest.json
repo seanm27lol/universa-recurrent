@@ -71,6 +71,13 @@
       "report": "research/ti_tnn/reports/adaptive_compute_part_a_v2.md",
       "source": "2a34728 (recorded in each run); evaluation by frontier.py --hops-v2 at dcf115d",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_part_a_v2.sh; python research/ti_tnn/bench/frontier.py --hops-v2 runs/titnn_efficiency/hops_v2 --out runs/titnn_efficiency/frontier.json"
+    },
+    "typed_composition": {
+      "what": "learned relation operators on finite typed worlds 200-202, inits 0-4, five families (specialists, shared dense, flat top-1 MoE, endpoint-only negative control, answer-only), CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_composition_v1.md",
+      "report": "research/ti_tnn/reports/typed_composition_v1.md",
+      "source": "ef604a1 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/typed_composition.py --worlds 200 201 202 --inits 0 1 2 3 4"
     }
   },
   "files": [
@@ -2298,6 +2305,20 @@
       "original_path": "runs/titnn_efficiency/frontier_part_a_v2.json",
       "sha256": "04ccf46cffeae7fc1a8e04f9872a659bfe4b763ad12a7bc10b2d0de35403f0cb",
       "bytes": 64354
+    },
+    {
+      "path": "typed_composition/20261018T145735/typed_composition.json",
+      "experiment": "typed_composition",
+      "original_path": "runs/titnn_typed/20261018T145735/typed_composition.json",
+      "sha256": "82e24867bd46fd702633b2e950332b58a52e57a8800ca04478ef440369904ace",
+      "bytes": 66147
+    },
+    {
+      "path": "typed_composition/20261018T145735/verdict.json",
+      "experiment": "typed_composition",
+      "original_path": "runs/titnn_typed/20261018T145735/verdict.json",
+      "sha256": "43b047d5b84a2b6982c421a080e29058058844783f3c0444e15ece0536c81ba8",
+      "bytes": 1673
     }
   ]
 }

@@ -85,3 +85,13 @@ shared network keeps same-endpoint relations apart.
 **Run:**
 `python research/ti_tnn/bench/typed_composition.py --worlds 200 201 202 --inits 0 1 2 3 4`, which also
 writes `verdict.json` via `evaluate()`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** The protocol's command, from `ef604a1`, 2026-10-18, finishing 18:57 UTC. 75 runs, CPU
+  only, with no failures. `verdict.json` was written by `evaluate()` as frozen.
+- **All six predictions hold.** See the [report](../reports/typed_composition_v1.md).
+- **Two checks after the run, outside the predictions.**
+  - A rerun of world 200, init 0 reproduced every recorded field except timings.
+  - Scoring the answer-only model path by path shows its 3-step score comes from a shortcut (answering
+    with the start city's own airport).
