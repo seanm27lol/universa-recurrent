@@ -168,6 +168,49 @@ def init_control_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def learning_tables(bundle: Path = HERE) -> dict:
+    """The lookup-task learning work: the frozen initialization check, every exploratory diagnostic run,
+    and part A v2's verdict rebuilt with frontier.py --hops-v2 and checked against the recorded one."""
+    sys.path.insert(0, str(BENCH))
+    import frontier  # research/ti_tnn/bench/frontier.py
+    manifest = json.loads((bundle / "manifest.json").read_text())
+
+    def runs(root):
+        out = []
+        for f in sorted((bundle / root).rglob("result.json")):
+            r = json.loads(f.read_text())
+            c = r["config"]
+            knobs = "".join(f" {k}={c[k]}" for k, d in (("experts", 8), ("lr", 1e-3), ("balance_coef", 0.01)) if c.get(k, d) != d)
+            out.append({"round": f.parent.parent.name, "name": frontier.v2_name(r) + knobs, "seed": c["seed"],
+                        "hard_accuracy": r["eval"]["hard_accuracy"], "by_hops": r["eval"]["accuracy_by_hops"]})
+        return out
+    by_original = {f["original_path"]: f.get("original_sha256", f["sha256"]) for f in manifest["files"]}
+    recorded = json.loads((bundle / "adaptive_compute_part_a_v2/frontier_part_a_v2.json").read_text())
+    for row in recorded["manifest"]:  # the evaluated files are exactly the bundled ones
+        if by_original.get(row["path"]) != row["sha256"]:
+            raise ValueError(f"{row['path']}: evaluated file is not the bundled one")
+    V, rows = frontier.load([bundle / "adaptive_compute_part_a_v2/hops_v2"], "hops", namer=frontier.v2_name,
+                            spec=frontier.V2_PROTOCOL)
+    rebuilt = frontier.evaluate_v2(V, rows)
+    for key in ("learning_fixes_work", "ti_tnn_passes"):
+        if rebuilt[key] != recorded[key]:
+            raise ValueError(f"part A v2 {key}: rebuilt {rebuilt[key]}, recorded {recorded[key]}")
+    for key in ("validity", "fixed_moe"):
+        if rebuilt[key]["holds"] != recorded[key]["holds"]:
+            raise ValueError(f"part A v2 {key}: rebuilt differs from recorded")
+    for key in ("efficiency", "equal_compute", "matched_cap"):
+        if rebuilt["predictions"][key]["holds"] != recorded["predictions"][key]["holds"]:
+            raise ValueError(f"part A v2 prediction {key}: rebuilt differs from recorded")
+    return {"init_check": runs("lookup_init_check"), "diagnostics": runs("lookup_learning_diagnostics"),
+            "part_a_v2": rebuilt, "part_a_v2_variants": V}
+
+
+def frontier_names(learning: dict) -> list:
+    sys.path.insert(0, str(BENCH))
+    import frontier
+    return [n for n in frontier.V2_EXPECTED if n in learning["part_a_v2_variants"]]
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--json", type=Path, help="also write every table as JSON")
@@ -206,6 +249,21 @@ def main(argv=None):
             print(f"    {n:22s} {v['quality']['mean']:{fmt}}  decoder MACs {v['compute']['mean'] / 1e6:.2f}M")
         print(f"    predictions: {adaptive[part]['predictions']}")
     print(f"  efficiency validated (predictions 5 and 6): {adaptive['lm']['validated']}")
+    learning = learning_tables()
+    print("\nLookup task: the frozen initialization check (moe_top1, dense-matched experts)")
+    for r in learning["init_check"]:
+        print(f"  seed {r['seed']}: {r['hard_accuracy']:.3f}  by hops {r['by_hops']}")
+    print("Lookup task: exploratory diagnostics on development seeds (every run)")
+    for r in learning["diagnostics"]:
+        hops = " / ".join(f"{v:.2f}" for v in r["by_hops"].values())
+        print(f"  {r['round']:10s} {r['name']:58s} seed {r['seed']}: {r['hard_accuracy']:.3f}  ({hops})")
+    v2 = learning["part_a_v2"]
+    print("Part A v2, rebuilt and matching the recorded verdict")
+    for n in frontier_names(learning):
+        v = learning["part_a_v2_variants"][n]
+        print(f"  {n:58s} {v['quality']['mean']:.3f}  learned {v2['learned_by_variant'][n]}/5")
+    print(f"  validity {v2['validity']['holds']}; fixed mixture {v2['fixed_moe']['holds']}; "
+          f"learning fixes work {v2['learning_fixes_work']}; TI-TNN passes {v2['ti_tnn_passes']}")
     control = init_control_tables()
     print("\nWikiText-103 initialization control, rebuilt and matching the recorded analysis")
     for n, f in control["families"].items():

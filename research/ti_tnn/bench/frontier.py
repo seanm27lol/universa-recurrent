@@ -375,7 +375,9 @@ def v2_name(r: dict) -> str:
     """The run's name as hops.py gives it (the name records every fix applied)."""
     import argparse as _argparse
     import hops
-    return hops.variant_name(_argparse.Namespace(**r["config"]))
+    config = vars(hops.parse_args(["--ffn", r["config"]["ffn"]]))  # defaults for options newer than the run
+    config.update(r["config"])
+    return hops.variant_name(_argparse.Namespace(**config))
 
 
 def learned(v: dict) -> int:
