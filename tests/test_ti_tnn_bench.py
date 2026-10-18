@@ -756,3 +756,41 @@ def test_shared_expert_splits_the_width_and_decodes_exactly(ffn):
     torch.manual_seed(9)
     plain = models.LanguageModel(cfg(ffn, context=12, n_layers=2))
     assert all(m.shared is None for m in plain.modules() if isinstance(m, models.MoEFFN))  # off by default
+
+
+
+def v2_point(kind, acc, compute, three_hop=None, seeds=(200, 201, 202, 203, 204)):
+    three = three_hop if three_hop is not None else [acc] * 5
+    return {"kind": kind, "seeds": list(seeds), "quality": {"mean": acc}, "compute": {"mean": compute},
+            "by_hops": {"3": {"values": three}},
+            "relative_compute_by_hops": {"1": {"mean": 0.3}, "2": {"mean": 0.4}, "3": {"mean": 0.5}},
+            "relative_compute_by_kind": {"easy": {"mean": 0.2}}}
+
+
+def v2_variants(**over):
+    v = {n: v2_point("dense", 0.5, 1.0) for n in frontier.V2_EXPECTED}
+    v[frontier.V2_REFERENCE] = v2_point("dense", 1.0, 1.70, [1.0] * 5)
+    v[frontier.V2_FIXED_MOE] = v2_point("moe_top1", 0.95, 1.71, [0.95] * 5)
+    v["dense_d128_l2_s18000"] = v2_point("dense", 0.45, 0.43, [0.2] * 5)
+    for cap, c in (("c50", 0.75), ("c30", 0.46)):
+        v[f"mod_{cap}_warm50_kv_s18000"] = v2_point("mod", 0.6, c + 0.01, [0.2] * 5)
+        v[f"ti_tnn_adaptive_{cap}_initdense_warm50_kv_sh50_s18000"] = v2_point("ti_tnn_adaptive", 0.7, c, [0.2] * 5)
+    v.update(over)
+    rows = [{"variant": n, "seed": s, "config_fingerprint": "a", "deviations": []} for n in v for s in frontier.V2_SEEDS]
+    return v, rows
+
+
+def test_part_a_v2_evaluation_applies_its_frozen_rules():
+    v, rows = v2_variants()
+    r = frontier.evaluate_v2(v, rows)
+    assert r["inventory"]["complete"] and r["validity"]["holds"] and r["fixed_moe"]["holds"]
+    assert r["learning_fixes_work"] is True and r["ti_tnn_passes"] is False  # adaptive far from the reference
+    assert r["predictions"]["matched_cap"]["holds"] is True  # the explicit ti -> mod twins are used
+    # the reference must learn on at least 4 of 5 seeds
+    v, rows = v2_variants(dense_s18000=v2_point("dense", 0.92, 1.70, [1.0, 1.0, 1.0, 0.3, 0.3]))
+    assert frontier.evaluate_v2(v, rows)["validity"]["holds"] is False
+    # a missing seed makes everything untestable
+    v, rows = v2_variants()
+    v[frontier.V2_FIXED_MOE]["seeds"] = [200, 201, 202, 203]
+    r = frontier.evaluate_v2(v, rows)
+    assert not r["inventory"]["complete"] and r["learning_fixes_work"] is None

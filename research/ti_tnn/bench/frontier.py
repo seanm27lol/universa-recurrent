@@ -101,9 +101,9 @@ def fingerprint(config: dict) -> str:
     return hashlib.sha256(json.dumps(kept, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def deviations(r: dict, part: str) -> list:
+def deviations(r: dict, part: str, spec: dict | None = None) -> list:
     """The protocol settings this run does not match."""
-    spec, c, out = PROTOCOL[part], r["config"], []
+    spec, c, out = spec or PROTOCOL[part], r["config"], []
     for k, v in spec["config"].items():
         if c.get(k) != v:
             out.append(f"{k}={c.get(k)!r} (protocol {v!r})")
@@ -124,7 +124,7 @@ def source_of(path: Path, sources: dict) -> str:
     return sources[best] if best is not None else "unrecorded"
 
 
-def load(roots, part: str, sources: dict | None = None) -> tuple[dict, list]:
+def load(roots, part: str, sources: dict | None = None, namer=None, spec: dict | None = None) -> tuple[dict, list]:
     """Variants averaged over seeds, and the run manifest (one row per result file)."""
     groups, manifest = defaultdict(list), []
     for root in roots:
@@ -134,14 +134,14 @@ def load(roots, part: str, sources: dict | None = None) -> tuple[dict, list]:
             if part == "lm" and r["config"]["ffn"] not in LM_KINDS:
                 continue
             ref = (128, 8, 4) if part == "hops" else (512, 8, 4)
-            name = name_of(r, ref)
+            name = namer(r) if namer else name_of(r, ref)
             groups[name].append(r)
             manifest.append({"variant": name, "seed": r["config"]["seed"], "path": str(path),
                              "sha256": hashlib.sha256(raw).hexdigest(), "config_fingerprint": fingerprint(r["config"]),
                              "init_policy": r["model_config"].get("expert_init", FROZEN_INIT),
                              "training": ({"tokens": r.get("tokens_trained")} if part == "lm"
                                           else {"steps": r["config"].get("steps")}),
-                             "source": source_of(path, sources or {}), "deviations": deviations(r, part)})
+                             "source": source_of(path, sources or {}), "deviations": deviations(r, part, spec)})
     out = {}
     for name, runs in groups.items():
         runs.sort(key=lambda r: r["config"]["seed"])
@@ -199,7 +199,8 @@ def at_least_as_good(a: float, b: float, higher_is_better: bool) -> bool:
     return a >= b if higher_is_better else a <= b
 
 
-def judge(variants: dict, reference: str, higher_is_better: bool, close: float, close_is_ratio: bool) -> dict:
+def judge(variants: dict, reference: str, higher_is_better: bool, close: float, close_is_ratio: bool,
+          twin: dict | None = None) -> dict:
     """The protocol's efficiency (P-eff), equal-compute (P-eq) and matched-cap (P-mod) predictions,
     over exactly the variants given (pass planned_only(...) for the frozen verdict)."""
     base = {n: v for n, v in variants.items() if v["kind"] != CANDIDATE}
@@ -225,9 +226,9 @@ def judge(variants: dict, reference: str, higher_is_better: bool, close: float, 
         else:
             best = max(cheaper, key=lambda b: q(b) if higher_is_better else -q(b))
             eq[n] = {"holds": bool(better(q(v), q(best), higher_is_better)), "best_baseline_at_or_below": q(best)}
-        twin = n.replace(CANDIDATE, "mod")
-        if twin in base:
-            cap[n] = {"mod": q(base[twin]), "holds": bool(better(q(v), q(base[twin]), higher_is_better))}
+        mate = twin.get(n) if twin else n.replace(CANDIDATE, "mod")
+        if mate in base:
+            cap[n] = {"mod": q(base[mate]), "holds": bool(better(q(v), q(base[mate]), higher_is_better))}
         else:  # a missing matched-cap baseline makes the comparison untestable, not passed
             cap[n] = {"mod": None, "holds": None}
     return {"reference": reference, "reference_quality": ref_q, "close_threshold": threshold,
@@ -350,6 +351,62 @@ def init_control(variants: dict, manifest: list, latency_doc: dict | None = None
     return out
 
 
+# ---------------------------------------------------------------- part A v2 (protocols/adaptive_compute_part_a_v2.md)
+# Written after the v2 queue started and before any v2 result was examined.
+V2_SEEDS = (200, 201, 202, 203, 204)
+V2_REFERENCE = "dense_s18000"
+V2_FIXED_MOE = "moe_top1_initdense_sh50_s18000"
+V2_EXPECTED = ["dense_d128_l2_s18000", "dense_d128_l3_s18000", "dense_d128_l4_s18000", "dense_d128_l6_s18000",
+               V2_REFERENCE, V2_FIXED_MOE, "mod_c50_warm50_kv_s18000", "mod_c30_warm50_kv_s18000",
+               "ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000", "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000"]
+V2_TWIN = {"ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000": "mod_c50_warm50_kv_s18000",
+           "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000": "mod_c30_warm50_kv_s18000"}
+V2_PROTOCOL = {"config": dict(PROTOCOL["hops"]["config"], steps=18000), "task": PROTOCOL["hops"]["task"]}
+V2_LEARNS = 0.9  # a run learns the task if its 3-hop accuracy reaches this
+
+
+def v2_name(r: dict) -> str:
+    """The run's name as hops.py gives it (the name records every fix applied)."""
+    import argparse as _argparse
+    import hops
+    return hops.variant_name(_argparse.Namespace(**r["config"]))
+
+
+def learned(v: dict) -> int:
+    """How many seeds learned the task (3-hop accuracy >= V2_LEARNS)."""
+    return sum(x >= V2_LEARNS for x in v["by_hops"]["3"]["values"])
+
+
+def evaluate_v2(variants: dict, manifest: list) -> dict:
+    """Part A v2's validity condition, predictions 1-5 and both decision rules, on the planned variants."""
+    missing = [n for n in V2_EXPECTED if n not in variants]
+    bad_seeds = {n: v["seeds"] for n, v in variants.items() if n in V2_EXPECTED and sorted(v["seeds"]) != list(V2_SEEDS)}
+    prints = defaultdict(set)
+    for m in manifest:
+        if m["variant"] in V2_EXPECTED:
+            prints[m["variant"]].add(m["config_fingerprint"])
+    inconsistent = sorted(n for n, fp in prints.items() if len(fp) > 1)
+    off = {f"{m['variant']} seed {m['seed']}": m["deviations"] for m in manifest if m["variant"] in V2_EXPECTED and m["deviations"]}
+    complete = not (missing or bad_seeds or inconsistent or off)
+    inv = {"complete": complete, "missing": missing, "bad_seeds": bad_seeds, "inconsistent_configs": inconsistent,
+           "protocol_deviations": off, "unexpected_excluded": sorted(n for n in variants if n not in V2_EXPECTED)}
+    out = {"inventory": inv}
+    if not complete:
+        return dict(out, learning_fixes_work=None, ti_tnn_passes=None)
+    P = planned = {n: variants[n] for n in V2_EXPECTED}
+    ref = P[V2_REFERENCE]
+    validity = bool(ref["quality"]["mean"] >= 0.90 and learned(ref) >= 4)
+    p1 = bool(P[V2_FIXED_MOE]["quality"]["mean"] >= 0.90)
+    pred = judge(planned, V2_REFERENCE, True, 0.02, False, twin=V2_TWIN)
+    out.update({"validity": {"holds": validity, "reference_hard_accuracy": ref["quality"]["mean"], "reference_learned": learned(ref)},
+                "fixed_moe": {"holds": p1, "hard_accuracy": P[V2_FIXED_MOE]["quality"]["mean"], "learned": learned(P[V2_FIXED_MOE])},
+                "predictions": pred, "difficulty_tracking": difficulty_tracking(planned),
+                "learned_by_variant": {n: learned(v) for n, v in P.items()}})
+    out["learning_fixes_work"] = all_of([validity, p1])
+    out["ti_tnn_passes"] = all_of([pred["efficiency"]["holds"], pred["equal_compute"]["holds"]]) if validity else None
+    return out
+
+
 def table(variants: dict, quality: str, fmt: str) -> str:
     rows = sorted(variants.items(), key=lambda kv: kv[1]["compute"]["mean"])
     lines = [f"| Variant | {quality} | Non-embedding MACs per token | Seeds |", "|---|---:|---:|---:|"]
@@ -373,6 +430,7 @@ def main(argv=None):
     p.add_argument("--lm", nargs="*", type=Path, default=[])
     p.add_argument("--latency", type=Path)
     p.add_argument("--source", action="append", default=[], help="ROOT=VERSION: the source version runs under ROOT came from")
+    p.add_argument("--hops-v2", nargs="*", type=Path, default=[], help="part A v2 run roots (separate analysis)")
     p.add_argument("--init-control", nargs="*", type=Path, default=[],
                    help="roots holding the initialization-control runs (separate analysis)")
     p.add_argument("--out", type=Path)
@@ -410,6 +468,21 @@ def main(argv=None):
             summary["lm"]["latency_ms_per_token"] = {n: stat(v) for n, v in by.items()}
             pr["latency"] = latency_prediction(doc, manifest)
         print("## Part B: WikiText-103 (validation perplexity)\n\n" + table(P, "Perplexity", ".2f") + "\n")
+    if args.hops_v2:
+        V, manifest = load(args.hops_v2, "hops", sources, namer=v2_name, spec=V2_PROTOCOL)
+        res = evaluate_v2(V, manifest)
+        print("## Part A v2 (hard accuracy; seeds learning the task)\n")
+        for n in V2_EXPECTED:
+            if n in V:
+                print(f"  {n:52s} {V[n]['quality']['mean']:.3f}  learned {learned(V[n])}/{len(V[n]['seeds'])}  "
+                      f"{V[n]['compute']['mean'] / 1e6:.2f}M MACs")
+        print(f"part A v2: complete = {res['inventory']['complete']}; learning fixes work = {res['learning_fixes_work']}; "
+              f"TI-TNN passes = {res['ti_tnn_passes']}")
+        if args.out:
+            args.out.with_name(args.out.stem + "_part_a_v2.json").write_text(
+                json.dumps(dict(res, variants=V, manifest=manifest), indent=2))
+        if not summary and not args.init_control:
+            return
     if args.init_control:
         V, manifest = load(list(args.lm) + list(args.init_control), "lm", sources)
         doc = json.loads(args.latency.read_text()) if args.latency and args.latency.exists() else None
