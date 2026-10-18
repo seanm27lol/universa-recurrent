@@ -87,6 +87,9 @@ class ModelConfig:
     target_compute: float = 1.0    # adaptive variants: cap on mean block compute, as a fraction of a full block
     dual_lr: float = 0.01          # adaptive variants: dual-ascent step for the price of compute
     expert_init: str = "legacy"    # "legacy": std D^-1/2 up, H^-1/2 down; "dense": the dense MLP's rule
+    router_full_bias: float = 0.0  # adaptive variants: initial compute-router bias toward the full option
+    skip_keeps_kv: bool = False    # adaptive variants: a skipped token still writes its key and value (costs 2D^2)
+    shared_expert_frac: float = 0.0  # mixtures: this share of each layer's hidden width is an always-on shared MLP
 
     def __post_init__(self):
         if self.ffn not in FFN_KINDS:
@@ -125,10 +128,11 @@ class CausalSelfAttention(nn.Module):
 
 
 class DenseFFN(nn.Module):
-    def __init__(self, cfg: ModelConfig):
+    def __init__(self, cfg: ModelConfig, hidden: int | None = None):
         super().__init__()
-        self.up = nn.Linear(cfg.d_model, cfg.ffn_mult * cfg.d_model, bias=False)
-        self.down = nn.Linear(cfg.ffn_mult * cfg.d_model, cfg.d_model, bias=False)
+        hidden = cfg.ffn_mult * cfg.d_model if hidden is None else hidden
+        self.up = nn.Linear(cfg.d_model, hidden, bias=False)
+        self.down = nn.Linear(hidden, cfg.d_model, bias=False)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         return self.down(F.gelu(self.up(x))), {}
@@ -137,10 +141,10 @@ class DenseFFN(nn.Module):
 class Experts(nn.Module):
     """E MLPs (the dense block's shape unless hidden_mult says otherwise), run only on the tokens assigned to each."""
 
-    def __init__(self, cfg: ModelConfig, hidden_mult: int | None = None):
+    def __init__(self, cfg: ModelConfig, hidden_mult: int | None = None, hidden: int | None = None):
         super().__init__()
         D, E = cfg.d_model, cfg.n_experts
-        H = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
+        H = hidden if hidden is not None else (cfg.ffn_mult if hidden_mult is None else hidden_mult) * D
         self.w_up = nn.Parameter(torch.empty(E, D, H))
         self.w_down = nn.Parameter(torch.empty(E, H, D))
         # "dense" matches the dense MLP: std 0.02 up, and the GPT-2 residual scaling 0.02 / sqrt(2L) down.
@@ -173,7 +177,14 @@ class MoEFFN(nn.Module):
         super().__init__()
         self.cfg, self.top_k = cfg, top_k
         self.router = nn.Linear(cfg.d_model, cfg.n_experts, bias=False)
-        self.experts = Experts(cfg, hidden_mult)
+        self.shared = None
+        if cfg.shared_expert_frac > 0:  # split the width: an always-on shared MLP plus narrower routed experts
+            total = (cfg.ffn_mult if hidden_mult is None else hidden_mult) * cfg.d_model
+            shared = round(cfg.shared_expert_frac * total)
+            self.experts = Experts(cfg, hidden=total - shared)
+            self.shared = DenseFFN(cfg, hidden=shared)
+        else:
+            self.experts = Experts(cfg, hidden_mult)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         shape = x.shape
@@ -186,6 +197,8 @@ class MoEFFN(nn.Module):
         tokens = torch.arange(N, device=x.device).repeat_interleave(self.top_k)
         outs = self.experts(x, tokens, top_e.reshape(-1))
         y = torch.zeros_like(x, dtype=outs.dtype).index_add_(0, tokens, outs * top_p.reshape(-1, 1).to(outs.dtype))
+        if self.shared is not None:
+            y = y + self.shared(x)[0]
         stats = {"aux_loss": self.cfg.balance_coef * balance_loss(probs, top_e[:, 0], self.cfg.n_experts),
                  "expert_runs": torch.tensor(float(self.top_k)), "top1": top_e[:, 0]}
         return y.reshape(shape), stats
@@ -266,8 +279,10 @@ def branch_mults(cfg: ModelConfig) -> List[int]:
 
 
 def option_costs(cfg: ModelConfig) -> List[float]:
-    """Compute of each option (skip first) as a fraction of a full block: projections 4D^2 plus MLP 2mD^2."""
-    return [0.0] + [(4 + 2 * m) / (4 + 2 * cfg.ffn_mult) for m in branch_mults(cfg)]
+    """Compute of each option (skip first) as a fraction of a full block: projections 4D^2 plus MLP 2mD^2.
+    With skip_keeps_kv, skipping still pays the key and value projections (2D^2)."""
+    full = 4 + 2 * cfg.ffn_mult
+    return [2 / full if cfg.skip_keeps_kv else 0.0] + [(4 + 2 * m) / full for m in branch_mults(cfg)]
 
 
 class AdaptiveBlock(nn.Module):
@@ -292,7 +307,10 @@ class AdaptiveBlock(nn.Module):
         if self.training:  # hard choice forward; every option's value reaches the router backward
             weight = weight + probs - probs.detach()
         run = choice > 0
-        h = x + self.attn(self.ln1(x), key_mask=run)
+        # Without skip_keeps_kv a skipped token is not a key or value here. That eligibility is a hard mask with
+        # no gradient, so the router never learns what a token's visibility is worth to later tokens.
+        # skip_keeps_kv keeps every token visible, so skipping saves only the token's own update.
+        h = x + self.attn(self.ln1(x), key_mask=None if self.cfg.skip_keeps_kv else run)
         hn = self.ln2(h)
         y = x * weight[..., :1]
         aux = torch.zeros((), device=x.device)
@@ -323,6 +341,10 @@ class LanguageModel(nn.Module):
         for name, p in self.named_parameters():  # scaled init for residual projections (GPT-2)
             if name.endswith("proj.weight") or name.endswith("down.weight"):
                 nn.init.normal_(p, std=0.02 / math.sqrt(2 * cfg.n_layers))
+        if cfg.ffn in ADAPTIVE_KINDS and cfg.router_full_bias:  # start close to the full model (no draws)
+            with torch.no_grad():
+                for block in self.blocks:
+                    block.router.bias[-1] += cfg.router_full_bias
 
     @staticmethod
     def _init(m):
@@ -345,12 +367,14 @@ class LanguageModel(nn.Module):
         return self.head(self.ln_f(x)), stats
 
     @torch.no_grad()
-    def dual_update(self, stats: List[Dict[str, torch.Tensor]]) -> None:
-        """Raise the price of compute while mean realized compute exceeds the cap; never below zero."""
+    def dual_update(self, stats: List[Dict[str, torch.Tensor]], target: float | None = None) -> None:
+        """Raise the price of compute while mean realized compute exceeds the cap (cfg.target_compute, or a
+        scheduled `target`); never below zero."""
         if self.cfg.ffn not in ADAPTIVE_KINDS:
             return
+        cap = self.cfg.target_compute if target is None else target
         realized = torch.stack([s["realized_cost"] for s in stats]).mean()
-        self.cost_price.add_(self.cfg.dual_lr * (realized - self.cfg.target_compute)).clamp_(min=0.0)
+        self.cost_price.add_(self.cfg.dual_lr * (realized - cap)).clamp_(min=0.0)
 
 
 def parameter_counts(model: LanguageModel) -> Dict[str, int]:
@@ -401,7 +425,12 @@ def macs_per_token(cfg: ModelConfig, stats: List[Dict[str, torch.Tensor]], shape
             choice = s["choice"]
             run = choice > 0
             mults = torch.tensor([0] + branch_mults(cfg), device=choice.device)
-            total += float(attention_macs(cfg, run)) + float((2 * D * D * mults[choice]).sum())
+            if cfg.skip_keeps_kv:  # running tokens attend to every earlier token; skipped ones write k and v
+                pos = torch.arange(1, choice.shape[-1] + 1, device=choice.device)
+                total += float((run.long() * (4 * D * D + 2 * D * pos)).sum()) + float((~run).sum()) * 2 * D * D
+            else:
+                total += float(attention_macs(cfg, run))
+            total += float((2 * D * D * mults[choice]).sum())
             total += D * (1 + len(branch_mults(cfg))) * N  # the compute router, for every token
             if cfg.ffn == "ti_tnn_adaptive":
                 total += D * cfg.n_experts * float(run.sum())  # the chosen branch's expert router
@@ -445,3 +474,12 @@ def init_diagnostics(model: LanguageModel, idx: torch.Tensor) -> Dict[str, list]
         out["mean_top_probability_by_layer"] = [float(p.max(-1).values.mean()) for p in routing]
         out["mean_router_probabilities_by_layer"] = [p.mean(0).tolist() for p in routing]
     return out
+
+
+def cap_schedule(target: float, step: int, steps: int, warmup_frac: float) -> float:
+    """The compute cap at a training step: full compute at step 0, falling linearly to `target` over the
+    first warmup_frac of training (constant `target` when warmup_frac is 0)."""
+    if warmup_frac <= 0:
+        return target
+    progress = min(1.0, step / max(1, warmup_frac * steps))
+    return 1.0 - (1.0 - target) * progress
