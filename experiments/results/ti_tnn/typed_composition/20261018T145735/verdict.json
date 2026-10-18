@@ -1,0 +1,68 @@
+{
+  "complete": true,
+  "families": {
+    "specialists": {
+      "atomic_min": 1.0,
+      "same_endpoint_min": 1.0,
+      "paths_min": {
+        "length2": 1.0,
+        "round_trip": 1.0,
+        "length3": 1.0
+      },
+      "intermediate_min": 1.0,
+      "competent_runs": 15
+    },
+    "shared_dense": {
+      "atomic_min": 1.0,
+      "same_endpoint_min": 1.0,
+      "paths_min": {
+        "length2": 1.0,
+        "round_trip": 1.0,
+        "length3": 1.0
+      },
+      "intermediate_min": 1.0,
+      "competent_runs": 15
+    },
+    "moe": {
+      "atomic_min": 1.0,
+      "same_endpoint_min": 1.0,
+      "paths_min": {
+        "length2": 1.0,
+        "round_trip": 1.0,
+        "length3": 1.0
+      },
+      "intermediate_min": 1.0,
+      "competent_runs": 15
+    },
+    "endpoint": {
+      "atomic_min": 0.4166666666666667,
+      "same_endpoint_min": 0.3157894736842105,
+      "paths_min": {
+        "length2": 0.672782874617737,
+        "round_trip": 0.8609271523178808,
+        "length3": 0.5683760683760684
+      },
+      "intermediate_min": 0.7589208006962577,
+      "competent_runs": 0
+    },
+    "answer_only": {
+      "atomic_min": 1.0,
+      "same_endpoint_min": 1.0,
+      "paths_min": {
+        "length2": 0.03859649122807018,
+        "round_trip": 0.7019867549668874,
+        "length3": 0.2222222222222222
+      },
+      "intermediate_min": null,
+      "competent_runs": 15
+    }
+  },
+  "predictions": {
+    "1_atomic_competence": true,
+    "2_same_endpoint_discrimination": true,
+    "3_negative_control_collapses": true,
+    "4_composition_given_competence": true,
+    "5_intermediate_given_competence": true,
+    "6_answer_only_fails_chains": true
+  }
+}
