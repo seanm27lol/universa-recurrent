@@ -139,3 +139,39 @@ shared network fine-tuned on the same data the specialist gets:
   bundled runs.
 - **Development pilot.** It ran on worlds 100–101 before freezing; it and the same-data variant it
   prompted are disclosed in the protocol.
+
+## Corrections after review (2026-10-18)
+
+The review reproduced three gaps in this PR's machinery. All are repaired with regression tests
+(`tests/test_ti_tnn_contract_repairs.py`).
+
+**1. Gate results were not bound to the candidate they checked.**
+- **The failure.** A correct candidate's six passing outcomes, passed with a different, wrong
+  candidate's matching record, activated the wrong candidate.
+- **Context fields.** A record could also name the wrong target world, a different checker version, or a
+  required calibration that was never supplied, and still pass.
+- **The repair.** A `Checker` checks private published copies and returns a sealed `CheckResult`. The
+  result is bound to the record, both snapshot digests, both worlds, the checker version, the
+  calibration and the resource limit. A deployment activates only the snapshot inside a result its own
+  checker sealed. A new mandatory `record_context` gate rejects a mismatched context.
+
+**2. "Immutable snapshots" could contain mutable state.**
+- **The failure.** Registries hashed declared version strings, and rollback kept references to live
+  objects. Mutating a NumPy array shared by base and candidate changed the answers but neither registry's
+  identity. Activation still succeeded, and rollback reported success without restoring the original
+  answers.
+- **The repair.** Deployments now hold deep, frozen copies with digests over all behavior-relevant state,
+  verified before activation and rollback.
+
+**3. The evaluator accepted incomplete inventories.** A copy holding 90 of the 450 updates and 3 of the
+30 fault cases was judged complete, with all six predictions passing. It now requires exactly the
+registered cases. The bundled verdict, from the complete inventory, rebuilds unchanged.
+
+**What this does to the reported results.**
+- **Nothing in the published runs relied on these gaps.** The harness checked and activated each
+  candidate it built, and specialist fine-tuning copied the network it changed.
+- **A post-repair rerun reproduced the frozen verdict exactly** (bundled as `local_updates_post_repair/`). It ran with the same worlds, inits and
+  command, through the sealed-result and snapshot path (predictions, fault-suite outcomes and every
+  per-family count).
+- **What the claims rest on now.** Before the repair, "activation requires every gate" and "rollback is
+  exact" described what the harness did, not what the interface enforced. Both are now enforced.

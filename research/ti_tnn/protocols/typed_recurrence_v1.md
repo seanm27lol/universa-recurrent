@@ -114,3 +114,4 @@ writes `verdict.json` via `evaluate()`.
   units × 3 systems), one CPU thread, with no failures. `verdict.json` was written by `evaluate()` as
   frozen.
 - **All seven predictions hold.** See the [report](../reports/typed_recurrence_v1.md).
+- **Correction after review (2026-10-18), with the contract-repair PR.** Predictions 2–5 were labeled as holding by construction "given competence". They need exact atomic correctness: one wrong fact in world 500 leaves recurrence 86.6–100% correct. Every run had 1.000. The fixed-depth control's handling of a missing module answer was also corrected to match recurrence; no reported run was affected.

@@ -28,6 +28,7 @@ from integrated import modules as M  # noqa: E402
 from integrated import reference as R  # noqa: E402
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
+from integrated import inventory  # noqa: E402
 from integrated import runtime as X  # noqa: E402
 
 CANCELLING = {("capital_of", "country_of"), ("largest_city_of", "country_of")}
@@ -107,10 +108,11 @@ GATED = ("specialists", "shared_dense", "moe")  # the families the competence pr
 def evaluate(result: dict, worlds=(200, 201, 202), inits=(0, 1, 2, 3, 4)) -> dict:
     """The frozen predictions of protocols/typed_composition_v1.md, from the recorded runs."""
     runs = result["runs"]
+    bad = inventory.problems([(r["family"], r["world"], r["init"]) for r in runs],
+                             [(f, w, i) for f in M.FAMILIES for w in worlds for i in inits])
+    if bad:
+        return {"complete": False, **bad}
     by = {(r["family"], r["world"], r["init"]): r for r in runs}
-    missing = [(f, w, i) for f in M.FAMILIES for w in worlds for i in inits if (f, w, i) not in by]
-    if missing:
-        return {"complete": False, "missing": missing[:10]}
     acc = lambda t: t["correct"] / t["total"]
     atomic_ok = lambda r: min(r["atomic"].values()) >= 0.99
     same_ok = lambda r: min(r["same_endpoint"]["capital_of"], r["same_endpoint"]["largest_city_of"]) >= 0.99

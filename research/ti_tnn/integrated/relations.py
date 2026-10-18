@@ -62,6 +62,13 @@ class World:
             "facts": {r: dict(sorted(t.items())) for r, t in sorted(self.facts.items())}}))
 
 
+def _world_deepcopy(self, memo):
+    return self  # immutable: its mappings are read-only views of private copies
+
+
+World.__deepcopy__ = _world_deepcopy
+
+
 def world_problems(world: World) -> list[str]:
     """Why a world is malformed (empty if it is not)."""
     out = []

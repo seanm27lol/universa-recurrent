@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Mapping
 
 DECISIONS = ("execute", "commit", "abstain")
@@ -27,7 +28,7 @@ def content_identity(payload: Any) -> str:
 
 
 def _identifier(name: str, what: str) -> str:
-    if not isinstance(name, str) or not name.isidentifier():
+    if type(name) is not str or not name.isidentifier():  # exactly str: a subclass could carry extra state
         raise ValueError(f"{what} must be a Python-style identifier, got {name!r}")
     return name
 
@@ -40,24 +41,34 @@ class TypeSpec:
     values: tuple[str, ...]
     version: int = 1
     semantic_domain: str = ""
-    _members: frozenset = field(init=False, repr=False, compare=False)
+    _members: Mapping = field(init=False, repr=False, compare=False)
 
     def __post_init__(self):
         _identifier(self.type_id, "type_id")
         if not self.values or len(set(self.values)) != len(self.values):
             raise ValueError(f"type {self.type_id} needs a non-empty domain of distinct values")
-        if not all(isinstance(v, str) and v for v in self.values):
-            raise ValueError(f"type {self.type_id}: values must be non-empty strings")
-        object.__setattr__(self, "_members", frozenset(self.values))
+        if not all(type(v) is str and v for v in self.values):
+            raise ValueError(f"type {self.type_id}: values must be non-empty plain strings")
+        if type(self.version) is not int:
+            raise ValueError(f"type {self.type_id}: version must be a plain int")
+        object.__setattr__(self, "_members", MappingProxyType({v: v for v in self.values}))  # value -> its own string
+
+    def __deepcopy__(self, memo):
+        return self  # immutable
 
     def contains(self, value: str) -> bool:
-        return value in self._members
+        try:
+            return value in self._members
+        except TypeError:  # unhashable
+            return False
 
     def value(self, value: str) -> "TypedValue":
-        """A typed value of this type; rejects anything outside the domain."""
+        """A typed value of this type, rejecting anything outside the domain. Its fields are this declaration's own
+        plain objects, never the ones passed in: whatever else the argument carries (a `str` subclass with extra
+        attributes, say) is left behind."""
         if not self.contains(value):
             raise ValueError(f"{value!r} is not a {self.type_id}")
-        return TypedValue(self.type_id, value, self.version)
+        return TypedValue(self.type_id, self._members[value], self.version)
 
 
 @dataclass(frozen=True)
@@ -85,10 +96,18 @@ class TypedValue:
     type_version: int = 1
 
 
+def _plain_str(x) -> str:
+    if not isinstance(x, str):
+        raise TypeError(f"expected a string, got {type(x).__name__}")
+    return str.encode(x, "utf-8", "surrogatepass").decode("utf-8", "surrogatepass")  # a new exact str
+
+
 def canonical(value: TypedValue) -> TypedValue:
-    """A fresh plain TypedValue with the same three fields. Whatever else a module attached to its output (a
-    subclass, an extra attribute) is dropped, so nothing outside the declared value can reach the next module."""
-    return TypedValue(value.type_id, value.value, value.type_version)
+    """A fresh TypedValue whose three fields are new plain built-ins (exact `str`, `str`, `int`). A subclass of
+    TypedValue, a `str` subclass in a field, or attributes attached to either are dropped. The runtime goes
+    further and rebuilds every passed value from its type's declared domain (`TypeSpec.value`); this is for
+    values that have no domain at hand, such as records of rejected outputs."""
+    return TypedValue(_plain_str(value.type_id), _plain_str(value.value), int.__add__(value.type_version, 0))
 
 
 @dataclass(frozen=True)

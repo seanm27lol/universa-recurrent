@@ -127,3 +127,4 @@ Worlds 100–101, inits 100–101.
   updates and 30 faulty-suite cases, CPU only, with no failures. `verdict.json` was written by
   `evaluate()` as frozen.
 - **All six predictions hold.** See the [report](../reports/local_updates_v1.md).
+- **Correction after review (2026-10-18), with the contract-repair PR.** `evaluate()` checked only that each family, world and init appeared. It now requires exactly the 450 registered updates and 30 fault cases, and the bundled verdict rebuilds unchanged. Activation now requires a checker-sealed result bound to the exact candidate snapshot and context, and deployments hold verified frozen copies. A rerun through the repaired path reproduced this verdict exactly.

@@ -19,6 +19,12 @@
   - Every answer and stopping reason was correct, and runs paused anywhere resumed exactly.
   - Stopping early cost about a quarter of unrolling.
   - Recording the state cost about a fifth of the time.
+- **Repairs after review (2026-10-18;** [plan section 12](../integration_plan.md)**):**
+  - gate results sealed and bound to the exact snapshot they checked;
+  - snapshots as frozen, digested private copies;
+  - exact evaluator inventories;
+  - values rebuilt from declared domains;
+  - matching failure semantics for the fixed-depth control.
 - **PR 8:** offline module replacement under independent gates, with atomic activation and exact
   rollback ([report](../reports/local_updates_v1.md)).
   - All 150 specialist updates were local, in state and in behavior.
@@ -95,7 +101,9 @@ cases:
 | [`recurrence.py`](recurrence.py) | 7 (done) | Until-queries with early stopping, dead-end, cycle and budget abstention; a JSON continuation state; exact pause/resume; a fixed-depth control |
 | [`costs.py`](costs.py) | 7 (done) | Module applications, MACs from layer shapes, state size, and wall time split into module time and bookkeeping |
 | [`updates.py`](updates.py) | 8 (done) | Update records; a deployment with atomic, authority-gated activation and exact rollback |
-| [`update_checks.py`](update_checks.py) | 8 (done) | Independent gates (pass, fail or insufficient evidence): identity and scope, types and laws, intended and unaffected behavior, trace and continuation, calibration and resources |
+| [`update_checks.py`](update_checks.py) | 8 (done; repaired after review) | Independent gates (pass, fail or insufficient evidence): record context, identity and scope, types and laws, intended and unaffected behavior, trace and continuation, calibration and resources. A `Checker` seals results bound to what it checked |
+| [`snapshots.py`](snapshots.py) | Repairs | Published snapshots: private frozen copies with a digest over all behavior-relevant state, verified before use |
+| [`inventory.py`](inventory.py) | Repairs | Exact inventories for frozen evaluators: nothing missing, repeated or extra |
 
 ## Limits, already known
 

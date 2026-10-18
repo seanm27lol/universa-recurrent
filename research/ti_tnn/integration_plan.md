@@ -398,7 +398,7 @@ The first useful outcome is a reproducible finite-domain demonstration of typed 
 | 6. Jev planning and calibrated abstention | Run against its frozen gates: [`integrated/routing.py`](integrated/routing.py), [`calibration.py`](integrated/calibration.py), [`bench/typed_questions.py`](bench/typed_questions.py), [protocol](protocols/typed_routing_v1.md), [report](reports/typed_routing_v1.md), `tests/test_ti_tnn_routing.py`. In distribution the plan's selective-answer bar holds (95% bound ≤ 0.0073 at coverage ≥ 0.982). Under a phrasing shift, accepted error is not bounded (59 of 100 accepted answers wrong), so that prediction failed. By section 10's rule ("if calibration fails, retain abstention and report the measured risk/coverage frontier"), abstention is retained and the shift result reported |
 | 7. Bounded recurrence and complete cost measurement | Confirmed against its frozen gates: [`integrated/recurrence.py`](integrated/recurrence.py), [`costs.py`](integrated/costs.py), `route_world` and `reference_until`, [`bench/typed_recurrence.py`](bench/typed_recurrence.py), [protocol](protocols/typed_recurrence_v1.md), [report](reports/typed_recurrence_v1.md), `tests/test_ti_tnn_recurrence.py`. All seven predictions hold. Every query and stopping reason was correct, and pause/resume was exact at 53,970 pause points. Early stopping cost 22–31% of unrolling's wall time. Bookkeeping was about 20% of wall time, and about 97% with table modules |
 | 8. Offline module replacement | Confirmed against its frozen gates: [`integrated/updates.py`](integrated/updates.py), [`update_checks.py`](integrated/update_checks.py), `modules.finetune`, [`bench/local_updates.py`](bench/local_updates.py), [protocol](protocols/local_updates_v1.md), [report](reports/local_updates_v1.md), `tests/test_ti_tnn_updates.py`. All six predictions hold. All 150 specialist updates passed every gate and rolled back exactly. No shared-network update was write-local. Without rehearsal, shared updates to `capital_of` corrupted `largest_city_of` in 73 of 75 cases. All 30 faulty candidates were caught as designed |
-| 9 | Not started |
+| 9. Evaluate bounded evolutionary proposals | **Deferred.** The current task has no demonstrated optimization gap: an exploratory development probe found that PR 8's default update recipe, a full supervised refit of one small relation table, learned batch changes of up to half a relation's facts perfectly. Reconsider only after the section 12 repairs, and only with a measurable objective |
 
 ## 11. Review amendments (2026-10-18)
 
@@ -428,3 +428,57 @@ From the review that adopted this plan:
    until the typed executor earns one.
 4. **The Kimi K3 monitoring figure is not used in this repository.** It does not appear in any document
    here, and section 2 already recommends leaving it out.
+
+## 12. Second review amendments (2026-10-18, after PRs 41–50)
+
+An outside review of PRs 41–50 reproduced several gaps between what the implementation guarantees and what
+its contracts state. Every gap below is repaired, with a regression test that fails on the earlier code
+(`tests/test_ti_tnn_contract_repairs.py`):
+
+1. **Gate results were not bound to what they checked.** One candidate's passing results could activate
+   another candidate with a matching record. Records could also name the wrong world, checker or
+   calibration and still pass.
+
+   **Repair:** a `Checker` publishes private copies and checks those. It seals a result bound to the
+   record, both snapshot digests, both worlds, its version, the calibration and the resource limit. A
+   deployment activates only the snapshot inside a result its own checker sealed. A new mandatory gate,
+   `record_context`, rejects a mismatched context, and treats a required calibration that is absent as
+   insufficient evidence.
+2. **Snapshots could share mutable state.** Registry identity hashed declared versions, not state. Rollback
+   kept references to live objects.
+
+   **Repair:** `snapshots.py` publishes deep, frozen copies with a digest over all behavior-relevant state,
+   verified before activation and rollback. Closures, whose captured state cannot be isolated, are refused.
+3. **Evaluators accepted incomplete inventories.** **Repair:** all five frozen evaluators now require
+   exactly the registered cases: none missing, none repeated, none extra. Every bundled verdict still
+   rebuilds unchanged.
+4. **A `str` subclass inside a typed value could carry hidden data past PR 5's fix.** **Repair:** the
+   runtime rebuilds every passed value from the declared domain's own plain strings.
+5. **The fixed-depth control could answer where recurrence abstains** on a missing module answer.
+   **Repair:** both follow the same failure semantics.
+6. **"Follows from competence" overstated a construction argument.** A 99% atomic-competence threshold
+   does not imply correct chains or recurrence. On route world 500, one wrong operator fact (176/177 atomic
+   accuracy) leaves recurrence anywhere from 86.6% to 100% correct, depending on which fact it is. The
+   argument needs exact atomic correctness. Every reported run had exactly 1.000, and recurrence and
+   chain accuracy stay separately measured requirements.
+
+**Order of work from here:**
+1. These repairs.
+2. **An interpreter robustness experiment.** It should separate three questions:
+   - composing familiar words in new structures;
+   - alternate wording whose meaning was taught;
+   - abstaining when essential wording is unfamiliar.
+
+   It should run simple controls first:
+   - no threshold;
+   - a raw-score threshold with valid certification;
+   - calibrated probabilities with the same certification;
+   - explicit lexical-novelty rejection.
+
+   For a competence claim it should require coverage, not only bounded risk.
+3. **One complete integration test:** question, interpreted bounded query, recurrence, pause, a checked
+   module update, then resume under the right version policy.
+4. **Evolutionary proposals (PR 9) only for a measurable objective,** such as repeated updates with a bounded
+   replay allowance. They would be compared with ordinary fine-tuning, early stopping and matched random
+   search, counting every proposed and rejected candidate and every check.
+

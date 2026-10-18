@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 294
+    assert len(manifest["files"]) == 296
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -124,3 +124,8 @@ def test_local_updates_verdict_rebuilds_from_the_bundle():
     assert upd["families"]["specialists"]["activated"] == 150
     assert upd["families"]["shared_same_data"]["unaffected_changed_from_base_total"] == 4387
     assert upd["families"]["shared_same_data"]["atomic_changed_by_relation"] == {"largest_city_of": 373}
+
+
+def test_the_post_repair_rerun_reproduces_the_module_replacement_verdict():
+    pytest.importorskip("torch")
+    assert tables.local_updates_post_repair_tables() == tables.local_updates_tables()  # raises on any difference

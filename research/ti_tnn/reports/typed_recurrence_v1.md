@@ -122,3 +122,17 @@ bookkeeping measurement is the informative number.
 - **Verdict.** `verdict.json` was written by the frozen `evaluate()`; `make_tables.py` rebuilds it from the
   bundled runs.
 - **Development pilot.** It ran on worlds 100–101 before freezing, and is disclosed in the protocol.
+
+## Corrections after review (2026-10-18)
+
+- **The fixed-depth control had different failure semantics.** When the test module returned no answer for
+  an intermediate airport, recurrence abstained, but fixed depth scanned past it and could answer later.
+  The repair makes fixed depth abstain at the same point, with a regression test. No reported run was
+  affected: learned modules always answer (an argmax), and table modules are total.
+- **Competence does not imply correct recurrence.** The protocol treated reference agreement as following
+  from atomic competence, but its threshold is 0.99, not exact correctness.
+  - **How much one wrong fact matters.** On confirmation world 500, making one of the 177 `operator_of`
+    answers wrong (atomic accuracy 0.994) leaves recurrence between 86.6% and 100% correct over the 1,062
+    queries. Which fact is wrong decides it; the median is 99.7%.
+  - **What holds.** Every reported run had atomic accuracy exactly 1.000, so its recurrence results stand.
+    Recurrence correctness remains a separately measured requirement, as the evaluator already treats it.

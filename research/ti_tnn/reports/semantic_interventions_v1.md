@@ -127,3 +127,14 @@ modules return plain values.
 - **Verdict.** `verdict.json` was written by the frozen `evaluate()`; `make_tables.py` rebuilds it from the
   bundled runs.
 - **Development pilot.** It ran on worlds 100–101 before freezing, and is disclosed in the protocol.
+
+## Corrections after review (2026-10-18)
+
+- **The runtime fix in this PR was incomplete.** It rebuilt the outer `TypedValue` but kept its fields by
+  reference. A `str` subclass carrying an extra attribute passed the domain check, survived the rebuild
+  and reached the next module. The record showed only the visible string, the probe reported exact
+  consumption, and the run answered differently from its own suffix replayed from the record. The repair
+  rebuilds every passed value from the declared domain's own plain strings, with a regression test. No
+  reported run was affected: the learned and table modules return plain strings.
+- **Prediction 3b needs exact atomic correctness, not 0.99 competence.** Every run had atomic accuracy
+  exactly 1.000, so it holds as reported.

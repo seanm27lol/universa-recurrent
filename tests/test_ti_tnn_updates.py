@@ -40,12 +40,13 @@ def test_a_valid_edit_passes_every_gate_activates_and_rolls_back_exactly():
     base = G.table_registry(world)
     cand = S.table_candidate(base, world, new, "capital_of")
     rec = S.record_for(base, cand, new, intended, ("capital_of",))
-    gates = U.check_all(base, cand, rec, world, new)
-    assert all(gates[g]["outcome"] == U.PASS for g in D.MANDATORY), {g: gates[g] for g in D.MANDATORY}
-    assert gates["counts"]["intended"] > 0 and gates["counts"]["unaffected_changed_from_base"] == 0
-    dep = D.Deployment(base, D.Authority({S.PROPOSER}))
-    assert dep.activate(cand, rec, gates)["activated"] and dep.active is cand
-    assert dep.rollback()["rolled_back"] and dep.active is base
+    result = S.CHECKER.check(base, cand, rec, world, new)
+    assert result.passed(), {g: result.gates[g] for g in U.MANDATORY}
+    assert result.counts["intended"] > 0 and result.counts["unaffected_changed_from_base"] == 0
+    dep = D.Deployment(base, D.Authority({S.PROPOSER}), S.CHECKER)
+    original = dep.active
+    assert dep.activate(rec, result)["activated"] and dep.active is result.snapshot
+    assert dep.rollback()["rolled_back"] and dep.active is original and original.verify()
     assert dep.rollback() == {"rolled_back": False, "reasons": ["no earlier snapshot"]}
 
 
@@ -68,14 +69,16 @@ def test_a_mismatched_or_tampered_record_is_refused():
     world, new, intended = ardel_move()
     base = G.table_registry(world)
     cand = S.table_candidate(base, world, new, "capital_of")
-    gates = U.check_all(base, cand, S.record_for(base, cand, new, intended, ("capital_of",)), world, new)
-    wrong_intent = S.record_for(base, cand, new, (("capital_of", "Ardel", "Port Vey"),), ("capital_of",))
-    assert U.check_all(base, cand, wrong_intent, world, new)["intended_behavior"]["outcome"] == U.FAIL
-    other = S.table_candidate(base, world, new, "capital_of", table={**new.facts["capital_of"], "Corvala": "Talmont"})
     rec = S.record_for(base, cand, new, intended, ("capital_of",))
-    dep = D.Deployment(base, D.Authority({S.PROPOSER}))
-    decision = dep.activate(other, rec, gates)  # the record describes a different candidate
-    assert not decision["activated"] and dep.active is base
+    result = S.CHECKER.check(base, cand, rec, world, new)
+    wrong_intent = S.record_for(base, cand, new, (("capital_of", "Ardel", "Port Vey"),), ("capital_of",))
+    assert S.CHECKER.check(base, cand, wrong_intent, world, new).outcome("intended_behavior") == U.FAIL
+    other = S.table_candidate(base, world, new, "capital_of", table={**new.facts["capital_of"], "Corvala": "Talmont"})
+    other_rec = S.record_for(base, other, new, intended, ("capital_of",))
+    dep = D.Deployment(base, D.Authority({S.PROPOSER}), S.CHECKER)
+    original = dep.active
+    decision = dep.activate(other_rec, result)  # the result was made for a different record and candidate
+    assert not decision["activated"] and dep.active is original
 
 
 def test_learned_specialist_updates_are_local_and_shared_ones_are_not():
@@ -89,7 +92,7 @@ def test_learned_specialist_updates_are_local_and_shared_ones_are_not():
         reg = S.registry_from(world, base["modules"])
         tuned = M.finetune(new_world, family, base, 0, (rel,), 200, 3e-3, rehearse)
         cand = S.registry_from(new_world, tuned["modules"])
-        out[name] = U.check_all(reg, cand, S.record_for(reg, cand, new_world, intended, (rel,)), world, new_world)
+        out[name] = S.CHECKER.check(reg, cand, S.record_for(reg, cand, new_world, intended, (rel,)), world, new_world).gates
     assert out["specialists"]["identity_and_scope"]["outcome"] == U.PASS
     assert out["specialists"]["identity_and_scope"]["changed"] == [rel]
     for name in ("shared_same_data", "shared_rehearsal"):
@@ -113,7 +116,7 @@ def test_the_frozen_gate():
                 runs.append(row("specialists", w, i, k, rel))
                 runs.append(row("shared_same_data", w, i, k, rel, "fail" if rel == "capital_of" else "pass"))
                 runs.append(row("shared_rehearsal", w, i, k, rel))
-    suite = [{"case": "valid_table_edit", "world": w, "as_expected": True} for w in (600, 601, 602)]
+    suite = [{"case": c, "world": w, "as_expected": True} for c in S.FAULT_CASES for w in (600, 601, 602)]
     v = S.evaluate({"runs": runs, "faulty_suite": suite})
     assert v["complete"] and all(v["predictions"].values()), v["predictions"]
     runs[0] = row("specialists", 600, 0, 0, "capital_of", activated=False)

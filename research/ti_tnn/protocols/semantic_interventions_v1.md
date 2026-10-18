@@ -108,3 +108,4 @@ also writes `verdict.json` via `evaluate()`.
 - **The run.** The protocol's command, from `75cb47a`, 2026-10-18, finishing 19:38 UTC. 72 runs, CPU only,
   with no failures. `verdict.json` was written by `evaluate()` as frozen.
 - **All seven predictions hold.** See the [report](../reports/semantic_interventions_v1.md).
+- **Correction after review (2026-10-18), with the contract-repair PR.** Prediction 3b follows from exact atomic correctness, which every run had, not from the 0.99 threshold. The runtime's value rebuild in this PR left a nested `str`-subclass channel open. It is now closed by rebuilding values from the declared domain; no reported run was affected.
