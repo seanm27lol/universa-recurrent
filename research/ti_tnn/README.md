@@ -334,6 +334,10 @@ fed another country's Trait-B stalk.
     TI-TNN at 30% charged compute learns it on 2 of 5, near-perfectly when it does (0.98, 1.000). The
     dense reference learns it on only 3 of 5, so by the frozen rule TI-TNN's efficiency test was
     untestable.
+  - **The lookup fixes on text** ([report](reports/adaptive_compute_wikitext_fixed.md)). Adding the shared
+    expert, cap warm-up and visible skipping on top of the initialization fix makes TI-TNN much worse
+    on WikiText-103 (57.21 against 46.94), so the fixes that rescued learning on the synthetic task do
+    not transfer.
   - **Lookup task.** On the task built to favor adaptive compute, the adaptive models
     mostly never learned the multi-step lookups, and neither did a full-compute
     mixture of experts. The 8-layer dense model scored 1.000.

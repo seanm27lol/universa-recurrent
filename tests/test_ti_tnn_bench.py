@@ -895,3 +895,14 @@ def test_active_max_counts_every_expert_a_token_can_run():
             assert c["active_max"] == c["active_top1"] + (k - 1) * per_expert * model.cfg.n_layers
     dense = models.parameter_counts(models.LanguageModel(cfg("dense")))
     assert dense["active_max"] == dense["active_top1"] == dense["total"]
+
+
+
+def test_latency_names_runs_exactly_as_lm_does():
+    latency = importlib.import_module("latency")
+    fixed = lm.parse_args(["--ffn", "ti_tnn_adaptive", "--target-compute", "0.3", "--expert-init", "dense",
+                           "--cap-warmup-frac", "0.5", "--skip-keeps-kv", "--shared-expert-frac", "0.5"])
+    r = {"config": vars(fixed), "model_config": {}}
+    assert latency.run_name(r) == lm.variant_name(fixed) == "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50"
+    legacy = {"config": {"ffn": "moe_top1", "seed": 0, "d_model": 512, "layers": 8}, "model_config": {}}
+    assert latency.run_name(legacy) == "moe_top1"  # older runs keep their names
