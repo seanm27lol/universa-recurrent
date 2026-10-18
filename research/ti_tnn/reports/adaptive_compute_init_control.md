@@ -1,4 +1,4 @@
-# WikiText-103 initialization control: TI-TNN's lead over plain skipping grows; the mixture's edge over dense was initialization — 2026-10-18
+# WikiText-103 initialization control: TI-TNN's lead over plain skipping grows; top-1's small mean edge over dense reverses under matched initialization — 2026-10-18
 
 **Protocol:** [`protocols/adaptive_compute_init_control.md`](../protocols/adaptive_compute_init_control.md),
 frozen at `630cab2` before any run. Its execution record lists one bookkeeping fix, which does not change
@@ -29,10 +29,10 @@ the same random draws, so every other parameter is identical.
     decoder MACs).
   - Parameters (202M against 51M) and the small-expert option remain uncontrolled.
 - **The top-1 mixture loses its small edge over dense.** It is worse on every seed with matched
-  initialization (39.04 → 39.82, 39.81 → 40.09, 39.87 → 40.05) and ends 0.14 above dense. Both gaps
-  are within seed variation (the legacy mixture's sd is 0.46). But the frozen prediction asked only
-  whether the sign held, and it did not. The earlier "mixtures beat dense at equal compute" depended
-  on the initialization.
+  initialization (39.04 → 39.82, 39.81 → 40.09, 39.87 → 40.05) and ends 0.14 above dense. Its small
+  mean edge over dense reverses under matched initialization. Both gaps are within seed variation (the
+  legacy mixture's sd is 0.46), so this shows the edge was not robust to the initialization, not that
+  initialization caused it. The frozen prediction asked only whether the sign held, and it did not.
 - **Latency is untestable.** The dense-initialized c30 model decoded at 1.84 against dense's 2.21 ms per
   token (0.83×), but its seed-1 checkpoint failed the execution check (logits 2.34 apart on a scale of
   28.1).
@@ -64,8 +64,8 @@ the same random draws, so every other parameter is identical.
 - **The adaptive-compute report's prediction 7.** TI-TNN beat plain skipping at the 30% cap. That
   survives the initialization confound and gets stronger. The parameter difference and the
   small-expert option are still not isolated.
-- **The real benchmark's "top-1 beats dense".** It does not survive matched initialization; that
-  report's errata already flagged the confound.
+- **The real benchmark's "top-1 beats dense".** Its small mean edge reverses under matched
+  initialization; that report's errata already flagged the confound.
 - **What it doesn't change.** The adaptive-compute verdict, *not validated*, stands. Even with better
   initialization, TI-TNN at 30% compute is 18% worse than dense, outside the 2% bar.
 
