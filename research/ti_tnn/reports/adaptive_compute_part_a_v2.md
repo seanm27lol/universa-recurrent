@@ -7,6 +7,25 @@ before any v2 result was examined. **Raw results:**
 `lookup_init_check/`, `lookup_learning_diagnostics/`). `make_tables.py` prints every number below from
 those files.
 
+> **Corrections (2026-10-18, after a fourth outside review).** The frozen verdict and the results
+> table stand. Corrected below:
+> - **Why the mixture now learns is a hypothesis, not established.** The shared expert is an
+>   unconditional dense MLP (half the width, no router-probability multiplier). It might carry the
+>   lookup computation by itself, with the routed experts adding little. A shared-only control is
+>   specified in [`protocols/adaptive_compute_shared_path_control.md`](../protocols/adaptive_compute_shared_path_control.md).
+> - **The one-expert diagnostic was weaker than described.** Its runs reach 3-hop 0.76 and 0.20, so
+>   neither learned the task. Changing the expert count also changes the output scale and the router's
+>   gradient, so it does not isolate fragmentation.
+> - **Several "ruled out" alternatives only failed to rescue learning, under settings where the
+>   matched control also failed.** The balanced loss is one of them; the hop curriculum is another,
+>   and its runs were also affected by a vocabulary bug, since fixed.
+> - **TI-TNN's successful seeds are near-perfect, not both perfect** (0.978 and 1.000). The other
+>   three did not all learn 2-hop.
+> - **"Fresh seeds" means fresh training seeds.** The 2,048 evaluation sequences are part A's fixed set.
+> - **Two bookkeeping errors.** The cached decoder computed an uncharged query projection for visible
+>   skipped tokens, and shared-expert runs recorded negative active-parameter counts. Both are fixed;
+>   details under Limits.
+
 ## The question
 
 [Part A](adaptive_compute.md) of the adaptive-compute benchmark failed on learning, not efficiency:
@@ -28,14 +47,16 @@ untestable.** The validity condition failed: the 8-layer dense reference learned
 5 seeds (needed: 4 of 5, with mean hard accuracy ≥ 0.90; it got 0.873).
 
 Within that verdict, two results are clear:
-- **The mixture-of-experts fix works decisively.** With dense-matched initialization and a shared
-  expert, the top-1 mixture learns the task on **5 of 5** seeds (0.990). In part A it learned nothing.
-  It is more reliable than every dense model.
+- **The combined mixture-of-experts recipe succeeds on all five seeds.** With dense-matched
+  initialization and a shared expert, the top-1 mixture learns the task on **5 of 5** training seeds
+  (0.990). In part A it learned nothing. It is more reliable than every dense model. Which part of the
+  recipe does the work is not yet established: the shared path alone may suffice.
 - **TI-TNN can now learn the whole task at 30% of the compute, but not reliably.**
-  - On 2 of 5 seeds, `ti_tnn_adaptive_c30` reaches 0.98 and 1.000 hard accuracy at 0.51M decoder
-    MACs per token, 30% of the reference's 1.70M. That is the efficient solution the task was designed
-    to reward, and it is reachable.
-  - On the other 3 seeds it learns only 1- and 2-hop lookups.
+  - On 2 of 5 seeds, `ti_tnn_adaptive_c30` reaches near-perfect accuracy: 0.978 (3-hop 0.967) and 1.000.
+    Its charged compute is 0.51M decoder MACs per token, 30% of the reference's 1.70M (see Limits on the
+    decoder). That is the efficient solution the task was designed to reward, and it is reachable.
+  - On the other 3 seeds, 1-hop is learned (0.98–1.00), 2-hop varies (0.998, 0.673 and 0.509), and
+    3-hop stays near chance (0.20, 0.20 and 0.16).
   - It beats plain layer skipping at both caps; plain skipping learns the task on 0 of 5 seeds.
 
 ## Results (seeds 200–204; hard accuracy, chance about 0.14)
@@ -83,11 +104,14 @@ needs validity, so **untestable**.
   the fixed mixture of experts does best (5 of 5). Chaining is an all-or-nothing learning event. So
   per-seed success rates, not means, are the informative measure. Five seeds are few for estimating
   them.
-- **The mixture-of-experts failure is understood and fixed.** Development seeds showed that routing
-  tokens across two or more experts kept the model on the "queries at chance" plateau, while one
-  expert escaped it. A shared expert removes that: 5 of 5.
+- **The mixture-of-experts recipe now works; why is open.** On development seeds, models with two or
+  more routed experts stayed on the "queries at chance" plateau, while a one-expert model partly
+  escaped it. That fits the hypothesis that routing fragments a computation facts and queries must
+  share. But changing the expert count also changes the output scale and the router's gradient, and
+  the shared expert is itself a dense MLP that might do the work alone. A shared-only control would
+  distinguish these.
 - **TI-TNN's efficient solution exists but is learned unreliably.** When it learns, it chains 3 hops
-  at 30% compute, and it spends more compute on harder queries. It learns on 2 of 5 seeds, against 3
+  near-perfectly at 30% charged compute, and it spends more compute on harder queries. It learns on 2 of 5 seeds, against 3
   of 5 for the reference and 5 of 5 for the full-compute mixture.
 - **Not shown:**
   - that adaptive compute is efficient here, since the test is untestable;
@@ -104,12 +128,12 @@ seed-0 reproduction of part A's dense run), and are not pre-registered results. 
 | Round | What was tried | What it showed |
 |---|---|---|
 | 1 (`hops_dev`) | Cap warm-up, router bias toward full, both; for `mod` and TI-TNN at 30% | Nothing chains. Warm-up plus bias gets TI-TNN 1-hop on both seeds; warm-up alone sends `mod`'s multi-hop answers below chance (it applies one hop to every query) |
-| 2 (`hops_dev`) | Visible skipped tokens; a balanced loss; MoE with longer training | Visible skipping plus warm-up gives `mod` reliable 1-hop and TI-TNN 2-hop on one seed. **The balanced loss breaks the dense model's chaining** (1.00 / 0.14 / 0.14), so it was dropped |
+| 2 (`hops_dev`) | Visible skipped tokens; a balanced loss; MoE with longer training | Visible skipping plus warm-up gives `mod` reliable 1-hop and TI-TNN 2-hop on one seed. The balanced loss did not rescue learning: dense with it reached 1-hop only (1.00 / 0.14 / 0.14). But ordinary dense on the same seeds and budget also failed (round 3; 3-hop 0.05 and 0.14), so this shows no harm either. It was dropped untested at a budget where dense learns |
 | 3 (`hops_dev3`) | The dense reference on fresh seeds | **3-hop on 0 of 4 seeds** at 6,000 steps. Part A's 1.000 was selected in design (disclosed in that report). Part A's dense seed 0 reproduces exactly |
-| 4 (`hops_dev4`) | Dense with a hop curriculum, 18,000 steps, or both | 18,000 steps: 3-hop on 3 of 4. Curriculum: 2 of 4. Both: 0 of 4 |
+| 4 (`hops_dev4`) | Dense with a hop curriculum, 18,000 steps, or both | 18,000 steps: 3-hop on 3 of 4. **The 8 curriculum runs are affected by a bug** (fixed 2026-10-18): each stage shrank the task, which shifted the counting tokens' IDs onto hop tokens. So curriculum (2 of 4) and curriculum with 18,000 steps (0 of 4) do not cleanly test a curriculum |
 | 5 (`hops_dev5`) | The adaptive recipes at 18,000 steps | `mod` 2-hop on 1 seed; TI-TNN 1-hop only; **MoE gets worse with longer training** |
 | 6 (`hops_dev6`) | MoE without balance loss, with 2 experts, top-2, or half the learning rate (6,000 steps) | None chains. Uninformative, because dense does not chain on these seeds at 6,000 steps either |
-| 7 (`hops_dev7`) | MoE with 1 or 2 experts, 18,000 steps | **1 expert chains (0.92, 0.62); 2 experts stay at chance.** The training loss shows 2 experts never leaving the "queries at chance" plateau |
+| 7 (`hops_dev7`) | MoE with 1 or 2 experts, 18,000 steps | 1 expert learns partly: hard 0.92 and 0.62, but 3-hop only 0.76 and 0.20, so neither meets the 0.9 bar. 2 experts stay at chance, and their training loss never leaves the "queries at chance" plateau. With one expert the router probability is exactly 1, so this also changes output scale and router gradients; it does not isolate fragmentation |
 | 8 (`hops_dev8`) | A shared expert (half the width) | **MoE 3-hop 0.97 and 1.00.** TI-TNN at 30%: 2-hop on both seeds, 3-hop on neither |
 
 The frozen **lookup initialization check** (seeds 0–2, 6,000 steps;
@@ -118,8 +142,22 @@ lookups (0.9995) but not chaining.
 
 ## Limits
 
-- **The fixes were chosen on 2–4 development seeds** and evaluated on 5 fresh ones; success rates from
-  5 seeds are coarse.
+- **The fixes were chosen on 2–4 development seeds** and evaluated on 5 fresh training seeds; success
+  rates from 5 seeds are coarse. The evaluation sequences are part A's fixed 2,048, so this estimates
+  training reliability on the chosen task.
+- **Alternatives that "did not rescue" are not excluded.** The 6,000-step probes (no balance loss, 2
+  experts, top-2, half the learning rate, a balanced loss) ran where the dense control also failed. The
+  curriculum runs had the vocabulary bug. They show that those changes did not rescue learning under the
+  tested settings, nothing more.
+- **Charged compute against the supplied decoder.** The cost model charges a visible skipped token 2D²
+  for its key and value. The cached decoder used for latency computed the query projection too, an
+  uncharged D² per skip per layer; it now projects only K and V. With the saved routing costs, the old
+  decoder's arithmetic for `ti_tnn_adaptive_c30` would be about 0.585–0.616M MACs per token (34–36% of
+  the reference), against the charged 0.506M (30%). This is an analytical bound, not a measurement. The
+  accuracies come from the full pass and are unaffected.
+- **Active-parameter counts.** All 15 shared-expert runs recorded a negative `active_top1`, because the
+  count assumed full-width expert banks. Corrected, from the instantiated modules (the run records are
+  kept as written): fixed `moe_top1` 1,608,448 of 5,278,464; `ti_tnn_adaptive` 1,611,544 of 6,469,400.
 - **18,000 steps is 3× part A's budget,** so v2 is not comparable step for step with part A.
 - **Compute differs from part A.** Visible skipped tokens cost 1/6 of a block, which the cap counts; the
   shared expert keeps a mixture's compute equal to dense.
