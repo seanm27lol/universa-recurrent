@@ -140,3 +140,23 @@ def generate_world(seed: int, n_countries: int = 24, cities_per_country: tuple[i
              "country_of": {city: c for c, cs in country_cities.items() for city in cs},
              "airport_of": airport, "operator_of": operator}
     return _world(f"generated_{seed}", countries, cities, list(airport.values()), used, facts, seed)
+
+
+# Plan PR 7: genuine longer paths. A route network on airports: every airport has exactly one onward connection,
+# to another airport, or to itself at a terminal (no onward route). Following it from any airport eventually
+# reaches a terminal or closes a cycle, so "the first airport reached from X operated by O" may be found after
+# several steps, or never (a cycle or a terminal first). Earlier worlds are unchanged: this is a separate world.
+ROUTE_RELATIONS: Mapping[str, RelationSpec] = MappingProxyType({
+    **RELATIONS,
+    "connects_to": RelationSpec("connects_to", AIRPORT, AIRPORT,
+                                "the airport's one onward connection (the airport itself at a terminal)"),
+})
+
+
+def route_world(seed: int, n_countries: int = 48, terminal_share: float = 0.08, **kwargs) -> World:
+    """`generate_world(seed, n_countries, ...)` plus a random route network on its airports."""
+    base = generate_world(seed, n_countries=n_countries, **kwargs)
+    rng = random.Random(f"routes|{seed}")
+    airports = list(base.types[AIRPORT].values)
+    connects = {a: a if rng.random() < terminal_share else rng.choice([b for b in airports if b != a]) for a in airports}
+    return World(f"route_{seed}", base.types, ROUTE_RELATIONS, {**base.facts, "connects_to": connects}, seed)
