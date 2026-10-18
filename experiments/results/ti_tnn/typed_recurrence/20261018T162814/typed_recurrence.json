@@ -1,0 +1,1923 @@
+{
+  "config": {
+    "worlds": [
+      500,
+      501,
+      502
+    ],
+    "inits": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "countries": 48,
+    "budget": 16,
+    "repeats": 3,
+    "d": 32,
+    "hidden": 64,
+    "steps": 1500,
+    "lr": 0.01,
+    "threads": 1,
+    "out": "runs/titnn_recurrence"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "threads": 1
+  },
+  "runs": [
+    {
+      "system": "recurrent",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 0,
+      "registry_identity": "d856ce06b446bc6d2c89f42880c9e3d9ef6a0c49e3a684e47a10eb39d0106f45",
+      "train_seconds": 3.14,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 77419.81167608286,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 513.6125,
+      "module_us_median": 419.1475,
+      "bookkeeping_share_median": 0.2028202393564253,
+      "pause_resume": {
+        "pause_points": 4184,
+        "identical": 4184
+      },
+      "agrees_with_fixed_depth": 1062
+    },
+    {
+      "system": "fixed_depth",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 0,
+      "registry_identity": "d856ce06b446bc6d2c89f42880c9e3d9ef6a0c49e3a684e47a10eb39d0106f45",
+      "train_seconds": 3.14,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 32.0,
+      "macs_mean": 252928.0,
+      "state_bytes_mean": 10935.411487758945,
+      "wall_us_median": 1683.486,
+      "module_us_median": 1642.9585,
+      "bookkeeping_share_median": 0.023953829536694005
+    },
+    {
+      "system": "recurrent_table",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 0,
+      "registry_identity": "b3c2cea21bc0d082b127fd4748b8df9482f986f1d7d0ef94a5e613bb8f7ee042",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 88.728,
+      "module_us_median": 3.032,
+      "bookkeeping_share_median": 0.9696624769096983
+    },
+    {
+      "system": "recurrent",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 1,
+      "registry_identity": "3f7a7d9d5ca2c32adaf28fcff02425ea7047371ca9e48c0f54cc5333cdf25465",
+      "train_seconds": 2.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 77419.81167608286,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 508.052,
+      "module_us_median": 414.0515,
+      "bookkeeping_share_median": 0.2028392588235196,
+      "pause_resume": {
+        "pause_points": 4184,
+        "identical": 4184
+      },
+      "agrees_with_fixed_depth": 1062
+    },
+    {
+      "system": "fixed_depth",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 1,
+      "registry_identity": "3f7a7d9d5ca2c32adaf28fcff02425ea7047371ca9e48c0f54cc5333cdf25465",
+      "train_seconds": 2.84,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 32.0,
+      "macs_mean": 252928.0,
+      "state_bytes_mean": 10935.411487758945,
+      "wall_us_median": 1688.2945,
+      "module_us_median": 1647.917,
+      "bookkeeping_share_median": 0.023823174475886333
+    },
+    {
+      "system": "recurrent_table",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 1,
+      "registry_identity": "b3c2cea21bc0d082b127fd4748b8df9482f986f1d7d0ef94a5e613bb8f7ee042",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 89.1045,
+      "module_us_median": 3.04,
+      "bookkeeping_share_median": 0.9696628928241424
+    },
+    {
+      "system": "recurrent",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 2,
+      "registry_identity": "c5bcb372e441e78ddb26da23e9e8a9e5d71176c2254c7daa22f955edd2d855a2",
+      "train_seconds": 2.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 77419.81167608286,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 511.9645,
+      "module_us_median": 416.475,
+      "bookkeeping_share_median": 0.2050655741650469,
+      "pause_resume": {
+        "pause_points": 4184,
+        "identical": 4184
+      },
+      "agrees_with_fixed_depth": 1062
+    },
+    {
+      "system": "fixed_depth",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 2,
+      "registry_identity": "c5bcb372e441e78ddb26da23e9e8a9e5d71176c2254c7daa22f955edd2d855a2",
+      "train_seconds": 2.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 32.0,
+      "macs_mean": 252928.0,
+      "state_bytes_mean": 10935.411487758945,
+      "wall_us_median": 1700.0785,
+      "module_us_median": 1658.1575,
+      "bookkeeping_share_median": 0.024376946263893584
+    },
+    {
+      "system": "recurrent_table",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 2,
+      "registry_identity": "b3c2cea21bc0d082b127fd4748b8df9482f986f1d7d0ef94a5e613bb8f7ee042",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 89.385,
+      "module_us_median": 3.024,
+      "bookkeeping_share_median": 0.969887023101456
+    },
+    {
+      "system": "recurrent",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 3,
+      "registry_identity": "4eee466f93f72a925ffad76513b7ceb874144b6c368ef9318c6165fe40f691a1",
+      "train_seconds": 2.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 77419.81167608286,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 507.2525,
+      "module_us_median": 412.676,
+      "bookkeeping_share_median": 0.2041150012688866,
+      "pause_resume": {
+        "pause_points": 4184,
+        "identical": 4184
+      },
+      "agrees_with_fixed_depth": 1062
+    },
+    {
+      "system": "fixed_depth",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 3,
+      "registry_identity": "4eee466f93f72a925ffad76513b7ceb874144b6c368ef9318c6165fe40f691a1",
+      "train_seconds": 2.8,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 32.0,
+      "macs_mean": 252928.0,
+      "state_bytes_mean": 10935.411487758945,
+      "wall_us_median": 1697.814,
+      "module_us_median": 1656.423,
+      "bookkeeping_share_median": 0.024311717382582476
+    },
+    {
+      "system": "recurrent_table",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 3,
+      "registry_identity": "b3c2cea21bc0d082b127fd4748b8df9482f986f1d7d0ef94a5e613bb8f7ee042",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 88.792,
+      "module_us_median": 3.024,
+      "bookkeeping_share_median": 0.9697588467535834
+    },
+    {
+      "system": "recurrent",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 4,
+      "registry_identity": "5430f8e32b47766777d78f3a5ec910459e71adc598b6beafc6c90cab1c4d031d",
+      "train_seconds": 2.81,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 77419.81167608286,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 508.748,
+      "module_us_median": 414.324,
+      "bookkeeping_share_median": 0.20386646857015578,
+      "pause_resume": {
+        "pause_points": 4184,
+        "identical": 4184
+      },
+      "agrees_with_fixed_depth": 1062
+    },
+    {
+      "system": "fixed_depth",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 4,
+      "registry_identity": "5430f8e32b47766777d78f3a5ec910459e71adc598b6beafc6c90cab1c4d031d",
+      "train_seconds": 2.81,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 32.0,
+      "macs_mean": 252928.0,
+      "state_bytes_mean": 10935.411487758945,
+      "wall_us_median": 1711.9985,
+      "module_us_median": 1669.79,
+      "bookkeeping_share_median": 0.02462230630716583
+    },
+    {
+      "system": "recurrent_table",
+      "world": 500,
+      "world_identity": "d95a048f2362c89787e82eb66c049b45e767ddb793c2019048f8da4d5517298a",
+      "init": 4,
+      "registry_identity": "b3c2cea21bc0d082b127fd4748b8df9482f986f1d7d0ef94a5e613bb8f7ee042",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1062,
+      "correct": 1062,
+      "by_reason": {
+        "found": {
+          "n": 853,
+          "correct": 853
+        },
+        "dead end": {
+          "n": 142,
+          "correct": 142
+        },
+        "budget exhausted": {
+          "n": 15,
+          "correct": 15
+        },
+        "cycle": {
+          "n": 52,
+          "correct": 52
+        }
+      },
+      "same_timed": 1062,
+      "module_applications_mean": 9.668549905838042,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 4003.3126177024483,
+      "wall_us_median": 88.793,
+      "module_us_median": 3.04,
+      "bookkeeping_share_median": 0.9698439098036842
+    },
+    {
+      "system": "recurrent",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 0,
+      "registry_identity": "b94b444e2555fd5825ab0a841635093f281628747ee9185e2cc6f2c50c3bfe74",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 62352.48484848485,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 369.667,
+      "module_us_median": 307.4425,
+      "bookkeeping_share_median": 0.1893420171269991,
+      "pause_resume": {
+        "pause_points": 3179,
+        "identical": 3179
+      },
+      "agrees_with_fixed_depth": 990
+    },
+    {
+      "system": "fixed_depth",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 0,
+      "registry_identity": "b94b444e2555fd5825ab0a841635093f281628747ee9185e2cc6f2c50c3bfe74",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 32.0,
+      "macs_mean": 240640.0,
+      "state_bytes_mean": 10903.456565656566,
+      "wall_us_median": 1674.262,
+      "module_us_median": 1634.278,
+      "bookkeeping_share_median": 0.023802906788788103
+    },
+    {
+      "system": "recurrent_table",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 0,
+      "registry_identity": "56284ae05cb663e59bebba75e059d0f5f3916bde7ba9bdfd3a2667f20f58b986",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 58.9205,
+      "module_us_median": 2.304,
+      "bookkeeping_share_median": 0.9664236147422807
+    },
+    {
+      "system": "recurrent",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 1,
+      "registry_identity": "661ccceda4f0a0e4ff8f52d48c0651be561e444c4dbc37d9d170a5bacf03fbfa",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 62352.48484848485,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 371.275,
+      "module_us_median": 309.0495,
+      "bookkeeping_share_median": 0.18968866432006515,
+      "pause_resume": {
+        "pause_points": 3179,
+        "identical": 3179
+      },
+      "agrees_with_fixed_depth": 990
+    },
+    {
+      "system": "fixed_depth",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 1,
+      "registry_identity": "661ccceda4f0a0e4ff8f52d48c0651be561e444c4dbc37d9d170a5bacf03fbfa",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 32.0,
+      "macs_mean": 240640.0,
+      "state_bytes_mean": 10903.456565656566,
+      "wall_us_median": 1678.6705,
+      "module_us_median": 1638.278,
+      "bookkeeping_share_median": 0.02390306573014056
+    },
+    {
+      "system": "recurrent_table",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 1,
+      "registry_identity": "56284ae05cb663e59bebba75e059d0f5f3916bde7ba9bdfd3a2667f20f58b986",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 58.84,
+      "module_us_median": 2.32,
+      "bookkeeping_share_median": 0.9658459573583775
+    },
+    {
+      "system": "recurrent",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 2,
+      "registry_identity": "a23b26b6f305b52ee749cffdd54af8bcec3b1eb6190f72468273e0dab6ad8c99",
+      "train_seconds": 2.7,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 62352.48484848485,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 374.003,
+      "module_us_median": 311.555,
+      "bookkeeping_share_median": 0.18723235442014413,
+      "pause_resume": {
+        "pause_points": 3179,
+        "identical": 3179
+      },
+      "agrees_with_fixed_depth": 990
+    },
+    {
+      "system": "fixed_depth",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 2,
+      "registry_identity": "a23b26b6f305b52ee749cffdd54af8bcec3b1eb6190f72468273e0dab6ad8c99",
+      "train_seconds": 2.7,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 32.0,
+      "macs_mean": 240640.0,
+      "state_bytes_mean": 10903.456565656566,
+      "wall_us_median": 1678.4705,
+      "module_us_median": 1638.8695,
+      "bookkeeping_share_median": 0.023566070963648322
+    },
+    {
+      "system": "recurrent_table",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 2,
+      "registry_identity": "56284ae05cb663e59bebba75e059d0f5f3916bde7ba9bdfd3a2667f20f58b986",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 58.7685,
+      "module_us_median": 2.312,
+      "bookkeeping_share_median": 0.966038256880558
+    },
+    {
+      "system": "recurrent",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 3,
+      "registry_identity": "a180c954d872892461553207624fca4167f9388f2aa4bf05304d2abf60d439c8",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 62352.48484848485,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 374.283,
+      "module_us_median": 311.8665,
+      "bookkeeping_share_median": 0.18764380806881864,
+      "pause_resume": {
+        "pause_points": 3179,
+        "identical": 3179
+      },
+      "agrees_with_fixed_depth": 990
+    },
+    {
+      "system": "fixed_depth",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 3,
+      "registry_identity": "a180c954d872892461553207624fca4167f9388f2aa4bf05304d2abf60d439c8",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 32.0,
+      "macs_mean": 240640.0,
+      "state_bytes_mean": 10903.456565656566,
+      "wall_us_median": 1683.7825,
+      "module_us_median": 1643.798,
+      "bookkeeping_share_median": 0.023644319877654196
+    },
+    {
+      "system": "recurrent_table",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 3,
+      "registry_identity": "56284ae05cb663e59bebba75e059d0f5f3916bde7ba9bdfd3a2667f20f58b986",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 58.481,
+      "module_us_median": 2.304,
+      "bookkeeping_share_median": 0.9660052354682134
+    },
+    {
+      "system": "recurrent",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 4,
+      "registry_identity": "7201209b87928237e7985e9739a6a79a8e73286e9c68d52cfa1738b18a71ec1a",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 62352.48484848485,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 374.555,
+      "module_us_median": 311.627,
+      "bookkeeping_share_median": 0.18856531723671233,
+      "pause_resume": {
+        "pause_points": 3179,
+        "identical": 3179
+      },
+      "agrees_with_fixed_depth": 990
+    },
+    {
+      "system": "fixed_depth",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 4,
+      "registry_identity": "7201209b87928237e7985e9739a6a79a8e73286e9c68d52cfa1738b18a71ec1a",
+      "train_seconds": 2.69,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 32.0,
+      "macs_mean": 240640.0,
+      "state_bytes_mean": 10903.456565656566,
+      "wall_us_median": 1683.662,
+      "module_us_median": 1643.5175,
+      "bookkeeping_share_median": 0.023762402687828366
+    },
+    {
+      "system": "recurrent_table",
+      "world": 501,
+      "world_identity": "a929401ae0a3ecc6c875d1913a00fc6970973e8d1effa2eb49a19cf40e9e39e5",
+      "init": 4,
+      "registry_identity": "56284ae05cb663e59bebba75e059d0f5f3916bde7ba9bdfd3a2667f20f58b986",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 990,
+      "correct": 990,
+      "by_reason": {
+        "dead end": {
+          "n": 286,
+          "correct": 286
+        },
+        "found": {
+          "n": 590,
+          "correct": 590
+        },
+        "cycle": {
+          "n": 114,
+          "correct": 114
+        }
+      },
+      "same_timed": 990,
+      "module_applications_mean": 8.018181818181818,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3454.4313131313133,
+      "wall_us_median": 58.897,
+      "module_us_median": 2.304,
+      "bookkeeping_share_median": 0.9661323010578058
+    },
+    {
+      "system": "recurrent",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 0,
+      "registry_identity": "78f65793177a03e0f7e7fdfba33540b8eb4914804222aab22f796e88d14a82f0",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 65953.47126436782,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 374.899,
+      "module_us_median": 311.8105,
+      "bookkeeping_share_median": 0.1943814735739116,
+      "pause_resume": {
+        "pause_points": 3431,
+        "identical": 3431
+      },
+      "agrees_with_fixed_depth": 1044
+    },
+    {
+      "system": "fixed_depth",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 0,
+      "registry_identity": "78f65793177a03e0f7e7fdfba33540b8eb4914804222aab22f796e88d14a82f0",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 32.0,
+      "macs_mean": 249856.0,
+      "state_bytes_mean": 10907.781609195403,
+      "wall_us_median": 1674.55,
+      "module_us_median": 1634.99,
+      "bookkeeping_share_median": 0.023519758544495506
+    },
+    {
+      "system": "recurrent_table",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 0,
+      "registry_identity": "d125c3e9b0279f5b3a411fdbc3261909607a82750f105163f792fd7763f5aae4",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 59.728,
+      "module_us_median": 2.336,
+      "bookkeeping_share_median": 0.9673010142150171
+    },
+    {
+      "system": "recurrent",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 1,
+      "registry_identity": "acf811f375e68fddb1a72e03b32d3fe8a14077cc3b2b35d17210c58ad406c110",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 65953.47126436782,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 375.315,
+      "module_us_median": 312.227,
+      "bookkeeping_share_median": 0.19352943516430537,
+      "pause_resume": {
+        "pause_points": 3431,
+        "identical": 3431
+      },
+      "agrees_with_fixed_depth": 1044
+    },
+    {
+      "system": "fixed_depth",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 1,
+      "registry_identity": "acf811f375e68fddb1a72e03b32d3fe8a14077cc3b2b35d17210c58ad406c110",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 32.0,
+      "macs_mean": 249856.0,
+      "state_bytes_mean": 10907.781609195403,
+      "wall_us_median": 1691.4785,
+      "module_us_median": 1651.4945,
+      "bookkeeping_share_median": 0.02351035505493343
+    },
+    {
+      "system": "recurrent_table",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 1,
+      "registry_identity": "d125c3e9b0279f5b3a411fdbc3261909607a82750f105163f792fd7763f5aae4",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 59.232,
+      "module_us_median": 2.32,
+      "bookkeeping_share_median": 0.9672519209890055
+    },
+    {
+      "system": "recurrent",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 2,
+      "registry_identity": "399c8c1b8fa52dd4560f956d15fc72daeaa608fbe878b9406eb8c13b007bd797",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 65953.47126436782,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 373.6835,
+      "module_us_median": 310.467,
+      "bookkeeping_share_median": 0.19319866042388278,
+      "pause_resume": {
+        "pause_points": 3431,
+        "identical": 3431
+      },
+      "agrees_with_fixed_depth": 1044
+    },
+    {
+      "system": "fixed_depth",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 2,
+      "registry_identity": "399c8c1b8fa52dd4560f956d15fc72daeaa608fbe878b9406eb8c13b007bd797",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 32.0,
+      "macs_mean": 249856.0,
+      "state_bytes_mean": 10907.781609195403,
+      "wall_us_median": 1683.182,
+      "module_us_median": 1642.382,
+      "bookkeeping_share_median": 0.024199520024373644
+    },
+    {
+      "system": "recurrent_table",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 2,
+      "registry_identity": "d125c3e9b0279f5b3a411fdbc3261909607a82750f105163f792fd7763f5aae4",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 59.497,
+      "module_us_median": 2.336,
+      "bookkeeping_share_median": 0.9672378091118076
+    },
+    {
+      "system": "recurrent",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 3,
+      "registry_identity": "a8f3e61af5540f4149f62ff37598f4fbceb50fd86aaa8f331d5a1d31a73e463d",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 65953.47126436782,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 376.051,
+      "module_us_median": 311.5865,
+      "bookkeeping_share_median": 0.19192204827606674,
+      "pause_resume": {
+        "pause_points": 3431,
+        "identical": 3431
+      },
+      "agrees_with_fixed_depth": 1044
+    },
+    {
+      "system": "fixed_depth",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 3,
+      "registry_identity": "a8f3e61af5540f4149f62ff37598f4fbceb50fd86aaa8f331d5a1d31a73e463d",
+      "train_seconds": 2.76,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 32.0,
+      "macs_mean": 249856.0,
+      "state_bytes_mean": 10907.781609195403,
+      "wall_us_median": 1674.254,
+      "module_us_median": 1634.334,
+      "bookkeeping_share_median": 0.02381421498393238
+    },
+    {
+      "system": "recurrent_table",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 3,
+      "registry_identity": "d125c3e9b0279f5b3a411fdbc3261909607a82750f105163f792fd7763f5aae4",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 59.289,
+      "module_us_median": 2.328,
+      "bookkeeping_share_median": 0.9672952746917076
+    },
+    {
+      "system": "recurrent",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 4,
+      "registry_identity": "94be12afe6ba70686144790ababea43ba70b5ef61c7d9823758080974feb1427",
+      "train_seconds": 2.77,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 65953.47126436782,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 377.2835,
+      "module_us_median": 313.547,
+      "bookkeeping_share_median": 0.19302062826728927,
+      "pause_resume": {
+        "pause_points": 3431,
+        "identical": 3431
+      },
+      "agrees_with_fixed_depth": 1044
+    },
+    {
+      "system": "fixed_depth",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 4,
+      "registry_identity": "94be12afe6ba70686144790ababea43ba70b5ef61c7d9823758080974feb1427",
+      "train_seconds": 2.77,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 32.0,
+      "macs_mean": 249856.0,
+      "state_bytes_mean": 10907.781609195403,
+      "wall_us_median": 1684.878,
+      "module_us_median": 1644.638,
+      "bookkeeping_share_median": 0.02378805964061853
+    },
+    {
+      "system": "recurrent_table",
+      "world": 502,
+      "world_identity": "bbdd49cba16a352ae09ada9bf7d03b37adf64efe0dfc641da4d77b64807c19cc",
+      "init": 4,
+      "registry_identity": "d125c3e9b0279f5b3a411fdbc3261909607a82750f105163f792fd7763f5aae4",
+      "train_seconds": 0,
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "connects_to": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "queries": 1044,
+      "correct": 1044,
+      "by_reason": {
+        "dead end": {
+          "n": 377,
+          "correct": 377
+        },
+        "found": {
+          "n": 660,
+          "correct": 660
+        },
+        "budget exhausted": {
+          "n": 7,
+          "correct": 7
+        }
+      },
+      "same_timed": 1044,
+      "module_applications_mean": 8.198275862068966,
+      "macs_mean": 0.0,
+      "state_bytes_mean": 3514.369731800766,
+      "wall_us_median": 59.257,
+      "module_us_median": 2.32,
+      "bookkeeping_share_median": 0.9670649910365372
+    }
+  ]
+}

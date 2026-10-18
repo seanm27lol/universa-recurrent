@@ -107,3 +107,10 @@ A run is competent if every relation's atomic accuracy is at least 0.99.
 **Run:**
 `python research/ti_tnn/bench/typed_recurrence.py --worlds 500 501 502 --inits 0 1 2 3 4`, which also
 writes `verdict.json` via `evaluate()`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** The protocol's command, from `7ba0b79`, 2026-10-18, finishing 20:28 UTC. 45 system runs (15
+  units × 3 systems), one CPU thread, with no failures. `verdict.json` was written by `evaluate()` as
+  frozen.
+- **All seven predictions hold.** See the [report](../reports/typed_recurrence_v1.md).
