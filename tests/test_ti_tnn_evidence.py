@@ -14,7 +14,8 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 140
+    assert len(manifest["files"]) == 150
+    assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
 
@@ -51,3 +52,11 @@ def test_adaptive_compute_verdict_rebuilds_from_the_bundle():
     assert a["lm"]["predictions"] == {"efficiency": False, "equal_compute": False, "matched_cap": True, "latency": None}
     assert a["hops"]["predictions"] == {"efficiency": False, "equal_compute": False, "matched_cap": False}
     assert a["lm"]["variants"]["ti_tnn_adaptive_c30"]["quality"]["mean"] == pytest.approx(49.09, abs=0.005)
+
+
+def test_init_control_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    c = tables.init_control_tables()  # raises unless it matches the recorded analysis
+    assert c["complete"] and c["holds"] is False and c["latency"]["holds"] is None
+    assert c["families"]["ti_tnn_adaptive_c30_initdense"]["holds"] is True
+    assert c["families"]["moe_top1_initdense"]["holds"] is False

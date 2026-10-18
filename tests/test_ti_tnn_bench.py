@@ -643,3 +643,12 @@ def test_init_diagnostics_script_reconstructs_the_run_and_matches_lm(tmp_path):
                                 "--data", str(tmp_path), "--tokens", "640", "--log-every", "1000"] + small))
     assert d["residual_rms_by_layer"] == pytest.approx(r["init_diagnostics"]["residual_rms_by_layer"], rel=1e-6)
     assert d["mean_top_probability_by_layer"] == pytest.approx(r["init_diagnostics"]["mean_top_probability_by_layer"], rel=1e-6)
+
+
+def test_latency_inventory_matches_absolute_and_relative_run_paths():
+    doc = latency_doc()
+    for row in doc["runs"]:
+        row["dir"] = "/home/user/repo/" + row["dir"]  # latency.py run with absolute roots
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is True
+    doc["runs"][0]["dir"] = "/home/user/repo/runs/other/ti_tnn_adaptive_c30-seed0"
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is None

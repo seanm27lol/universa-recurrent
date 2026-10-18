@@ -87,3 +87,17 @@ runs/titnn_efficiency/lm_init_control --latency runs/titnn_efficiency/latency_in
 
 **Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_init_control.sh`, after the frozen queue's
 `QUEUE DONE`.
+
+## Execution record (appended after freezing; nothing above was changed)
+
+- **Started later than planned.** The queue ran from `630cab2`, 2026-10-17 22:47 to 2026-10-18 05:59 UTC,
+  on the idle-GPU gate with a co-tenancy log. That was after the lookup-task learning diagnostics, not
+  straight after the frozen queue; nothing about the runs depends on when they started. All 6 runs
+  completed. Each records its source commit (`630cab2`, no tracked changes) and its step-0 diagnostics.
+- **Latency inventory, a bookkeeping bug.** `run_init_control.sh` passed absolute run roots to
+  `latency.py`, so its rows named absolute directories while the run manifest uses relative ones. The
+  frozen evaluator therefore reported the c30 rows as "not from the planned runs". `frontier.py` now
+  compares run directories from their `runs/` part on (`run_key`), so both spellings match.
+- **The verdict does not change.** The c30 seed-1 row also fails the execution check (logits 2.34 apart
+  on a scale of 28.1, against the 5% tolerance), so the latency comparison is untestable under either
+  version.

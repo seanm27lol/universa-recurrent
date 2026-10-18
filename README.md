@@ -319,7 +319,8 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
   - At 30% of the decoder's compute, perplexity is 49.1 against dense's 39.85; at 50%,
     45.3.
   - A plain 4-layer dense model does better at 50% (43.7).
-  - TI-TNN beats plain layer skipping at the same cap, but with 4× the parameters.
+  - TI-TNN beats plain layer skipping at the same cap, but with 4× the parameters. An
+    initialization control widens that lead, from 3.9 to 6.0 perplexity.
   - On a lookup task built to favor it, the adaptive models, and even a full-compute
     mixture of experts, mostly failed to learn at all.
 
@@ -327,6 +328,7 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
 [real-benchmark report](research/ti_tnn/reports/real_benchmarks.md) ·
 [composition report](research/ti_tnn/reports/functorial_composition.md) ·
 [adaptive-compute report](research/ti_tnn/reports/adaptive_compute.md) ·
+[initialization control](research/ti_tnn/reports/adaptive_compute_init_control.md) ·
 [categorical proposal](research/ti_tnn/cdl_proposal.md) ·
 [unsupervised-routing brief](research/ti_tnn/protocols/unsupervised_routing.md) ·
 [claim ledger entries](docs/claims.md#ti-tnn-toy-benchmarks-exploratory-2026-10-15)

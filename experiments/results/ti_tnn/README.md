@@ -34,6 +34,7 @@ records the declared source version and command.
 | `real_benchmarks/` | 76 (15 WikiText-103, 60 SCAN, summary) | [brief](../../../research/ti_tnn/protocols/real_benchmarks.md) | [report](../../../research/ti_tnn/reports/real_benchmarks.md) | `316c18f` |
 | `functorial_composition/` | 1 | [brief](../../../research/ti_tnn/protocols/functorial_composition.md) | [report](../../../research/ti_tnn/reports/functorial_composition.md) | `4b56a03` |
 | `functorial_composition_controls/` | 1 | [brief](../../../research/ti_tnn/protocols/functorial_composition_controls.md) | [report](../../../research/ti_tnn/reports/functorial_composition_controls.md) | `c624e42` |
+| `adaptive_compute_init_control/` | 10 (6 WikiText-103 runs, latency, step-0 diagnostics, the analysis in its frozen and path-fixed versions) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_init_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_init_control.md) | `630cab2` (recorded in each run) |
 | `adaptive_compute/` | 59 (36 lookup-task runs, 21 new WikiText-103 runs, `latency.json`, `frontier.json`) | [brief](../../../research/ti_tnn/protocols/adaptive_compute.md) | [report](../../../research/ti_tnn/reports/adaptive_compute.md) | `64ecc86` (training); `d9a8c1f` (evaluation) |
 
 **Source versions.**
@@ -47,6 +48,11 @@ records the declared source version and command.
 evaluated file's hash; `make_tables.py` checks those hashes against this bundle. `latency.json` holds the
 per-window execution checks behind the "untestable" latency verdict. The 12 adaptive checkpoints
 (`model.pt`) are weights and stay out.
+
+**Local paths removed.** Eight files in `adaptive_compute_init_control/` had absolute local paths, because
+the run script passed absolute roots. The prefix was removed so every path is repository-relative; no
+other byte changed. The manifest gives each such file's original sha256, which the analysis's run manifest
+refers to, and `make_tables.py` uses it there.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

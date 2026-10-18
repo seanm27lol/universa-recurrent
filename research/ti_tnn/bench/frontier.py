@@ -249,6 +249,12 @@ def difficulty_tracking(variants: dict) -> dict:
     return {"holds": all_of(o["holds"] for o in out.values()), "per_candidate": out}
 
 
+def run_key(path: str) -> str:
+    """A run directory from its "runs/" part on, so absolute and relative spellings of one run match."""
+    i = path.find("runs/")
+    return path[i:] if i >= 0 else path
+
+
 def latency_row_problems(row: dict, cfg: dict) -> list:
     """Why a latency measurement is not a valid record of the evaluated model's execution (empty if valid)."""
     problems = []
@@ -279,13 +285,13 @@ def latency_prediction(doc: dict, manifest: list, candidate: str = f"{CANDIDATE}
     rows, cfg = doc["runs"], doc["config"]
     cand = [r for r in rows if r["name"] == candidate]
     ref = [r for r in rows if r["name"] == reference]
-    planned_dirs = {str(Path(m["path"]).parent) for m in manifest if m["variant"] == candidate}
+    planned_dirs = {run_key(str(Path(m["path"]).parent)) for m in manifest if m["variant"] == candidate}
     reasons = []
     if sorted(r["seed"] for r in cand) != list(SEEDS):
         reasons.append(f"{candidate} seeds {sorted(r['seed'] for r in cand)} (expected {list(SEEDS)} once each)")
     if len(ref) != 1:
         reasons.append(f"{len(ref)} {reference} rows (expected 1)")
-    stray = [r["dir"] for r in cand if str(Path(r["dir"])) not in planned_dirs]
+    stray = [r["dir"] for r in cand if run_key(str(Path(r["dir"]))) not in planned_dirs]
     if stray:
         reasons.append(f"{candidate} rows not from the planned runs: {stray}")
     validity = {f"{r['name']} seed {r['seed']}": latency_row_problems(r, cfg) for r in cand + ref}
