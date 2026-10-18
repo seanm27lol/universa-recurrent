@@ -727,11 +727,38 @@ def test_balanced_loss_weights_easy_and_hard_equally():
 
 def test_hop_curriculum_adds_hop_counts_in_stages():
     task = hops.Task()
-    stages = [hops.curriculum_task(task, step, 6000, 0.5).max_hops for step in (0, 999, 1000, 1999, 2000, 5999)]
+    stages = [hops.curriculum_max_hops(task, step, 6000, 0.5) for step in (0, 999, 1000, 1999, 2000, 5999)]
     assert stages == [1, 1, 2, 2, 3, 3]
-    assert hops.curriculum_task(task, 0, 6000, 0.0) is task  # no curriculum: the frozen task
-    b = hops.make_batch(8, hops.curriculum_task(task, 0, 6000, 0.5), torch.Generator().manual_seed(0))
+    assert hops.curriculum_max_hops(task, 0, 6000, 0.0) == task.max_hops  # no curriculum: the frozen task
+    b = hops.make_batch(8, task, torch.Generator().manual_seed(0), max_hops=1)
     assert set(b["hops"][b["kind"] == hops.KIND_NAMES.index("query")].tolist()) == {1}
+
+
+def test_curriculum_stages_keep_every_token_meaning():
+    """Review: shrinking the task shifted the counting tokens' IDs onto hop tokens between stages."""
+    task = hops.Task()
+    hop0, cnt0 = 1 + task.symbols, 1 + task.symbols + task.max_hops
+    for stage in (1, 2, 3):
+        b = hops.make_batch(32, task, torch.Generator().manual_seed(stage), max_hops=stage)
+        easy = b["tokens"][b["kind"] == hops.KIND_NAMES.index("easy")]
+        assert easy.min() >= cnt0 and easy.max() < cnt0 + task.counts
+        hop_tokens = b["tokens"][b["kind"] == hops.KIND_NAMES.index("hop_token")]
+        assert hop_tokens.min() >= hop0 and hop_tokens.max() < hop0 + stage
+    full = hops.make_batch(8, task, torch.Generator().manual_seed(0))
+    same = hops.make_batch(8, task, torch.Generator().manual_seed(0), max_hops=task.max_hops)
+    assert all(torch.equal(full[k], same[k]) for k in full)  # the frozen path draws exactly as before
+
+
+@pytest.mark.parametrize("ffn", ["moe_top1", "moe_top2", "ti_tnn_adaptive", "mod", "dense"])
+def test_active_parameters_are_positive_and_match_the_legacy_count(ffn):
+    for shared in (0.0, 0.5):
+        model = models.LanguageModel(cfg(ffn, shared_expert_frac=shared))
+        c = models.parameter_counts(model)
+        assert 0 < c["active_top1"] <= c["total"]
+        if ffn == "dense" or ffn == "mod":
+            assert c["active_top1"] == c["total"]
+    big = models.LanguageModel(models.ModelConfig(vocab_size=50257, ffn="moe_top1"))
+    assert models.parameter_counts(big)["active_top1"] == 51_209_728  # the recorded legacy value
     assert hops.variant_name(hops.parse_args(["--ffn", "dense", "--hop-curriculum-frac", "0.5", "--steps", "18000"])) == "dense_cur50_s18000"
 
 
@@ -801,3 +828,35 @@ def test_latency_inventory_matches_absolute_and_relative_run_paths():
     assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is True
     doc["runs"][0]["dir"] = "/home/user/repo/runs/other/ti_tnn_adaptive_c30-seed0"
     assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is None
+
+
+
+def test_shared_control_evaluation():
+    v2, _ = v2_variants()
+    v2[frontier.V2_FIXED_MOE] = v2_point("moe_top1", 0.99, 1.71, [0.97] * 5)
+    v2["ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000"] = v2_point("ti_tnn_adaptive", 0.78, 0.5, [0.97, 0.2, 1.0, 0.2, 0.15])
+    c = {frontier.SC_SHARED_ONLY: v2_point("dense", 0.9, 1.2, [1.0, 1.0, 1.0, 1.0, 1.0]),
+         frontier.SC_ONE_EXPERT_TI: v2_point("ti_tnn_adaptive", 0.5, 0.5, [0.2] * 5)}
+    r = frontier.evaluate_shared_control(c, v2)
+    assert r["complete"] and r["shared_path_insufficient"]["holds"] is False  # 5 of 5: the shared path suffices
+    assert r["routing_helps_ti_tnn"]["holds"] is True  # 0 learned against 2
+    c[frontier.SC_SHARED_ONLY]["seeds"] = [200, 201]
+    assert not frontier.evaluate_shared_control(c, v2)["complete"]
+    assert hops.variant_name(hops.parse_args(["--ffn", "ti_tnn_adaptive", "--target-compute", "0.3", "--expert-init", "dense",
+        "--shared-expert-frac", "0.5", "--cap-warmup-frac", "0.5", "--skip-keeps-kv", "--experts", "1", "--steps", "18000"])) == frontier.SC_ONE_EXPERT_TI
+    assert hops.variant_name(hops.parse_args(["--ffn", "dense", "--ffn-mult", "2", "--steps", "18000"])) == frontier.SC_SHARED_ONLY
+
+
+
+def test_active_max_counts_every_expert_a_token_can_run():
+    for ffn, k in (("moe_top1", 1), ("moe_top2", 2), ("ti_tnn", 2)):
+        for shared in (0.0, 0.5):
+            if ffn == "ti_tnn" and shared:
+                continue  # the bridge model has no shared-expert option
+            model = models.LanguageModel(cfg(ffn, shared_expert_frac=shared))
+            c = models.parameter_counts(model)
+            bank = next(m for m in model.modules() if isinstance(m, models.Experts))
+            per_expert = (bank.w_up.numel() + bank.w_down.numel()) // bank.w_up.shape[0]
+            assert c["active_max"] == c["active_top1"] + (k - 1) * per_expert * model.cfg.n_layers
+    dense = models.parameter_counts(models.LanguageModel(cfg("dense")))
+    assert dense["active_max"] == dense["active_top1"] == dense["total"]

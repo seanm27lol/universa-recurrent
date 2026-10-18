@@ -180,7 +180,7 @@ def learning_tables(bundle: Path = HERE) -> dict:
         for f in sorted((bundle / root).rglob("result.json")):
             r = json.loads(f.read_text())
             c = r["config"]
-            knobs = "".join(f" {k}={c[k]}" for k, d in (("experts", 8), ("lr", 1e-3), ("balance_coef", 0.01)) if c.get(k, d) != d)
+            knobs = "".join(f" {k}={c[k]}" for k, d in (("lr", 1e-3), ("balance_coef", 0.01)) if c.get(k, d) != d)
             out.append({"round": f.parent.parent.name, "name": frontier.v2_name(r) + knobs, "seed": c["seed"],
                         "hard_accuracy": r["eval"]["hard_accuracy"], "by_hops": r["eval"]["accuracy_by_hops"]})
         return out

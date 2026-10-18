@@ -326,12 +326,14 @@ fed another country's Trait-B stalk.
   - **Learning fixed, part A v2** ([report](reports/adaptive_compute_part_a_v2.md)). Diagnostics found
     three causes, each with a fix:
     - chaining needs about 3× more training, even for dense;
-    - routing tokens across experts blocks the lookup circuit;
+    - mixtures with routed experts stay on the "queries at chance" plateau (why is a hypothesis);
     - skipping hides facts that later queries need.
 
-    With fresh seeds and the fixes, a mixture of experts with a shared expert learns the task on 5 of
-    5 seeds. TI-TNN at 30% compute learns it on 2 of 5, perfectly when it does. The dense reference
-    learns it on only 3 of 5, so by the frozen rule TI-TNN's efficiency test was untestable.
+    With fresh training seeds and the fixes, a mixture of experts with a shared expert learns the task
+    on 5 of 5 seeds; whether the routed experts or the shared path does the work is not yet known.
+    TI-TNN at 30% charged compute learns it on 2 of 5, near-perfectly when it does (0.98, 1.000). The
+    dense reference learns it on only 3 of 5, so by the frozen rule TI-TNN's efficiency test was
+    untestable.
   - **Lookup task.** On the task built to favor adaptive compute, the adaptive models
     mostly never learned the multi-step lookups, and neither did a full-compute
     mixture of experts. The 8-layer dense model scored 1.000.
