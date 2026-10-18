@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 287
+    assert len(manifest["files"]) == 292
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -71,6 +71,13 @@ def test_lookup_learning_work_rebuilds_from_the_bundle():
     assert v2["learning_fixes_work"] is False and v2["ti_tnn_passes"] is None
     assert v2["learned_by_variant"]["moe_top1_initdense_sh50_s18000"] == 5
     assert v2["learned_by_variant"]["dense_s18000"] == 3
+
+
+def test_wikitext_fixed_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    wf = tables.wikitext_fixed_tables()
+    assert wf["fixes_help_on_text"]["holds"] is False and wf["beats_plain_skipping"]["holds"] is False
+    assert wf["candidate"]["quality"]["mean"] == pytest.approx(57.21, abs=0.005)
 
 
 def test_typed_composition_verdict_rebuilds_from_the_bundle():
