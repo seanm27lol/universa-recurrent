@@ -1,0 +1,106 @@
+{
+  "complete": true,
+  "problems": [],
+  "fixes_help_on_text": {
+    "holds": false,
+    "fixed": 57.20704750085173,
+    "init_only": 46.93801013478396
+  },
+  "beats_plain_skipping": {
+    "holds": false,
+    "per_candidate": {
+      "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50": {
+        "mod": 52.94517638869811,
+        "holds": false
+      }
+    }
+  },
+  "efficiency": {
+    "holds": false,
+    "per_candidate": {
+      "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50": {
+        "quality": 57.20704750085173,
+        "compute": 9273887.856154911,
+        "close_to_reference": false,
+        "cheapest_baseline_as_good": 7342080.0,
+        "compute_ratio": 1.2631145201570824,
+        "holds": false
+      }
+    }
+  },
+  "equal_compute": {
+    "holds": false,
+    "per_candidate": {
+      "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50": {
+        "holds": false,
+        "best_baseline_at_or_below": 52.94517638869811
+      }
+    }
+  },
+  "candidate": {
+    "kind": "ti_tnn_adaptive",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "quality": {
+      "mean": 57.20704750085173,
+      "sd": 0.7512400102095772,
+      "n": 3,
+      "values": [
+        57.986809267220686,
+        56.48801582589916,
+        57.146317409435355
+      ]
+    },
+    "compute": {
+      "mean": 9273887.856154911,
+      "sd": 104850.17654952305,
+      "n": 3,
+      "values": [
+        9224620.394190872,
+        9202745.298755188,
+        9394297.875518672
+      ]
+    },
+    "test_perplexity": {
+      "mean": 56.3982616269281,
+      "sd": 0.8510300751638271,
+      "n": 3,
+      "values": [
+        57.18223368701396,
+        55.49315470899724,
+        56.51939648477308
+      ]
+    },
+    "realized_compute": {
+      "mean": 0.33572085698445636,
+      "sd": 0.004562334725998451,
+      "n": 3,
+      "values": [
+        0.3340038061141968,
+        0.3322661817073822,
+        0.34089258313179016
+      ]
+    },
+    "head_macs_per_token": 25731584.0,
+    "parameters": 128849432
+  },
+  "latency": {
+    "holds": null,
+    "candidate_ms": null,
+    "reference_ms": 2.2130594588816166,
+    "untestable_because": [
+      "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50 seeds [] (expected [0, 1, 2] once each)"
+    ],
+    "rule": {
+      "relative_logit_tolerance": 0.05,
+      "decision_agreement_min": 0.99,
+      "token_agreement_min": 0.99
+    },
+    "validity": {
+      "dense seed None": []
+    }
+  }
+}
