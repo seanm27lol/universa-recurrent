@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 283
+    assert len(manifest["files"]) == 285
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -89,3 +89,14 @@ def test_semantic_interventions_verdict_rebuilds_from_the_bundle():
     assert (sem["executions"], sem["interventions"]) == (83616, 387264)
     assert sem["families"]["endpoint"]["law_defects_max"] == 0 and sem["families"]["endpoint"]["competent"] == 0
     assert sem["families"]["hidden_dependency"]["undeclared_calls_max"] == 477
+
+
+def test_typed_routing_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")  # typed_questions.py imports the interpreter
+    routing = tables.typed_routing_tables()  # raises unless it matches the recorded verdict.json
+    p = routing["predictions"]
+    assert routing["complete"] and p["6_shift_accepted_error_bounded"] is False
+    assert all(v for k, v in p.items() if not k.startswith("6_"))
+    t = routing["systems"]["typed_specialists"]
+    assert (t["test"]["accepted_errors_total"], t["test"]["answered_total"]) == (2, 13714)
+    assert (t["shift"]["accepted_errors_total"], t["shift"]["answered_total"]) == (59, 100)

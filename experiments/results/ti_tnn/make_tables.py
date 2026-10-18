@@ -11,7 +11,9 @@ Checks every file against manifest.json first (sha256), then prints:
 - the learned-relation-operator verdict, recomputed with research/ti_tnn/bench/typed_composition.py
   and checked against the bundled verdict.json;
 - the execution-record and intervention verdict, recomputed with
-  research/ti_tnn/bench/semantic_interventions.py and checked against its bundled verdict.json.
+  research/ti_tnn/bench/semantic_interventions.py and checked against its bundled verdict.json;
+- the learned-interpreter verdict, recomputed with research/ti_tnn/bench/typed_questions.py and checked
+  against its bundled verdict.json.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -238,6 +240,20 @@ def semantic_interventions_tables(bundle: Path = HERE) -> dict:
                 interventions=sum(r["interventions"]["n"] for r in result["runs"]))
 
 
+def typed_routing_tables(bundle: Path = HERE) -> dict:
+    """The learned interpreter with calibrated abstention (integration plan PR 6): the frozen verdict rebuilt with
+    typed_questions.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import typed_questions  # research/ti_tnn/bench/typed_questions.py
+    root = bundle / "typed_routing/20261018T160927"
+    result = json.loads((root / "typed_questions.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = typed_questions.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt typed-routing verdict differs from verdict.json")
+    return rebuilt
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -318,6 +334,12 @@ def main(argv=None):
               f"counterfactual {f['counterfactual_accuracy_min']:.3f}  undeclared calls (max) {f['undeclared_calls_max']}  "
               f"disabled unchanged {f['disabled_unchanged_min']:.3f}  law defects (max) {f['law_defects_max']}")
     print(f"  predictions: {sem['predictions']}")
+    routing = typed_routing_tables()
+    print("\nLearned interpreter with calibrated abstention (15 units), rebuilt and matching verdict.json")
+    for n, f in routing["systems"].items():
+        print(f"  {n:18s} " + "  ".join(f"{s}: coverage {v['coverage_min']:.3f}-{v['coverage_max']:.3f}, accepted errors "
+                                         f"{v['accepted_errors_total']}/{v['answered_total']}" for s, v in f.items()))
+    print(f"  predictions: {routing['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},
