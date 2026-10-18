@@ -146,8 +146,9 @@ None of these changes a perplexity or an exact-match score above.
   scaling the dense MLP gets. The dense down-projection starts at std 0.005, against
   0.0221 for experts. So dense against the mixtures also compares two
   initializations. An [initialization control](adaptive_compute_init_control.md) (2026-10-18) settles it for
-  top-1: with dense-matched experts, `moe_top1` reaches 39.99 against dense's 39.85. Its 39.57 here
-  depended on the larger initialization; the difference is within seed variation either way.
+  top-1: with dense-matched experts, `moe_top1` reaches 39.99 against dense's 39.85, so its small mean
+  edge here (39.57) reverses under matched initialization. The difference is within seed variation
+  either way.
 - **SCAN's routing losses include padding.** Cross-entropy ignores padded positions,
   but the balance loss and the gate charge average over them. Right padding cannot
   change any real token's output, but batch composition changes the routing
