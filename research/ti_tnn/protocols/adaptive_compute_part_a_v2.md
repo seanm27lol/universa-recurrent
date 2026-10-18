@@ -85,3 +85,16 @@ development seeds.
 - **Not tested:** WikiText-103 with these fixes (the initialization control there is separate).
 
 **Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_part_a_v2.sh`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** 50 runs completed (2026-10-18 07:01–13:48 UTC); the evaluator was frozen at `dcf115d`
+  before any result was examined.
+- **A fourth outside review: the "ruled out" list above overstates what was shown.**
+  - The balanced loss, no balance loss, 2 experts, top-2 and half the learning rate were each tried
+    where the matched dense control also failed. They only failed to rescue learning under the tested
+    settings.
+  - The hop-curriculum runs were affected by a vocabulary bug: each stage shrank the task, shifting
+    token IDs. It is fixed in `hops.py`, so those runs do not test a curriculum.
+  - The "routing fragments the lookup circuit" explanation in the table above is a hypothesis. The
+    one-expert evidence is partial (3-hop 0.76 and 0.20), and the shared expert might do the work alone.
