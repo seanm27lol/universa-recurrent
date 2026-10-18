@@ -9,7 +9,9 @@ Checks every file against manifest.json first (sha256), then prints:
   and checked against the bundled frontier.json. Every hash in that file's run manifest must match a
   bundled run, so the bundle holds exactly the files that were evaluated.
 - the learned-relation-operator verdict, recomputed with research/ti_tnn/bench/typed_composition.py
-  and checked against the bundled verdict.json.
+  and checked against the bundled verdict.json;
+- the execution-record and intervention verdict, recomputed with
+  research/ti_tnn/bench/semantic_interventions.py and checked against its bundled verdict.json.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -221,6 +223,21 @@ def typed_composition_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def semantic_interventions_tables(bundle: Path = HERE) -> dict:
+    """Execution records, replay and interventions (integration plan PR 5): the frozen verdict rebuilt with
+    semantic_interventions.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import semantic_interventions  # research/ti_tnn/bench/semantic_interventions.py
+    root = bundle / "semantic_interventions/20261018T153819"
+    result = json.loads((root / "semantic_interventions.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = semantic_interventions.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt semantic-interventions verdict differs from verdict.json")
+    return dict(rebuilt, executions=sum(r["executions"] for r in result["runs"]),
+                interventions=sum(r["interventions"]["n"] for r in result["runs"]))
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -293,6 +310,14 @@ def main(argv=None):
         print(f"  {n:13s} atomic {f['atomic_min']:.3f}  same-endpoint {f['same_endpoint_min']:.3f}  {paths}  "
               f"competent runs {f['competent_runs']}/15")
     print(f"  predictions: {typed['predictions']}")
+    sem = semantic_interventions_tables()
+    print(f"\nExecution records and interventions ({sem['executions']} executions, {sem['interventions']} interventions), "
+          "rebuilt and matching verdict.json; lowest value per family")
+    for n, f in sem["families"].items():
+        print(f"  {n:17s} answers {f['answer_accuracy_min']:.3f}  history independence {f['history_independence_min']:.3f}  "
+              f"counterfactual {f['counterfactual_accuracy_min']:.3f}  undeclared calls (max) {f['undeclared_calls_max']}  "
+              f"disabled unchanged {f['disabled_unchanged_min']:.3f}  law defects (max) {f['law_defects_max']}")
+    print(f"  predictions: {sem['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},

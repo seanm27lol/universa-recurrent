@@ -1,0 +1,2848 @@
+{
+  "config": {
+    "worlds": [
+      300,
+      301,
+      302
+    ],
+    "inits": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "families": [
+      "specialists",
+      "shared_dense",
+      "moe",
+      "endpoint",
+      "table",
+      "question_reading",
+      "hidden_dependency",
+      "swapped"
+    ],
+    "replacements": 4,
+    "d": 32,
+    "hidden": 64,
+    "steps": 1500,
+    "lr": 0.01,
+    "threads": 4,
+    "out": "runs/titnn_semantic"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39"
+  },
+  "runs": [
+    {
+      "family": "specialists",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 0,
+      "registry_identity": "2d0d6617591ccd5f848dc980fbc4b39c0199dfaf9eab26eac7a6e357244f2ee5",
+      "seconds": 4.1,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 0,
+      "registry_identity": "204eb570d5754bfdd04cedb16d712711da268c5095978fb2d3f8049fdf9b9a8f",
+      "seconds": 3.5,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 0,
+      "registry_identity": "8e7d5bbb66a74d9672445433c99367b15b10f705cde91d8022ae9cb73e96c78d",
+      "seconds": 12.54,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 0,
+      "registry_identity": "ff19f8bbef602ec0c43dfa861dced07a49162e16c9ce2b79501fd245e4ba548a",
+      "seconds": 3.75,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4661,
+        "counterfactual_correct_eligible": 3790,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1688
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.375,
+        "country_of": 1.0,
+        "largest_city_of": 0.7083333333333334,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 1,
+      "registry_identity": "7ab04570bcdf3fdfc5bd59312cb605dc41a800899bfff27ea20ddcdc4ab625c6",
+      "seconds": 4.13,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 1,
+      "registry_identity": "189b6f11f178be8c024cf12a6e9f96c618811510a67e7a9c3b68896a6ba22bc0",
+      "seconds": 3.62,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 1,
+      "registry_identity": "2a019f08c0260d2e08aac5fe891637aa5c33eb4cd185bafcfbafdefb0542adc1",
+      "seconds": 12.68,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 1,
+      "registry_identity": "8f950fb35e6c6df34d874339200257baabd2ef93fc2e40d6c1f80778e009f858",
+      "seconds": 3.74,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4657,
+        "counterfactual_correct_eligible": 3769,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1671
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5416666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5416666666666666,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 2,
+      "registry_identity": "02cbfa061d6d29dda5b274d35aa786b42783da322866a53ffd10a73c6b09ff97",
+      "seconds": 4.17,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 2,
+      "registry_identity": "77e3d81f5a31ad5a1362a77fdfc12cfb60b88914a98ffe86801c6fe8fbc7bb1c",
+      "seconds": 3.59,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 2,
+      "registry_identity": "b1384c38ca38eef422f6928cc23664c3a38df2725fcf9dbcc4af02e1aedf60c5",
+      "seconds": 13.1,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 2,
+      "registry_identity": "f879e77b6268979e9ea4af2f1e750e03eb8b15ee6ae44b250f28030e647a4e13",
+      "seconds": 3.85,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4660,
+        "counterfactual_correct_eligible": 3748,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1647
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5416666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5416666666666666,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 3,
+      "registry_identity": "18149c249bac2763b87b6af7f92930b9a5d3e4680ce55cd0092d114a8c2a952e",
+      "seconds": 4.24,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 3,
+      "registry_identity": "a2d98ce861269f871fb8c8a7dcece1ec2aa218cd9521aac64aff4eb95a091785",
+      "seconds": 3.6,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 3,
+      "registry_identity": "e0665dc6ac6077341cda7346d38fd5d33611ee029758ac9105b8b5d9cc360293",
+      "seconds": 12.05,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 3,
+      "registry_identity": "e3f512dc94d2a8e36f037e65515996b34d77de339323d3378fea2faabea386fd",
+      "seconds": 3.43,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4658,
+        "counterfactual_correct_eligible": 3787,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1688
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.3333333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 0.75,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 4,
+      "registry_identity": "0fe8e757ca385f8ef48d148a8a9bf6cdaaf83c96449aae14a870aa565502906c",
+      "seconds": 3.85,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 4,
+      "registry_identity": "1f031abafcaf664804ab05e50650432e94ad6d514bc0cf1eeb511abe303cf0dd",
+      "seconds": 3.23,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 4,
+      "registry_identity": "c1b7c208f871c83a20beb58c05b92308c9eacc46046d71f8260bcdfe9d18f9f7",
+      "seconds": 12.81,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": 4,
+      "registry_identity": "d89317f2616c09407a17025545d65bc518a97e0e80efe6e2ddce8d70a5e95b36",
+      "seconds": 3.75,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4658,
+        "counterfactual_correct_eligible": 3777,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1678
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.4583333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 0.625,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "table",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": null,
+      "registry_identity": "d5753d30fcd85fbc862e44017169e4571e8db329513c7fe80c736b75cabdcc25",
+      "seconds": 0.31,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "question_reading",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": null,
+      "registry_identity": "f2c6e4059e8df3b3e37237e962d03630674f6034040385021f0f9890a0ad2998",
+      "seconds": 0.31,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4274,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4103,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2184
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "hidden_dependency",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": null,
+      "registry_identity": "d11c51fd14f6de8197f4a2d19969a37856d6dd4e0e157c668d496e6fa46ccd3c",
+      "seconds": 0.3,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 1038,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 417,
+      "disabled_unchanged": 693,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4665,
+        "counterfactual_correct_eligible": 4665,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 2559
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "swapped",
+      "world": 300,
+      "world_identity": "70b7e2b26e0049ec289d86df252b74d66987263c2e1be84a1bc80691bc16a8d1",
+      "init": null,
+      "registry_identity": "d2134361169906bd42b89f6979502cdcae17c2fee7efc461e8b3aae4319fe170",
+      "seconds": 0.31,
+      "executions": 1038,
+      "schema_ok": 1038,
+      "types_ok": 1038,
+      "integrity_ok": 1038,
+      "answer_correct": 797,
+      "replay_matches": 1038,
+      "consumed_exact": 1038,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1038,
+      "interventions": {
+        "n": 4836,
+        "recorded": 4836,
+        "history_independent": 4836,
+        "eligible": 4657,
+        "counterfactual_correct_eligible": 3760,
+        "same_endpoint_eligible": 2559,
+        "same_endpoint_correct": 1662
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.08333333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 22,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 0,
+      "registry_identity": "7fc578b9d2e001e7ff59a427b7bec228f3b65a5301802e760116c405b2058e17",
+      "seconds": 4.55,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 0,
+      "registry_identity": "2181c46a1aed6f6f6fe4fee282c1dfa134cc1afcff40b87407a5724f516781ba",
+      "seconds": 3.77,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 0,
+      "registry_identity": "e6574c4edec3f97f2dd42376f67015c545155dd4a5180bc65aee85ab586bac6c",
+      "seconds": 14.21,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 0,
+      "registry_identity": "cfc7c119408615ac50cf013b04a87e682ddd386420028051178318f919eafba6",
+      "seconds": 3.99,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5532,
+        "counterfactual_correct_eligible": 4590,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2094
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.375,
+        "country_of": 1.0,
+        "largest_city_of": 0.7916666666666666,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 1,
+      "registry_identity": "83a6ced45e335c5d2f4e6f2aab20636afb865e4e6728c5e419586907f9351506",
+      "seconds": 4.59,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 1,
+      "registry_identity": "f799e77ca25916561be1913e9fe4f89a8c192c6d19fbe8f908dfbed266b02799",
+      "seconds": 4.17,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 1,
+      "registry_identity": "197a3c1e2a6fd336767659cf70a48510c5540925d4f9f660ed9aca163152109f",
+      "seconds": 14.51,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 1,
+      "registry_identity": "774ec5fa39c9c6ba42bf03fd1546c7e47580cc9ed24265d0db6a75ac26c64878",
+      "seconds": 4.3,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5536,
+        "counterfactual_correct_eligible": 4609,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2109
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.6666666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 2,
+      "registry_identity": "5ff6b4eb08769b7d2beb5e01cc0ab8cb6fd1d2d2ff4b07f0623b2f3dd17d2881",
+      "seconds": 4.69,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 2,
+      "registry_identity": "8e47cb62b2910b7b1c25c0a9893d0ff4d38cf597e3a2fa2f6f525a080f61c9de",
+      "seconds": 4.3,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 2,
+      "registry_identity": "a5ddd8ff24944970fe719b8e85e7dbd21d56746a6a260a93170e74dc83083ae8",
+      "seconds": 15.19,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 2,
+      "registry_identity": "63d67507d89c37602400dae0c254550a2f8d0be6b937bde893ae4981a8ec59cb",
+      "seconds": 3.94,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5533,
+        "counterfactual_correct_eligible": 4607,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2110
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.6666666666666666,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 3,
+      "registry_identity": "be83a02aad29a2b85a3b986e2147b531fefa1d41de957abbc6422cc379708974",
+      "seconds": 4.43,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 3,
+      "registry_identity": "d41d2d62b135fca7ead19351f07b3993dfdeca4602f07562c57de09939edd4ff",
+      "seconds": 4.17,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 3,
+      "registry_identity": "447b779f62d607672f3a24c793637e15aff6cca50ebb18830b9c1d3619fd7b38",
+      "seconds": 14.48,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 3,
+      "registry_identity": "ee6888ee067c21e5ca52e605aa870cea49fe71aa3ba9b543ac2ef6072323b90c",
+      "seconds": 3.87,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5534,
+        "counterfactual_correct_eligible": 4603,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2105
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.625,
+        "country_of": 1.0,
+        "largest_city_of": 0.5416666666666666,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 4,
+      "registry_identity": "eaa3b049769f22177a223ae91fa86acfb38579a56e1cfb724da19f4047a6b981",
+      "seconds": 4.16,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 4,
+      "registry_identity": "d7f957dfced17b67d3d6f52650f26da387a6a145e3dbefa1fc08bd779c72d9dd",
+      "seconds": 4.1,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 4,
+      "registry_identity": "9c8b7650c6219ee3d5aa29246e125c1e5a6eff084b1d3d411fc35da09bc2a1fd",
+      "seconds": 14.52,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": 4,
+      "registry_identity": "629db81ff0ca0d9b5f0fa4a6a0b72ceaee500dc072a604b333ddf504eda89197",
+      "seconds": 4.56,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5535,
+        "counterfactual_correct_eligible": 4590,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2091
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.4583333333333333,
+        "country_of": 1.0,
+        "largest_city_of": 0.7083333333333334,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "table",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": null,
+      "registry_identity": "434121b0af214cd5c3af09dd3ceccceaab5ec1a7e0451647fd8b53cbd63eac5d",
+      "seconds": 0.37,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "question_reading",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": null,
+      "registry_identity": "550a9a8c7919b28531db191d72d1c5764ded4399b750c796a29dfb729ad86672",
+      "seconds": 0.37,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5158,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 4981,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2664
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "hidden_dependency",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": null,
+      "registry_identity": "3809852d3673496ebba2d6b9f3836831e0d025cdd8bf611beb9b3f2c47068edb",
+      "seconds": 0.36,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 1238,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 477,
+      "disabled_unchanged": 833,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5539,
+        "counterfactual_correct_eligible": 5539,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 3036
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "swapped",
+      "world": 301,
+      "world_identity": "a9a5bb86ff94a08d477caad9a3a6b8a842e2799533976e8f5e3ac6bd0891b112",
+      "init": null,
+      "registry_identity": "7c666450d47692c93e700d51a188d73c853255543bead66c9794833bfe6c80b2",
+      "seconds": 0.36,
+      "executions": 1238,
+      "schema_ok": 1238,
+      "types_ok": 1238,
+      "integrity_ok": 1238,
+      "answer_correct": 981,
+      "replay_matches": 1238,
+      "consumed_exact": 1238,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1238,
+      "interventions": {
+        "n": 5716,
+        "recorded": 5716,
+        "history_independent": 5716,
+        "eligible": 5534,
+        "counterfactual_correct_eligible": 4595,
+        "same_endpoint_eligible": 3036,
+        "same_endpoint_correct": 2097
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.16666666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 20,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 0,
+      "registry_identity": "fe309a036ef48691ac26af17eec59ec7561fc95019034bf37ae836db71f43ee3",
+      "seconds": 4.64,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 0,
+      "registry_identity": "25a6dc3fa3db24c448fb777c71cba316d89c44770d4d6b2b7406f4b08b9fb779",
+      "seconds": 4.12,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 0,
+      "registry_identity": "a379365f980781e66ae5462afcffa8f91af498efbd826482cfc287e32ddd1f16",
+      "seconds": 15.16,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 0,
+      "registry_identity": "3b77b89ebd092adbe72eda294706558c94aaa0c5500d4fa8993b70f4974332d0",
+      "seconds": 4.33,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5404,
+        "counterfactual_correct_eligible": 4564,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2123
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.625,
+        "country_of": 1.0,
+        "largest_city_of": 0.625,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 1,
+      "registry_identity": "9f6c0001e9b5e460759bc3be39e25b2b805bcf9db23e8b4819c625c6121b4b3d",
+      "seconds": 4.56,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 1,
+      "registry_identity": "04d27ac7c4dfaa113e98b2ef558d4a8a7d7711894779b93a84c208911ae3f9dd",
+      "seconds": 4.1,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 1,
+      "registry_identity": "8598abb6e0f3aef9e530e094bc5cce600902ca8970056831336b3b0108230190",
+      "seconds": 14.75,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 1,
+      "registry_identity": "0a314a9af2cbcadfd4e7ee4e67adb1ad135cfa461d4460155e88471209b5f76d",
+      "seconds": 4.28,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5402,
+        "counterfactual_correct_eligible": 4558,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2119
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.5,
+        "country_of": 1.0,
+        "largest_city_of": 0.75,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 2,
+      "registry_identity": "9c2e07b699cb37faf203724c385b8ad4ab8cab0bbee35c358bf7318029c3ed58",
+      "seconds": 4.74,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 2,
+      "registry_identity": "24dea65158a060e65f3d4b9c72869e00edd4871eb7ca15f963bbdcf9b3ae7855",
+      "seconds": 4.11,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 2,
+      "registry_identity": "ab1b02a5dde5dacd5ac1bdc7605f921a79de0b4d1f64960290bfd06b9cf81064",
+      "seconds": 14.23,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 2,
+      "registry_identity": "4a7cf74fcb81c8458bdfc862ce96c7b24d898db5aeba572ca970dabd27d17e41",
+      "seconds": 4.17,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5401,
+        "counterfactual_correct_eligible": 4555,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2117
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.75,
+        "country_of": 1.0,
+        "largest_city_of": 0.5,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 3,
+      "registry_identity": "7e1aa6a79c24d131b01f99e8faf47411509dacf30444fce3f76d9badf9d036b7",
+      "seconds": 4.13,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 3,
+      "registry_identity": "5b10e0f623ffc1ea961b60feeb97d933f38d25bf86ed343e8c66a582be085124",
+      "seconds": 3.68,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 3,
+      "registry_identity": "3889f2954f04996a431fadba1cea13e0d591b24e5a2654393c34269406ccd85a",
+      "seconds": 13.64,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 3,
+      "registry_identity": "822453c49d45d424ad468dfd397cb0093582fdce1cf694424de3c867300888fd",
+      "seconds": 3.9,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5404,
+        "counterfactual_correct_eligible": 4579,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2138
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.75,
+        "country_of": 1.0,
+        "largest_city_of": 0.5,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "specialists",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 4,
+      "registry_identity": "24e30e62c34f1ae1d648db3fbb2f329c3470fa3374a2060544681bbe33dd99df",
+      "seconds": 4.5,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "shared_dense",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 4,
+      "registry_identity": "43eb40929d4eaf77a4df3506523a572d64a4938189c7340001ff50b9c7bf16eb",
+      "seconds": 4.24,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "moe",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 4,
+      "registry_identity": "c8c1286ec029ca66ba197c03b188a9cadc1a2cd221b2599beb17b3bf4bb4a028",
+      "seconds": 14.62,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "endpoint",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": 4,
+      "registry_identity": "d62f3d7320c9e2ffff913796846d7d7b19cb080bc50347b1b983d2b051afccbb",
+      "seconds": 4.26,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5403,
+        "counterfactual_correct_eligible": 4572,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2132
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.6666666666666666,
+        "country_of": 1.0,
+        "largest_city_of": 0.5833333333333334,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "table",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": null,
+      "registry_identity": "05afd0678e2cb7d5b86a9784abd33f6f8498c4af9c1d77f7586e5bb1fb3eb84a",
+      "seconds": 0.36,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "question_reading",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": null,
+      "registry_identity": "f2997b21562e5779d47e35650d811bb1c546b98fe90ca16583d2d41174b8ab40",
+      "seconds": 0.36,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5028,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 4852,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2592
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "hidden_dependency",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": null,
+      "registry_identity": "6bab22bc48d62e97148e351e2d902dc93a4a178c881fd2eeb0d7a4c0f04aa5fa",
+      "seconds": 0.35,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 1208,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 468,
+      "disabled_unchanged": 812,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5408,
+        "counterfactual_correct_eligible": 5408,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2963
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 1.0,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    },
+    {
+      "family": "swapped",
+      "world": 302,
+      "world_identity": "cde05a622af2f0fe98a6670f7ed0b940ab0b67bb42bfa96b9fa4e50035776272",
+      "init": null,
+      "registry_identity": "0dc5811ca76cc614a160068502e0a34a37a247b7abd5d089b553730d6bf57e42",
+      "seconds": 0.36,
+      "executions": 1208,
+      "schema_ok": 1208,
+      "types_ok": 1208,
+      "integrity_ok": 1208,
+      "answer_correct": 979,
+      "replay_matches": 1208,
+      "consumed_exact": 1208,
+      "undeclared_calls": 0,
+      "disabled_unchanged": 1208,
+      "interventions": {
+        "n": 5584,
+        "recorded": 5584,
+        "history_independent": 5584,
+        "eligible": 5403,
+        "counterfactual_correct_eligible": 4565,
+        "same_endpoint_eligible": 2963,
+        "same_endpoint_correct": 2125
+      },
+      "atomic": {
+        "airport_of": 1.0,
+        "capital_of": 0.25,
+        "country_of": 1.0,
+        "largest_city_of": 1.0,
+        "operator_of": 1.0
+      },
+      "law_defects": {
+        "capital_of then country_of": 0,
+        "largest_city_of then country_of": 0
+      },
+      "countries_where_capital_differs": 18,
+      "countries": 24
+    }
+  ]
+}

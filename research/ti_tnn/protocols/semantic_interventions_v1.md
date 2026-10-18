@@ -102,3 +102,9 @@ scale, and whether 3a's competence replicates on fresh worlds. **The only empiri
 **Run:**
 `python research/ti_tnn/bench/semantic_interventions.py --worlds 300 301 302 --inits 0 1 2 3 4`, which
 also writes `verdict.json` via `evaluate()`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** The protocol's command, from `75cb47a`, 2026-10-18, finishing 19:38 UTC. 72 runs, CPU only,
+  with no failures. `verdict.json` was written by `evaluate()` as frozen.
+- **All seven predictions hold.** See the [report](../reports/semantic_interventions_v1.md).

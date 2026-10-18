@@ -9,7 +9,7 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment (with a status map) |
 | [`integration_plan.md`](integration_plan.md) | Proposed: typed execution with relation-specific specialists, calibrated routing and explicit intermediate values, in nine ordered PRs |
-| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4) |
+| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4); execution records, an independent checker and interventions (PR 5) |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
 | [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
 | [`reports/`](reports/) | Reports on the real benchmarks and the integration experiments |
@@ -393,6 +393,16 @@ fed another country's Trait-B stalk.
   - **Chains are not a finding.** Chains through the runtime scored 1.000, which is guaranteed once
     the facts are learned, because modules pass discrete values. That checks the plumbing, not learned
     composition. A model with no typed interface answered 4–8% of 2-step chains.
+- **Execution records and interventions, 72 CPU runs, 2026-10-18**
+  ([report](reports/semantic_interventions_v1.md), [frozen protocol](protocols/semantic_interventions_v1.md)).
+  - **Learned operators.** On 83,616 recorded executions and 387,264 interventions, every recorded value
+    was the value consumed, and the answers depended on nothing else.
+  - **Faulty controls, each caught only by its own check:**
+    - a module that reads the question: only interventions;
+    - one that calls another module unseen: the probe and disabling;
+    - a lawful but wrong module: only the independent checker.
+  - **A learned lawful-but-wrong case.** The learned endpoint control satisfies every declared law and
+    has faithful traces, yet answers wrongly.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.

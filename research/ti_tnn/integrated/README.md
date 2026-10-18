@@ -1,11 +1,15 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: plan PRs 3 and 4 implemented and tested.**
+**Status: plan PRs 3–5 implemented and tested.**
 - **PR 3:** typed contracts, a finite world, an immutable module registry, a type-checked runtime and an
   independent reference evaluator.
 - **PR 4:** small learned networks as relation operators (`modules.py`), confirmed against a frozen
   protocol ([report](../reports/typed_composition_v1.md)). They learned every fact of three fresh worlds,
   and a network shared by every relation kept `capital_of` and `largest_city_of` apart.
+- **PR 5:** execution records, an independent checker, replay, probes and interventions, confirmed
+  against a frozen protocol ([report](../reports/semantic_interventions_v1.md)). On learned modules
+  every recorded value was the value consumed. Four deliberately faulty module sets were each caught by
+  their own check.
 
 The [integration plan](../integration_plan.md) says what lands next.
 
@@ -68,7 +72,10 @@ cases:
 | [`reference.py`](reference.py) | 3 (done) | An independent evaluator that reads facts directly and imports nothing from the runtime |
 | [`demo.py`](demo.py) | 3 (done) | The README example, runnable |
 | [`modules.py`](modules.py) | 4 (done) | Learned relation operators: specialists, a shared network, a flat top-1 mixture, an endpoint-only control and an answer-only baseline; [`../bench/typed_composition.py`](../bench/typed_composition.py) trains and scores them |
-| `records.py`, `verification.py`, `interventions.py` | 5 | Execution records, an independent checker, counterfactual interventions |
+| [`records.py`](records.py) | 5 (done) | Execution-record schema `ti_tnn_execution_v1`, built from the runtime's output, with internal-consistency checks |
+| [`verification.py`](verification.py) | 5 (done) | The independent checker: schema, types, semantics against the facts, integrity, provenance (never authenticated) |
+| [`interventions.py`](interventions.py) | 5 (done) | Replay, a probe on module calls, disabled unexecuted computation, interventions, law defects |
+| [`faults.py`](faults.py) | 5 (done) | Deliberately faulty module sets, used only as positive controls |
 | `routing.py`, `calibration.py` | 6 | Jev as a planning policy; versioned calibration and abstention |
 | `recurrence.py`, `costs.py` | 7 | Bounded recurrence with explicit continuation state; complete cost accounting |
 | `updates.py`, `update_checks.py` | 8 | Offline module replacement with fixed external checks and rollback |
