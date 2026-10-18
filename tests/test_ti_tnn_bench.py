@@ -801,3 +801,41 @@ def test_latency_inventory_matches_absolute_and_relative_run_paths():
     assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is True
     doc["runs"][0]["dir"] = "/home/user/repo/runs/other/ti_tnn_adaptive_c30-seed0"
     assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is None
+
+
+
+def test_lm_accepts_the_lookup_fixes_and_keeps_frozen_names(tmp_path):
+    rng = np.random.default_rng(0)
+    for split, n in (("train", 4000), ("validation", 600), ("test", 600)):
+        rng.integers(0, 32, n).astype(np.uint16).tofile(tmp_path / f"{split}.bin")
+    (tmp_path / "meta.json").write_text(json.dumps({"vocab_size": 32}))
+    small = ["--device", "cpu", "--data", str(tmp_path), "--d-model", "16", "--layers", "2", "--heads", "2",
+             "--context", "16", "--batch", "4", "--tokens", "640", "--experts", "4", "--log-every", "1000"]
+    frozen = lm.parse_args(["--ffn", "ti_tnn_adaptive", "--target-compute", "0.3"])
+    assert lm.variant_name(frozen) == "ti_tnn_adaptive_c30"
+    fixed = lm.parse_args(["--ffn", "ti_tnn_adaptive", "--target-compute", "0.3", "--expert-init", "dense",
+                           "--cap-warmup-frac", "0.5", "--skip-keeps-kv", "--shared-expert-frac", "0.5"] + small)
+    assert lm.variant_name(fixed) == "ti_tnn_adaptive_c30_d16_l2_initdense_warm50_kv_sh50"
+    r = lm.train(fixed)
+    mc = r["model_config"]
+    assert mc["skip_keeps_kv"] and mc["shared_expert_frac"] == 0.5 and mc["expert_init"] == "dense"
+    assert r["train_log"][0]["cost_price"] == 0.0  # the cap starts at full compute, so nothing is priced yet
+
+
+
+def test_wikitext_fixed_evaluation():
+    base = {n: dict(lm_point("dense", 40.0, 27.0), realized_compute={"mean": 1.0}) for n in frontier.EXPECTED["lm"]}
+    base["dense_d256_l8"] = dict(lm_point("dense", 55.0, 7.3))
+    base["mod_c30"] = dict(lm_point("mod", 53.0, 7.9))
+    base["ti_tnn_adaptive_c30"] = lm_point("ti_tnn_adaptive", 49.0, 8.3)
+    base["ti_tnn_adaptive_c50"] = lm_point("ti_tnn_adaptive", 45.0, 14.0)
+    v = dict(base, ti_tnn_adaptive_c30_initdense=lm_point("ti_tnn_adaptive", 47.0, 8.3),
+             ti_tnn_adaptive_c30_initdense_warm50_kv_sh50=lm_point("ti_tnn_adaptive", 45.5, 8.4))
+    rows = [{"variant": frontier.WF_CANDIDATE, "seed": s, "deviations": [], "init_policy": "dense",
+             "path": f"runs/x/{frontier.WF_CANDIDATE}-seed{s}/result.json"} for s in (0, 1, 2)]
+    r = frontier.evaluate_wikitext_fixed(v, rows)
+    assert r["complete"] and r["fixes_help_on_text"]["holds"] and r["beats_plain_skipping"]["holds"]
+    assert r["efficiency"]["holds"] is False  # 45.5 is far outside 2% of 40
+    assert r["equal_compute"]["holds"] is True  # beats d256 and mod_c30, the only cheaper baselines
+    assert set(r["beats_plain_skipping"]["per_candidate"]) == {frontier.WF_CANDIDATE}
+    assert not frontier.evaluate_wikitext_fixed(v, rows[:2])["complete"]
