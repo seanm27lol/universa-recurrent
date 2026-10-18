@@ -85,6 +85,13 @@
       "report": "research/ti_tnn/reports/semantic_interventions_v1.md",
       "source": "75cb47a (committed immediately before the run; the run file does not record its commit)",
       "command": "python research/ti_tnn/bench/semantic_interventions.py --worlds 300 301 302 --inits 0 1 2 3 4"
+    },
+    "typed_routing": {
+      "what": "controlled-language questions, a learned interpreter and calibrated abstention on worlds 400-402 (48 countries), inits 0-4: three typed systems sharing the interpreter and an answer-only baseline, CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_routing_v1.md",
+      "report": "research/ti_tnn/reports/typed_routing_v1.md",
+      "source": "fd0aa20 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/typed_questions.py --worlds 400 401 402 --inits 0 1 2 3 4"
     }
   },
   "files": [
@@ -2340,6 +2347,20 @@
       "original_path": "runs/titnn_semantic/20261018T153819/verdict.json",
       "sha256": "dca14f2e950711db384e0d03678a76bb9b518dd0eabcdc3a71da2879ef1ee453",
       "bytes": 3294
+    },
+    {
+      "path": "typed_routing/20261018T160927/typed_questions.json",
+      "experiment": "typed_routing",
+      "original_path": "runs/titnn_routing/20261018T160927/typed_questions.json",
+      "sha256": "80715c381008322914c990b71859cc152c5cbfe9c06fbc4239c902277f7dca05",
+      "bytes": 553715
+    },
+    {
+      "path": "typed_routing/20261018T160927/verdict.json",
+      "experiment": "typed_routing",
+      "original_path": "runs/titnn_routing/20261018T160927/verdict.json",
+      "sha256": "1fcd7aeea27e3c4a4f9a0f1ec6ce98778fc7f8ce46a891661db9947b67dd8b8a",
+      "bytes": 2201
     }
   ]
 }

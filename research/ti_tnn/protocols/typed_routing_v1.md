@@ -130,3 +130,13 @@ point, and whether it survives a phrasing shift.
 **Run:**
 `python research/ti_tnn/bench/typed_questions.py --worlds 400 401 402 --inits 0 1 2 3 4`, which also
 writes `verdict.json` via `evaluate()`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** The protocol's command, from `fd0aa20`, 2026-10-18, finishing 20:09 UTC. 60 system runs (15
+  units × 4 systems), CPU only, with no failures. `verdict.json` was written by `evaluate()` as frozen.
+- **Predictions 1–5 hold; 6 fails in every world** (2, 3 and 3 of 5 units pass), as expected above. See
+  the [report](../reports/typed_routing_v1.md).
+- **One check after the run, outside the predictions.** Two failing units were rerun to list their
+  accepted shifted questions, and both reproduced their recorded counts exactly. Most errors were
+  unseen phrasings of ambiguous or unsupported relations, parsed as supported programs.
