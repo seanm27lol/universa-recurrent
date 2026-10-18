@@ -19,6 +19,7 @@ Outputs are restricted to the target type's domain (the type system is supplied,
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Mapping
 
 import torch
@@ -32,17 +33,23 @@ MODULE_FAMILIES = ("specialists", "shared_dense", "moe", "endpoint")
 
 
 class Vocabulary:
-    """Global indices for every entity of every type, and per-type index ranges."""
+    """Global indices for every entity of every type, and per-type index ranges. Immutable, so snapshots
+    (`snapshots.py`) can share it instead of copying it."""
 
     def __init__(self, world):
         self.world = world
-        self.types = sorted(world.types)
-        self.entities, self.offset = [], {}
+        self.types = tuple(sorted(world.types))
+        entities, offset = [], {}
         for t in self.types:
-            self.offset[t] = len(self.entities)
-            self.entities += list(world.types[t].values)
-        self.relations = sorted(world.relations)
-        self.local = {t: {v: i for i, v in enumerate(world.types[t].values)} for t in self.types}
+            offset[t] = len(entities)
+            entities += list(world.types[t].values)
+        self.entities, self.offset = tuple(entities), MappingProxyType(offset)
+        self.relations = tuple(sorted(world.relations))
+        self.local = MappingProxyType({t: MappingProxyType({v: i for i, v in enumerate(world.types[t].values)})
+                                       for t in self.types})
+
+    def __deepcopy__(self, memo):
+        return self  # immutable
 
     def global_index(self, type_id: str, value: str) -> int:
         return self.offset[type_id] + self.local[type_id][value]
@@ -56,7 +63,11 @@ def mlp(d_in: int, hidden: int, d_out: int) -> nn.Sequential:
 
 
 class TopOneMoE(nn.Module):
-    """A flat top-1 mixture of experts (Switch-style: the expert's output is scaled by its probability)."""
+    """A flat top-1 mixture of experts (Switch-style: the expert's output is scaled by its probability).
+
+    This implementation evaluates every expert and then keeps the selected one's output. Routing selects one
+    expert per input, but all of them are computed, so it is not a sparse-compute implementation, and its
+    compute is that of all experts."""
 
     def __init__(self, d_in: int, hidden: int, d_out: int, n_experts: int):
         super().__init__()
@@ -85,6 +96,17 @@ class SharedNet(nn.Module):
 
     def forward(self, entity_idx, relation_idx):
         return self.body(torch.cat([self.entity(entity_idx), self.relation(relation_idx)], -1))
+
+
+class SharedForward:
+    """One relation's view of a shared network: (entity indices) -> logits with that relation's identity. A
+    plain object rather than a closure, so that copying a module copies the network it reads."""
+
+    def __init__(self, net: nn.Module, relation_index: int):
+        self.net, self.relation_index = net, relation_index
+
+    def __call__(self, idx):
+        return self.net(idx, torch.full_like(idx, self.relation_index))
 
 
 class AnswerOnly(nn.Module):
@@ -215,7 +237,7 @@ def train_family(world, family: str, seed: int, d: int = 32, hidden: int = 64, s
         return {"answer_only": (net, vocab), "loss": loss.item()}
     modules = {}
     for ri, r in enumerate(rels):
-        fwd = (lambda idx, ri=ri: net(idx, torch.full_like(idx, ri)))
+        fwd = SharedForward(net, ri)
         version = ModuleVersion(f"{r}_{family}", r, family, module_identity(family, r, net), "float32")
         modules[r] = LearnedModule(version, fwd, vocab, world.relations[r].source, world.relations[r].target, False)
     return {"modules": modules, "loss": loss.item(), "net": net}
@@ -270,7 +292,7 @@ def finetune(world, family: str, base: dict, seed: int, relations: tuple[str, ..
     net.eval()
     modules = {}
     for ri, r in enumerate(vocab.relations):
-        fwd = (lambda idx, ri=ri: net(idx, torch.full_like(idx, ri)))
+        fwd = SharedForward(net, ri)
         version = ModuleVersion(f"{r}_{family}", r, family, module_identity(family, r, net), "float32")
         modules[r] = LearnedModule(version, fwd, vocab, world.relations[r].source, world.relations[r].target, False)
     return {"modules": modules, "loss": loss.item(), "net": net}

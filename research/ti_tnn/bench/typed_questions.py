@@ -52,6 +52,7 @@ from integrated import modules as M  # noqa: E402
 from integrated import reference as R  # noqa: E402
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
+from integrated import inventory  # noqa: E402
 from integrated import routing as J  # noqa: E402
 from integrated.contracts import Budget, Program  # noqa: E402
 from integrated.runtime import execute  # noqa: E402
@@ -384,10 +385,11 @@ CONFIRMATION = {"worlds": (400, 401, 402), "inits": (0, 1, 2, 3, 4)}
 
 def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["inits"]) -> dict:
     """The frozen predictions of protocols/typed_routing_v1.md, from the recorded runs."""
+    bad = inventory.problems([(r["system"], r["world"], r["init"]) for r in result["runs"]],
+                             [(s, w, i) for s in SYSTEMS for w in worlds for i in inits])
+    if bad:
+        return {"complete": False, **bad}
     by = {(r["system"], r["world"], r["init"]): r for r in result["runs"]}
-    missing = [(s, w, i) for s in SYSTEMS for w in worlds for i in inits if (s, w, i) not in by]
-    if missing:
-        return {"complete": False, "missing": missing[:10]}
     reliable = lambda ok: all(sum(ok(w, i) for i in inits) >= 4 for w in worlds)
     P = lambda w, i: by[("typed_specialists", w, i)]
     p = {

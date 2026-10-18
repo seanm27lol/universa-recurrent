@@ -44,6 +44,7 @@ records the declared source version and command.
 | `typed_routing/` | 2 (60 CPU system runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_routing_v1.md) | [report](../../../research/ti_tnn/reports/typed_routing_v1.md) | `fd0aa20` (committed immediately before the run) |
 | `typed_recurrence/` | 2 (45 CPU system runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_recurrence_v1.md) | [report](../../../research/ti_tnn/reports/typed_recurrence_v1.md) | `7ba0b79` (committed immediately before the run) |
 | `local_updates/` | 2 (450 learned updates and 30 faulty-suite cases in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report](../../../research/ti_tnn/reports/local_updates_v1.md) | `dd1d937` (committed immediately before the run) |
+| `local_updates_post_repair/` | 2 (the same 450 updates and 30 fault cases, rerun through the repaired interfaces; the verdict must equal the original) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report corrections](../../../research/ti_tnn/reports/local_updates_v1.md) | the contract-repair branch |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 
 **Source versions.**

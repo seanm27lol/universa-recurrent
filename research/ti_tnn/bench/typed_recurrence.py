@@ -44,6 +44,7 @@ from integrated import recurrence as Q  # noqa: E402
 from integrated import reference as R  # noqa: E402
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
+from integrated import inventory  # noqa: E402
 
 SYSTEMS = ("recurrent", "fixed_depth", "recurrent_table")
 
@@ -184,10 +185,11 @@ CONFIRMATION = {"worlds": (500, 501, 502), "inits": (0, 1, 2, 3, 4)}
 
 def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["inits"]) -> dict:
     """The frozen predictions of protocols/typed_recurrence_v1.md, from the recorded runs."""
+    bad = inventory.problems([(r["system"], r["world"], r["init"]) for r in result["runs"]],
+                             [(s, w, i) for s in SYSTEMS for w in worlds for i in inits])
+    if bad:
+        return {"complete": False, **bad}
     by = {(r["system"], r["world"], r["init"]): r for r in result["runs"]}
-    missing = [(s, w, i) for s in SYSTEMS for w in worlds for i in inits if (s, w, i) not in by]
-    if missing:
-        return {"complete": False, "missing": missing[:10]}
     rec = lambda w, i: by[("recurrent", w, i)]
     fix = lambda w, i: by[("fixed_depth", w, i)]
     competent = lambda w, i: min(rec(w, i)["atomic"].values()) >= 0.99

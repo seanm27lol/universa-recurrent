@@ -288,6 +288,20 @@ def local_updates_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def local_updates_post_repair_tables(bundle: Path = HERE) -> dict:
+    """The module-replacement rerun after the contract repairs: its verdict rebuilt from its own runs, checked
+    against its recorded verdict and against the original run's verdict (they must be identical)."""
+    sys.path.insert(0, str(BENCH))
+    import local_updates
+    root = bundle / "local_updates_post_repair/20261018T182038"
+    rebuilt = local_updates.evaluate(json.loads((root / "local_updates.json").read_text()))
+    if rebuilt != json.loads((root / "verdict.json").read_text()):
+        raise ValueError("the rebuilt post-repair verdict differs from its verdict.json")
+    if rebuilt != json.loads((bundle / "local_updates/20261018T164944/verdict.json").read_text()):
+        raise ValueError("the post-repair rerun does not reproduce the original verdict")
+    return rebuilt
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -409,6 +423,8 @@ def main(argv=None):
               f"{f['unaffected_changed_from_base_total']}  atomic moves {f['atomic_changed_by_relation']}")
     print(f"  faulty suite (as designed, per case): {upd['faulty_suite']}")
     print(f"  predictions: {upd['predictions']}")
+    local_updates_post_repair_tables()
+    print("  rerun after the contract repairs: identical verdict")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},

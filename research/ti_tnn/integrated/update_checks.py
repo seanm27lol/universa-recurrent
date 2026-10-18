@@ -20,9 +20,30 @@ Also:
 - `trace_and_continuation`: the candidate's records replay, its modules use only their input, and records
   made under the old registry are refused;
 - `calibration_and_resources`: a calibration bound to the old registry needs refitting, and no changed
-  module costs more than the registered limit.
+  module costs more than the registered limit;
+- `record_context`: the record names exactly the checked base and candidate snapshots, the target world,
+  this checker, and the calibration actually supplied. A required calibration that is missing is
+  insufficient evidence.
+
+**The `Checker` binds its verdict to what it checked.** It publishes private copies of the base and the
+candidate (`snapshots.py`) and runs every gate on those copies. It returns a `CheckResult` that holds:
+- the candidate copy itself;
+- the digests, record identity, world identities, checker version, calibration identity and resource
+  limit;
+- every gate's outcome;
+- a seal over all of these, made with the checker's key.
+
+A deployment activates only a result its checker can verify, and only the snapshot inside it. Gate results
+from one candidate therefore cannot activate another, and a candidate changed after checking is refused.
 """
 from __future__ import annotations
+
+import hashlib
+import hmac
+import secrets
+from dataclasses import dataclass, replace
+from types import MappingProxyType
+from typing import Mapping
 
 from .contracts import Budget, Program, content_identity, facts_mapping
 from .interventions import consumed_as_recorded, intervene, law_defects, replay
@@ -30,6 +51,7 @@ from .records import to_record
 from .registry import TableModule
 from .reference import reference_answer, well_typed_paths
 from .runtime import execute
+from .snapshots import Snapshot, publish
 
 CHECKER_VERSION = "ti_tnn_update_checks_v1"
 PASS, FAIL, INSUFFICIENT = "pass", "fail", "insufficient evidence"
@@ -185,12 +207,106 @@ def calibration_and_resources(candidate, base, record, calibration=None, policy_
     return _gate(outcome, problems=problems, insufficient=insufficient)
 
 
-def check_all(base, candidate, record, old_world, new_world, calibration=None) -> dict:
-    """Every mandatory gate, in order."""
-    intended, unaffected, counts = behavior(candidate, base, old_world, new_world, record)
-    return {"identity_and_scope": identity_and_scope(base, candidate, record),
-            "types_and_laws": types_and_laws(candidate, new_world),
-            "intended_behavior": intended, "unaffected_behavior": unaffected,
-            "trace_and_continuation": trace_and_continuation(candidate, base, new_world),
-            "calibration_and_resources": calibration_and_resources(candidate, base, record, calibration),
-            "counts": counts, "checker": CHECKER_VERSION}
+def calibration_identity(calibration) -> str | None:
+    return None if calibration is None else content_identity(
+        {k: (None if isinstance(v, float) and v != v else v) for k, v in calibration.__dict__.items()})
+
+
+def record_context(record, base_snapshot, candidate_snapshot, new_world, calibration, checker_version) -> dict:
+    """The record describes exactly what is being checked: these snapshots, this target world, this checker and
+    this calibration context. Context the record declares but the check lacks is not assumed to hold."""
+    problems, insufficient = [], []
+    if record.base_identity != base_snapshot.digest:
+        problems.append("the record's base is not the checked base")
+    if record.candidate_identity != candidate_snapshot.digest:
+        problems.append("the record's candidate is not the checked candidate")
+    if record.target_world_identity != new_world.identity:
+        problems.append("the record names a different target world")
+    if record.checker_version != checker_version:
+        problems.append(f"the record names checker {record.checker_version!r}, not {checker_version!r}")
+    declared, supplied = record.calibration_version, calibration_identity(calibration)
+    if declared is not None and supplied is None:
+        insufficient.append("the record requires a calibration that was not supplied")
+    elif declared is not None and declared != supplied:
+        problems.append("the supplied calibration is not the one the record names")
+    elif declared is None and supplied is not None:
+        problems.append("a calibration was supplied that the record does not declare")
+    outcome = FAIL if problems else INSUFFICIENT if insufficient else PASS
+    return _gate(outcome, problems=problems, insufficient=insufficient)
+
+
+MANDATORY = ("record_context", "identity_and_scope", "types_and_laws", "intended_behavior", "unaffected_behavior",
+             "trace_and_continuation", "calibration_and_resources")
+
+
+@dataclass(frozen=True)
+class CheckResult:
+    """A checker's verdict, bound to what it checked. It carries the published candidate snapshot itself, so the
+    thing activated is the thing checked, and a seal only the issuing checker can produce."""
+
+    record_identity: str
+    base_digest: str
+    candidate_digest: str
+    old_world_identity: str
+    new_world_identity: str
+    checker_version: str
+    calibration_identity: str | None
+    max_macs_per_application: int | None
+    gates: Mapping[str, dict]
+    counts: Mapping[str, object]
+    snapshot: Snapshot
+    seal: str
+
+    def outcome(self, gate: str) -> str:
+        return self.gates[gate]["outcome"]
+
+    def outcomes(self) -> dict:
+        return {g: self.gates[g]["outcome"] for g in MANDATORY}
+
+    def passed(self) -> bool:
+        return all(self.gates[g]["outcome"] == PASS for g in MANDATORY)
+
+    def bound(self) -> dict:
+        """Everything the seal covers."""
+        return {"record": self.record_identity, "base": self.base_digest, "candidate": self.candidate_digest,
+                "old_world": self.old_world_identity, "new_world": self.new_world_identity,
+                "checker": self.checker_version, "calibration": self.calibration_identity,
+                "max_macs": self.max_macs_per_application, "outcomes": self.outcomes()}
+
+
+class Checker:
+    """Runs every gate on private published copies and seals the result with a key it holds.
+
+    The seal (HMAC-SHA256 over the bound fields) lets a deployment that trusts this checker confirm that a result
+    came from it and was not reassembled. It is an integrity check within one process, not a security boundary:
+    code that can read the key can forge seals."""
+
+    def __init__(self, key: bytes | None = None, version: str = CHECKER_VERSION):
+        self._key = key if key is not None else secrets.token_bytes(32)
+        self.version = version
+
+    def _seal(self, bound: dict) -> str:
+        return hmac.new(self._key, content_identity(bound).encode(), hashlib.sha256).hexdigest()
+
+    def check(self, base, candidate, record, old_world, new_world, calibration=None) -> CheckResult:
+        base_snap = base if isinstance(base, Snapshot) else publish(base)
+        cand_snap = publish(candidate.registry if isinstance(candidate, Snapshot) else candidate)
+        b, c = base_snap.registry, cand_snap.registry
+        intended, unaffected, counts = behavior(c, b, old_world, new_world, record)
+        gates = {"record_context": record_context(record, base_snap, cand_snap, new_world, calibration, self.version),
+                 "identity_and_scope": identity_and_scope(b, c, record),
+                 "types_and_laws": types_and_laws(c, new_world),
+                 "intended_behavior": intended, "unaffected_behavior": unaffected,
+                 "trace_and_continuation": trace_and_continuation(c, b, new_world),
+                 "calibration_and_resources": calibration_and_resources(c, b, record, calibration)}
+        if not cand_snap.verify() or not base_snap.verify():  # running the gates must not have changed either
+            gates["record_context"] = _gate(FAIL, problems=["a snapshot changed while it was being checked"],
+                                            insufficient=[])
+        result = CheckResult(record.identity, base_snap.digest, cand_snap.digest, old_world.identity,
+                             new_world.identity, self.version, calibration_identity(calibration),
+                             record.max_macs_per_application, MappingProxyType(gates), MappingProxyType(counts),
+                             cand_snap, "")
+        return replace(result, seal=self._seal(result.bound()))
+
+    def verify(self, result: CheckResult) -> bool:
+        return hmac.compare_digest(result.seal, self._seal(result.bound()))

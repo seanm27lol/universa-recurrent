@@ -29,8 +29,9 @@ from __future__ import annotations
 import copy
 from dataclasses import dataclass
 
-from .contracts import TypedValue, canonical, content_identity
+from .contracts import TypedValue, content_identity
 from .records import value_record
+from .runtime import validated_output
 
 SCHEMA = "ti_tnn_continuation_v1"
 RUNNING, ANSWERED, ABSTAINED = "running", "answered", "abstained"
@@ -85,15 +86,11 @@ def begin(query: UntilQuery, registry, types, max_steps: int) -> dict:
 
 def _apply(state, registry, types, rid, value: TypedValue):
     module = registry.module(rid)
-    produced = module.apply(value)
-    produced = None if produced is None else canonical(produced)
+    produced, problem = validated_output(module.apply(value), registry.relations[rid], types)
     state["applications"].append({"index": len(state["applications"]), "relation_id": rid,
                                   "module_identity": module.version.identity, "consumed": value_record(value),
                                   "produced": value_record(produced)})
-    spec = registry.relations[rid]
-    if produced is None or produced.type_id != spec.target or not types[spec.target].contains(produced.value):
-        return None
-    return produced
+    return None if problem else produced
 
 
 def step(state: dict, registry, types) -> dict:
@@ -174,7 +171,10 @@ def fixed_depth(query: UntilQuery, registry, types, max_steps: int) -> dict:
             state.update(status=ABSTAINED, reason="cycle")
             break
         seen.append(v.value)
-        if t is not None and t.value == query.target.value:
+        if t is None:  # recurrence abstains here too; scanning on would answer where it cannot
+            state.update(status=ABSTAINED, reason="module gave no valid answer")
+            break
+        if t.value == query.target.value:
             state.update(status=ANSWERED, answer=value_record(v))
             break
     else:

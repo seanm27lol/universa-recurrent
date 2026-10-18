@@ -171,3 +171,57 @@ reproduced the recorded counts exactly: 18 accepted, all wrong; 59 accepted, 26 
   bundled runs.
 - **Development pilot.** It ran on worlds 100–101 before freezing; its three fixes are disclosed in the
   protocol.
+
+## After review (2026-10-18): what limits the interpreter, and what calibration added
+
+An outside review found four things; each was checked independently before being recorded here.
+
+**1. Unseen words collapse to one token, so some shifted questions are indistinguishable.**
+- **The cause.** The vocabulary comes from training questions, and every unfamiliar word becomes `<unk>`.
+  "tell me the nation that includes X ." (`country_of`) and "tell me the airfield that serves X ." (`airport_of`)
+  become the same input, with the same copied entity.
+- **The size.** Questions with identical inputs and entities but different required answers form 97, 94 and
+  111 groups in worlds 400–402. Answering every supported shifted question would force at least 11.0%,
+  9.9% and 12.0% errors before any learning question arises.
+- **What a fix needs.** Character, byte or subword input would keep unfamiliar spellings apart. It would
+  not teach what an unseen synonym means.
+
+**2. A simpler control would have refused the whole shift.** Every supported shifted question contains an
+unfamiliar non-entity word, and no in-distribution test question does. Rejecting such words would refuse
+every shifted question and keep full in-distribution coverage. That is conservative refusal, not
+interpretation. The frozen shift rule (accepted error ≤ 5%, or nothing answered) would count it as a pass.
+A claim of competence under shift needs a coverage requirement too.
+
+**3. The calibrated threshold was barely needed in distribution.**
+
+| Policy, test split | Errors / answers | Units meeting the frozen 1% bound with coverage ≥ 0.90 |
+|---|---:|---:|
+| No threshold | 6 / 13,749 | 14 / 15 (4, 5 and 5 per world, so prediction 2's rule still holds) |
+| Fitted threshold (reported) | 2 / 13,714 | 15 / 15 |
+
+The supported conclusion is narrower than "calibration is needed for this operating point": the
+interpreter was already accurate enough. The threshold removed four errors.
+
+**4. The threshold search has no selection-corrected guarantee.**
+- **The problem.** `choose_threshold` scans many cutoffs and keeps the largest whose single-cutoff 95%
+  Clopper–Pearson bound meets the target. Selecting among cutoffs by their outcomes breaks that per-cutoff
+  guarantee.
+- **The size.** In a constructed case where every cutoff's true error is 1.01%, with 650 calibration
+  examples, a simulation of 4,000 repetitions found an apparently certifiable cutoff 9.1% of the time.
+  The review's exact calculation gave 9.03%. Either is above the nominal 5%.
+- **What it does not affect.** The test-split bounds reported above are separate, fixed-policy evidence.
+- **The fix.** Select the policy on one split and certify it on another untouched one, or use a
+  simultaneous procedure (for example, Learn then Test).
+
+**Also:** 4, 11 and 8 refusal question strings (worlds 400–402) occur in both training and calibration or
+test. Supported program-and-entity instances were correctly separated. This is a small cleanup, not an
+explanation of the shift result.
+
+**What follows** (integration plan section 12): an interpreter robustness experiment separating three
+things:
+- new structure with familiar words;
+- alternate wording that was taught;
+- abstention on unfamiliar wording.
+
+Its controls run first: no threshold, a validly certified raw-score threshold, the calibrated threshold,
+and lexical-novelty rejection.

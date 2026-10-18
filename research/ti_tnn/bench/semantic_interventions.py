@@ -39,6 +39,7 @@ from integrated import modules as M  # noqa: E402
 from integrated import reference as R  # noqa: E402
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
+from integrated import inventory  # noqa: E402
 from integrated.contracts import Budget, Program  # noqa: E402
 from integrated.records import to_record  # noqa: E402
 from integrated.runtime import execute  # noqa: E402
@@ -155,11 +156,11 @@ CONFIRMATION = {"worlds": (300, 301, 302), "inits": (0, 1, 2, 3, 4)}
 
 def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["inits"]) -> dict:
     """The frozen predictions of protocols/semantic_interventions_v1.md, from the recorded runs."""
-    by = {(r["family"], r["world"], r["init"]): r for r in result["runs"]}
     want = [(f, w, i) for w in worlds for i in inits for f in LEARNED] + [(f, w, None) for w in worlds for f in CONSTRUCTED]
-    missing = [k for k in want if k not in by]
-    if missing:
-        return {"complete": False, "missing": missing[:10]}
+    bad = inventory.problems([(r["family"], r["world"], r["init"]) for r in result["runs"]], want)
+    if bad:
+        return {"complete": False, **bad}
+    by = {(r["family"], r["world"], r["init"]): r for r in result["runs"]}
     runs = [by[k] for k in want]
     of = lambda fam: [r for r in runs if r["family"] == fam]
     competent = lambda r: min(r["atomic"].values()) >= 0.99

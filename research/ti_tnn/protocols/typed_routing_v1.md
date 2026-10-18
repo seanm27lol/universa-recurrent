@@ -140,3 +140,4 @@ writes `verdict.json` via `evaluate()`.
 - **One check after the run, outside the predictions.** Two failing units were rerun to list their
   accepted shifted questions, and both reproduced their recorded counts exactly. Most errors were
   unseen phrasings of ambiguous or unsupported relations, parsed as supported programs.
+- **Correction after review (2026-10-18), with the contract-repair PR.** The threshold rule (the largest cutoff whose single-cutoff Clopper–Pearson bound meets the target) does not carry a selection-corrected guarantee. The test-split bounds are separate evidence. The no-threshold policy also met prediction 2's rule (14 of 15 units). See the report's review section.

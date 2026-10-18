@@ -32,6 +32,7 @@ import platform
 import random
 import sys
 import time
+from types import MappingProxyType
 from pathlib import Path
 
 import torch
@@ -40,12 +41,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from integrated import modules as M  # noqa: E402
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
+from integrated import inventory  # noqa: E402
 from integrated import update_checks as U  # noqa: E402
+from integrated import snapshots as S  # noqa: E402
 from integrated import updates as D  # noqa: E402
 from integrated.contracts import ModuleVersion, content_identity, facts_mapping  # noqa: E402
 from integrated.reference import well_typed_paths  # noqa: E402
 
 PROPOSER = "offline-update"
+CHECKER = U.Checker()  # one checker per process; deployments accept only results it sealed
+GATES_V1 = ("identity_and_scope", "types_and_laws", "intended_behavior", "unaffected_behavior",
+            "trace_and_continuation", "calibration_and_resources")  # the gates the frozen summary counts
+PER_KIND = 5  # the frozen inventory: five updates of each kind per world
+FAULT_CASES = ("valid_table_edit", "lawful_answer_flip", "broken_inverse", "ill_typed", "out_of_scope_state_edit",
+               "stale_revision", "failed_rollback", "unauthorized", "stale_identity", "shared_storage")
 FAMILIES = {"specialists": ("specialists", True), "shared_same_data": ("shared_dense", False),
             "shared_rehearsal": ("shared_dense", True)}  # name -> (trained family, rehearse)
 KINDS = ("capital_moves", "operator_changes")
@@ -83,9 +92,12 @@ def registry_from(world, modules: dict):
     return reg
 
 
-def record_for(base, candidate, new_world, intended, scope, proposer=PROPOSER, base_identity=None):
-    return D.UpdateRecord(base_identity or base.identity, candidate.identity, tuple(scope), tuple(intended),
-                          new_world.identity, U.CHECKER_VERSION, None, None, proposer)
+def record_for(base, candidate, new_world, intended, scope, proposer=PROPOSER, base_identity=None, **fields):
+    """An update record naming the published digests of `base` and `candidate`."""
+    return D.UpdateRecord(base_identity or S.digest_of(base), S.digest_of(candidate), tuple(scope), tuple(intended),
+                          new_world.identity, fields.pop("checker_version", CHECKER.version),
+                          fields.pop("calibration_version", None), fields.pop("max_macs_per_application", None),
+                          proposer)
 
 
 def all_answers(registry, world):
@@ -100,21 +112,23 @@ def all_answers(registry, world):
     return out
 
 
-def attempt(base, candidate, record, gates, authority, old_world):
-    """Activate on a fresh deployment of `base`; if activated, roll back and check that it is exact."""
-    dep = D.Deployment(base, authority)
-    act = dep.activate(candidate, record, gates)
+def attempt(base, record, result, authority, old_world, base_answers):
+    """Activate on a fresh deployment of `base`. If activated, roll back, and check that the restored snapshot
+    gives the base answers captured before any candidate work."""
+    dep = D.Deployment(base, authority, CHECKER)
+    published = dep.active.digest
+    act = dep.activate(record, result)
     out = {"activated": act["activated"], "reasons": act["reasons"]}
     if act["activated"]:
         rb = dep.rollback()
         out["rolled_back"] = rb["rolled_back"]
-        out["rollback_exact"] = (dep.active is base and dep.active.identity == base.identity
-                                 and all_answers(dep.active, old_world) == all_answers(base, old_world))
+        out["rollback_exact"] = (dep.active.digest == published and dep.active.verify()
+                                 and all_answers(dep.registry, old_world) == base_answers)
     return out
 
 
-def outcomes(gates):
-    return {g: gates[g]["outcome"] for g in D.MANDATORY}
+def outcomes(result):
+    return result.outcomes()
 
 
 def table_candidate(base, world, new_world, relation, table=None, target=None, kind="table"):
@@ -130,20 +144,22 @@ def faulty_suite(world, init, args) -> list[dict]:
     rng_updates = updates(world, 1, 1000 + init)
     authority = D.Authority({PROPOSER})
     base = G.table_registry(world)
+    base_answers = all_answers(base, world)  # captured before any candidate work
     new_world, intended, rel = rng_updates[0]  # a capital move
     country = intended[0][1]
     cases = []
 
     def judge(name, candidate, record, nw=new_world, expect=None, **extra):
-        gates = U.check_all(base, candidate, record, world, nw)
-        res = {"case": name, "gates": outcomes(gates), **attempt(base, candidate, record, gates, authority, world), **extra}
+        result = CHECKER.check(base, candidate, record, world, nw)
+        res = {"case": name, "gates": outcomes(result), **attempt(base, record, result, authority, world, base_answers),
+               **extra}
         res["expected"] = expect
         cases.append(res)
-        return gates
+        return result
 
     valid = table_candidate(base, world, new_world, "capital_of")
-    judge("valid_table_edit", valid, record_for(base, valid, new_world, intended, ("capital_of",)),
-          expect={"all_pass": True, "activated": True})
+    a_rec = record_for(base, valid, new_world, intended, ("capital_of",))
+    a_res = judge("valid_table_edit", valid, a_rec, expect={"all_pass": True, "activated": True})
     flip = table_candidate(base, world, new_world, "capital_of", table=dict(world.facts["largest_city_of"]))
     judge("lawful_answer_flip", flip, record_for(base, flip, new_world, intended, ("capital_of",)),
           expect={"types_and_laws": U.PASS, "unaffected_behavior": U.FAIL, "activated": False})
@@ -165,23 +181,23 @@ def faulty_suite(world, init, args) -> list[dict]:
     judge("out_of_scope_state_edit", ghost, record_for(base, ghost, new_world, intended, ("capital_of",)),
           expect={"identity_and_scope": U.FAIL, "intended_behavior": U.PASS, "unaffected_behavior": U.PASS, "activated": False})
     # stale revision: two valid candidates on the same base; the second is proposed after the first is active
-    dep = D.Deployment(base, authority)
+    dep = D.Deployment(base, authority, CHECKER)
     second_world, second_intended, _ = rng_updates[1]  # an operator change
-    a_rec = record_for(base, valid, new_world, intended, ("capital_of",))
-    dep.activate(valid, a_rec, U.check_all(base, valid, a_rec, world, new_world))
+    dep.activate(a_rec, a_res)
     b = table_candidate(base, world, second_world, "operator_of")
     b_rec = record_for(base, b, second_world, second_intended, ("operator_of",))
-    b_gates = U.check_all(base, b, b_rec, world, second_world)
-    decision = dep.activate(b, b_rec, b_gates)
-    cases.append({"case": "stale_revision", "gates": outcomes(b_gates), "activated": decision["activated"],
+    b_res = CHECKER.check(base, b, b_rec, world, second_world)
+    decision = dep.activate(b_rec, b_res)
+    cases.append({"case": "stale_revision", "gates": outcomes(b_res), "activated": decision["activated"],
                   "reasons": decision["reasons"], "expected": {"all_pass": True, "activated": False}})
-    # failed rollback: the stored snapshot is tampered with; rollback must refuse and leave the active registry
-    dep = D.Deployment(base, authority)
-    dep.activate(valid, a_rec, U.check_all(base, valid, a_rec, world, new_world))
-    dep.history[-1] = (table_candidate(base, world, world, "operator_of", table=dict(second_world.facts["operator_of"])),
-                       dep.history[-1][1])
+    # failed rollback: the stored snapshot is tampered with; rollback must refuse and leave the active snapshot
+    dep = D.Deployment(base, authority, CHECKER)
+    dep.activate(a_rec, a_res)
+    active = dep.active
+    stored = dep.history[-1].registry.module("operator_of")
+    object.__setattr__(stored, "table", MappingProxyType(dict(second_world.facts["operator_of"])))
     rb = dep.rollback()
-    cases.append({"case": "failed_rollback", "rolled_back": rb["rolled_back"], "active_unchanged": dep.active is valid,
+    cases.append({"case": "failed_rollback", "rolled_back": rb["rolled_back"], "active_unchanged": dep.active is active,
                   "reasons": rb["reasons"], "expected": {"rolled_back": False, "active_unchanged": True}})
     unauth = record_for(base, valid, new_world, intended, ("capital_of",), proposer="confident-agent")
     judge("unauthorized", valid, unauth, expect={"all_pass": True, "activated": False}, claimed_confidence=0.999)
@@ -194,12 +210,12 @@ def faulty_suite(world, init, args) -> list[dict]:
         drifted = copy.deepcopy(cap.forward)
         next(drifted.parameters()).add_(0.01)
     stale = registry_from(new_world, {**tuned["modules"], "capital_of": dataclasses.replace(cap, forward=drifted)})
-    gates = U.check_all(lbase, stale, record_for(lbase, stale, new_world, intended, ("capital_of",)), world, new_world)
-    cases.append({"case": "stale_identity", "gates": outcomes(gates), "expected": {"identity_and_scope": U.FAIL}})
+    result = CHECKER.check(lbase, stale, record_for(lbase, stale, new_world, intended, ("capital_of",)), world, new_world)
+    cases.append({"case": "stale_identity", "gates": outcomes(result), "expected": {"identity_and_scope": U.FAIL}})
     largest = trained["modules"]["largest_city_of"]
     aliased = registry_from(new_world, {**tuned["modules"], "largest_city_of": dataclasses.replace(largest, forward=cap.forward)})
-    gates = U.check_all(lbase, aliased, record_for(lbase, aliased, new_world, intended, ("capital_of",)), world, new_world)
-    cases.append({"case": "shared_storage", "gates": outcomes(gates), "expected": {"identity_and_scope": U.FAIL}})
+    result = CHECKER.check(lbase, aliased, record_for(lbase, aliased, new_world, intended, ("capital_of",)), world, new_world)
+    cases.append({"case": "shared_storage", "gates": outcomes(result), "expected": {"identity_and_scope": U.FAIL}})
     for c in cases:
         c["as_expected"] = expected_met(c)
     return cases
@@ -226,7 +242,8 @@ def learned_updates(world, init, args) -> list[dict]:
     bases = {f: M.train_family(world, f, init, args.d, args.hidden, args.steps, args.lr) for f in ("specialists", "shared_dense")}
     regs = {f: registry_from(world, b["modules"]) for f, b in bases.items()}
     truth = all_answers(G.table_registry(world), world)
-    competent = {f: all_answers(regs[f], world) == truth for f in regs}
+    answers = {f: all_answers(regs[f], world) for f in regs}  # captured before any candidate work
+    competent = {f: answers[f] == truth for f in regs}
     for k, (new_world, intended, rel) in enumerate(updates(world, args.per_kind, 0)):
         for family, (trained, rehearse) in FAMILIES.items():
             t0 = time.time()
@@ -234,12 +251,12 @@ def learned_updates(world, init, args) -> list[dict]:
             update_seconds = time.time() - t0
             cand = registry_from(new_world, tuned["modules"])
             record = record_for(regs[trained], cand, new_world, intended, (rel,))
-            gates = U.check_all(regs[trained], cand, record, world, new_world)
+            result = CHECKER.check(regs[trained], cand, record, world, new_world)
             res = {"family": family, "world": world.seed, "init": init, "update": k, "relation": rel,
                    "intended": [list(x) for x in intended], "base_competent": competent[trained],
-                   "update_seconds": round(update_seconds, 3), "gates": outcomes(gates), "counts": gates["counts"],
-                   "changed_modules": gates["identity_and_scope"]["changed"],
-                   **attempt(regs[trained], cand, record, gates, authority, world)}
+                   "update_seconds": round(update_seconds, 3), "gates": outcomes(result), "counts": dict(result.counts),
+                   "changed_modules": result.gates["identity_and_scope"]["changed"],
+                   **attempt(regs[trained], record, result, authority, world, answers[trained])}
             out.append(res)
     return out
 
@@ -279,11 +296,13 @@ def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["in
     """The frozen predictions of protocols/local_updates_v1.md, from the recorded runs."""
     rows = result["runs"]
     by_world = lambda fam, w: [r for r in rows if r["family"] == fam and r["world"] == w and r["init"] in inits]
-    have = {(r["family"], r["world"], r["init"]) for r in rows}
-    missing = [(f, w, i) for f in FAMILIES for w in worlds for i in inits if (f, w, i) not in have]
-    suite_worlds = {c["world"] for c in result["faulty_suite"]}
-    if missing or not set(worlds) <= suite_worlds:
-        return {"complete": False, "missing": missing[:10], "suite_worlds": sorted(suite_worlds)}
+    expected = [(f, w, i, k, "capital_of" if k < PER_KIND else "operator_of")
+                for f in FAMILIES for w in worlds for i in inits for k in range(2 * PER_KIND)]
+    bad = inventory.problems([(r["family"], r["world"], r["init"], r["update"], r["relation"]) for r in rows], expected)
+    bad_suite = inventory.problems([(c["case"], c["world"]) for c in result["faulty_suite"]],
+                                   [(c, w) for c in FAULT_CASES for w in worlds])
+    if bad or bad_suite:
+        return {"complete": False, "updates": bad, "faulty_suite": bad_suite}
     spec_ok = lambda r: r["activated"] and r.get("rollback_exact", False)
 
     def share(w, fam, rel, outcome):
@@ -309,7 +328,7 @@ def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["in
     for fam in FAMILIES:
         rs = [r for w in worlds for r in by_world(fam, w)]
         summary[fam] = {"cases": len(rs), "activated": sum(r["activated"] for r in rs),
-                        "gate_pass": {g: sum(r["gates"][g] == U.PASS for r in rs) for g in D.MANDATORY},
+                        "gate_pass": {g: sum(r["gates"][g] == U.PASS for r in rs) for g in GATES_V1},
                         "unaffected_changed_from_base_total": sum(r["counts"]["unaffected_changed_from_base"] for r in rs),
                         "cases_with_unaffected_changes": sum(r["counts"]["unaffected_changed_from_base"] > 0 for r in rs),
                         "intended_wrong_total": sum(r["counts"]["intended"] - r["counts"]["intended_correct"] for r in rs),
