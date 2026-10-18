@@ -378,15 +378,23 @@ class LanguageModel(nn.Module):
 
 
 def parameter_counts(model: LanguageModel) -> Dict[str, int]:
-    """Total parameters, and parameters a single token uses (embeddings counted once; experts at top-1)."""
+    """Total parameters, and parameters a single token uses at most (embeddings counted once; one expert
+    per routed bank; in an adaptive block, only its widest branch). Counted from the instantiated modules,
+    so shared experts and narrowed expert banks are handled (before 2026-10-18 the count assumed
+    full-width banks and went negative for shared-expert models)."""
     cfg = model.cfg
     total = sum(p.numel() for p in model.parameters())
     per_expert = 2 * cfg.ffn_mult * cfg.d_model ** 2
-    unused = 0
-    if cfg.ffn in ("moe_top1", "moe_top2", "ti_tnn", "ti_tnn_adaptive"):
-        unused = cfg.n_layers * (cfg.n_experts - 1) * per_expert
-    if cfg.ffn == "ti_tnn_adaptive":  # the small experts, and the full branch a token at top-1 skips
-        unused += cfg.n_layers * cfg.n_experts * 2 * cfg.small_mult * cfg.d_model ** 2
+    unused, skip = 0, set()
+    for block in model.blocks:
+        if isinstance(block, AdaptiveBlock) and len(block.branches) > 1:
+            for small in block.branches[:-1]:  # a token runs at most one branch: count only the widest
+                unused += sum(p.numel() for p in small.parameters())
+                skip |= {id(m) for m in small.modules()}
+    for m in model.modules():
+        if isinstance(m, Experts) and id(m) not in skip:
+            E = m.w_up.shape[0]
+            unused += (m.w_up.numel() + m.w_down.numel()) * (E - 1) // E
     return {"total": total, "active_top1": total - unused, "expert_or_mlp_params_per_layer": per_expert}
 
 
