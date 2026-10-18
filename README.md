@@ -327,6 +327,15 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
   - On a lookup task built to favor it, the adaptive models, and even a full-compute
     mixture of experts, mostly failed to learn at all.
 
+**Next: typed execution (proposed).** Categorical deep learning motivates an experimental extension that
+represents computations as typed operations with declared composition rules. The planned system combines
+relation-specific specialists, calibrated routing, explicit intermediate values and bounded recurrence.
+Separate tests will evaluate algebraic conformance, semantic behavior, causal trace faithfulness and
+total inference cost. Controlled module replacement is a later research goal. Existing TI-TNN benchmarks
+establish limited component results; they do not establish general interpretability, capability
+isolation or safe autonomous self-modification. See the
+[integration plan](research/ti_tnn/integration_plan.md) and [how the pieces connect](docs/cdl_connections.md).
+
 [TI-TNN README](research/ti_tnn/README.md) ·
 [real-benchmark report](research/ti_tnn/reports/real_benchmarks.md) ·
 [composition report](research/ti_tnn/reports/functorial_composition.md) ·
