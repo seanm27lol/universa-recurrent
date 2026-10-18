@@ -764,3 +764,22 @@ README.
 | The functorial model is more than typed embeddings in one shared space | FALSE in capacity | Its logits are E_s Q_sᵀ Q_t E_tᵀ = Z_s Z_tᵀ with Z_k = E_k Q_kᵀ (`test_the_functorial_scores_are_shared_space_dot_products`); only optimization differs. The relations form a tree, so flatness adds nothing beyond tying the inverse pair. Transports depend only on endpoints, so two relations between the same kinds could not be told apart |
 | The category laws (inverse tying, flatness) are what make the composition work | NOT SUPPORTED | Controls on 5 seeds ([report](../research/ti_tnn/reports/functorial_composition_controls.md)): identity maps in one shared space 2,559/2,560 two-hop chains, independent orthogonal maps that are not inverses (defect 0.376) 2,560/2,560, soft penalty toward orthogonality plus the inverse pair 2,560/2,560; only maps free to stretch and shear fall short (linear 2,406, inverse-only soft 2,251, whose maps end far from orthogonal: defect 9.61). Exact tying and flatness showed no measured advantage; geometry preservation is supported as a useful inductive bias on this one world (5 training seeds), not as the sole mechanism or a guarantee. The world has one relation per kind pair and a tree of relations, so it cannot separate the laws from the shared space. Raw results in `experiments/results/ti_tnn/` |
 | Any of this transfers to language models or real tasks | Not established | The real-benchmark comparison above shows no advantage at this scale; the toy results remain toy results |
+
+## TI-TNN × CDL integration (proposed, 2026-10-18)
+
+Rows for the [integration plan](../research/ti_tnn/integration_plan.md). Unrun claims start as
+**Proposed / Not established**, each with the result that would count against it.
+
+| Claim | Status | Evidence, or the planned falsifier |
+|---|---|---|
+| Categorical laws or a router's Brier score detect semantic changes in a model | FALSE | `tests/test_ti_tnn_guarantee_boundaries.py`: every law holds and the Brier score stays 0.02 while the answer flips; in the real TI-TNN model, a branch's output layer changes while route probabilities and every categorical defect are identical and the answers change |
+| A typed runtime executes only well-typed programs and rejects invalid ones before execution | Proposed / Not established | Plan PR 3. Falsifier: an ill-typed program that executes, or a valid one rejected |
+| Relation identity is preserved between relations with the same endpoints | Proposed / Not established | Plan PR 4. Falsifier: `capital_of` and `largest_city_of` answered interchangeably (only possible in models that share parameters across relations) |
+| Declared categorical equations are enforced or measured | Proposed / Not established | Plan PR 4. Falsifier: a maximum per-relation defect above its registered tolerance |
+| Recorded intermediate values are causally faithful | Proposed / Not established | Plan PR 5. Falsifier: replacing a recorded value does not change what the next module consumes, or replay disagrees |
+| Route confidence is calibrated on a specified split | Proposed / Not established | Plan PR 6. Falsifier: reliability outside the registered bound on the held-out calibration split |
+| Total inference efficiency at a stated operating point | Proposed / Not established | Plan PR 7. Falsifier: less than 20% lower measured total cost than the cheapest qualifying baseline, or timed and scored paths that disagree |
+| Local updates leave undeclared behavior unchanged in a finite domain | Proposed / Not established | Plan PR 8. Falsifier: any change in the registered unaffected set |
+| Integrated natural-language performance | Not established | Not planned before the finite typed executor passes its gates |
+| Autonomous update safety | Not claimed | Out of scope; nothing planned here would establish it |
+
