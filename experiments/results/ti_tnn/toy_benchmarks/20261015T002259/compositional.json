@@ -1,0 +1,1240 @@
+{
+  "config": {
+    "benchmark": "both",
+    "device": "auto",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "steps": 3000,
+    "batch": 512,
+    "length": 6,
+    "stress_length": 10,
+    "n_countries": 64,
+    "comp_countries": 512,
+    "n_fillers": 48,
+    "queries_per_country": 16,
+    "eval_size": 8192,
+    "eval_seed": 999001,
+    "lr": 0.002,
+    "d_model": 128,
+    "d_stalk": 64,
+    "d_edge": 32,
+    "tau_start": 1.0,
+    "tau_end": 0.3,
+    "alpha_brier": 0.5,
+    "lambda_flops": 0.05,
+    "bridge_threshold": 0.5,
+    "log_every": 500,
+    "out": "runs/titnn"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "device": "cuda",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10",
+    "capability": "12.1"
+  },
+  "world": {
+    "vocab_size": 577,
+    "types": [
+      [
+        "traitA_of",
+        "country",
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        0
+      ],
+      [
+        "traitB_of",
+        "country",
+        [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        0
+      ],
+      [
+        "region_of",
+        "country",
+        [
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        0
+      ],
+      [
+        "echo",
+        "filler",
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        0
+      ],
+      [
+        "combined_status_of",
+        "country",
+        [
+          0.6,
+          0.4,
+          0.0,
+          0.0
+        ],
+        1
+      ]
+    ],
+    "split_sizes": {
+      "train": 320,
+      "val": 64,
+      "test": 128
+    }
+  },
+  "variants": {
+    "routed_bridge": {
+      "dense": false,
+      "use_bridge": true,
+      "branch_embeddings": "private",
+      "combined_trains_branches": false
+    },
+    "routed_nobridge": {
+      "dense": false,
+      "use_bridge": false,
+      "branch_embeddings": "private",
+      "combined_trains_branches": true
+    },
+    "dense": {
+      "dense": true,
+      "use_bridge": true,
+      "branch_embeddings": "private",
+      "combined_trains_branches": false
+    },
+    "nobridge_shared_emb": {
+      "dense": false,
+      "use_bridge": false,
+      "branch_embeddings": "shared",
+      "combined_trains_branches": true
+    }
+  },
+  "runs": [
+    {
+      "seed": 0,
+      "variant": "routed_bridge",
+      "train_seconds": 47.2,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 442368.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "controls": {
+          "combined_test_bridge_off": {
+            "acc": 0.5,
+            "ci95": [
+              0.4140625,
+              0.5859375
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 1.0,
+            "bridge_execs_per_query": 0.0
+          },
+          "combined_test_shuffled_partner": {
+            "acc": 0.515625,
+            "ci95": [
+              0.421875,
+              0.6015625
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 2.0,
+            "bridge_execs_per_query": 1.0
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0
+        },
+        "combined_routing_pair_0_then_1": 1.0,
+        "combined_bridge_fire_rate": 1.0
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "routed_nobridge",
+      "train_seconds": 39.3,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.5,
+          "ci95": [
+            0.375,
+            0.625
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.4765625,
+          "ci95": [
+            0.39042967557907104,
+            0.5625
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "dense",
+      "train_seconds": 40.0,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 835584.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        }
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "nobridge_shared_emb",
+      "train_seconds": 35.6,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.65625,
+          "ci95": [
+            0.53125,
+            0.765625
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.59375,
+          "ci95": [
+            0.5078125,
+            0.6796875
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "routed_bridge",
+      "train_seconds": 40.1,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 442368.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "controls": {
+          "combined_test_bridge_off": {
+            "acc": 0.4765625,
+            "ci95": [
+              0.390625,
+              0.5625
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 1.0,
+            "bridge_execs_per_query": 0.0
+          },
+          "combined_test_shuffled_partner": {
+            "acc": 0.515625,
+            "ci95": [
+              0.421875,
+              0.6015625
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 2.0,
+            "bridge_execs_per_query": 1.0
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0
+        },
+        "combined_routing_pair_0_then_1": 1.0,
+        "combined_bridge_fire_rate": 1.0
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "routed_nobridge",
+      "train_seconds": 31.2,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.5625,
+          "ci95": [
+            0.4375,
+            0.671875
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.5234375,
+          "ci95": [
+            0.4453125,
+            0.6017580032348633
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "dense",
+      "train_seconds": 46.0,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 835584.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "nobridge_shared_emb",
+      "train_seconds": 37.3,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.671875,
+          "ci95": [
+            0.546875,
+            0.78125
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.59375,
+          "ci95": [
+            0.5078125,
+            0.6798830032348633
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "routed_bridge",
+      "train_seconds": 52.1,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 2.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 442368.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "controls": {
+          "combined_test_bridge_off": {
+            "acc": 0.5078125,
+            "ci95": [
+              0.421875,
+              0.59375
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 1.0,
+            "bridge_execs_per_query": 0.0
+          },
+          "combined_test_shuffled_partner": {
+            "acc": 0.515625,
+            "ci95": [
+              0.421875,
+              0.6015625
+            ],
+            "n_countries": 128,
+            "chance": 0.5,
+            "branch_execs_per_query": 2.0,
+            "bridge_execs_per_query": 1.0
+          }
+        },
+        "exactness": {
+          "max_abs_logit_diff_vs_run_everything": 0.0
+        },
+        "combined_routing_pair_0_then_1": 1.0,
+        "combined_bridge_fire_rate": 1.0
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "routed_nobridge",
+      "train_seconds": 36.5,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.53125,
+          "ci95": [
+            0.40625,
+            0.65625
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.4765625,
+          "ci95": [
+            0.390625,
+            0.5625
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "dense",
+      "train_seconds": 46.1,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_val": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "combined_test": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0,
+          "branch_bridge_macs_per_query": 835584.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 4.0,
+          "bridge_execs_per_query": 1.0
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "nobridge_shared_emb",
+      "train_seconds": 40.1,
+      "eval": {
+        "combined_train": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 320,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_val": {
+          "acc": 0.546875,
+          "ci95": [
+            0.421875,
+            0.671875
+          ],
+          "n_countries": 64,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "combined_test": {
+          "acc": 0.53125,
+          "ci95": [
+            0.4375,
+            0.625
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0,
+          "branch_bridge_macs_per_query": 196608.0
+        },
+        "traitA_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "traitB_test_countries": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 128,
+          "chance": 0.5,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "region_all": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 512,
+          "chance": 0.16666666666666666,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        },
+        "echo": {
+          "acc": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_countries": 48,
+          "chance": 0.020833333333333332,
+          "branch_execs_per_query": 1.0,
+          "bridge_execs_per_query": 0.0
+        }
+      }
+    }
+  ]
+}
