@@ -9,7 +9,7 @@
 | [`cdl.py`](cdl.py) | Opt-in categorical structure: functorial branches and a flat sheaf bridge |
 | [`cdl_proposal.md`](cdl_proposal.md) | Specification of the categorical version, and its proposed experiment (with a status map) |
 | [`integration_plan.md`](integration_plan.md) | Proposed: typed execution with relation-specific specialists, calibrated routing and explicit intermediate values, in nine ordered PRs |
-| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4); execution records, an independent checker and interventions (PR 5); a learned interpreter with calibrated abstention (PR 6); bounded recurrence and cost accounting (PR 7) |
+| [`integrated/`](integrated/) | The integration's code, as it lands: typed contracts, runtime and reference (plan PR 3); learned relation operators (PR 4); execution records, an independent checker and interventions (PR 5); a learned interpreter with calibrated abstention (PR 6); bounded recurrence and cost accounting (PR 7); offline module replacement under independent gates (PR 8) |
 | [`protocols/`](protocols/) | Frozen experiment briefs, written before each run |
 | [`bench/`](bench/) | The real-benchmark harness (WikiText-103, SCAN, the variable-hop lookup task): models, training, decoding and latency, the quality-against-compute frontier |
 | [`reports/`](reports/) | Reports on the real benchmarks and the integration experiments |
@@ -420,6 +420,14 @@ fed another country's Trait-B stalk.
   - **Pause/resume.** Runs paused after any iteration resumed exactly from JSON (53,970 of 53,970).
   - **Cost.** Stopping early cost 22–31% of unrolling to the budget. Recording the state was about a
     fifth of the time.
+- **Offline module replacement under independent gates, 15 CPU units, 2026-10-18**
+  ([report](reports/local_updates_v1.md), [frozen protocol](protocols/local_updates_v1.md)).
+  - **Specialists.** All 150 single-fact updates passed every gate (write locality, intended and
+    exhaustive unaffected behavior, laws, traces), activated and rolled back exactly.
+  - **Shared network, same data.** Fine-tuning it on the specialist's data broke `largest_city_of` in 73
+    of 75 capital updates, the relation sharing `capital_of`'s endpoints.
+  - **Shared network, with rehearsal.** Behavior was kept, but the update could never be shown local.
+  - **Faulty candidates.** Every one was refused for the right reason.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.

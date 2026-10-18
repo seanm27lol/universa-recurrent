@@ -1,6 +1,6 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: plan PRs 3–7 implemented and tested.**
+**Status: plan PRs 3–8 implemented and tested.**
 - **PR 3:** typed contracts, a finite world, an immutable module registry, a type-checked runtime and an
   independent reference evaluator.
 - **PR 4:** small learned networks as relation operators (`modules.py`), confirmed against a frozen
@@ -19,6 +19,11 @@
   - Every answer and stopping reason was correct, and runs paused anywhere resumed exactly.
   - Stopping early cost about a quarter of unrolling.
   - Recording the state cost about a fifth of the time.
+- **PR 8:** offline module replacement under independent gates, with atomic activation and exact
+  rollback ([report](../reports/local_updates_v1.md)).
+  - All 150 specialist updates were local, in state and in behavior.
+  - A shared network could not be updated locally. Without rehearsal it corrupted the relation sharing
+    the updated one's endpoints.
 
 The [integration plan](../integration_plan.md) says what lands next.
 
@@ -89,7 +94,8 @@ cases:
 | [`calibration.py`](calibration.py) | 6 (done) | Versioned Platt calibration of answer correctness, a Clopper–Pearson-bounded threshold, binding to interpreter, registry and policy |
 | [`recurrence.py`](recurrence.py) | 7 (done) | Until-queries with early stopping, dead-end, cycle and budget abstention; a JSON continuation state; exact pause/resume; a fixed-depth control |
 | [`costs.py`](costs.py) | 7 (done) | Module applications, MACs from layer shapes, state size, and wall time split into module time and bookkeeping |
-| `updates.py`, `update_checks.py` | 8 | Offline module replacement with fixed external checks and rollback |
+| [`updates.py`](updates.py) | 8 (done) | Update records; a deployment with atomic, authority-gated activation and exact rollback |
+| [`update_checks.py`](update_checks.py) | 8 (done) | Independent gates (pass, fail or insufficient evidence): identity and scope, types and laws, intended and unaffected behavior, trace and continuation, calibration and resources |
 
 ## Limits, already known
 
