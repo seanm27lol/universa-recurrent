@@ -72,6 +72,13 @@
       "source": "2a34728 (recorded in each run); evaluation by frontier.py --hops-v2 at dcf115d",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_part_a_v2.sh; python research/ti_tnn/bench/frontier.py --hops-v2 runs/titnn_efficiency/hops_v2 --out runs/titnn_efficiency/frontier.json"
     },
+    "adaptive_compute_wikitext_fixed": {
+      "what": "WikiText-103: ti_tnn_adaptive_c30 with the lookup-task fixes (dense-matched init, shared expert, cap warm-up, visible skipped tokens), seeds 0-2; batch-1 latency; the frozen analysis's output",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_wikitext_fixed.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_wikitext_fixed.md",
+      "source": "16bba5c (recorded in each run); analysis by frontier.py --wikitext-fixed",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_wikitext_fixed.sh; python research/ti_tnn/bench/frontier.py --lm runs/titnn_bench/lm runs/titnn_efficiency/lm runs/titnn_efficiency/lm_init_control --wikitext-fixed runs/titnn_efficiency/lm_wikitext_fixed --latency runs/titnn_efficiency/latency_wikitext_fixed.json --out runs/titnn_efficiency/frontier_wf.json"
+    },
     "typed_composition": {
       "what": "learned relation operators on finite typed worlds 200-202, inits 0-4, five families (specialists, shared dense, flat top-1 MoE, endpoint-only negative control, answer-only), CPU; and the frozen evaluator's verdict",
       "protocol": "research/ti_tnn/protocols/typed_composition_v1.md",
@@ -2319,6 +2326,41 @@
       "original_path": "runs/titnn_efficiency/frontier_part_a_v2.json",
       "sha256": "04ccf46cffeae7fc1a8e04f9872a659bfe4b763ad12a7bc10b2d0de35403f0cb",
       "bytes": 64354
+    },
+    {
+      "path": "adaptive_compute_wikitext_fixed/lm/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed0-20261018T113034/result.json",
+      "experiment": "adaptive_compute_wikitext_fixed",
+      "original_path": "runs/titnn_efficiency/lm_wikitext_fixed/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed0-20261018T113034/result.json",
+      "sha256": "009ff395076012b1ff3ef58df48ebfb6f398fcde273eb4320cc79f07c5ba07df",
+      "bytes": 26549
+    },
+    {
+      "path": "adaptive_compute_wikitext_fixed/lm/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed1-20261018T124027/result.json",
+      "experiment": "adaptive_compute_wikitext_fixed",
+      "original_path": "runs/titnn_efficiency/lm_wikitext_fixed/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed1-20261018T124027/result.json",
+      "sha256": "1ce4ebff1662acbac1c3bd8e7aa76005eea8e37200ed1066cadfbd604f6a6e2a",
+      "bytes": 26507
+    },
+    {
+      "path": "adaptive_compute_wikitext_fixed/lm/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed2-20261018T134934/result.json",
+      "experiment": "adaptive_compute_wikitext_fixed",
+      "original_path": "runs/titnn_efficiency/lm_wikitext_fixed/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50-seed2-20261018T134934/result.json",
+      "sha256": "fbbb32e9f31c8e6230530e272b3ae8b54e92cdc274790d6ceeb935c3968c70da",
+      "bytes": 26487
+    },
+    {
+      "path": "adaptive_compute_wikitext_fixed/latency_wikitext_fixed.json",
+      "experiment": "adaptive_compute_wikitext_fixed",
+      "original_path": "runs/titnn_efficiency/latency_wikitext_fixed.json",
+      "sha256": "5ddeb7956173da9401a10f54d67e554f4c745d4224149c3ca21ce57d540e9a0d",
+      "bytes": 9130
+    },
+    {
+      "path": "adaptive_compute_wikitext_fixed/frontier_wf_wikitext_fixed.json",
+      "experiment": "adaptive_compute_wikitext_fixed",
+      "original_path": "runs/titnn_efficiency/frontier_wf_wikitext_fixed.json",
+      "sha256": "4cc460c156f3caaf0900861dd18f467630a8d13373f5b96b96182871d1d90085",
+      "bytes": 2392
     },
     {
       "path": "typed_composition/20261018T145735/typed_composition.json",
