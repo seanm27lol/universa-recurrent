@@ -112,7 +112,7 @@ def adaptive_tables(bundle: Path = HERE) -> dict:
     import frontier  # research/ti_tnn/bench/frontier.py
     manifest = json.loads((bundle / "manifest.json").read_text())
     original = {str(bundle / f["path"]): f["original_path"] for f in manifest["files"]}
-    by_original = {f["original_path"]: f["sha256"] for f in manifest["files"]}
+    by_original = {f["original_path"]: f.get("original_sha256", f["sha256"]) for f in manifest["files"]}
     recorded = json.loads((bundle / "adaptive_compute/frontier.json").read_text())
     for part in ("hops", "lm"):  # the evaluated files are exactly the bundled ones
         for row in recorded[part]["manifest"]:
@@ -144,6 +144,28 @@ def adaptive_tables(bundle: Path = HERE) -> dict:
     if out["lm"]["validated"] != recorded["lm"]["validated"]:
         raise ValueError("the rebuilt decision differs from the recorded one")
     return out
+
+
+def init_control_tables(bundle: Path = HERE) -> dict:
+    """Rebuild the WikiText-103 initialization control's verdict from the bundle and check it against the
+    recorded analysis (frontier_ic_v2_init_control.json)."""
+    sys.path.insert(0, str(BENCH))
+    import frontier  # research/ti_tnn/bench/frontier.py
+    manifest = json.loads((bundle / "manifest.json").read_text())
+    original = {str(bundle / f["path"]): f["original_path"] for f in manifest["files"]}
+    V, rows = frontier.load([bundle / "real_benchmarks/lm", bundle / "adaptive_compute/lm",
+                             bundle / "adaptive_compute_init_control/lm"], "lm")
+    for m in rows:
+        m["path"] = original[str(Path(m["path"]))]
+    doc = json.loads((bundle / "adaptive_compute_init_control/latency_init_control.json").read_text())
+    rebuilt = frontier.init_control(V, rows, doc)
+    recorded = json.loads((bundle / "adaptive_compute_init_control/frontier_ic_v2_init_control.json").read_text())
+    for n, f in recorded["families"].items():
+        if rebuilt["families"][n]["holds"] != f["holds"]:
+            raise ValueError(f"{n}: rebuilt {rebuilt['families'][n]['holds']}, recorded {f['holds']}")
+    if rebuilt["latency"]["holds"] != recorded["latency"]["holds"]:
+        raise ValueError("the rebuilt latency verdict differs from the recorded one")
+    return rebuilt
 
 
 def main(argv=None):
@@ -184,6 +206,12 @@ def main(argv=None):
             print(f"    {n:22s} {v['quality']['mean']:{fmt}}  decoder MACs {v['compute']['mean'] / 1e6:.2f}M")
         print(f"    predictions: {adaptive[part]['predictions']}")
     print(f"  efficiency validated (predictions 5 and 6): {adaptive['lm']['validated']}")
+    control = init_control_tables()
+    print("\nWikiText-103 initialization control, rebuilt and matching the recorded analysis")
+    for n, f in control["families"].items():
+        print(f"  {n:32s} comparison keeps its sign = {f['holds']}; perplexity "
+              + ", ".join(f"{k} {v:.2f}" for k, v in f["mean_perplexity"].items()))
+    print(f"  latency: {control['latency']['holds']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive}, indent=2, default=list))
