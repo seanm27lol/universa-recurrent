@@ -415,6 +415,51 @@ def evaluate_v2(variants: dict, manifest: list) -> dict:
     return out
 
 
+# ---------------------------------------------------------------- WikiText-103 with the lookup-task fixes
+# protocols/adaptive_compute_wikitext_fixed.md. Written before any run of it.
+WF_CANDIDATE = "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50"
+WF_INIT_ONLY = "ti_tnn_adaptive_c30_initdense"  # the initialization control's run of the same cap
+WF_MOD = "mod_c30"
+
+
+def lm_name(r: dict) -> str:
+    """The run's name as lm.py gives it, with every option's default filled in for older runs."""
+    import argparse as _argparse
+    import lm
+    config = vars(lm.parse_args(["--ffn", r["config"]["ffn"]]))
+    config.update(r["config"])
+    return lm.variant_name(_argparse.Namespace(**config))
+
+
+def evaluate_wikitext_fixed(variants: dict, manifest: list, latency_doc: dict | None = None) -> dict:
+    """Predictions 1-4 and the latency check for the fixed TI-TNN at the 30% cap, against the frozen
+    benchmark's planned baselines and the initialization control's run."""
+    rows = [m for m in manifest if m["variant"] == WF_CANDIDATE]
+    problems = []
+    if sorted(m["seed"] for m in rows) != list(SEEDS):
+        problems.append(f"{WF_CANDIDATE}: seeds {sorted(m['seed'] for m in rows)}")
+    problems += [f"{WF_CANDIDATE} seed {m['seed']}: {m['deviations']}" for m in rows if m["deviations"]]
+    problems += [f"{WF_CANDIDATE} seed {m['seed']}: init {m['init_policy']}" for m in rows if m["init_policy"] != "dense"]
+    for n in [WF_INIT_ONLY] + EXPECTED["lm"]:
+        if sorted(variants.get(n, {}).get("seeds", [])) != list(SEEDS):
+            problems.append(f"{n}: missing or incomplete")
+    out = {"complete": not problems, "problems": problems}
+    if problems:
+        return out
+    q = lambda n: variants[n]["quality"]["mean"]
+    baselines = {n: variants[n] for n in EXPECTED["lm"] if variants[n]["kind"] != CANDIDATE}
+    pred = judge(dict(baselines, **{WF_CANDIDATE: variants[WF_CANDIDATE]}), "dense", False, 0.02, True,
+                 twin={WF_CANDIDATE: WF_MOD})
+    out.update({
+        "fixes_help_on_text": {"holds": q(WF_CANDIDATE) < q(WF_INIT_ONLY), "fixed": q(WF_CANDIDATE), "init_only": q(WF_INIT_ONLY)},
+        "beats_plain_skipping": pred["matched_cap"],
+        "efficiency": pred["efficiency"], "equal_compute": pred["equal_compute"],
+        "candidate": variants[WF_CANDIDATE]})
+    if latency_doc is not None:
+        out["latency"] = latency_prediction(latency_doc, manifest, candidate=WF_CANDIDATE)
+    return out
+
+
 def table(variants: dict, quality: str, fmt: str) -> str:
     rows = sorted(variants.items(), key=lambda kv: kv[1]["compute"]["mean"])
     lines = [f"| Variant | {quality} | Non-embedding MACs per token | Seeds |", "|---|---:|---:|---:|"]
@@ -439,6 +484,8 @@ def main(argv=None):
     p.add_argument("--latency", type=Path)
     p.add_argument("--source", action="append", default=[], help="ROOT=VERSION: the source version runs under ROOT came from")
     p.add_argument("--hops-v2", nargs="*", type=Path, default=[], help="part A v2 run roots (separate analysis)")
+    p.add_argument("--wikitext-fixed", nargs="*", type=Path, default=[],
+                   help="roots holding the fixed TI-TNN WikiText-103 runs (separate analysis; --lm gives the baselines)")
     p.add_argument("--init-control", nargs="*", type=Path, default=[],
                    help="roots holding the initialization-control runs (separate analysis)")
     p.add_argument("--out", type=Path)
@@ -476,6 +523,21 @@ def main(argv=None):
             summary["lm"]["latency_ms_per_token"] = {n: stat(v) for n, v in by.items()}
             pr["latency"] = latency_prediction(doc, manifest)
         print("## Part B: WikiText-103 (validation perplexity)\n\n" + table(P, "Perplexity", ".2f") + "\n")
+    if args.wikitext_fixed:
+        V, manifest = load(list(args.lm) + list(args.wikitext_fixed), "lm", sources, namer=lm_name)
+        doc = json.loads(args.latency.read_text()) if args.latency and args.latency.exists() else None
+        res = evaluate_wikitext_fixed(V, manifest, doc)
+        if res["complete"]:
+            c = res["candidate"]
+            print(f"wikitext fixed: {WF_CANDIDATE} {c['quality']['mean']:.2f} (init only {res['fixes_help_on_text']['init_only']:.2f}); "
+                  f"fixes help = {res['fixes_help_on_text']['holds']}; beats mod = {res['beats_plain_skipping']['holds']}; "
+                  f"efficiency = {res['efficiency']['holds']}; equal compute = {res['equal_compute']['holds']}"
+                  + (f"; latency = {res['latency']['holds']}" if "latency" in res else ""))
+        else:
+            print(f"wikitext fixed: INCOMPLETE {res['problems']}")
+        if args.out:
+            args.out.with_name(args.out.stem + "_wikitext_fixed.json").write_text(json.dumps(res, indent=2, default=str))
+        return
     if args.hops_v2:
         V, manifest = load(args.hops_v2, "hops", sources, namer=v2_name, spec=V2_PROTOCOL)
         res = evaluate_v2(V, manifest)
