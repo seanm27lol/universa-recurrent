@@ -50,7 +50,10 @@ Within that verdict, two results are clear:
 - **The combined mixture-of-experts recipe succeeds on all five seeds.** With dense-matched
   initialization and a shared expert, the top-1 mixture learns the task on **5 of 5** training seeds
   (0.990). In part A it learned nothing. It is more reliable than every dense model. Which part of the
-  recipe does the work is not yet established: the shared path alone may suffice.
+  recipe does the work is not yet established: the shared path alone may suffice. *(Added later: the
+  [shared-path control](adaptive_compute_shared_path_control.md) found the shared path alone, a
+  half-width dense model, learns the task on 4 of 5 seeds; one seed short, and not distinguishable from
+  chance at 5 seeds.)*
 - **TI-TNN can now learn the whole task at 30% of the compute, but not reliably.**
   - On 2 of 5 seeds, `ti_tnn_adaptive_c30` reaches near-perfect accuracy: 0.978 (3-hop 0.967) and 1.000.
     Its charged compute is 0.51M decoder MACs per token, 30% of the reference's 1.70M (see Limits on the

@@ -8,6 +8,8 @@ Checks every file against manifest.json first (sha256), then prints:
 - the adaptive-compute verdict, recomputed with research/ti_tnn/bench/frontier.py from the bundled runs
   and checked against the bundled frontier.json. Every hash in that file's run manifest must match a
   bundled run, so the bundle holds exactly the files that were evaluated.
+- the lookup task's shared-path control, recomputed with frontier.py --shared-control and checked
+  against the recorded output.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -205,6 +207,22 @@ def learning_tables(bundle: Path = HERE) -> dict:
             "part_a_v2": rebuilt, "part_a_v2_variants": V}
 
 
+def shared_control_tables(bundle: Path = HERE) -> dict:
+    """The lookup task's shared-path control, rebuilt with frontier.py --shared-control from the bundled control
+    runs and part A v2's bundled runs, and checked against the recorded output."""
+    sys.path.insert(0, str(BENCH))
+    import frontier
+    root = bundle / "adaptive_compute_shared_path_control"
+    recorded = json.loads((root / "frontier_sc_shared_control.json").read_text())
+    V2, _ = frontier.load([bundle / "adaptive_compute_part_a_v2/hops_v2"], "hops", namer=frontier.v2_name,
+                          spec=frontier.V2_PROTOCOL)
+    C, _ = frontier.load([root / "hops_shared_control"], "hops", namer=frontier.v2_name, spec=frontier.V2_PROTOCOL)
+    rebuilt = frontier.evaluate_shared_control(C, V2)
+    if dict(rebuilt, variants=C) != recorded:
+        raise ValueError("the rebuilt shared-path control differs from the recorded output")
+    return dict(rebuilt, variants=C)
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -264,6 +282,13 @@ def main(argv=None):
         print(f"  {n:58s} {v['quality']['mean']:.3f}  learned {v2['learned_by_variant'][n]}/5")
     print(f"  validity {v2['validity']['holds']}; fixed mixture {v2['fixed_moe']['holds']}; "
           f"learning fixes work {v2['learning_fixes_work']}; TI-TNN passes {v2['ti_tnn_passes']}")
+    sc = shared_control_tables()
+    print("Shared-path control (seeds 200-204), rebuilt and matching the recorded output")
+    for n, v in sc["variants"].items():
+        print(f"  {n:58s} {v['quality']['mean']:.3f}  learned {sc['learned'][n]}/5  3-hop "
+              + ", ".join(f"{x:.3f}" for x in v["by_hops"]["3"]["values"]))
+    print(f"  reference counts {sc['reference_counts']}; shared path insufficient "
+          f"{sc['shared_path_insufficient']['holds']}; routing helps TI-TNN {sc['routing_helps_ti_tnn']['holds']}")
     control = init_control_tables()
     print("\nWikiText-103 initialization control, rebuilt and matching the recorded analysis")
     for n, f in control["families"].items():
