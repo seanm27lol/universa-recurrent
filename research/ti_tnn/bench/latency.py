@@ -28,11 +28,19 @@ VARIANT_KINDS = ("dense", "moe_top1", "moe_top2", "mod", "ti_tnn_adaptive")
 
 
 def run_name(r: dict) -> str:
-    c, m = r["config"], r["model_config"]
-    name = models.variant_name(c["ffn"], c.get("bridge_cost", 0.01), m.get("target_compute", 1.0),
-                               models.size_tag(m["d_model"], m["n_layers"], m.get("ffn_mult", 4)))
-    init = m.get("expert_init", "legacy")
-    return name if init == "legacy" else f"{name}_init{init}"
+    """The run's name exactly as lm.py gives it, with every option's default filled in for older runs (before
+    2026-10-18 this dropped the warm-up, visible-skip and shared-expert suffixes, so such runs could not be
+    matched to their latency rows)."""
+    import argparse
+    import lm
+    config = vars(lm.parse_args(["--ffn", r["config"]["ffn"]]))
+    m = r.get("model_config", {})
+    from_model = {"target_compute": m.get("target_compute"), "d_model": m.get("d_model"), "layers": m.get("n_layers"),
+                  "ffn_mult": m.get("ffn_mult"), "expert_init": m.get("expert_init"),
+                  "skip_keeps_kv": m.get("skip_keeps_kv"), "shared_expert_frac": m.get("shared_expert_frac")}
+    config.update({k: v for k, v in from_model.items() if v is not None})
+    config.update(r["config"])  # the run's own arguments take precedence
+    return lm.variant_name(argparse.Namespace(**config))
 
 
 def collect(roots) -> list:
