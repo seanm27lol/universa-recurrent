@@ -25,8 +25,22 @@ import ti_tnn_models as models  # research/ti_tnn/bench is on sys.path when this
 
 
 def variant_name(args) -> str:
-    return models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
+    name = models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
                                models.size_tag(args.d_model, args.layers, args.ffn_mult))
+    return name if args.expert_init == "legacy" else f"{name}_init{args.expert_init}"
+
+
+def source_version() -> dict:
+    """The git commit this run executes, and whether tracked files differed from it."""
+    import subprocess
+    here = Path(__file__).resolve().parent
+    try:
+        commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=here, capture_output=True, text=True, check=True).stdout.strip()
+        dirty = bool(subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], cwd=here,
+                                    capture_output=True, text=True, check=True).stdout.strip())
+        return {"commit": commit, "tracked_changes": dirty}
+    except (OSError, subprocess.CalledProcessError):
+        return {"commit": None, "tracked_changes": None}
 
 
 def parse_args(argv=None):
@@ -47,6 +61,7 @@ def parse_args(argv=None):
     p.add_argument("--target-compute", type=float, default=1.0, help="adaptive variants: cap on mean block compute")
     p.add_argument("--dual-lr", type=float, default=0.01, help="adaptive variants: dual-ascent step for the price")
     p.add_argument("--save-model", action="store_true", help="save the trained weights (for bench/latency.py)")
+    p.add_argument("--expert-init", choices=models.EXPERT_INITS, default="legacy", help="expert weight initialization")
     p.add_argument("--batch", type=int, default=32, help="sequences per step")
     p.add_argument("--tokens", type=float, default=1e8, help="training token budget")
     p.add_argument("--lr", type=float, default=6e-4)
@@ -142,7 +157,7 @@ def train(args) -> dict:
                              n_layers=args.layers, n_heads=args.heads, ffn=args.ffn, n_experts=args.experts,
                              d_edge=args.d_edge, balance_coef=args.balance_coef, bridge_cost=args.bridge_cost,
                              ffn_mult=args.ffn_mult, small_mult=args.small_mult,
-                             target_compute=args.target_compute, dual_lr=args.dual_lr)
+                             target_compute=args.target_compute, dual_lr=args.dual_lr, expert_init=args.expert_init)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for n, p in model.named_parameters() if p.dim() >= 2]
     no_decay = [p for n, p in model.named_parameters() if p.dim() < 2]
@@ -161,6 +176,9 @@ def train(args) -> dict:
         for g in opt.param_groups:
             g["lr"] = lr_at(step, steps, args)
         x, y = sample_batch(train_tokens, args.batch, args.context, gen, device)
+        if step == 0:  # the initialization as trained: no random numbers drawn, no parameters changed
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
+                init_diag = models.init_diagnostics(model, x)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
             logits, stats = model(x)
             loss = F.cross_entropy(logits.float().reshape(-1, logits.shape[-1]), y.reshape(-1))
@@ -204,6 +222,7 @@ def train(args) -> dict:
         "timing": {"train_seconds": train_seconds,
                    "train_tokens_per_second": steps * args.batch * args.context / train_seconds,
                    "peak_memory_bytes": torch.cuda.max_memory_allocated() if device.type == "cuda" else None},
+        "init_diagnostics": init_diag, "source": source_version(),
         "validation": final["validation"], "test": final["test"], "val_curve": curve, "train_log": log,
         "_state": model.state_dict() if args.save_model else None,
     }

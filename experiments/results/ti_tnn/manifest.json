@@ -42,6 +42,14 @@
       "report": "research/ti_tnn/reports/adaptive_compute.md",
       "source": "64ecc86 (training); evaluation by frontier.py and latency.py at d9a8c1f, per the protocol's execution record",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_efficiency.sh; python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json"
+    },
+    "adaptive_compute_init_control": {
+      "what": "WikiText-103 with dense-matched expert initialization: ti_tnn_adaptive_c30 and moe_top1, seeds 0-2; batch-1 latency; step-0 residual RMS and routing diagnostics; the separate analysis (frozen version and the version with the run_key path fix)",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_init_control.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_init_control.md",
+      "source": "630cab2 (training; recorded in each run); analysis by frontier.py --init-control",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_init_control.sh; python research/ti_tnn/bench/frontier.py --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --init-control runs/titnn_efficiency/lm_init_control --latency runs/titnn_efficiency/latency_init_control.json",
+      "note": "Eight files had absolute local paths (the run script passed absolute roots); the prefix was removed for publication. Each such file lists its original sha256, which the analysis's run manifest refers to."
     }
   },
   "files": [
@@ -1024,6 +1032,92 @@
       "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed2-20261017T104736/result.json",
       "sha256": "69a7c6b0e01d80ed9aa7558785177166bae20c01ebd5c681868757ab711e5058",
       "bytes": 24953
+    },
+    {
+      "path": "adaptive_compute_init_control/frontier_ic_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/frontier_ic_init_control.json",
+      "sha256": "3145946f8783004c1710e24035b8e935c32aa78faa864f2b5fe9b0a0b8295c11",
+      "bytes": 4581,
+      "original_sha256": "25da46d2af0f506133cbe262563e23b3c537d79d002a60059850b2daf50b19a4",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/frontier_ic_v2_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/frontier_ic_v2_init_control.json",
+      "sha256": "91bf93188e40baad66c98a023f567975cd6bfddd0737dc1f5bf997d641b3e328",
+      "bytes": 4230
+    },
+    {
+      "path": "adaptive_compute_init_control/init_diagnostics.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/init_diagnostics.json",
+      "sha256": "3ddd69b1b0182b767a47a3d6fe62489de85c4d8d377be859662014e131be0b3f",
+      "bytes": 31543
+    },
+    {
+      "path": "adaptive_compute_init_control/latency_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/latency_init_control.json",
+      "sha256": "407844b450a33186ed714516dc45b2dbd7a3f3c7e30ffae6dcd13d810e0f90a6",
+      "bytes": 35066,
+      "original_sha256": "4c0ec7257be3f3a3b5a8bbd0ecdf1743511baab5f44e8f1200211befbe9889fd",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed0-20261017T213423/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed0-20261017T213423/result.json",
+      "sha256": "e134c8870252d35dc7f8438defab6d49c7376acfbf427d1c68bb38a51f417ee1",
+      "bytes": 27574,
+      "original_sha256": "1c25b3604bab7dc16c41e0dc001ec9f6beb64a607477c8c2534752d088191025",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed1-20261017T234427/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed1-20261017T234427/result.json",
+      "sha256": "75f37c2bdef4caf60ee1beca34a35ccd8ddf308adc1a0ee62c1f5d0277d9a847",
+      "bytes": 27597,
+      "original_sha256": "f40427e5787298cb9dd4b0ca66916efcc2c04439e2f883e6f75dc7418abb4c19",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed2-20261018T015412/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed2-20261018T015412/result.json",
+      "sha256": "691b22125ea606c9d3370324ce0ef65d9dd387cca833e25953718251c03291b2",
+      "bytes": 27562,
+      "original_sha256": "6b876a523eefda793003728952fc58c160c90c1a20f61ccc9aa46caca78a4863",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed0-20261017T201453/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed0-20261017T201453/result.json",
+      "sha256": "3b4538ff535e587c75d13e6c522b60c5521122529edaf9f4131323c7a65bf0b0",
+      "bytes": 26626,
+      "original_sha256": "6974a86e0bf9c5b0e07ce327801de363e2e3caca5a68cbb54b10386a98c970c3",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed1-20261017T224852/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed1-20261017T224852/result.json",
+      "sha256": "67515bf835618978b3f993a53542301c243c0abdfd1cccf8ed8e515d0a47b093",
+      "bytes": 26601,
+      "original_sha256": "ad3e5dad69dcf20ac615e0c773af3615206bed11d4460c915f2227425ed7b2b6",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed2-20261018T005825/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed2-20261018T005825/result.json",
+      "sha256": "0c94f20ff6ecc8c40a44b4164f66e90119280741a88331f382d8d7263a7d5081",
+      "bytes": 26612,
+      "original_sha256": "0384072a8ba19c948a4402af8ccaf1aab44bda623b182cad850036f335763312",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
     }
   ]
 }

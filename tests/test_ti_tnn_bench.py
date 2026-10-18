@@ -4,6 +4,7 @@ Software checks on tiny random models, not benchmark results.
 """
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 import sys
@@ -545,3 +546,109 @@ def test_latency_script_runs_end_to_end_and_records_its_checks(tmp_path):
     for r in rows.values():
         assert len(r["checks"]) == 2 and r["timed_tokens"] == 2 * 14
         assert frontier.latency_row_problems(r, doc["config"]) == []  # fp32 on CPU: exact agreement
+
+
+@pytest.mark.parametrize("ffn", ["moe_top1", "ti_tnn_adaptive"])
+def test_dense_matched_expert_init_rescales_the_same_draws_and_nothing_else(ffn):
+    states = {}
+    for init in ("legacy", "dense"):
+        torch.manual_seed(0)
+        states[init] = models.LanguageModel(cfg(ffn, expert_init=init)).state_dict()
+    L, D = 2, 16
+    for name, legacy in states["legacy"].items():
+        dense = states["dense"][name]
+        if name.endswith("experts.w_up"):
+            assert torch.allclose(dense, legacy * 0.02 / D ** -0.5, atol=1e-7)
+        elif name.endswith("experts.w_down"):
+            H = legacy.shape[1]
+            assert torch.allclose(dense, legacy * (0.02 / (2 * L) ** 0.5) / H ** -0.5, atol=1e-7)
+        else:
+            assert torch.equal(dense, legacy), name  # same random numbers everywhere else
+    assert any(n.endswith("experts.w_down") for n in states["dense"])
+
+
+def test_init_diagnostics_draw_nothing_and_report_every_layer():
+    torch.manual_seed(1)
+    model = models.LanguageModel(cfg("ti_tnn_adaptive", n_layers=3)).train()
+    before = {k: v.clone() for k, v in model.state_dict().items()}
+    idx = torch.randint(0, 50, (2, 8))
+    rng = torch.get_rng_state()
+    d = models.init_diagnostics(model, idx)
+    assert torch.equal(rng, torch.get_rng_state()) and model.training
+    assert all(torch.equal(v, model.state_dict()[k]) for k, v in before.items())
+    assert len(d["residual_rms_by_layer"]) == 3 and len(d["mean_router_probabilities_by_layer"]) == 3
+    assert "mean_router_probabilities_by_layer" not in models.init_diagnostics(models.LanguageModel(cfg("dense")),
+                                                                              torch.randint(0, 50, (2, 8)))
+
+
+def test_lm_records_init_policy_diagnostics_and_source(tmp_path):
+    rng = np.random.default_rng(0)
+    for split, n in (("train", 4000), ("validation", 600), ("test", 600)):
+        rng.integers(0, 32, n).astype(np.uint16).tofile(tmp_path / f"{split}.bin")
+    (tmp_path / "meta.json").write_text(json.dumps({"vocab_size": 32}))
+    args = lm.parse_args(["--ffn", "moe_top1", "--expert-init", "dense", "--device", "cpu", "--data", str(tmp_path),
+                          "--d-model", "16", "--layers", "1", "--heads", "2", "--context", "16", "--batch", "4",
+                          "--tokens", "640", "--experts", "4", "--log-every", "1000"])
+    assert lm.variant_name(args) == "moe_top1_d16_l1_initdense"
+    r = lm.train(args)
+    assert r["model_config"]["expert_init"] == "dense" and len(r["init_diagnostics"]["residual_rms_by_layer"]) == 1
+    assert set(r["source"]) == {"commit", "tracked_changes"}
+
+
+def control_variants(c30_dense=40.8, moe_dense=39.4):
+    v = {}
+    for name, ppl, kind in (("ti_tnn_adaptive_c30", 41.0, "ti_tnn_adaptive"), ("mod_c30", 41.5, "mod"),
+                            ("moe_top1", 39.6, "moe_top1"), ("dense", 39.9, "dense"),
+                            ("ti_tnn_adaptive_c30_initdense", c30_dense, "ti_tnn_adaptive"),
+                            ("moe_top1_initdense", moe_dense, "moe_top1")):
+        v[name] = {"kind": kind, "seeds": [0, 1, 2], "quality": {"mean": ppl, "values": [ppl] * 3},
+                   "compute": {"mean": 10.0, "values": [10.0] * 3}, "realized_compute": {"values": [0.3] * 3},
+                   "head_macs_per_token": 5.0}
+    init = lambda n: "dense" if n.endswith("_initdense") else "legacy"
+    manifest = [{"variant": n, "seed": s, "init_policy": init(n), "deviations": [], "path": f"r/{n}-{s}/result.json"}
+                for n in v for s in (0, 1, 2)]
+    return v, manifest
+
+
+def test_init_control_asks_whether_each_comparison_keeps_its_sign():
+    v, m = control_variants()
+    r = frontier.init_control(v, m)
+    assert r["complete"] and r["holds"] is True  # c30 still beats mod_c30; moe_top1 still beats dense
+    v, m = control_variants(c30_dense=42.0)
+    assert frontier.init_control(v, m)["families"]["ti_tnn_adaptive_c30_initdense"]["holds"] is False
+    v, m = control_variants()
+    m = [x for x in m if not (x["variant"] == "moe_top1_initdense" and x["seed"] == 2)]
+    v["moe_top1_initdense"]["seeds"] = [0, 1]
+    assert frontier.init_control(v, m)["holds"] is None
+    # the control runs are excluded from the frozen frontier's verdict
+    assert "ti_tnn_adaptive_c30_initdense" not in frontier.planned_only(v, "lm")
+
+
+def test_init_diagnostics_script_reconstructs_the_run_and_matches_lm(tmp_path):
+    """The script must see the same initial model and first batch as lm.py did for that seed."""
+    rng = np.random.default_rng(0)
+    for split, n in (("train", 40000), ("validation", 600), ("test", 600)):
+        rng.integers(0, 64, n).astype(np.uint16).tofile(tmp_path / f"{split}.bin")
+    (tmp_path / "meta.json").write_text(json.dumps({"vocab_size": 64}))
+    diag = importlib.import_module("init_diagnostics")
+    small = ["--d-model", "16", "--layers", "2", "--heads", "2", "--context", "16", "--batch", "4", "--experts", "4"]
+    orig_parse = diag.lm.parse_args
+    diag.lm.parse_args = lambda argv=None: orig_parse(list(argv) + small)  # shrink the reconstructed model too
+    try:
+        args = argparse.Namespace(data=tmp_path)
+        d = diag.diagnose("moe_top1", 1.0, "dense", 1, args, torch.device("cpu"))
+    finally:
+        diag.lm.parse_args = orig_parse
+    r = lm.train(lm.parse_args(["--ffn", "moe_top1", "--expert-init", "dense", "--seed", "1", "--device", "cpu",
+                                "--data", str(tmp_path), "--tokens", "640", "--log-every", "1000"] + small))
+    assert d["residual_rms_by_layer"] == pytest.approx(r["init_diagnostics"]["residual_rms_by_layer"], rel=1e-6)
+    assert d["mean_top_probability_by_layer"] == pytest.approx(r["init_diagnostics"]["mean_top_probability_by_layer"], rel=1e-6)
+
+
+def test_latency_inventory_matches_absolute_and_relative_run_paths():
+    doc = latency_doc()
+    for row in doc["runs"]:
+        row["dir"] = "/home/user/repo/" + row["dir"]  # latency.py run with absolute roots
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is True
+    doc["runs"][0]["dir"] = "/home/user/repo/runs/other/ti_tnn_adaptive_c30-seed0"
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is None

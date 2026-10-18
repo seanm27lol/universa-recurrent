@@ -1,0 +1,155 @@
+{
+  "complete": true,
+  "problems": [],
+  "families": {
+    "ti_tnn_adaptive_c30_initdense": {
+      "control": "ti_tnn_adaptive_c30_initdense",
+      "original": "ti_tnn_adaptive_c30",
+      "compared_with": "mod_c30",
+      "per_seed": {
+        "0": {
+          "perplexity": {
+            "legacy": 49.20619927361327,
+            "dense_init": 48.22193252295206
+          },
+          "decoder_macs": {
+            "legacy": 8226168.842323652,
+            "dense_init": 8285192.427385892
+          },
+          "realized_compute": {
+            "legacy": 0.29797643423080444,
+            "dense_init": 0.30044084787368774
+          }
+        },
+        "1": {
+          "perplexity": {
+            "legacy": 49.39375723842363,
+            "dense_init": 46.02141098502987
+          },
+          "decoder_macs": {
+            "legacy": 8368101.6390041495,
+            "dense_init": 8347217.078838174
+          },
+          "realized_compute": {
+            "legacy": 0.3016752600669861,
+            "dense_init": 0.30129435658454895
+          }
+        },
+        "2": {
+          "perplexity": {
+            "legacy": 48.671400053999726,
+            "dense_init": 46.570686896369956
+          },
+          "decoder_macs": {
+            "legacy": 8385448.365145228,
+            "dense_init": 8309231.680497926
+          },
+          "realized_compute": {
+            "legacy": 0.2997198700904846,
+            "dense_init": 0.30016204714775085
+          }
+        }
+      },
+      "mean_perplexity": {
+        "legacy": 49.090452188678874,
+        "dense_init": 46.93801013478396,
+        "mod_c30": 52.94517638869811
+      },
+      "total_macs": {
+        "legacy": 34058156.948824346,
+        "dense_init": 34045464.395573996
+      },
+      "gap_to_comparison": {
+        "legacy": -3.854724200019234,
+        "dense_init": -6.00716625391415
+      },
+      "holds": true
+    },
+    "moe_top1_initdense": {
+      "control": "moe_top1_initdense",
+      "original": "moe_top1",
+      "compared_with": "dense",
+      "per_seed": {
+        "0": {
+          "perplexity": {
+            "legacy": 39.04084220202567,
+            "dense_init": 39.81751120952481
+          },
+          "decoder_macs": {
+            "legacy": 27299840.0,
+            "dense_init": 27299840.0
+          },
+          "realized_compute": {
+            "legacy": 1.0,
+            "dense_init": 1.0
+          }
+        },
+        "1": {
+          "perplexity": {
+            "legacy": 39.81038632769988,
+            "dense_init": 40.08760170312577
+          },
+          "decoder_macs": {
+            "legacy": 27299840.0,
+            "dense_init": 27299840.0
+          },
+          "realized_compute": {
+            "legacy": 1.0,
+            "dense_init": 1.0
+          }
+        },
+        "2": {
+          "perplexity": {
+            "legacy": 39.87195337298018,
+            "dense_init": 40.05257402787755
+          },
+          "decoder_macs": {
+            "legacy": 27299840.0,
+            "dense_init": 27299840.0
+          },
+          "realized_compute": {
+            "legacy": 1.0,
+            "dense_init": 1.0
+          }
+        }
+      },
+      "mean_perplexity": {
+        "legacy": 39.574393967568575,
+        "dense_init": 39.985895646842714,
+        "dense": 39.84821694736393
+      },
+      "total_macs": {
+        "legacy": 53031424.0,
+        "dense_init": 53031424.0
+      },
+      "gap_to_comparison": {
+        "legacy": -0.2738229797953551,
+        "dense_init": 0.13767869947878353
+      },
+      "holds": false
+    }
+  },
+  "latency": {
+    "holds": null,
+    "candidate_ms": 1.8366215905795495,
+    "reference_ms": 2.211938612163067,
+    "untestable_because": [
+      "ti_tnn_adaptive_c30_initdense rows not from the planned runs: ['runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed0-20261017T201453', 'runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed1-20261017T224852', 'runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed2-20261018T005825']",
+      "ti_tnn_adaptive_c30_initdense seed 1: window 0: logit difference 2.34375 exceeds tolerance on scale 28.125"
+    ],
+    "rule": {
+      "relative_logit_tolerance": 0.05,
+      "decision_agreement_min": 0.99,
+      "token_agreement_min": 0.99
+    },
+    "validity": {
+      "ti_tnn_adaptive_c30_initdense seed 0": [],
+      "ti_tnn_adaptive_c30_initdense seed 1": [
+        "window 0: logit difference 2.34375 exceeds tolerance on scale 28.125"
+      ],
+      "ti_tnn_adaptive_c30_initdense seed 2": [],
+      "dense seed None": []
+    }
+  },
+  "holds": false
+}

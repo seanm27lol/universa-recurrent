@@ -29,8 +29,10 @@ VARIANT_KINDS = ("dense", "moe_top1", "moe_top2", "mod", "ti_tnn_adaptive")
 
 def run_name(r: dict) -> str:
     c, m = r["config"], r["model_config"]
-    return models.variant_name(c["ffn"], c.get("bridge_cost", 0.01), m.get("target_compute", 1.0),
+    name = models.variant_name(c["ffn"], c.get("bridge_cost", 0.01), m.get("target_compute", 1.0),
                                models.size_tag(m["d_model"], m["n_layers"], m.get("ffn_mult", 4)))
+    init = m.get("expert_init", "legacy")
+    return name if init == "legacy" else f"{name}_init{init}"
 
 
 def collect(roots) -> list:
