@@ -415,6 +415,30 @@ def evaluate_v2(variants: dict, manifest: list) -> dict:
     return out
 
 
+# ---------------------------------------------------------------- the shared-path control
+# protocols/adaptive_compute_shared_path_control.md. Written before any run of it.
+SC_SHARED_ONLY = "dense_d128_l8_m2_s18000"
+SC_ONE_EXPERT_TI = "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000"
+
+
+def evaluate_shared_control(variants: dict, v2: dict) -> dict:
+    """S1: the shared path alone (a half-width dense model) learns the task on at most 4 of 5 seeds, below
+    the fixed mixture's 5. S2: the one-expert TI-TNN learns it on fewer seeds than the 8-expert one (2)."""
+    problems = [f"{n}: seeds {variants.get(n, {}).get('seeds')}" for n in (SC_SHARED_ONLY, SC_ONE_EXPERT_TI)
+                if sorted(variants.get(n, {}).get("seeds", [])) != list(V2_SEEDS)]
+    if problems:
+        return {"complete": False, "problems": problems}
+    ti8 = "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000"
+    out = {"complete": True,
+           "learned": {n: learned(variants[n]) for n in (SC_SHARED_ONLY, SC_ONE_EXPERT_TI)},
+           "hard_accuracy": {n: variants[n]["quality"]["mean"] for n in (SC_SHARED_ONLY, SC_ONE_EXPERT_TI)},
+           "reference_counts": {V2_FIXED_MOE: learned(v2[V2_FIXED_MOE]), ti8: learned(v2[ti8]),
+                                V2_REFERENCE: learned(v2[V2_REFERENCE])}}
+    out["shared_path_insufficient"] = {"holds": learned(variants[SC_SHARED_ONLY]) <= 4}
+    out["routing_helps_ti_tnn"] = {"holds": learned(variants[SC_ONE_EXPERT_TI]) < learned(v2[ti8])}
+    return out
+
+
 def table(variants: dict, quality: str, fmt: str) -> str:
     rows = sorted(variants.items(), key=lambda kv: kv[1]["compute"]["mean"])
     lines = [f"| Variant | {quality} | Non-embedding MACs per token | Seeds |", "|---|---:|---:|---:|"]
@@ -439,6 +463,8 @@ def main(argv=None):
     p.add_argument("--latency", type=Path)
     p.add_argument("--source", action="append", default=[], help="ROOT=VERSION: the source version runs under ROOT came from")
     p.add_argument("--hops-v2", nargs="*", type=Path, default=[], help="part A v2 run roots (separate analysis)")
+    p.add_argument("--shared-control", nargs="*", type=Path, default=[],
+                   help="shared-path control run roots (separate analysis; --hops-v2 gives the v2 runs)")
     p.add_argument("--init-control", nargs="*", type=Path, default=[],
                    help="roots holding the initialization-control runs (separate analysis)")
     p.add_argument("--out", type=Path)
@@ -476,6 +502,15 @@ def main(argv=None):
             summary["lm"]["latency_ms_per_token"] = {n: stat(v) for n, v in by.items()}
             pr["latency"] = latency_prediction(doc, manifest)
         print("## Part B: WikiText-103 (validation perplexity)\n\n" + table(P, "Perplexity", ".2f") + "\n")
+    if args.shared_control:
+        V2, _ = load(args.hops_v2, "hops", sources, namer=v2_name, spec=V2_PROTOCOL)
+        C, _ = load(args.shared_control, "hops", sources, namer=v2_name, spec=V2_PROTOCOL)
+        res = evaluate_shared_control(C, V2)
+        print(f"shared-path control: {json.dumps({k: v for k, v in res.items() if k != 'problems'})}"
+              if res["complete"] else f"shared-path control: INCOMPLETE {res['problems']}")
+        if args.out:
+            args.out.with_name(args.out.stem + "_shared_control.json").write_text(json.dumps(dict(res, variants=C), indent=2))
+        return
     if args.hops_v2:
         V, manifest = load(args.hops_v2, "hops", sources, namer=v2_name, spec=V2_PROTOCOL)
         res = evaluate_v2(V, manifest)

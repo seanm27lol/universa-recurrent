@@ -24,7 +24,7 @@ import json
 import math
 import platform
 import time
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
@@ -61,10 +61,11 @@ class Task:
             raise ValueError("one_hop_share is a percentage")
 
 
-def make_batch(n: int, task: Task, gen: torch.Generator) -> dict:
+def make_batch(n: int, task: Task, gen: torch.Generator, max_hops: int | None = None) -> dict:
     """n sequences: tokens [n, T], targets (-100 where unscored), kind (KIND_NAMES index), hops (k at queries)."""
-    A, P, K, M, Q, T = task.symbols, task.facts, task.max_hops, task.counts, task.queries, task.length
-    SYM, HOP, CNT = 1, 1 + A, 1 + A + K
+    A, P, M, Q, T = task.symbols, task.facts, task.counts, task.queries, task.length
+    SYM, HOP, CNT = 1, 1 + A, 1 + A + task.max_hops  # token meanings come from the full task, always
+    K = task.max_hops if max_hops is None else max_hops  # the most hops sampled now (a curriculum lowers it)
     cycle = torch.rand(n, A, generator=gen).argsort(-1)[:, :P] + SYM  # f(cycle[j]) = cycle[j + 1 mod P]
     order = torch.rand(n, P, generator=gen).argsort(-1)
     facts = torch.stack([cycle.gather(1, order), cycle.gather(1, (order + 1) % P)], -1).reshape(n, 2 * P)
@@ -161,6 +162,8 @@ def variant_name(args) -> str:
         name += "_bal"
     if args.shared_expert_frac > 0:
         name += f"_sh{round(100 * args.shared_expert_frac)}"
+    if args.ffn not in ("dense", "mod") and args.experts != 8:
+        name += f"_e{args.experts}"
     if args.hop_curriculum_frac > 0:
         name += f"_cur{round(100 * args.hop_curriculum_frac)}"
     if args.steps != 6000:
@@ -240,13 +243,15 @@ def task_of(args) -> Task:
     return Task(**{f: getattr(args, f"task_{f}") for f in asdict(Task())})
 
 
-def curriculum_task(task: Task, step: int, steps: int, frac: float) -> Task:
-    """The training task at a step: hop counts up to s in stage s of max_hops equal stages spanning the
-    first `frac` of training, then the full task (the full task throughout when frac is 0)."""
+def curriculum_max_hops(task: Task, step: int, steps: int, frac: float) -> int:
+    """The most hops sampled at a step: s in stage s of max_hops equal stages spanning the first `frac` of
+    training, then all of them. Only sampling changes; token meanings stay those of the full task.
+    (Before 2026-10-18 the curriculum shrank the task itself, which also shifted the counting tokens'
+    IDs between stages; the eight development runs that used it are affected.)"""
     if frac <= 0:
-        return task
+        return task.max_hops
     stage = 1 + int(step / max(1.0, frac * steps / task.max_hops))
-    return replace(task, max_hops=min(task.max_hops, stage))
+    return min(task.max_hops, stage)
 
 
 def task_loss(logits: torch.Tensor, b: dict, balanced: bool) -> torch.Tensor:
@@ -283,7 +288,7 @@ def train(args, task: Task | None = None) -> dict:
     for step in range(args.steps):
         for g in opt.param_groups:
             g["lr"] = lr_at(step, args.steps, args)
-        b = to(make_batch(args.batch, curriculum_task(task, step, args.steps, args.hop_curriculum_frac), gen), device)
+        b = to(make_batch(args.batch, task, gen, curriculum_max_hops(task, step, args.steps, args.hop_curriculum_frac)), device)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
             logits, stats = model(b["tokens"])
             loss = task_loss(logits, b, args.balanced_loss)
