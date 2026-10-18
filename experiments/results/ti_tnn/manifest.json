@@ -99,6 +99,13 @@
       "report": "research/ti_tnn/reports/typed_recurrence_v1.md",
       "source": "7ba0b79 (committed immediately before the run; the run file does not record its commit)",
       "command": "OMP_NUM_THREADS=1 python research/ti_tnn/bench/typed_recurrence.py --worlds 500 501 502 --inits 0 1 2 3 4"
+    },
+    "local_updates": {
+      "what": "offline module replacement on worlds 600-602, inits 0-4: 10 single-fact updates per world for specialists, a same-data shared network and a rehearsal shared network, each through every gate with activation and rollback; and a faulty suite per world, CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/local_updates_v1.md",
+      "report": "research/ti_tnn/reports/local_updates_v1.md",
+      "source": "dd1d937 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/local_updates.py --worlds 600 601 602 --inits 0 1 2 3 4"
     }
   },
   "files": [
@@ -2382,6 +2389,20 @@
       "original_path": "runs/titnn_recurrence/20261018T162814/verdict.json",
       "sha256": "fcbd69f505d0177af1d21113fd1c5a1af6545b3b40988da4332ae0a66c450c2e",
       "bytes": 2018
+    },
+    {
+      "path": "local_updates/20261018T164944/local_updates.json",
+      "experiment": "local_updates",
+      "original_path": "runs/titnn_updates/20261018T164944/local_updates.json",
+      "sha256": "f267dc85eb46283b60ec6d39e68dbf81add45d1cab16e15e53e337112e420cbb",
+      "bytes": 506693
+    },
+    {
+      "path": "local_updates/20261018T164944/verdict.json",
+      "experiment": "local_updates",
+      "original_path": "runs/titnn_updates/20261018T164944/verdict.json",
+      "sha256": "0d21262cf84ff75bb4c057a52b18ac3cf1ec401ee00f93aa91c062cdca84b29c",
+      "bytes": 2215
     }
   ]
 }

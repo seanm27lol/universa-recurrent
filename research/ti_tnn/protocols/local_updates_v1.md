@@ -120,3 +120,10 @@ Worlds 100–101, inits 100–101.
 **Run:**
 `python research/ti_tnn/bench/local_updates.py --worlds 600 601 602 --inits 0 1 2 3 4`, which also writes
 `verdict.json` via `evaluate()`.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** The protocol's command, from `dd1d937`, 2026-10-18, finishing 20:49 UTC. 450 learned
+  updates and 30 faulty-suite cases, CPU only, with no failures. `verdict.json` was written by
+  `evaluate()` as frozen.
+- **All six predictions hold.** See the [report](../reports/local_updates_v1.md).

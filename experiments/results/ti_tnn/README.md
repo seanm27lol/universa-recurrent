@@ -42,6 +42,7 @@ records the declared source version and command.
 | `semantic_interventions/` | 2 (72 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/semantic_interventions_v1.md) | [report](../../../research/ti_tnn/reports/semantic_interventions_v1.md) | `75cb47a` (committed immediately before the run) |
 | `typed_routing/` | 2 (60 CPU system runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_routing_v1.md) | [report](../../../research/ti_tnn/reports/typed_routing_v1.md) | `fd0aa20` (committed immediately before the run) |
 | `typed_recurrence/` | 2 (45 CPU system runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_recurrence_v1.md) | [report](../../../research/ti_tnn/reports/typed_recurrence_v1.md) | `7ba0b79` (committed immediately before the run) |
+| `local_updates/` | 2 (450 learned updates and 30 faulty-suite cases in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report](../../../research/ti_tnn/reports/local_updates_v1.md) | `dd1d937` (committed immediately before the run) |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 
 **Source versions.**
