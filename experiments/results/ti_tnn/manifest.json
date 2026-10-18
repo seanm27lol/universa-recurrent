@@ -79,6 +79,13 @@
       "source": "16bba5c (recorded in each run); analysis by frontier.py --wikitext-fixed",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_wikitext_fixed.sh; python research/ti_tnn/bench/frontier.py --lm runs/titnn_bench/lm runs/titnn_efficiency/lm runs/titnn_efficiency/lm_init_control --wikitext-fixed runs/titnn_efficiency/lm_wikitext_fixed --latency runs/titnn_efficiency/latency_wikitext_fixed.json --out runs/titnn_efficiency/frontier_wf.json"
     },
+    "typed_composition": {
+      "what": "learned relation operators on finite typed worlds 200-202, inits 0-4, five families (specialists, shared dense, flat top-1 MoE, endpoint-only negative control, answer-only), CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_composition_v1.md",
+      "report": "research/ti_tnn/reports/typed_composition_v1.md",
+      "source": "ef604a1 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/typed_composition.py --worlds 200 201 202 --inits 0 1 2 3 4"
+    },
     "adaptive_compute_shared_path_control": {
       "what": "lookup task, shared-path control: a half-width dense model (the shared path alone) and a one-expert TI-TNN at the 0.3 cap, seeds 200-204, 18,000 steps; and the frozen evaluator's output",
       "protocol": "research/ti_tnn/protocols/adaptive_compute_shared_path_control.md",
@@ -2347,6 +2354,20 @@
       "original_path": "runs/titnn_efficiency/frontier_wf_wikitext_fixed.json",
       "sha256": "4cc460c156f3caaf0900861dd18f467630a8d13373f5b96b96182871d1d90085",
       "bytes": 2392
+    },
+    {
+      "path": "typed_composition/20261018T145735/typed_composition.json",
+      "experiment": "typed_composition",
+      "original_path": "runs/titnn_typed/20261018T145735/typed_composition.json",
+      "sha256": "82e24867bd46fd702633b2e950332b58a52e57a8800ca04478ef440369904ace",
+      "bytes": 66147
+    },
+    {
+      "path": "typed_composition/20261018T145735/verdict.json",
+      "experiment": "typed_composition",
+      "original_path": "runs/titnn_typed/20261018T145735/verdict.json",
+      "sha256": "43b047d5b84a2b6982c421a080e29058058844783f3c0444e15ece0536c81ba8",
+      "bytes": 1673
     },
     {
       "path": "adaptive_compute_shared_path_control/frontier_sc_shared_control.json",
