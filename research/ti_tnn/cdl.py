@@ -20,7 +20,9 @@ Specification: research/ti_tnn/cdl_proposal.md. In short:
 
 Orthogonal parametrization (torch.nn.utils.parametrizations.orthogonal) also removes the trivial
 zero set a soft penalty would otherwise have (M = 0 is not orthogonal); the trivial functor M = I is
-still a zero of the naturality defect, and only the task loss keeps morphisms informative.
+still a zero of the naturality defect, and only the task loss keeps morphisms informative. Every
+orthogonal map starts with determinant +1 (see orthogonal_square): the parametrization cannot change
+the sign, and naturality requires corresponding generators to share it.
 """
 from __future__ import annotations
 
@@ -78,8 +80,19 @@ def routing_world_category() -> QueryCategory:
 
 
 def orthogonal_square(d: int) -> nn.Module:
-    """A bias-free d x d linear map constrained to the orthogonal group (exact up to float error)."""
-    return parametrizations.orthogonal(nn.Linear(d, d, bias=False))
+    """A bias-free d x d linear map constrained to the rotation group SO(d) (exact up to float error).
+
+    The parametrization keeps the determinant's sign where it starts: gradient steps move within one
+    connected component of O(d). Naturality, T M^u = M^v T, needs corresponding generators to have equal
+    determinants (conjugate matrices do), so a random start in mixed components could make the defect
+    impossible to remove. Every map therefore starts in SO(d), where all corresponding pairs agree.
+    """
+    layer = nn.Linear(d, d, bias=False)
+    with torch.no_grad():
+        nn.init.orthogonal_(layer.weight)
+        if torch.linalg.det(layer.weight) < 0:
+            layer.weight[0].neg_()
+    return parametrizations.orthogonal(layer)
 
 
 class CDLSpecialistBranch(nn.Module):
@@ -140,12 +153,13 @@ class CDLSpecialistBranch(nn.Module):
 
 class FunctorialSheafBridge(nn.Module):
     """A flat O(d) connection sheaf on the branch graph: per-branch orthogonal restriction maps Q_k
-    into one shared edge frame. Same output form as SheafRestrictionBridge, W_e tanh(coboundary)."""
+    into one shared edge frame. Output W_e tanh(coboundary), with no bias, so the correction is exactly
+    zero when the two branches' sections agree (the proposal's "no news" contract)."""
 
     def __init__(self, num_branches: int, d_stalk: int, d_model: int):
         super().__init__()
         self.restrict = nn.ModuleList([orthogonal_square(d_stalk) for _ in range(num_branches)])
-        self.edge_to_model = nn.Linear(d_stalk, d_model)
+        self.edge_to_model = nn.Linear(d_stalk, d_model, bias=False)
 
     def maps(self) -> torch.Tensor:
         return torch.stack([r.weight for r in self.restrict])  # [K, d, d]

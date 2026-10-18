@@ -11,10 +11,16 @@ Two synthetic benchmarks share one model (see README.md in this directory):
 2. COMPOSITIONAL ISOLATION. Every country has two independent binary traits.
    "traitA_of <c>" is supervised only through Branch 0 and "traitB_of <c>" only
    through Branch 1. "combined_status_of <c>" asks for XOR(A, B), and its queries for
-   held-out countries never appear in training. With the isolation below, any single
-   branch holds at most one trait of a held-out country, and XOR(A, B) is independent
-   of A alone and of B alone, so one branch is capped at chance (50%). The bridge
-   reads Branch 0's and Branch 1's stalks together and can in principle beat it.
+   held-out countries never appear in training. XOR(A, B) is independent of A alone and
+   of B alone, so a predictor that sees only one trait is at chance (50%). The isolation
+   below closes the direct paths by which one branch could see both traits of a held-out
+   country, so one branch is expected to stay at chance. The bridge reads Branch 0's and
+   Branch 1's stalks together and can in principle beat it.
+
+   Not a proof: parameters every query shares (the reconstruct norm, the detokenizer and
+   the optimizer's statistics) leave a weak indirect channel. A Trait-B query's update to
+   them changes later Trait-A gradients into Branch 0. The evidence for the cap is the
+   no-bridge controls staying at chance, not the construction alone.
 
    Isolation that makes the cap hold (each closes a real leak):
      * private branch embeddings: each branch reads its own embedding subspace, so a
@@ -929,7 +935,7 @@ def main():
             json.dumps({"config": config, "environment": env, **result}, indent=2))
     print(f"\nSaved results under {out_dir}")
     print("Read before quoting: synthetic toy tasks; MACs are counted from layer shapes, not measured speed; "
-          "the information-theoretic cap holds only under the isolation listed in the docstring.")
+          "the single-branch cap is expected under the isolation in the docstring, and observed, not proved.")
 
 
 if __name__ == "__main__":

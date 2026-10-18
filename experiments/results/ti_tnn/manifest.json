@@ -1,0 +1,1123 @@
+{
+  "description": "Weight-free result exports for the completed TI-TNN experiments, byte-identical to the files each run wrote under the git-ignored runs/ directory.",
+  "experiments": {
+    "toy_benchmarks": {
+      "what": "routing and compositional-isolation toy benchmarks, 3 seeds, GPU (re-run after the isolation fix)",
+      "protocol": null,
+      "report": "research/ti_tnn/README.md#evidence-so-far",
+      "source": "the working tree committed as c079459 (the run preceded that commit by 16 minutes)",
+      "command": "python research/ti_tnn/ti_tnn_train.py"
+    },
+    "unsupervised_routing": {
+      "what": "routing with no route or gate labels, 3 seeds, GPU",
+      "protocol": "research/ti_tnn/protocols/unsupervised_routing.md",
+      "report": "research/ti_tnn/README.md#evidence-so-far",
+      "source": "20d3a5c",
+      "command": "python research/ti_tnn/ti_tnn_train.py --benchmark unsupervised"
+    },
+    "real_benchmarks": {
+      "what": "WikiText-103 (15 runs) and SCAN (60 runs), 3 seeds each; legacy expert initialization",
+      "protocol": "research/ti_tnn/protocols/real_benchmarks.md",
+      "report": "research/ti_tnn/reports/real_benchmarks.md",
+      "source": "316c18f (the queue's relaunch, per the protocol's execution record)",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_all.sh; python research/ti_tnn/bench/summarize.py"
+    },
+    "functorial_composition": {
+      "what": "composition from single relations, 5 seeds, GPU",
+      "protocol": "research/ti_tnn/protocols/functorial_composition.md",
+      "report": "research/ti_tnn/reports/functorial_composition.md",
+      "source": "4b56a03",
+      "command": "python research/ti_tnn/composition.py --device cuda"
+    },
+    "functorial_composition_controls": {
+      "what": "composition controls, 5 seeds, CPU",
+      "protocol": "research/ti_tnn/protocols/functorial_composition_controls.md",
+      "report": "research/ti_tnn/reports/functorial_composition_controls.md",
+      "source": "c624e42",
+      "command": "python research/ti_tnn/composition.py --device cpu --variants functorial ortho_tied ortho_untied shared soft_full soft linear --out runs/titnn_composition_controls"
+    },
+    "adaptive_compute": {
+      "what": "adaptive compute: part A lookup task (36 runs) and part B WikiText-103 (21 new runs; dense, moe_top1 and moe_top2 are reused from real_benchmarks/lm), batch-1 latency, and the evaluator's verdict with its run manifest",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute.md",
+      "report": "research/ti_tnn/reports/adaptive_compute.md",
+      "source": "64ecc86 (training); evaluation by frontier.py and latency.py at d9a8c1f, per the protocol's execution record",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_efficiency.sh; python research/ti_tnn/bench/frontier.py --hops runs/titnn_efficiency/hops --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --latency runs/titnn_efficiency/latency.json --source runs/titnn_bench/lm=316c18f --source runs/titnn_efficiency=64ecc86 --out runs/titnn_efficiency/frontier.json"
+    },
+    "adaptive_compute_init_control": {
+      "what": "WikiText-103 with dense-matched expert initialization: ti_tnn_adaptive_c30 and moe_top1, seeds 0-2; batch-1 latency; step-0 residual RMS and routing diagnostics; the separate analysis (frozen version and the version with the run_key path fix)",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_init_control.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_init_control.md",
+      "source": "630cab2 (training; recorded in each run); analysis by frontier.py --init-control",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_init_control.sh; python research/ti_tnn/bench/frontier.py --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --init-control runs/titnn_efficiency/lm_init_control --latency runs/titnn_efficiency/latency_init_control.json",
+      "note": "Eight files had absolute local paths (the run script passed absolute roots); the prefix was removed for publication. Each such file lists its original sha256, which the analysis's run manifest refers to."
+    }
+  },
+  "files": [
+    {
+      "path": "toy_benchmarks/20261015T002259/compositional.json",
+      "experiment": "toy_benchmarks",
+      "original_path": "runs/titnn/20261015T002259/compositional.json",
+      "sha256": "a8c8bcc81c9b60ba7d5a30a1b9e67ad34c7ca418c38630a2604615af414f955d",
+      "bytes": 29477
+    },
+    {
+      "path": "toy_benchmarks/20261015T002259/routing.json",
+      "experiment": "toy_benchmarks",
+      "original_path": "runs/titnn/20261015T002259/routing.json",
+      "sha256": "3fe33e3294f4c62a3229bff523199185e528c0c291e559c330adb27864a14fc0",
+      "bytes": 21581
+    },
+    {
+      "path": "unsupervised_routing/20261015T152306/unsupervised.json",
+      "experiment": "unsupervised_routing",
+      "original_path": "runs/titnn/20261015T152306/unsupervised.json",
+      "sha256": "7fa5e8a2fdff49b29c8e866f14f178a28466582dc7ff460959345baf2a38fda3",
+      "bytes": 28925
+    },
+    {
+      "path": "real_benchmarks/lm/dense-seed0-20261015T163352/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/dense-seed0-20261015T163352/result.json",
+      "sha256": "5d962342a1a8f68488f552863359731ea13473dc64fcf0324e29305e931b57fe",
+      "bytes": 15492
+    },
+    {
+      "path": "real_benchmarks/lm/dense-seed1-20261016T000124/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/dense-seed1-20261016T000124/result.json",
+      "sha256": "9d75e56e197aa37b63e0c70393c11debf3d76d91ac0b6994d17c00db131f2396",
+      "bytes": 15468
+    },
+    {
+      "path": "real_benchmarks/lm/dense-seed2-20261016T063728/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/dense-seed2-20261016T063728/result.json",
+      "sha256": "1042cd92180a247cdb9b13911d2700257a13c87a0ccd87a65b3f44ffda5d9238",
+      "bytes": 15487
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top1-seed0-20261015T173429/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top1-seed0-20261015T173429/result.json",
+      "sha256": "68c15949139d41d442681e198c95f9609bd469a05a28578d85c49d71ac2eab40",
+      "bytes": 20656
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top1-seed1-20261016T005641/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top1-seed1-20261016T005641/result.json",
+      "sha256": "feee6fad1d300b3d1ef513117e6d1c20f3016e922dbb59aa2a02047acf795646",
+      "bytes": 20667
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top1-seed2-20261016T073246/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top1-seed2-20261016T073246/result.json",
+      "sha256": "83004f692a5f19a6de200d999e3ccce96ac1a7b0e05c12c362e16b162052c179",
+      "bytes": 20661
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top2-seed0-20261015T184142/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top2-seed0-20261015T184142/result.json",
+      "sha256": "08537940a556378764951069d78bbb3f7ff0d07ee30cc31df7910f2aead01c0c",
+      "bytes": 20653
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top2-seed1-20261016T015827/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top2-seed1-20261016T015827/result.json",
+      "sha256": "131b3ef567eaddec174a70931c5bf392537043b4f904894dd157dc98f2017290",
+      "bytes": 20663
+    },
+    {
+      "path": "real_benchmarks/lm/moe_top2-seed2-20261016T083400/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/moe_top2-seed2-20261016T083400/result.json",
+      "sha256": "5db279fcb857315363cf23e7c51fd3bba34a3a82ce06eb330a8771f9dbec15bf",
+      "bytes": 20652
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_charged-seed0-20261015T195625/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_charged-seed0-20261015T195625/result.json",
+      "sha256": "4d9f555578c773069b71984c99e5abe8c5ad7eef3d80d43ba537a44e226a1648",
+      "bytes": 21950
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_charged-seed1-20261016T030419/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_charged-seed1-20261016T030419/result.json",
+      "sha256": "b607cc5552a595947311b4bfa0d789d06460d4cbb216d9552f12ade748272233",
+      "bytes": 22006
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_charged-seed2-20261016T093923/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_charged-seed2-20261016T093923/result.json",
+      "sha256": "4a3af4d27e43ec0d9e1a15ec2fe1398de437e531e8459103c6969d646c9f2893",
+      "bytes": 22011
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_free-seed0-20261015T213442/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_free-seed0-20261015T213442/result.json",
+      "sha256": "8ae53b2f2996de8e81ad75bfa522228b4f77c86c44576d0192d4193e947a6421",
+      "bytes": 22137
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_free-seed1-20261016T040945/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_free-seed1-20261016T040945/result.json",
+      "sha256": "1324c2e79c3e6635a493593d61221bd80813c1c417d12565bb51728c865e9e2a",
+      "bytes": 22143
+    },
+    {
+      "path": "real_benchmarks/lm/ti_tnn_free-seed2-20261016T104445/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/lm/ti_tnn_free-seed2-20261016T104445/result.json",
+      "sha256": "c53525a5cb961667950167ae32a9589d6d634b7c1eb0ad862a52ebe7cbc3c2f8",
+      "bytes": 22129
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-dense-seed0-20261015T222907/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-dense-seed0-20261015T222907/result.json",
+      "sha256": "70250571baf6204dfb755571f5663ea04acf53fe972791e542d1a5211cedc064",
+      "bytes": 2790
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-dense-seed1-20261016T050620/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-dense-seed1-20261016T050620/result.json",
+      "sha256": "71f75a99823e19a54f8bcf730f0f9141c323ca01e604a8b819d82083025cdd4e",
+      "bytes": 2790
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-dense-seed2-20261016T114017/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-dense-seed2-20261016T114017/result.json",
+      "sha256": "8476175fb08744ddbfaee51feb0203758d883cf5f667b69fb9e3bb6c4e42a075",
+      "bytes": 2806
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top1-seed0-20261015T223431/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top1-seed0-20261015T223431/result.json",
+      "sha256": "98171cc92a5379cd98295cc62459293c79c6b2aa97837db96d13a4e88cd2f32f",
+      "bytes": 2874
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top1-seed1-20261016T051149/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top1-seed1-20261016T051149/result.json",
+      "sha256": "383e3cd32f7c9cfedf29f98ec72627990684e50963a8df99ddad34b470484212",
+      "bytes": 2870
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top1-seed2-20261016T114540/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top1-seed2-20261016T114540/result.json",
+      "sha256": "6575ae438145dfe1ccd31a1a2cca53cad8f1ac2f51944477ddcf69c78858716f",
+      "bytes": 2887
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top2-seed0-20261015T224123/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top2-seed0-20261015T224123/result.json",
+      "sha256": "94e1d111c03b0e5c30f4bf55ffe96d0dc5c457f0e78cc35c2ace6e01a81e21ee",
+      "bytes": 2868
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top2-seed1-20261016T051810/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top2-seed1-20261016T051810/result.json",
+      "sha256": "2d939f7fa574335e4a07a5d832ea295d5632a32a2f9df28de8b810359f23293a",
+      "bytes": 2888
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-moe_top2-seed2-20261016T115201/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-moe_top2-seed2-20261016T115201/result.json",
+      "sha256": "1e0b23e2283d9d882c068856ceb6b33a78e022dd7ad086c592b1bfb12338c699",
+      "bytes": 2888
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_charged-seed0-20261015T224813/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed0-20261015T224813/result.json",
+      "sha256": "e82bbb7eb87fd66997f259ea5709b7dac7209d6446c98c04033ee1ee06a342c1",
+      "bytes": 2912
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_charged-seed1-20261016T052503/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed1-20261016T052503/result.json",
+      "sha256": "e2d066ffb86aa023de84b069dd22faeadf5063459c9cf4fa4841b0cf45c90813",
+      "bytes": 2930
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_charged-seed2-20261016T115922/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_charged-seed2-20261016T115922/result.json",
+      "sha256": "c9bd26987a36dc4834b4880666fc5c396402cefa3e018c9d189a4c489203ad3a",
+      "bytes": 2960
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_free-seed0-20261015T225508/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed0-20261015T225508/result.json",
+      "sha256": "133fd1ff96675e02a1b3fb274a9555c092fc4c3aa5546c57dc4c651927b96af1",
+      "bytes": 2971
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_free-seed1-20261016T053156/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed1-20261016T053156/result.json",
+      "sha256": "d4e0caf1c80688e82c51dd37a0767d8480e8aa85dab51692adfac9cd8af392df",
+      "bytes": 2970
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_jump-ti_tnn_free-seed2-20261016T120645/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_jump-ti_tnn_free-seed2-20261016T120645/result.json",
+      "sha256": "46b51d0f720faa69defe8672c7fe9700d3c2185cdbdcf9d2b6d6fc0e2283a00b",
+      "bytes": 2969
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-dense-seed0-20261015T225816/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-dense-seed0-20261015T225816/result.json",
+      "sha256": "6db7e690b4eae0dfdf3d6e667c5b1775c6bcc9403ee9ca38684535dd2bf072a5",
+      "bytes": 2821
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-dense-seed1-20261016T053504/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-dense-seed1-20261016T053504/result.json",
+      "sha256": "1a32936241bdbe551dd16bd0c4dd513bd9ca12c5bd75638c3efdcfe40a6ebf1f",
+      "bytes": 2819
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-dense-seed2-20261016T120924/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-dense-seed2-20261016T120924/result.json",
+      "sha256": "9f2b09d22456ec67c3536c92dd1a017c14c91efe16d97e1eccd7f74d464e72d3",
+      "bytes": 2822
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top1-seed0-20261015T230323/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed0-20261015T230323/result.json",
+      "sha256": "f1432cb2499e09427831f5afd0f3c0049e4e423c30eae2c04bd61e777e016507",
+      "bytes": 2901
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top1-seed1-20261016T054028/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed1-20261016T054028/result.json",
+      "sha256": "b72e2d2f9a98df1da5877f546f4b834b571f0443be5ca0312400f261d870c345",
+      "bytes": 2904
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top1-seed2-20261016T121444/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top1-seed2-20261016T121444/result.json",
+      "sha256": "1487d0d17048d2b7566eaef01d6610bdb377edd4ef26579bff126f78b19b46be",
+      "bytes": 2901
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top2-seed0-20261015T231004/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed0-20261015T231004/result.json",
+      "sha256": "f4f7b05048009a09d0c7139025f2015b15bc38b390e54b1ab694f44d6915c328",
+      "bytes": 2907
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top2-seed1-20261016T054710/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed1-20261016T054710/result.json",
+      "sha256": "d77a47bd572643b2ca21da292656b231b050e369fa008759a7b6072bff4ec254",
+      "bytes": 2895
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-moe_top2-seed2-20261016T122126/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-moe_top2-seed2-20261016T122126/result.json",
+      "sha256": "51fcaeeb189e9b64e94054872c458003166fff5ea49aaca16054dcf69a80122f",
+      "bytes": 2899
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_charged-seed0-20261015T231719/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed0-20261015T231719/result.json",
+      "sha256": "155b690e600bdea686124ba3e602d7e0efde637951dcd2b1adab8ba3aa9b9065",
+      "bytes": 2944
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_charged-seed1-20261016T055355/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed1-20261016T055355/result.json",
+      "sha256": "240cae2a55c9c10154aebda8c355ec0591f553c9cb6e2e4f97d97feff8d02077",
+      "bytes": 2968
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_charged-seed2-20261016T122841/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_charged-seed2-20261016T122841/result.json",
+      "sha256": "d33f6fb6f05df0a0bf5489fd09a59f6746d5124769beefb476cf42821b038d97",
+      "bytes": 2937
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_free-seed0-20261015T232431/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed0-20261015T232431/result.json",
+      "sha256": "47cf547b196d1d4aa037556774b5ee61678760af6205bcc95daba41b7022f330",
+      "bytes": 2994
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_free-seed1-20261016T060040/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed1-20261016T060040/result.json",
+      "sha256": "e3e056c9872ef2d04a6693ed50739131a21007e94dccd4de38c717f698c2967e",
+      "bytes": 3000
+    },
+    {
+      "path": "real_benchmarks/scan/addprim_turn_left-ti_tnn_free-seed2-20261016T123557/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/addprim_turn_left-ti_tnn_free-seed2-20261016T123557/result.json",
+      "sha256": "21ba284e5b78ba5d4b43d24d22017745f3e9eaaf4de881e89170b7115b505e9a",
+      "bytes": 3000
+    },
+    {
+      "path": "real_benchmarks/scan/length-dense-seed0-20261015T220458/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-dense-seed0-20261015T220458/result.json",
+      "sha256": "df9665d1abfdc927026983f31412ba9b2cb51f6c7a12156cb974bd8321bf994b",
+      "bytes": 2790
+    },
+    {
+      "path": "real_benchmarks/scan/length-dense-seed1-20261016T044205/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-dense-seed1-20261016T044205/result.json",
+      "sha256": "68b5522d7b852e94595d4026e9bc8768040bd533eafbb3c026f6b4583a0bec4d",
+      "bytes": 2786
+    },
+    {
+      "path": "real_benchmarks/scan/length-dense-seed2-20261016T111550/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-dense-seed2-20261016T111550/result.json",
+      "sha256": "b0fab8397b1f88f225f949c474a528af044500871efa1e6ce7dc872b55eaeff4",
+      "bytes": 2787
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top1-seed0-20261015T221011/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top1-seed0-20261015T221011/result.json",
+      "sha256": "2fa374e67f14cbb024e895b749ed8cd4a2440d4faeb6b6abc8880db1d2a0b872",
+      "bytes": 2867
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top1-seed1-20261016T044700/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top1-seed1-20261016T044700/result.json",
+      "sha256": "3f154daf5e980fe4bdecfbd0af65382a0e0660d5458372878e31a1dbffdf1552",
+      "bytes": 2854
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top1-seed2-20261016T112017/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top1-seed2-20261016T112017/result.json",
+      "sha256": "c8c0df6eb369d31ee30274ede22b2f3afe842a8c7809610bf1dd2867bd29c866",
+      "bytes": 2864
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top2-seed0-20261015T221520/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top2-seed0-20261015T221520/result.json",
+      "sha256": "da00d385341be31a98ce5106338e9801e98c6fa6c4ce0d662915772bc92c8b7f",
+      "bytes": 2847
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top2-seed1-20261016T045233/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top2-seed1-20261016T045233/result.json",
+      "sha256": "ac56b0728aa1ed2868834ecdc77986d94e37f0fac48479574fc956f5696eda8c",
+      "bytes": 2849
+    },
+    {
+      "path": "real_benchmarks/scan/length-moe_top2-seed2-20261016T112556/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-moe_top2-seed2-20261016T112556/result.json",
+      "sha256": "df093114d8fa4472835f5e112d2af49774e1e07b256864915ae84034bfb34d3c",
+      "bytes": 2863
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_charged-seed0-20261015T222036/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_charged-seed0-20261015T222036/result.json",
+      "sha256": "d79a91235f100e6ef74123c0fcb7aea2d60bb87d00bc24aec20aab13f3f4d7ab",
+      "bytes": 2899
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_charged-seed1-20261016T045821/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_charged-seed1-20261016T045821/result.json",
+      "sha256": "d717a66c4a86f64da594b25b0f2480269daee9c2ef98aa51e8b35648482b4459",
+      "bytes": 2909
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_charged-seed2-20261016T113146/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_charged-seed2-20261016T113146/result.json",
+      "sha256": "72076ed2c1c544b466cb0b9eaee9bd44f68b56f5990d488f26675672a0a8b462",
+      "bytes": 2907
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_free-seed0-20261015T222623/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_free-seed0-20261015T222623/result.json",
+      "sha256": "fd85411ef1591f09b1c7ad512b865494e581020ac2af5c7de43b321d670e0fe7",
+      "bytes": 2962
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_free-seed1-20261016T050337/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_free-seed1-20261016T050337/result.json",
+      "sha256": "e986a6db7a79184031314f0668a6a8596d5bfee78a4148c95a628a4fac3f9528",
+      "bytes": 2946
+    },
+    {
+      "path": "real_benchmarks/scan/length-ti_tnn_free-seed2-20261016T113703/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/length-ti_tnn_free-seed2-20261016T113703/result.json",
+      "sha256": "59c5c98f7e71be2d93aea32bb16226984f81d8d6fefefc2a6eabd9d35715f2a0",
+      "bytes": 2950
+    },
+    {
+      "path": "real_benchmarks/scan/simple-dense-seed0-20261015T213725/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-dense-seed0-20261015T213725/result.json",
+      "sha256": "a524e3b5b8453699daad5a8645d01f3bbe7159c581b36ac18e51eaea1e0e3622",
+      "bytes": 2769
+    },
+    {
+      "path": "real_benchmarks/scan/simple-dense-seed1-20261016T041258/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-dense-seed1-20261016T041258/result.json",
+      "sha256": "417c9d022744218e40b51c80e50891d2b769d4f9089986453fac1408b390add9",
+      "bytes": 2783
+    },
+    {
+      "path": "real_benchmarks/scan/simple-dense-seed2-20261016T104729/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-dense-seed2-20261016T104729/result.json",
+      "sha256": "2c12c8c5bd0bc48fff41dc25bca87c0c975cd07057c20bd46c4bb09d6a27a3c2",
+      "bytes": 2775
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top1-seed0-20261015T214247/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top1-seed0-20261015T214247/result.json",
+      "sha256": "af24052dafb51b294991ad7315371f8245b3b92d78826ca6d99d7d448fd22886",
+      "bytes": 2865
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top1-seed1-20261016T041825/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top1-seed1-20261016T041825/result.json",
+      "sha256": "2aa556d87f7396e3525a79aea52ea87d0526f4fe68eb9e2b14f345afaecfe8f7",
+      "bytes": 2869
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top1-seed2-20261016T105238/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top1-seed2-20261016T105238/result.json",
+      "sha256": "10c88c19063b5186772826f6426ed565aac3584dac902a35f616b3aaf2694a5f",
+      "bytes": 2850
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top2-seed0-20261015T214908/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top2-seed0-20261015T214908/result.json",
+      "sha256": "72b5fc6ee35bd0c7f15c7edd581d77a9439d17f747c112423d936117a612dbb7",
+      "bytes": 2845
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top2-seed1-20261016T042515/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top2-seed1-20261016T042515/result.json",
+      "sha256": "b34c52545a3f01abc3b691e1451280043f6b565d683f313b85aae243cadb4df7",
+      "bytes": 2870
+    },
+    {
+      "path": "real_benchmarks/scan/simple-moe_top2-seed2-20261016T105858/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-moe_top2-seed2-20261016T105858/result.json",
+      "sha256": "fa79684bb9b8721de271d64609f8cadf7e660fa809a0f5f43ac6df085f087c36",
+      "bytes": 2849
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_charged-seed0-20261015T215558/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_charged-seed0-20261015T215558/result.json",
+      "sha256": "84eb437ce8717cff9d34ab45653e2556b6eb9468377e42941a283da6d23957c0",
+      "bytes": 2923
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_charged-seed1-20261016T043205/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_charged-seed1-20261016T043205/result.json",
+      "sha256": "d78c9c418838cee6e9da0bd7cb3e5f70cf46f61e18d3dc5fc2d8d70a62dbd720",
+      "bytes": 2889
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_charged-seed2-20261016T110621/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_charged-seed2-20261016T110621/result.json",
+      "sha256": "1dc5f024d61da30dba7d2a5b0467807d7abde2559ce530cd2b7830d2d6252682",
+      "bytes": 2901
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_free-seed0-20261015T220251/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_free-seed0-20261015T220251/result.json",
+      "sha256": "f7633a413b5008f9f6143ed8340a5006534c605f7a772dd4064b873ddbbde9bb",
+      "bytes": 2968
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_free-seed1-20261016T043928/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_free-seed1-20261016T043928/result.json",
+      "sha256": "1fb7232c3200cb7007f7e4b1789e6631acbcd0b2e9a202c442ce6fb2dfcdb01a",
+      "bytes": 2963
+    },
+    {
+      "path": "real_benchmarks/scan/simple-ti_tnn_free-seed2-20261016T111343/result.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/scan/simple-ti_tnn_free-seed2-20261016T111343/result.json",
+      "sha256": "de6793f346391a77a2c98285984a71e07dd2495fec4aa0c60fa88b3ef8cd0a57",
+      "bytes": 2939
+    },
+    {
+      "path": "real_benchmarks/summary.json",
+      "experiment": "real_benchmarks",
+      "original_path": "runs/titnn_bench/summary.json",
+      "sha256": "223662cfcd080441b70e601acb26d54dc0eba8ca32dd27fdcf461d2ba11e8a25",
+      "bytes": 28912
+    },
+    {
+      "path": "functorial_composition/20261016T152240/composition.json",
+      "experiment": "functorial_composition",
+      "original_path": "runs/titnn_composition/20261016T152240/composition.json",
+      "sha256": "c26bd12d84bd2974c4da009e16c9f44d9a5f2ad6329fc896b6fc4e04ded61cf1",
+      "bytes": 71785
+    },
+    {
+      "path": "functorial_composition_controls/20261016T173618/composition.json",
+      "experiment": "functorial_composition_controls",
+      "original_path": "runs/titnn_composition_controls/20261016T173618/composition.json",
+      "sha256": "76bf11e201d88331bb9e35e97e146e9ba08a13a2923d40c129cbaf90a81a3694",
+      "bytes": 102081
+    },
+    {
+      "path": "adaptive_compute/frontier.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/frontier.json",
+      "sha256": "314b63cae374015906b3ff6e2e427661b3a5eb70165c6c1e06c7fd4def7ba7bd",
+      "bytes": 92117
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed0-20261016T170037/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed0-20261016T170037/result.json",
+      "sha256": "434331b99415c1179d47b14057c4410f45fc026f95cda25f0b879569379c37e9",
+      "bytes": 4462
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed1-20261016T174949/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed1-20261016T174949/result.json",
+      "sha256": "71bc5abfb864724f5fc6bf3fecd9955a6742ecb0d5f664612355f4654be91a5b",
+      "bytes": 4463
+    },
+    {
+      "path": "adaptive_compute/hops/dense-seed2-20261016T183806/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense-seed2-20261016T183806/result.json",
+      "sha256": "25cc1305a8a09e7f4b84a6953e26ee809d9ed1e50bf7dddd8abce1fca8e0afdc",
+      "bytes": 4468
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed0-20261016T165112/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed0-20261016T165112/result.json",
+      "sha256": "08da04af131565c9babaebad02ba4dc6accc51405af4876e245a47e9b5876940",
+      "bytes": 4510
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed1-20261016T173857/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed1-20261016T173857/result.json",
+      "sha256": "3cdb750706cca407784eb9fb462110d3085d32890e22724465fd9daf3de2f1a7",
+      "bytes": 4493
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l2-seed2-20261016T182739/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l2-seed2-20261016T182739/result.json",
+      "sha256": "765eedee742ad2dc360507ad832025a7667d8c80c9d1f49f10119947d2ed5f0f",
+      "bytes": 4490
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed0-20261016T165323/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed0-20261016T165323/result.json",
+      "sha256": "4827c8594d87821f220a46ac3d621562947302c334fb334d995a49a64cd17ad4",
+      "bytes": 4497
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed1-20261016T174305/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed1-20261016T174305/result.json",
+      "sha256": "0e23b5a1d9b9aaf6a116fcc279b46e535e72a0099f55195d832cd1129fa7c176",
+      "bytes": 4481
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l3-seed2-20261016T182923/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l3-seed2-20261016T182923/result.json",
+      "sha256": "0b846ee6c60139cb7650b457ac4584c495dbdd23fd70a914988a9f98c5520ac8",
+      "bytes": 4496
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed0-20261016T165510/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed0-20261016T165510/result.json",
+      "sha256": "0789bb0f2976d4d36d5b0edb78318813f4c97917ec638c29622146f40002081e",
+      "bytes": 4515
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed1-20261016T174449/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed1-20261016T174449/result.json",
+      "sha256": "949f121aacbbf9153ee384e4a695079e47325c912c5940c27973932f4b0001db",
+      "bytes": 4465
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l4-seed2-20261016T183145/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l4-seed2-20261016T183145/result.json",
+      "sha256": "3f557f4db71dcf774acb59a2a0c06e73470bbc93bbfaa415b77b0f9e1c6aeae6",
+      "bytes": 4495
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed0-20261016T165805/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed0-20261016T165805/result.json",
+      "sha256": "a52e36e0078f52225a413f6e89d3d332a99fcc1f90cc766122f0b611c4809372",
+      "bytes": 4510
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed1-20261016T174701/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed1-20261016T174701/result.json",
+      "sha256": "3c833d3ecf09581aded47c42a598f274787b8b1582826bdc22d2cbe78353948e",
+      "bytes": 4508
+    },
+    {
+      "path": "adaptive_compute/hops/dense_d128_l6-seed2-20261016T183525/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/dense_d128_l6-seed2-20261016T183525/result.json",
+      "sha256": "e349260aa3c8efdcd12feb28f12419d7c808e576e62b616612bba376806c1ef2",
+      "bytes": 4496
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed0-20261016T171407/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed0-20261016T171407/result.json",
+      "sha256": "9c9c841d7e35a6f372ff957bb41d5c4e387763048dad5284d129680f360c9839",
+      "bytes": 5124
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed1-20261016T180315/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed1-20261016T180315/result.json",
+      "sha256": "d6b5763e6db924fe0c6acd248abe16d333798be5281c701f4becd991b7968518",
+      "bytes": 5203
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c15-seed2-20261016T185206/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c15-seed2-20261016T185206/result.json",
+      "sha256": "ea4c055d0d18f007885115914d60d72b04d9dc85513d4267a4737f5112954724",
+      "bytes": 5120
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed0-20261016T171102/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed0-20261016T171102/result.json",
+      "sha256": "2a7bcf2966d11ebf3e64d834778bd921af459594e434c2d932f8ffb8fc0ee941",
+      "bytes": 4928
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed1-20261016T180011/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed1-20261016T180011/result.json",
+      "sha256": "c7b0af916c2912b6c1bb6c1718cbffe8d2f5b0c50e72d11ca5096b0636fa9220",
+      "bytes": 4947
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c30-seed2-20261016T184902/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c30-seed2-20261016T184902/result.json",
+      "sha256": "04003b94600aa3db76377507221b18193ace2ab66f9f552be331ec7c78471678",
+      "bytes": 4826
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed0-20261016T170757/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed0-20261016T170757/result.json",
+      "sha256": "1f9149ac3b269c2f1646c783fc9a6fbb47920322f6b643f34b20a34eba3d652d",
+      "bytes": 4809
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed1-20261016T175707/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed1-20261016T175707/result.json",
+      "sha256": "9c7cf5470dddaa84e149e3d1181e8e14bb0960294727bbb763ada6007dacde71",
+      "bytes": 4875
+    },
+    {
+      "path": "adaptive_compute/hops/mod_c50-seed2-20261016T184557/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/mod_c50-seed2-20261016T184557/result.json",
+      "sha256": "c9e2fd69b3eef883e0be909db621c3c223e65631950057a6c2d3c8f81d75c755",
+      "bytes": 4848
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed0-20261016T170523/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed0-20261016T170523/result.json",
+      "sha256": "35c4ee824ce5e7fb71afb63a0ff99a7119b96e0ffddd35aea925197847c91d00",
+      "bytes": 4731
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed1-20261016T175433/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed1-20261016T175433/result.json",
+      "sha256": "9a3ea894082605766a006f3616bf424a05bea18d9a343ce9c34cc0ba08c2a64e",
+      "bytes": 4725
+    },
+    {
+      "path": "adaptive_compute/hops/moe_top1-seed2-20261016T184252/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/moe_top1-seed2-20261016T184252/result.json",
+      "sha256": "24914284a678e515b589f76a25dc8cfb2e7e8807fcf74490bb38685922c914d7",
+      "bytes": 4727
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed0-20261016T173731/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed0-20261016T173731/result.json",
+      "sha256": "ad7b450be85b0b3545a2231bd21ef04cee5df5245d072d2f3ca8bc4a15e0b9aa",
+      "bytes": 5275
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed1-20261016T182530/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed1-20261016T182530/result.json",
+      "sha256": "5ddb0e581f14716d2c97303e77e6f9144c0c2d669d8cb2ecc9e1b40849ec27ec",
+      "bytes": 5244
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c15-seed2-20261016T191414/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c15-seed2-20261016T191414/result.json",
+      "sha256": "223600b78b9ab5dd7ca5697e0582ba1c944cd5b1b6466c93fa37162aa14075c8",
+      "bytes": 5105
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed0-20261016T172953/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed0-20261016T172953/result.json",
+      "sha256": "0059539597ae0a7443c4c66fe1d49015ba7c146b27992ad3d912f11fa971ad35",
+      "bytes": 5082
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed1-20261016T181821/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed1-20261016T181821/result.json",
+      "sha256": "76e1fbf157122c95bf786a31add24ddf3d5fa6dc5275b940f7437039696c3e29",
+      "bytes": 5088
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c30-seed2-20261016T190642/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c30-seed2-20261016T190642/result.json",
+      "sha256": "61aecccd4ea3b6625cac413149a761bae81535178e6f3bfe87887159b4ee22b5",
+      "bytes": 5090
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed0-20261016T172115/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed0-20261016T172115/result.json",
+      "sha256": "12fba2a27d8b4f22dfc26830802033d1d9aceb6b315234c62de8e4e02619d295",
+      "bytes": 5047
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed1-20261016T181046/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed1-20261016T181046/result.json",
+      "sha256": "42c945535c7ad56e17e653bc2f8101e990f3181ce2d933db57c0bdd8802a3d73",
+      "bytes": 5062
+    },
+    {
+      "path": "adaptive_compute/hops/ti_tnn_adaptive_c50-seed2-20261016T185939/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/hops/ti_tnn_adaptive_c50-seed2-20261016T185939/result.json",
+      "sha256": "eca93f174518b94d49d71fb55431ad7fa116d60868c6216619484993a6da2b59",
+      "bytes": 5075
+    },
+    {
+      "path": "adaptive_compute/latency.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/latency.json",
+      "sha256": "5e54a8592dab6eca4f22fee5709d6e676c1fa7382ee79697e53fd002887ee70a",
+      "bytes": 28149
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed0-20261016T212546/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed0-20261016T212546/result.json",
+      "sha256": "42082d8170350bbcc2e7ce6f87b455631fb3005f596fbb8433926cfe9d125063",
+      "bytes": 19642
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed1-20261017T024803/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed1-20261017T024803/result.json",
+      "sha256": "ea17fbc3d04e34775d6dea87bda02f6f57d2da4f1cf7ea28055901ec2acbcc25",
+      "bytes": 19643
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d256_l8-seed2-20261017T080957/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d256_l8-seed2-20261017T080957/result.json",
+      "sha256": "cbd3d9a6cdbac40b708cae06ffaf844f76b33d8673aeacd611c2e63a4368d72e",
+      "bytes": 19644
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed0-20261016T203419/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed0-20261016T203419/result.json",
+      "sha256": "d56b0f0fe44d948afe58f0ab90bda460e0b184162ef4032bf0c9548a01fdd70f",
+      "bytes": 19672
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed1-20261017T022111/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed1-20261017T022111/result.json",
+      "sha256": "9cda0728c47561d2502238f1bd3435ca17dc57301c9f9209507514463635c6a0",
+      "bytes": 19678
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d384_l8-seed2-20261017T074307/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d384_l8-seed2-20261017T074307/result.json",
+      "sha256": "1315322bc43e70d18ee526b48d870577c6857e5f983f0ec1b57887691a4a347c",
+      "bytes": 19676
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed0-20261016T194505/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed0-20261016T194505/result.json",
+      "sha256": "19ef723c40d9520b4d0d58c51ca940bcd188ff598061bd4876e1f45b91b7c5b5",
+      "bytes": 19661
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed1-20261017T014823/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed1-20261017T014823/result.json",
+      "sha256": "bb4c4f84e854b5a0686905fdf360d814fb172afc977dbe3af318e210e985cddc",
+      "bytes": 19666
+    },
+    {
+      "path": "adaptive_compute/lm/dense_d512_l4-seed2-20261017T071014/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/dense_d512_l4-seed2-20261017T071014/result.json",
+      "sha256": "4bb2af090673c2403c237db7d8cc086fb08e98013cde333b9e754744869523a7",
+      "bytes": 19660
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed0-20261016T224907/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed0-20261016T224907/result.json",
+      "sha256": "5a6c032f9745ac703b3848587d41f9d80cda7cfe343ea07e994c5abdc64cdf9d",
+      "bytes": 24440
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed1-20261017T041101/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed1-20261017T041101/result.json",
+      "sha256": "5dc5c45e3985277eac89cc475036fd06b721274a9cb3aead1e524e0de2c0fe25",
+      "bytes": 24487
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c30-seed2-20261017T093321/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c30-seed2-20261017T093321/result.json",
+      "sha256": "90cefb22c353e80884d3f3c4107c525b02e3f669fbea865fb14fddcdcb614acd",
+      "bytes": 24457
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed0-20261016T220741/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed0-20261016T220741/result.json",
+      "sha256": "6974928e5cf5e391f90e8b580dcdd07ce2229d060228084baef6191ad82862d5",
+      "bytes": 24453
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed1-20261017T032931/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed1-20261017T032931/result.json",
+      "sha256": "e9d0d9e394a4ab1162279182b602975c28e5a1e433dfa47dae85ba92857bc9f9",
+      "bytes": 24440
+    },
+    {
+      "path": "adaptive_compute/lm/mod_c50-seed2-20261017T085155/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/mod_c50-seed2-20261017T085155/result.json",
+      "sha256": "2d6f479995f7cf8cf1a1c6697a198fcf946ee6f9f6144f63f97df020e7b0ef3e",
+      "bytes": 24496
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed0-20261017T011725/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed0-20261017T011725/result.json",
+      "sha256": "56ec011bf998ee84a3561d3c31314373f8b66dfa3e0f6727d43abaf34e53728a",
+      "bytes": 25035
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed1-20261017T063919/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed1-20261017T063919/result.json",
+      "sha256": "c7899bd93e5bb90414b88f4f22be0e33393a3b9d241738117c339edfc9b429e9",
+      "bytes": 24991
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c30-seed2-20261017T120145/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c30-seed2-20261017T120145/result.json",
+      "sha256": "e7f0ae3b0506bf6d0e87ed99df7e67581033f3998e439f1062ea547344ef7865",
+      "bytes": 25041
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed0-20261017T000313/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed0-20261017T000313/result.json",
+      "sha256": "32ebbe53df6203218fdb30537f14194cd0ce7ce885747fa72d2dee847a569acd",
+      "bytes": 24991
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed1-20261017T052511/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed1-20261017T052511/result.json",
+      "sha256": "2b3a26c3b356e7619592ce6507c4b7983070725f753a238dc4a29cc93ce5f77d",
+      "bytes": 24966
+    },
+    {
+      "path": "adaptive_compute/lm/ti_tnn_adaptive_c50-seed2-20261017T104736/result.json",
+      "experiment": "adaptive_compute",
+      "original_path": "runs/titnn_efficiency/lm/ti_tnn_adaptive_c50-seed2-20261017T104736/result.json",
+      "sha256": "69a7c6b0e01d80ed9aa7558785177166bae20c01ebd5c681868757ab711e5058",
+      "bytes": 24953
+    },
+    {
+      "path": "adaptive_compute_init_control/frontier_ic_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/frontier_ic_init_control.json",
+      "sha256": "3145946f8783004c1710e24035b8e935c32aa78faa864f2b5fe9b0a0b8295c11",
+      "bytes": 4581,
+      "original_sha256": "25da46d2af0f506133cbe262563e23b3c537d79d002a60059850b2daf50b19a4",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/frontier_ic_v2_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/frontier_ic_v2_init_control.json",
+      "sha256": "91bf93188e40baad66c98a023f567975cd6bfddd0737dc1f5bf997d641b3e328",
+      "bytes": 4230
+    },
+    {
+      "path": "adaptive_compute_init_control/init_diagnostics.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/init_diagnostics.json",
+      "sha256": "3ddd69b1b0182b767a47a3d6fe62489de85c4d8d377be859662014e131be0b3f",
+      "bytes": 31543
+    },
+    {
+      "path": "adaptive_compute_init_control/latency_init_control.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/latency_init_control.json",
+      "sha256": "407844b450a33186ed714516dc45b2dbd7a3f3c7e30ffae6dcd13d810e0f90a6",
+      "bytes": 35066,
+      "original_sha256": "4c0ec7257be3f3a3b5a8bbd0ecdf1743511baab5f44e8f1200211befbe9889fd",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed0-20261017T213423/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed0-20261017T213423/result.json",
+      "sha256": "e134c8870252d35dc7f8438defab6d49c7376acfbf427d1c68bb38a51f417ee1",
+      "bytes": 27574,
+      "original_sha256": "1c25b3604bab7dc16c41e0dc001ec9f6beb64a607477c8c2534752d088191025",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed1-20261017T234427/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed1-20261017T234427/result.json",
+      "sha256": "75f37c2bdef4caf60ee1beca34a35ccd8ddf308adc1a0ee62c1f5d0277d9a847",
+      "bytes": 27597,
+      "original_sha256": "f40427e5787298cb9dd4b0ca66916efcc2c04439e2f883e6f75dc7418abb4c19",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/moe_top1_initdense-seed2-20261018T015412/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/moe_top1_initdense-seed2-20261018T015412/result.json",
+      "sha256": "691b22125ea606c9d3370324ce0ef65d9dd387cca833e25953718251c03291b2",
+      "bytes": 27562,
+      "original_sha256": "6b876a523eefda793003728952fc58c160c90c1a20f61ccc9aa46caca78a4863",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed0-20261017T201453/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed0-20261017T201453/result.json",
+      "sha256": "3b4538ff535e587c75d13e6c522b60c5521122529edaf9f4131323c7a65bf0b0",
+      "bytes": 26626,
+      "original_sha256": "6974a86e0bf9c5b0e07ce327801de363e2e3caca5a68cbb54b10386a98c970c3",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed1-20261017T224852/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed1-20261017T224852/result.json",
+      "sha256": "67515bf835618978b3f993a53542301c243c0abdfd1cccf8ed8e515d0a47b093",
+      "bytes": 26601,
+      "original_sha256": "ad3e5dad69dcf20ac615e0c773af3615206bed11d4460c915f2227425ed7b2b6",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "adaptive_compute_init_control/lm/ti_tnn_adaptive_c30_initdense-seed2-20261018T005825/result.json",
+      "experiment": "adaptive_compute_init_control",
+      "original_path": "runs/titnn_efficiency/lm_init_control/ti_tnn_adaptive_c30_initdense-seed2-20261018T005825/result.json",
+      "sha256": "0c94f20ff6ecc8c40a44b4164f66e90119280741a88331f382d8d7263a7d5081",
+      "bytes": 26612,
+      "original_sha256": "0384072a8ba19c948a4402af8ccaf1aab44bda623b182cad850036f335763312",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    }
+  ]
+}

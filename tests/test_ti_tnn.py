@@ -331,7 +331,7 @@ def test_coboundary_vanishes_exactly_on_transported_sections(seed):
     u, v = torch.tensor([0, 1, 2, 3, 0, 2]), torch.tensor([1, 2, 3, 0, 3, 1])
     s_v = torch.stack([s_u[i] @ bridge.transport(int(u[i]), int(v[i])).T for i in range(6)])
     assert bridge.coboundary(s_u, s_v, u, v).abs().max() < 1e-9
-    assert torch.allclose(bridge(s_u, s_v, u, v), bridge.edge_to_model.bias.expand(6, 3, 16), **EXACT)
+    assert bridge(s_u, s_v, u, v).abs().max() < 1e-9  # no news: no correction
     assert bridge.coboundary(s_u, s_v + 1.0, u, v).abs().max() > 0.1  # an inconsistent section is detected
 
 
@@ -369,6 +369,50 @@ def test_naturality_loss_follows_the_router():
     assert cdl.naturality_loss(branches, bridge, pair01, floor=0.05).item() > 1e-3  # the floor still constrains idle pairs
     w = cdl.pair_weights(pair01, floor=0.0)
     assert torch.allclose(w, w.T) and w[0, 1] == pytest.approx(0.5) and w[2, 3] == 0
+
+
+def test_every_morphism_starts_in_the_rotation_component():
+    """Naturality needs corresponding generators to share a determinant sign, which training cannot change."""
+    cat = cdl.routing_world_category()
+    for seed in range(20):
+        torch.manual_seed(seed)
+        branch = cdl.CDLSpecialistBranch(16, 8, 1.0, cat)
+        bridge = cdl.FunctorialSheafBridge(3, 8, 16)
+        dets = torch.cat([torch.linalg.det(branch.matrices()), torch.linalg.det(bridge.maps())])
+        assert torch.allclose(dets, torch.ones_like(dets), atol=1e-5)
+
+
+def _optimize_naturality(branches, bridge, steps=600):
+    params = [p for b in branches for p in b.morphisms.parameters()] + list(bridge.restrict.parameters())
+    opt = torch.optim.Adam(params, lr=0.05)
+    probs = torch.full((4, len(branches)), 1.0 / len(branches))
+    for _ in range(steps):
+        loss = cdl.naturality_loss(branches, bridge, probs, floor=0.0)
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+    return loss.item()
+
+
+def test_naturality_is_reachable_from_the_default_initialization():
+    cat = cdl.routing_world_category()
+    torch.manual_seed(0)  # a seed whose independent O(d) starts had opposite signs before the fix
+    branches = [cdl.CDLSpecialistBranch(16, 8, 1.0, cat) for _ in range(2)]
+    assert _optimize_naturality(branches, cdl.FunctorialSheafBridge(2, 8, 16)) < 1e-3
+
+
+def test_opposite_determinants_put_a_floor_under_the_naturality_defect():
+    """If M^u_g is a rotation and M^v_g a reflection, ||T M^u_g - M^v_g T||_F >= 2 for every orthogonal T."""
+    cat = cdl.routing_world_category()
+    torch.manual_seed(0)
+    branches = [cdl.CDLSpecialistBranch(16, 8, 1.0, cat) for _ in range(2)]
+    reflect = torch.eye(8)
+    reflect[0, 0] = -1.0
+    with torch.no_grad():
+        branches[1].morphisms["region_of"].weight = reflect @ branches[1].morphisms["region_of"].weight
+    d, G = 8, len(cat.names)
+    w = cdl.pair_weights(torch.full((4, 2), 0.5), 0.0)[0, 1].item()
+    assert _optimize_naturality(branches, cdl.FunctorialSheafBridge(2, 8, 16)) >= w * (4 / d) / G - 1e-4
 
 
 def test_morphisms_cannot_collapse_to_zero():

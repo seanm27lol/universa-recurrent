@@ -794,3 +794,10 @@ def test_part_a_v2_evaluation_applies_its_frozen_rules():
     v[frontier.V2_FIXED_MOE]["seeds"] = [200, 201, 202, 203]
     r = frontier.evaluate_v2(v, rows)
     assert not r["inventory"]["complete"] and r["learning_fixes_work"] is None
+def test_latency_inventory_matches_absolute_and_relative_run_paths():
+    doc = latency_doc()
+    for row in doc["runs"]:
+        row["dir"] = "/home/user/repo/" + row["dir"]  # latency.py run with absolute roots
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is True
+    doc["runs"][0]["dir"] = "/home/user/repo/runs/other/ti_tnn_adaptive_c30-seed0"
+    assert frontier.latency_prediction(doc, LAT_MANIFEST)["holds"] is None

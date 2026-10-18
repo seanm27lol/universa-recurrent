@@ -1,0 +1,1281 @@
+{
+  "config": {
+    "benchmark": "unsupervised",
+    "device": "auto",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "steps": 3000,
+    "batch": 512,
+    "length": 6,
+    "stress_length": 10,
+    "n_countries": 64,
+    "comp_countries": 512,
+    "n_fillers": 48,
+    "queries_per_country": 16,
+    "eval_size": 8192,
+    "eval_seed": 999001,
+    "lr": 0.002,
+    "d_model": 128,
+    "d_stalk": 64,
+    "d_edge": 32,
+    "tau_start": 1.0,
+    "tau_end": 0.3,
+    "alpha_brier": 0.5,
+    "lambda_flops": 0.05,
+    "bridge_threshold": 0.5,
+    "bridge_cost": 1.0,
+    "log_every": 500,
+    "out": "runs/titnn"
+  },
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "device": "cuda",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10",
+    "capability": "12.1"
+  },
+  "world": {
+    "vocab_size": 191,
+    "types": [
+      [
+        "region_of",
+        "country",
+        0,
+        0
+      ],
+      [
+        "size_of",
+        "capital",
+        1,
+        0
+      ],
+      [
+        "capital_of",
+        "country",
+        2,
+        1
+      ],
+      [
+        "country_of",
+        "capital",
+        2,
+        1
+      ],
+      [
+        "echo",
+        "filler",
+        3,
+        0
+      ]
+    ],
+    "must_separate": [
+      [
+        "region_of",
+        "capital_of"
+      ],
+      [
+        "size_of",
+        "country_of"
+      ]
+    ]
+  },
+  "variants": {
+    "supervised": {
+      "labels": true,
+      "use_bridge": true
+    },
+    "unsup_bridge": {
+      "labels": false,
+      "use_bridge": true
+    },
+    "unsup_nobridge": {
+      "labels": false,
+      "use_bridge": false
+    }
+  },
+  "runs": [
+    {
+      "seed": 0,
+      "variant": "supervised",
+      "train_seconds": 49.6,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "unsup_bridge",
+      "train_seconds": 38.4,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    },
+    {
+      "seed": 0,
+      "variant": "unsup_nobridge",
+      "train_seconds": 27.2,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "supervised",
+      "train_seconds": 39.3,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "unsup_bridge",
+      "train_seconds": 39.9,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 1,
+          "size_of": 1,
+          "capital_of": 0,
+          "country_of": 0,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6462665714246377,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 1,
+          "size_of": 1,
+          "capital_of": 0,
+          "country_of": 0,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6462665714246377,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    },
+    {
+      "seed": 1,
+      "variant": "unsup_nobridge",
+      "train_seconds": 33.0,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 1,
+          "size_of": 1,
+          "capital_of": 0,
+          "country_of": 0,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6462665714246377,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 1,
+          "size_of": 1,
+          "capital_of": 0,
+          "country_of": 0,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6462665714246377,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "supervised",
+      "train_seconds": 43.0,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "echo": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 1,
+          "capital_of": 2,
+          "country_of": 2,
+          "echo": 3
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.9088948282257793,
+        "distinct_majority_branches": 4,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.40380859375,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.40380859375,
+        "bridge_execs_per_query": 0.40380859375
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "unsup_bridge",
+      "train_seconds": 39.7,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "size_of": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 0,
+          "size_of": 0,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.6473973904682198,
+        "distinct_majority_branches": 2,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    },
+    {
+      "seed": 2,
+      "variant": "unsup_nobridge",
+      "train_seconds": 22.1,
+      "structure": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 2,
+          "size_of": 2,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.809140849015597,
+        "distinct_majority_branches": 3,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      },
+      "stress": {
+        "task_acc": 1.0,
+        "task_acc_by_type": {
+          "region_of": 1.0,
+          "size_of": 0.9999999403953552,
+          "capital_of": 0.9999999403953552,
+          "country_of": 0.9999999403953552,
+          "echo": 1.0
+        },
+        "branch_share_by_type": {
+          "region_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "size_of": [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "capital_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "country_of": [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          "echo": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "majority_branch": {
+          "region_of": 2,
+          "size_of": 2,
+          "capital_of": 1,
+          "country_of": 1,
+          "echo": 0
+        },
+        "purity": 1.0,
+        "nmi_type_branch": 0.809140849015597,
+        "distinct_majority_branches": 3,
+        "required_pairs_separated": true,
+        "bridge_fire_rate": 0.0,
+        "bridge_fire_rate_by_type": {
+          "region_of": 0.0,
+          "size_of": 0.0,
+          "capital_of": 0.0,
+          "country_of": 0.0,
+          "echo": 0.0
+        },
+        "branch_execs_per_query": 1.0,
+        "bridge_execs_per_query": 0.0
+      }
+    }
+  ]
+}
