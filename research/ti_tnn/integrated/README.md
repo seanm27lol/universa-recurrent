@@ -1,9 +1,13 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: plan PR 3 implemented and tested.** Typed contracts, a finite world, an immutable module
-registry, a type-checked runtime and an independent reference evaluator. There are no learned modules yet:
-every module here is a lookup table, so nothing in this directory is an experiment result. The
-[integration plan](../integration_plan.md) says what lands next.
+**Status: plan PRs 3 and 4 implemented and tested.**
+- **PR 3:** typed contracts, a finite world, an immutable module registry, a type-checked runtime and an
+  independent reference evaluator.
+- **PR 4:** small learned networks as relation operators (`modules.py`), confirmed against a frozen
+  protocol ([report](../reports/typed_composition_v1.md)). They learned every fact of three fresh worlds,
+  and a network shared by every relation kept `capital_of` and `largest_city_of` apart.
+
+The [integration plan](../integration_plan.md) says what lands next.
 
 ```bash
 python research/ti_tnn/integrated/demo.py              # the Ardel example, its trace and the reference
@@ -63,7 +67,7 @@ cases:
 | [`runtime.py`](runtime.py) | 3 (done) | Rejects ill-typed programs before any module runs; executes under a budget; records the values passed |
 | [`reference.py`](reference.py) | 3 (done) | An independent evaluator that reads facts directly and imports nothing from the runtime |
 | [`demo.py`](demo.py) | 3 (done) | The README example, runnable |
-| `modules.py` | 4 | Learned relation operators |
+| [`modules.py`](modules.py) | 4 (done) | Learned relation operators: specialists, a shared network, a flat top-1 mixture, an endpoint-only control and an answer-only baseline; [`../bench/typed_composition.py`](../bench/typed_composition.py) trains and scores them |
 | `records.py`, `verification.py`, `interventions.py` | 5 | Execution records, an independent checker, counterfactual interventions |
 | `routing.py`, `calibration.py` | 6 | Jev as a planning policy; versioned calibration and abstention |
 | `recurrence.py`, `costs.py` | 7 | Bounded recurrence with explicit continuation state; complete cost accounting |
@@ -74,6 +78,7 @@ cases:
 - **The structure is supplied.** The types, relations and entity vocabulary come from the benchmark. A
   success shows computation over supplied structure, not that a model discovered it.
 - **Several properties hold by construction for a supplied program.** Composition and trace faithfulness
-  follow from the discrete interface; the plan's review amendments say how they will be reported.
+  follow from the discrete interface. The PR 4 protocol labels these outcomes in advance, and the report
+  does not count them as findings.
 - **Calibration is not integrity.** A router's calibration says nothing about whether a downstream
   module changed.

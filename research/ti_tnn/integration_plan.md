@@ -393,7 +393,8 @@ The first useful outcome is a reproducible finite-domain demonstration of typed 
 | 1. Repair TI-TNN diagnostics and accounting | Open: [#41](https://github.com/seanm27lol/universa-recurrent/pull/41) |
 | 2. Specify CDL integration and guarantee boundaries | This document, [`integrated/README.md`](integrated/README.md), [`docs/cdl_connections.md`](../../docs/cdl_connections.md), the boundary tests in `tests/test_ti_tnn_guarantee_boundaries.py` and the ledger rows |
 | 3. Typed contracts and reference execution | Implemented and tested: [`integrated/`](integrated/) (`contracts.py`, `relations.py`, `registry.py`, `runtime.py`, `reference.py`, `demo.py`), `tests/test_ti_tnn_integrated_contracts.py` |
-| 4–9 | Not started |
+| 4. Learned relation operators and composition controls | Confirmed against its frozen gates: [`integrated/modules.py`](integrated/modules.py), [`bench/typed_composition.py`](bench/typed_composition.py), [protocol](protocols/typed_composition_v1.md), [report](reports/typed_composition_v1.md), `tests/test_ti_tnn_typed_composition.py`. All six predictions hold; only atomic competence and same-endpoint discrimination are findings, the rest hold by construction or design |
+| 5–9 | Not started |
 
 ## 11. Review amendments (2026-10-18)
 
