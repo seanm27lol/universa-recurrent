@@ -85,6 +85,12 @@ class TypedValue:
     type_version: int = 1
 
 
+def canonical(value: TypedValue) -> TypedValue:
+    """A fresh plain TypedValue with the same three fields. Whatever else a module attached to its output (a
+    subclass, an extra attribute) is dropped, so nothing outside the declared value can reach the next module."""
+    return TypedValue(value.type_id, value.value, value.type_version)
+
+
 @dataclass(frozen=True)
 class ModuleVersion:
     """An immutable module identity: which relation it implements, and a content hash of what implements it."""
@@ -155,6 +161,7 @@ class StepRecord:
     consumed: TypedValue
     produced: TypedValue | None
     cost: int = 1
+    intervened: bool = False  # the consumed value was supplied by an intervention, not by the previous step
 
 
 @dataclass(frozen=True)

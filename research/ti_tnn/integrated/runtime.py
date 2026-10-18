@@ -6,8 +6,13 @@ every relation has a registered module. An ill-typed program (say `capital_of, o
 an Airport) is rejected without executing anything. A valid one runs step by step:
 - each module receives only the current typed value, not the question, the trace or anything else;
 - its output must have the relation's declared target type and lie in that type's domain;
+- the output is rebuilt as a plain TypedValue, so a module cannot pass hidden data along with it;
 - the value recorded in the trace is the exact object passed to the next module;
 - the budget bounds the number of module applications; running out abstains, with the partial trace.
+
+An intervention (plan PR 5) replaces the value a given step consumes with another value of the same type,
+checked before anything runs, and the trace marks that step as intervened. The runtime cannot stop a module
+from reading state it keeps itself (a shared context, a cached input); `interventions.py` tests for that.
 
 What this establishes, by construction: type validity and a trace that records the values passed. It does
 not establish that the answer is right; that is the reference evaluator's job (`reference.py`), and the
@@ -17,7 +22,7 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from .contracts import (Budget, Decision, Execution, Program, RunState, StepRecord, TypedValue, TypeSpec)
+from .contracts import (Budget, Decision, Execution, Program, RunState, StepRecord, TypedValue, TypeSpec, canonical)
 from .registry import Registry
 
 
@@ -45,22 +50,47 @@ def program_problems(program: Program, registry: Registry, types: Mapping[str, T
     return out
 
 
-def execute(program: Program, registry: Registry, types: Mapping[str, TypeSpec], budget: Budget) -> Execution:
-    """Run a supplied program under a budget; see the module docstring for the contract."""
+def intervention_problems(program: Program, registry: Registry, types: Mapping[str, TypeSpec],
+                          interventions: Mapping[int, TypedValue]) -> list[str]:
+    """Why a set of interventions cannot apply to a (well-typed) program; empty if they can."""
+    out = []
+    for i, v in sorted(interventions.items()):
+        if not 0 <= i < len(program.steps):
+            out.append(f"intervention at step {i}: the program has {len(program.steps)} steps")
+            continue
+        need = registry.relations[program.steps[i]].source
+        if v.type_id != need or v.type_id not in types or not types[need].contains(v.value):
+            out.append(f"intervention at step {i}: {v!r} is not a {need}")
+    return out
+
+
+def execute(program: Program, registry: Registry, types: Mapping[str, TypeSpec], budget: Budget,
+            interventions: Mapping[int, TypedValue] | None = None) -> Execution:
+    """Run a supplied program under a budget; see the module docstring for the contract. `interventions`
+    maps a step index to the value that step consumes instead of the previous step's output."""
+    interventions = dict(interventions or {})
     problems = program_problems(program, registry, types)
+    if not problems:
+        problems = intervention_problems(program, registry, types, interventions)
     if problems:
         return Execution("rejected", Decision("abstain", reason="ill-typed program"), None, (), None, tuple(problems))
-    value: TypedValue = program.input
+    value: TypedValue = canonical(program.input)
     trace: list[StepRecord] = []
     identity = registry.identity
     for i, rid in enumerate(program.steps):
+        intervened = i in interventions
+        if intervened:
+            value = canonical(interventions[i])
         state = RunState(value, i, len(trace), identity)
         if len(trace) >= budget.max_steps:
             return Execution("abstained", Decision("abstain", rid, reason="budget exhausted"), None, tuple(trace), state)
         module = registry.module(rid)
         spec = registry.relations[rid]
         produced = module.apply(value)
-        trace.append(StepRecord(i, rid, module.version.module_id, module.version.identity, value, produced))
+        if produced is not None:
+            produced = canonical(produced)  # nothing a module attaches to its output travels further
+        trace.append(StepRecord(i, rid, module.version.module_id, module.version.identity, value, produced,
+                                intervened=intervened))
         if produced is None:
             return Execution("abstained", Decision("abstain", rid, module.version.module_id, "module gave no answer"),
                              None, tuple(trace), state)
