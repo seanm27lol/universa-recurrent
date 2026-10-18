@@ -27,7 +27,15 @@ import ti_tnn_models as models  # research/ti_tnn/bench is on sys.path when this
 def variant_name(args) -> str:
     name = models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
                                models.size_tag(args.d_model, args.layers, args.ffn_mult))
-    return name if args.expert_init == "legacy" else f"{name}_init{args.expert_init}"
+    if args.expert_init != "legacy":
+        name += f"_init{args.expert_init}"
+    if args.cap_warmup_frac > 0:
+        name += f"_warm{round(100 * args.cap_warmup_frac)}"
+    if args.skip_keeps_kv:
+        name += "_kv"
+    if args.shared_expert_frac > 0:
+        name += f"_sh{round(100 * args.shared_expert_frac)}"
+    return name
 
 
 def source_version() -> dict:
@@ -62,6 +70,11 @@ def parse_args(argv=None):
     p.add_argument("--dual-lr", type=float, default=0.01, help="adaptive variants: dual-ascent step for the price")
     p.add_argument("--save-model", action="store_true", help="save the trained weights (for bench/latency.py)")
     p.add_argument("--expert-init", choices=models.EXPERT_INITS, default="legacy", help="expert weight initialization")
+    p.add_argument("--cap-warmup-frac", type=float, default=0.0,
+                   help="adaptive variants: anneal the cap from full compute to the target over this fraction of steps")
+    p.add_argument("--skip-keeps-kv", action="store_true", help="adaptive variants: a skipped token still writes its key and value")
+    p.add_argument("--shared-expert-frac", type=float, default=0.0,
+                   help="mixtures: share of the hidden width given to an always-on shared MLP")
     p.add_argument("--batch", type=int, default=32, help="sequences per step")
     p.add_argument("--tokens", type=float, default=1e8, help="training token budget")
     p.add_argument("--lr", type=float, default=6e-4)
@@ -157,7 +170,8 @@ def train(args) -> dict:
                              n_layers=args.layers, n_heads=args.heads, ffn=args.ffn, n_experts=args.experts,
                              d_edge=args.d_edge, balance_coef=args.balance_coef, bridge_cost=args.bridge_cost,
                              ffn_mult=args.ffn_mult, small_mult=args.small_mult,
-                             target_compute=args.target_compute, dual_lr=args.dual_lr, expert_init=args.expert_init)
+                             target_compute=args.target_compute, dual_lr=args.dual_lr, expert_init=args.expert_init,
+                             skip_keeps_kv=args.skip_keeps_kv, shared_expert_frac=args.shared_expert_frac)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for n, p in model.named_parameters() if p.dim() >= 2]
     no_decay = [p for n, p in model.named_parameters() if p.dim() < 2]
@@ -187,7 +201,7 @@ def train(args) -> dict:
         (loss + aux).backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        model.dual_update(stats)
+        model.dual_update(stats, models.cap_schedule(args.target_compute, step, steps, args.cap_warmup_frac))
         if step % args.log_every == 0 or step == steps - 1:
             fire = [float(s["fire_rate"]) for s in stats if "fire_rate" in s]
             realized = [float(s["realized_cost"]) for s in stats if "realized_cost" in s]
