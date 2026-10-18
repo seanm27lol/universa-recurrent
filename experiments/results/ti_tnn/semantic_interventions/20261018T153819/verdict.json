@@ -1,0 +1,103 @@
+{
+  "complete": true,
+  "families": {
+    "specialists": {
+      "runs": 15,
+      "competent": 15,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 1.0,
+      "same_endpoint_counterfactual_accuracy_min": 1.0,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "shared_dense": {
+      "runs": 15,
+      "competent": 15,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 1.0,
+      "same_endpoint_counterfactual_accuracy_min": 1.0,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "moe": {
+      "runs": 15,
+      "competent": 15,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 1.0,
+      "same_endpoint_counterfactual_accuracy_min": 1.0,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "endpoint": {
+      "runs": 15,
+      "competent": 0,
+      "answer_accuracy_min": 0.7678227360308285,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 0.8042918454935623,
+      "same_endpoint_counterfactual_accuracy_min": 0.6436107854630715,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "table": {
+      "runs": 3,
+      "competent": 3,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 1.0,
+      "same_endpoint_counterfactual_accuracy_min": 1.0,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "question_reading": {
+      "runs": 3,
+      "competent": 3,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 0.8837882547559966,
+      "counterfactual_accuracy_min": 0.8795284030010718,
+      "same_endpoint_counterfactual_accuracy_min": 0.8534583821805393,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    },
+    "hidden_dependency": {
+      "runs": 3,
+      "competent": 3,
+      "answer_accuracy_min": 1.0,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 1.0,
+      "same_endpoint_counterfactual_accuracy_min": 1.0,
+      "undeclared_calls_max": 477,
+      "disabled_unchanged_min": 0.6676300578034682,
+      "law_defects_max": 0
+    },
+    "swapped": {
+      "runs": 3,
+      "competent": 0,
+      "answer_accuracy_min": 0.7678227360308285,
+      "history_independence_min": 1.0,
+      "counterfactual_accuracy_min": 0.8073867296542838,
+      "same_endpoint_counterfactual_accuracy_min": 0.64947245017585,
+      "undeclared_calls_max": 0,
+      "disabled_unchanged_min": 1.0,
+      "law_defects_max": 0
+    }
+  },
+  "predictions": {
+    "1_records_complete_and_replay": true,
+    "2_pure_modules_use_only_their_input": true,
+    "3a_atomic_competence_replicates": true,
+    "3b_counterfactual_accuracy_given_competence": true,
+    "4_question_reading_caught_only_by_interventions": true,
+    "5_hidden_dependency_caught_by_probe_and_disabling": true,
+    "6_lawful_change_classified": true,
+    "7_endpoint_faithful_but_wrong": true
+  }
+}

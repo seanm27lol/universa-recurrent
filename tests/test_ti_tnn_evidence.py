@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 286
+    assert len(manifest["files"]) == 288
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -87,3 +87,12 @@ def test_typed_composition_verdict_rebuilds_from_the_bundle():
     assert all(typed["families"][f]["competent_runs"] == 15 for f in ("specialists", "shared_dense", "moe"))
     assert typed["families"]["endpoint"]["same_endpoint_min"] == pytest.approx(6 / 19)
     assert typed["families"]["answer_only"]["intermediate_min"] is None
+
+
+def test_semantic_interventions_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")  # semantic_interventions.py imports the learned modules
+    sem = tables.semantic_interventions_tables()  # raises unless it matches the recorded verdict.json
+    assert sem["complete"] and all(sem["predictions"].values())
+    assert (sem["executions"], sem["interventions"]) == (83616, 387264)
+    assert sem["families"]["endpoint"]["law_defects_max"] == 0 and sem["families"]["endpoint"]["competent"] == 0
+    assert sem["families"]["hidden_dependency"]["undeclared_calls_max"] == 477

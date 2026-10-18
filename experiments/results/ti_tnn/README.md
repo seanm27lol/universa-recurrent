@@ -40,6 +40,7 @@ records the declared source version and command.
 | `lookup_init_check/` | 3 (`moe_top1` with dense-matched experts, seeds 0–2) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_hops_init_check.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_hops_init_check.md) | `1ac2b1c` (recorded in each run) |
 | `lookup_learning_diagnostics/` | 75 (every development-seed run; exploratory, not pre-registered) | none (exploratory) | [part A v2 report](../../../research/ti_tnn/reports/adaptive_compute_part_a_v2.md#development-diagnostics) | `1ac2b1c` to `fb39904` (recorded in each run) |
 | `adaptive_compute_part_a_v2/` | 51 (50 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_part_a_v2.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_part_a_v2.md) | `2a34728` (recorded in each run); evaluation at `dcf115d` |
+| `semantic_interventions/` | 2 (72 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/semantic_interventions_v1.md) | [report](../../../research/ti_tnn/reports/semantic_interventions_v1.md) | `75cb47a` (committed immediately before the run) |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 
 **Source versions.**
