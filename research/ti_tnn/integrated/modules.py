@@ -218,7 +218,62 @@ def train_family(world, family: str, seed: int, d: int = 32, hidden: int = 64, s
         fwd = (lambda idx, ri=ri: net(idx, torch.full_like(idx, ri)))
         version = ModuleVersion(f"{r}_{family}", r, family, module_identity(family, r, net), "float32")
         modules[r] = LearnedModule(version, fwd, vocab, world.relations[r].source, world.relations[r].target, False)
-    return {"modules": modules, "loss": loss.item()}
+    return {"modules": modules, "loss": loss.item(), "net": net}
+
+
+def finetune(world, family: str, base: dict, seed: int, relations: tuple[str, ...] = (), steps: int = 300,
+             lr: float = 3e-3, rehearse: bool = True) -> dict:
+    """Plan PR 8: continue training a trained family on `world`, an updated copy of the world it learned.
+
+    - `specialists`: only the networks of `relations` are copied and trained, on all of their relation's
+      facts; every other module object is reused as it is.
+    - `shared_dense`: the one shared network is copied and trained, so every module changes. With
+      `rehearse`, it trains on every relation's facts; without, only on the facts of `relations`, the same
+      data the specialists get.
+
+    Returns the same shape as `train_family`."""
+    import copy
+    torch.manual_seed(seed)
+    vocab = Vocabulary(world)
+    if family == "specialists":
+        modules = dict(base["modules"])
+        for r in relations:
+            net = copy.deepcopy(modules[r].forward).train()
+            x, y = facts_tensors(world, vocab, r, local=True)
+            opt = torch.optim.Adam(net.parameters(), lr=lr)
+            for _ in range(steps):
+                loss = F.cross_entropy(net(x), y)
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+            net.eval()
+            version = ModuleVersion(f"{r}_{family}", r, family, module_identity(family, r, net), "float32")
+            modules[r] = LearnedModule(version, net, vocab, world.relations[r].source, world.relations[r].target, True)
+        return {"modules": modules, "loss": None}
+    if family != "shared_dense":
+        raise ValueError(f"no fine-tuning for {family}")
+    net = copy.deepcopy(base["net"]).train()
+    xs, rs, ys, tts = [], [], [], []
+    for ri, r in enumerate(vocab.relations):
+        if not rehearse and r not in relations:
+            continue
+        x, y = facts_tensors(world, vocab, r, local=False)
+        xs.append(x); ys.append(y); rs.append(torch.full_like(x, ri)); tts += [world.relations[r].target] * len(x)
+    x, rel, y = torch.cat(xs), torch.cat(rs), torch.cat(ys)
+    mask = type_mask(vocab, tts)
+    opt = torch.optim.Adam(net.parameters(), lr=lr)
+    for _ in range(steps):
+        loss = masked_ce(net(x, rel), y, mask)
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+    net.eval()
+    modules = {}
+    for ri, r in enumerate(vocab.relations):
+        fwd = (lambda idx, ri=ri: net(idx, torch.full_like(idx, ri)))
+        version = ModuleVersion(f"{r}_{family}", r, family, module_identity(family, r, net), "float32")
+        modules[r] = LearnedModule(version, fwd, vocab, world.relations[r].source, world.relations[r].target, False)
+    return {"modules": modules, "loss": loss.item(), "net": net}
 
 
 def answer_only_predict(net: AnswerOnly, vocab: Vocabulary, world, path: tuple[str, ...], start: str) -> str:
