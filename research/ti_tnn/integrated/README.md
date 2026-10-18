@@ -1,7 +1,14 @@
 # Integrated typed execution (TI-TNN × CDL)
 
-**Status: planned.** No code here yet; the [integration plan](../integration_plan.md) says what will
-land and in which order. Nothing in this directory is an experiment result.
+**Status: plan PR 3 implemented and tested.** Typed contracts, a finite world, an immutable module
+registry, a type-checked runtime and an independent reference evaluator. There are no learned modules yet:
+every module here is a lookup table, so nothing in this directory is an experiment result. The
+[integration plan](../integration_plan.md) says what lands next.
+
+```bash
+python research/ti_tnn/integrated/demo.py              # the Ardel example, its trace and the reference
+python -m pytest tests/test_ti_tnn_integrated_contracts.py
+```
 
 ## A concrete example
 
@@ -46,15 +53,16 @@ cases:
 - a branch's output layer changes while the route probabilities and every categorical defect stay
   identical.
 
-## Planned layout
+## Layout (done and planned)
 
 | File | Plan PR | Purpose |
 |---|---|---|
-| `contracts.py` | 3 | `TypeSpec`, `RelationSpec`, `ModuleVersion`, `TypedValue`, `Program`, `Decision`, `Budget`, `RunState` |
-| `relations.py` | 3 | The finite world: types, relations with unique identities, facts |
-| `registry.py` | 3 | Immutable module versions |
-| `runtime.py` | 3 | Type-checked execution under a budget, recording the values actually consumed |
-| `reference.py` | 3 | An independent finite-world evaluator that reads facts directly |
+| [`contracts.py`](contracts.py) | 3 (done) | `TypeSpec`, `RelationSpec`, `ModuleVersion`, `TypedValue`, `Program`, `Decision`, `Budget`, `RunState`, `StepRecord`, `Execution` |
+| [`relations.py`](relations.py) | 3 (done) | The finite world: the Ardel fixture, a seeded generator, relations with unique identities, validated facts, restricted-domain laws |
+| [`registry.py`](registry.py) | 3 (done) | Immutable module versions; table modules |
+| [`runtime.py`](runtime.py) | 3 (done) | Rejects ill-typed programs before any module runs; executes under a budget; records the values passed |
+| [`reference.py`](reference.py) | 3 (done) | An independent evaluator that reads facts directly and imports nothing from the runtime |
+| [`demo.py`](demo.py) | 3 (done) | The README example, runnable |
 | `modules.py` | 4 | Learned relation operators |
 | `records.py`, `verification.py`, `interventions.py` | 5 | Execution records, an independent checker, counterfactual interventions |
 | `routing.py`, `calibration.py` | 6 | Jev as a planning policy; versioned calibration and abstention |
