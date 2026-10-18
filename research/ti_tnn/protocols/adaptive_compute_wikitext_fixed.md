@@ -55,3 +55,18 @@ learning, not the gap to dense.
 
 **Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_wikitext_fixed.sh`, from the run directory's
 repository root.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** 3 runs from `16bba5c`, 2026-10-18 14:21 to 17:52 UTC, with no failures. The latency pass ran
+  at the same commit.
+- **Predictions 1–4 failed** (57.21 validation perplexity).
+- **Prediction 5 was first reported untestable because no candidate rows were found.** `latency.py` at
+  `16bba5c` named runs without the warm-up, visible-skip and shared-expert suffixes (a bookkeeping bug).
+  `latency.run_name` now uses `lm.py`'s own naming.
+- **Re-judged with corrected names, on the same recorded rows, prediction 5 is still untestable.** Every
+  checkpoint fails the frozen execution check (logits up to 19% of their scale apart; top-1 agreement
+  0.95–0.98 on some windows).
+- **The decoder used here also computed an uncharged query projection** for visible skipped tokens. That
+  is fixed in `decode.py` since; the timing was not repeated.
+
