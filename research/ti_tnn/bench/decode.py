@@ -48,7 +48,8 @@ def kv_append(attn: models.CausalSelfAttention, h: torch.Tensor, cache: Cache) -
     """Write this token's key and value to the cache without attending (a skipped but visible token)."""
     D = h.shape[-1]
     H = attn.n_heads
-    _, k, v = attn.qkv(h).split(D, dim=-1)
+    w = attn.qkv.weight  # rows [0, D) are the query projection: not computed, as the 2D^2 charge assumes
+    k, v = F.linear(h, w[D:2 * D]), F.linear(h, w[2 * D:])
     cache.k[:, :, cache.n] = k.view(1, H, D // H).to(cache.k.dtype)
     cache.v[:, :, cache.n] = v.view(1, H, D // H).to(cache.v.dtype)
     cache.n += 1

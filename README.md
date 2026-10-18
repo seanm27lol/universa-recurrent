@@ -322,8 +322,8 @@ branches, a gated sheaf bridge combines them. Results so far, on synthetic toy t
   - TI-TNN beats plain layer skipping at the same cap, but with 4× the parameters. An
     initialization control widens that lead, from 3.9 to 6.0 perplexity.
   - On a synthetic lookup task, fixing how these models learn (a shared expert, keeping skipped
-    tokens visible, longer training) lets TI-TNN solve the task at 30% compute on 2 of 5 seeds. The
-    dense reference itself succeeds on only 3 of 5, so the efficiency test was untestable.
+    tokens visible, longer training) lets TI-TNN solve the task at 30% charged compute on 2 of 5 seeds.
+    The dense reference itself succeeds on only 3 of 5, so the efficiency test was untestable.
   - On a lookup task built to favor it, the adaptive models, and even a full-compute
     mixture of experts, mostly failed to learn at all.
 
