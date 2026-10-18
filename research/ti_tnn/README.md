@@ -323,6 +323,15 @@ fed another country's Trait-B stalk.
   - **Initialization control** ([report](reports/adaptive_compute_init_control.md)). With experts
     initialized like the dense MLP, TI-TNN at 30% improves from 49.09 to 46.94 and its lead over
     plain skipping grows. The top-1 mixture's edge over dense disappears (39.99 against 39.85).
+  - **Learning fixed, part A v2** ([report](reports/adaptive_compute_part_a_v2.md)). Diagnostics found
+    three causes, each with a fix:
+    - chaining needs about 3× more training, even for dense;
+    - routing tokens across experts blocks the lookup circuit;
+    - skipping hides facts that later queries need.
+
+    With fresh seeds and the fixes, a mixture of experts with a shared expert learns the task on 5 of
+    5 seeds. TI-TNN at 30% compute learns it on 2 of 5, perfectly when it does. The dense reference
+    learns it on only 3 of 5, so by the frozen rule TI-TNN's efficiency test was untestable.
   - **Lookup task.** On the task built to favor adaptive compute, the adaptive models
     mostly never learned the multi-step lookups, and neither did a full-compute
     mixture of experts. The 8-layer dense model scored 1.000.

@@ -1,0 +1,412 @@
+{
+  "config": {
+    "ffn": "mod",
+    "seed": 204,
+    "d_model": 128,
+    "layers": 8,
+    "heads": 4,
+    "experts": 8,
+    "d_edge": 32,
+    "ffn_mult": 4,
+    "small_mult": 1,
+    "balance_coef": 0.01,
+    "bridge_cost": 0.01,
+    "target_compute": 0.3,
+    "dual_lr": 0.01,
+    "expert_init": "legacy",
+    "cap_warmup_frac": 0.5,
+    "router_full_bias": 0.0,
+    "skip_keeps_kv": true,
+    "shared_expert_frac": 0.0,
+    "hop_curriculum_frac": 0.0,
+    "balanced_loss": false,
+    "task_symbols": 32,
+    "task_facts": 8,
+    "task_max_hops": 3,
+    "task_counts": 16,
+    "task_queries": 12,
+    "task_length": 128,
+    "task_one_hop_share": 50,
+    "steps": 18000,
+    "batch": 64,
+    "lr": 0.001,
+    "min_lr_frac": 0.1,
+    "warmup_frac": 0.02,
+    "weight_decay": 0.1,
+    "eval_sequences": 2048,
+    "log_every": 500,
+    "device": "cuda",
+    "out": "runs/titnn_efficiency/hops_v2"
+  },
+  "task": {
+    "symbols": 32,
+    "facts": 8,
+    "max_hops": 3,
+    "counts": 16,
+    "queries": 12,
+    "length": 128,
+    "one_hop_share": 50
+  },
+  "model_config": {
+    "vocab_size": 52,
+    "context": 128,
+    "d_model": 128,
+    "n_layers": 8,
+    "n_heads": 4,
+    "ffn": "mod",
+    "n_experts": 8,
+    "d_edge": 32,
+    "balance_coef": 0.01,
+    "bridge_cost": 0.01,
+    "bridge_threshold": 0.5,
+    "dropout": 0.0,
+    "ffn_mult": 4,
+    "small_mult": 1,
+    "target_compute": 0.3,
+    "dual_lr": 0.01,
+    "expert_init": "legacy",
+    "router_full_bias": 0.0,
+    "skip_keeps_kv": true,
+    "shared_expert_frac": 0.0
+  },
+  "parameters": {
+    "total": 1602320,
+    "active_top1": 1602320,
+    "expert_or_mlp_params_per_layer": 131072
+  },
+  "source": {
+    "commit": "dcf115d7928258309cf70d8c3e27158fd126f220",
+    "tracked_changes": false
+  },
+  "same_size_dense_non_embedding_macs_per_token": 1704960,
+  "train_seconds": 262.267085313797,
+  "eval": {
+    "hard_accuracy": 0.23615242540836334,
+    "accuracy_by_hops": {
+      "1": 0.42619627714157104,
+      "2": 0.14631782472133636,
+      "3": 0.13594317436218262
+    },
+    "easy_accuracy": 1.0,
+    "loss": 0.19070994974386812,
+    "sequences": 2048,
+    "non_embedding_macs_per_token": 492423.7978515625,
+    "relative_compute": 0.2978847026824951,
+    "relative_compute_by_kind": {
+      "bos": 0.2708333432674408,
+      "fact": 0.25052323937416077,
+      "hop_token": 0.2708333432674408,
+      "easy": 0.2708333432674408,
+      "query": 0.5864613056182861
+    },
+    "relative_compute_by_hops": {
+      "1": 0.610764741897583,
+      "2": 0.5596468448638916,
+      "3": 0.5643892288208008
+    }
+  },
+  "train_log": [
+    {
+      "step": 0,
+      "loss": 4.021576404571533,
+      "aux": 0.0,
+      "elapsed": 0.5030636787414551,
+      "realized_compute": 0.592450462281704,
+      "cost_price": 0.0
+    },
+    {
+      "step": 500,
+      "loss": 0.2980548143386841,
+      "aux": 0.0,
+      "elapsed": 7.702557563781738,
+      "realized_compute": 0.5647684745490551,
+      "cost_price": 0.0
+    },
+    {
+      "step": 1000,
+      "loss": 0.25430238246917725,
+      "aux": 0.0,
+      "elapsed": 14.91395902633667,
+      "realized_compute": 0.568494163453579,
+      "cost_price": 0.0
+    },
+    {
+      "step": 1500,
+      "loss": 0.2483110874891281,
+      "aux": 0.0,
+      "elapsed": 22.456721544265747,
+      "realized_compute": 0.5866266936063766,
+      "cost_price": 0.0
+    },
+    {
+      "step": 2000,
+      "loss": 0.24365346133708954,
+      "aux": 0.0,
+      "elapsed": 29.883391857147217,
+      "realized_compute": 0.6023432314395905,
+      "cost_price": 0.0
+    },
+    {
+      "step": 2500,
+      "loss": 0.2444247007369995,
+      "aux": 0.0,
+      "elapsed": 37.57027292251587,
+      "realized_compute": 0.6046702042222023,
+      "cost_price": 0.0
+    },
+    {
+      "step": 3000,
+      "loss": 0.2449306696653366,
+      "aux": 0.0,
+      "elapsed": 45.052600145339966,
+      "realized_compute": 0.5978546105325222,
+      "cost_price": 0.0
+    },
+    {
+      "step": 3500,
+      "loss": 0.24185100197792053,
+      "aux": 0.0,
+      "elapsed": 52.2662615776062,
+      "realized_compute": 0.5933914296329021,
+      "cost_price": 0.0
+    },
+    {
+      "step": 4000,
+      "loss": 0.24572637677192688,
+      "aux": 0.0,
+      "elapsed": 59.547961473464966,
+      "realized_compute": 0.5711771696805954,
+      "cost_price": 0.0
+    },
+    {
+      "step": 4500,
+      "loss": 0.24050424993038177,
+      "aux": 0.0,
+      "elapsed": 66.77099275588989,
+      "realized_compute": 0.6068700104951859,
+      "cost_price": 0.0
+    },
+    {
+      "step": 5000,
+      "loss": 0.2398524433374405,
+      "aux": 0.0,
+      "elapsed": 73.99411749839783,
+      "realized_compute": 0.5967356152832508,
+      "cost_price": 0.0
+    },
+    {
+      "step": 5500,
+      "loss": 0.2414468377828598,
+      "aux": 2.769512138911523e-05,
+      "elapsed": 81.20630478858948,
+      "realized_compute": 0.571139007806778,
+      "cost_price": 4.0929910028353333e-05
+    },
+    {
+      "step": 6000,
+      "loss": 0.24122805893421173,
+      "aux": 2.5167852072627284e-05,
+      "elapsed": 88.48770236968994,
+      "realized_compute": 0.532012939453125,
+      "cost_price": 3.733694029506296e-05
+    },
+    {
+      "step": 6500,
+      "loss": 0.24121053516864777,
+      "aux": 0.0,
+      "elapsed": 95.7317202091217,
+      "realized_compute": 0.47991690039634705,
+      "cost_price": 0.0
+    },
+    {
+      "step": 7000,
+      "loss": 0.24000398814678192,
+      "aux": 0.0,
+      "elapsed": 103.10888433456421,
+      "realized_compute": 0.45161183550953865,
+      "cost_price": 0.0
+    },
+    {
+      "step": 7500,
+      "loss": 0.1954873949289322,
+      "aux": 0.0002283141657244414,
+      "elapsed": 110.3296148777008,
+      "realized_compute": 0.41577911376953125,
+      "cost_price": 0.0005821599625051022
+    },
+    {
+      "step": 8000,
+      "loss": 0.13246311247348785,
+      "aux": 0.010430390015244484,
+      "elapsed": 117.54940009117126,
+      "realized_compute": 0.39231873489916325,
+      "cost_price": 0.028807463124394417
+    },
+    {
+      "step": 8500,
+      "loss": 0.11477164179086685,
+      "aux": 0.04063888639211655,
+      "elapsed": 124.76575493812561,
+      "realized_compute": 0.3681208286434412,
+      "cost_price": 0.13021253049373627
+    },
+    {
+      "step": 9000,
+      "loss": 0.12508393824100494,
+      "aux": 0.08342880010604858,
+      "elapsed": 131.9826159477234,
+      "realized_compute": 0.33310190588235855,
+      "cost_price": 0.2823759615421295
+    },
+    {
+      "step": 9500,
+      "loss": 0.18290039896965027,
+      "aux": 0.09854444116353989,
+      "elapsed": 139.195148229599,
+      "realized_compute": 0.29883321560919285,
+      "cost_price": 0.3491422235965729
+    },
+    {
+      "step": 10000,
+      "loss": 0.2239665389060974,
+      "aux": 0.09881969541311264,
+      "elapsed": 146.40581846237183,
+      "realized_compute": 0.2889277134090662,
+      "cost_price": 0.3310891091823578
+    },
+    {
+      "step": 10500,
+      "loss": 0.2192194163799286,
+      "aux": 0.07664869725704193,
+      "elapsed": 153.61522150039673,
+      "realized_compute": 0.2981465645134449,
+      "cost_price": 0.28954005241394043
+    },
+    {
+      "step": 11000,
+      "loss": 0.23379550874233246,
+      "aux": 0.07138746976852417,
+      "elapsed": 160.82997012138367,
+      "realized_compute": 0.29721831530332565,
+      "cost_price": 0.2736956775188446
+    },
+    {
+      "step": 11500,
+      "loss": 0.21520306169986725,
+      "aux": 0.067982979118824,
+      "elapsed": 168.0477635860443,
+      "realized_compute": 0.299036655575037,
+      "cost_price": 0.25014573335647583
+    },
+    {
+      "step": 12000,
+      "loss": 0.21969419717788696,
+      "aux": 0.06252017617225647,
+      "elapsed": 175.25920581817627,
+      "realized_compute": 0.29817199148237705,
+      "cost_price": 0.23370179533958435
+    },
+    {
+      "step": 12500,
+      "loss": 0.2180866301059723,
+      "aux": 0.06120156869292259,
+      "elapsed": 182.50341725349426,
+      "realized_compute": 0.2943954449146986,
+      "cost_price": 0.21690897643566132
+    },
+    {
+      "step": 13000,
+      "loss": 0.19558395445346832,
+      "aux": 0.054295122623443604,
+      "elapsed": 189.75750494003296,
+      "realized_compute": 0.2981211356818676,
+      "cost_price": 0.20218272507190704
+    },
+    {
+      "step": 13500,
+      "loss": 0.1735977977514267,
+      "aux": 0.056563686579465866,
+      "elapsed": 196.98529291152954,
+      "realized_compute": 0.2951202392578125,
+      "cost_price": 0.1935606449842453
+    },
+    {
+      "step": 14000,
+      "loss": 0.17125551402568817,
+      "aux": 0.048590049147605896,
+      "elapsed": 204.21458673477173,
+      "realized_compute": 0.2968749962747097,
+      "cost_price": 0.1731831133365631
+    },
+    {
+      "step": 14500,
+      "loss": 0.1948336362838745,
+      "aux": 0.03948131576180458,
+      "elapsed": 211.4459307193756,
+      "realized_compute": 0.29402668587863445,
+      "cost_price": 0.1415591984987259
+    },
+    {
+      "step": 15000,
+      "loss": 0.18644163012504578,
+      "aux": 0.026605460792779922,
+      "elapsed": 218.67400550842285,
+      "realized_compute": 0.2949040699750185,
+      "cost_price": 0.09954919666051865
+    },
+    {
+      "step": 15500,
+      "loss": 0.19365857541561127,
+      "aux": 0.015356181189417839,
+      "elapsed": 226.01218509674072,
+      "realized_compute": 0.2909876499325037,
+      "cost_price": 0.05974166840314865
+    },
+    {
+      "step": 16000,
+      "loss": 0.2444363534450531,
+      "aux": 0.007875262759625912,
+      "elapsed": 233.3217556476593,
+      "realized_compute": 0.2964299526065588,
+      "cost_price": 0.029650267213582993
+    },
+    {
+      "step": 16500,
+      "loss": 0.2012440413236618,
+      "aux": 0.00012587099627126008,
+      "elapsed": 240.58750367164612,
+      "realized_compute": 0.2962519358843565,
+      "cost_price": 0.00039731705328449607
+    },
+    {
+      "step": 17000,
+      "loss": 0.20370568335056305,
+      "aux": 0.0,
+      "elapsed": 247.81219625473022,
+      "realized_compute": 0.29662068001925945,
+      "cost_price": 0.0
+    },
+    {
+      "step": 17500,
+      "loss": 0.1936880499124527,
+      "aux": 0.0,
+      "elapsed": 255.05082201957703,
+      "realized_compute": 0.2988713551312685,
+      "cost_price": 0.0
+    },
+    {
+      "step": 17999,
+      "loss": 0.19280096888542175,
+      "aux": 0.0,
+      "elapsed": 262.26696729660034,
+      "realized_compute": 0.2976887971162796,
+      "cost_price": 0.0
+    }
+  ],
+  "environment": {
+    "torch": "2.10.0+cu130",
+    "python": "3.11.14",
+    "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+    "gpu": "NVIDIA GB10"
+  }
+}

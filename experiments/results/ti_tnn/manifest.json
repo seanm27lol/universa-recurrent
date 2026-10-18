@@ -50,6 +50,27 @@
       "source": "630cab2 (training; recorded in each run); analysis by frontier.py --init-control",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_init_control.sh; python research/ti_tnn/bench/frontier.py --lm runs/titnn_bench/lm runs/titnn_efficiency/lm --init-control runs/titnn_efficiency/lm_init_control --latency runs/titnn_efficiency/latency_init_control.json",
       "note": "Eight files had absolute local paths (the run script passed absolute roots); the prefix was removed for publication. Each such file lists its original sha256, which the analysis's run manifest refers to."
+    },
+    "lookup_init_check": {
+      "what": "lookup task: moe_top1 with dense-matched expert initialization, seeds 0-2 (frozen check)",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_hops_init_check.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_hops_init_check.md",
+      "source": "1ac2b1c (recorded in each run)",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_hops_init_check.sh"
+    },
+    "lookup_learning_diagnostics": {
+      "what": "EXPLORATORY: every development-seed run (seeds 100-103, plus one seed-0 reproduction) used to diagnose the lookup-task learning failures; not pre-registered results",
+      "protocol": null,
+      "report": "research/ti_tnn/reports/adaptive_compute_part_a_v2.md#development-diagnostics",
+      "source": "1ac2b1c to fb39904 on ti-tnn-learnable-adaptive / ti-tnn-learnfix-dev (recorded in each run)",
+      "command": "research/ti_tnn/bench/hops.py, one round per directory"
+    },
+    "adaptive_compute_part_a_v2": {
+      "what": "part A v2: the lookup task with learning fixed, seeds 200-204, 18,000 steps, and the frozen evaluator's output",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_part_a_v2.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_part_a_v2.md",
+      "source": "2a34728 (recorded in each run); evaluation by frontier.py --hops-v2 at dcf115d",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_part_a_v2.sh; python research/ti_tnn/bench/frontier.py --hops-v2 runs/titnn_efficiency/hops_v2 --out runs/titnn_efficiency/frontier.json"
     }
   },
   "files": [
@@ -1118,6 +1139,1165 @@
       "bytes": 26612,
       "original_sha256": "0384072a8ba19c948a4402af8ccaf1aab44bda623b182cad850036f335763312",
       "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed"
+    },
+    {
+      "path": "lookup_init_check/hops_init_check/moe_top1_initdense-seed0-20261017T121048/result.json",
+      "experiment": "lookup_init_check",
+      "original_path": "runs/titnn_efficiency/hops_init_check/moe_top1_initdense-seed0-20261017T121048/result.json",
+      "original_sha256": "7dbe5436009429902e3d31e1313eec4a9673d1d98eb6cbe848ccd29875b6165f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2dc24b2a3d2c4c39df7080c2b5ad1a2d9fa2df45695daff5f9a559c4c94fef38",
+      "bytes": 4982
+    },
+    {
+      "path": "lookup_init_check/hops_init_check/moe_top1_initdense-seed1-20261017T121505/result.json",
+      "experiment": "lookup_init_check",
+      "original_path": "runs/titnn_efficiency/hops_init_check/moe_top1_initdense-seed1-20261017T121505/result.json",
+      "original_sha256": "e0653619a6d194d9ab7a30e581617723eb5d575968252f8d55313cd025504c4b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "e0584b50a9d0cd9e76eb91542c493cb09f1b150ecfab54e301fa12adb1a95dde",
+      "bytes": 4985
+    },
+    {
+      "path": "lookup_init_check/hops_init_check/moe_top1_initdense-seed2-20261017T121951/result.json",
+      "experiment": "lookup_init_check",
+      "original_path": "runs/titnn_efficiency/hops_init_check/moe_top1_initdense-seed2-20261017T121951/result.json",
+      "original_sha256": "5ca5442197ded9ff726afe0c03eabb099af4de40e0bf466dd59853d345e046b6",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "8ebb1ada73d04edc6f0867f2cbf5660d81d35e94c79b9941ee26827bf2e94763",
+      "bytes": 4982
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/dense_bal-seed100-20261017T134420/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/dense_bal-seed100-20261017T134420/result.json",
+      "original_sha256": "bbfb5760cac37ab16c4f46c49fa9f9d03817e7bb8eb6b0fdd0ce8f6ce07c6bb1",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "3cb7769178514b1da2ea56568bc9128950d1858f1662399b89ee014368f6f76a",
+      "bytes": 4845
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/dense_bal-seed101-20261017T142322/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/dense_bal-seed101-20261017T142322/result.json",
+      "original_sha256": "ae6121525fc0bd2c17c2c5bc9fb61ac32f765365903efd77377901958cbbcb1e",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "cab98990fba4bb24d910e222a3292125a2e569f0bc5595bf18ef602557f3b8b4",
+      "bytes": 4838
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30-seed100-20261017T122258/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30-seed100-20261017T122258/result.json",
+      "original_sha256": "f0149015b6dce86472393c12e60275484a28c2f8cb9ca81585cdf2554e39f4c8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "df8430f405e6b9569916d264209cb9ac2ae1d490970a6d067d15ae9d83db7a07",
+      "bytes": 5187
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30-seed101-20261017T130302/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30-seed101-20261017T130302/result.json",
+      "original_sha256": "7f86bb66076c1a484cc28e50b6cee5cfef0497876bd740b0a42a95f050befd5c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "270f258658f2f18c14587abd0996e3bafd6ae312acf0c9a3bcb757bbd1bf0366",
+      "bytes": 5142
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_bias3-seed100-20261017T124238/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_bias3-seed100-20261017T124238/result.json",
+      "original_sha256": "1adaf12d6992cc4dfd0c3a0887c459b7e74df213f4e6ced06187bd28dbcadb30",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ca3f95ff2113d0f1b3a362012c75ee503c06c84132b4c3355cc54da8e515d38f",
+      "bytes": 5163
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_bias3-seed101-20261017T132312/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_bias3-seed101-20261017T132312/result.json",
+      "original_sha256": "b89e1cffb02a39b10957e875717274cc018c844fcb5e75100fc7a49983083267",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "281f4e4880c4ed6da2744fbcea5884a050fadf8d2e39177fce04eaacd1ba8924",
+      "bytes": 5072
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_kv-seed100-20261017T140007/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_kv-seed100-20261017T140007/result.json",
+      "original_sha256": "1d7ab0cf0ffed8488566d3276a7a41956650d16ffc7bd7ec803b4fed33e21719",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "c6db0b51b794e3d69de9aecc350d199d73890ce0cff83d4dfb8af4e13c29257f",
+      "bytes": 5342
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_kv-seed101-20261017T143741/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_kv-seed101-20261017T143741/result.json",
+      "original_sha256": "2c806a90f3b60820d1f98d84d0bbf9fa9bbf0871fb3d30582740459fa09747a9",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1d0c4d52e63417ca19bf3cf333d1b1eb8323b4dd52df0e6986ff1d3f3324b6db",
+      "bytes": 5504
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50-seed100-20261017T123303/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50-seed100-20261017T123303/result.json",
+      "original_sha256": "7ef89a388a147fdd103cced9ec3131406300f4179e6f956b5317900fef54b6df",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2d9fc1523d2287a6e6d2be49c9f6e422513143c05f66607c39ed991fecfa95d3",
+      "bytes": 5095
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50-seed101-20261017T131306/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50-seed101-20261017T131306/result.json",
+      "original_sha256": "9323cdeb46e5a3ad67663822908590052dd9dd3588fe1729313496ae6192595b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "94e44eb44ea0150f1fa75bee39d41e43114517c47b26d6d5a6b0cec2a37184d8",
+      "bytes": 5087
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_bias3-seed100-20261017T125258/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_bias3-seed100-20261017T125258/result.json",
+      "original_sha256": "01d89327f4d24c8c91edb7513a0fd4600ed2aa4e91b3e7c031c6ff77669403ae",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "e98830164108208d2748bd9abec504fe0e51249ac3073b9b7a19f144e884efe0",
+      "bytes": 5218
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_bias3-seed101-20261017T133349/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_bias3-seed101-20261017T133349/result.json",
+      "original_sha256": "4e731c949f259736b64d25b34715f188e3d8f0a3538b6065ed0baefc0ce38986",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ab57ec10e92549e95104ed28c694298f7ef3b2d8ec0cf0a83338bf0b1449c978",
+      "bytes": 5173
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_kv-seed100-20261017T140306/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_kv-seed100-20261017T140306/result.json",
+      "original_sha256": "5bce748ca5e5d6136d1a0a9576dff1d048cc5aa58efd0da13cb87efd40393c82",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "263fcbd9241b60f915f12d4543bf8831bf3808b218c7dbf69333a6b60f416ff5",
+      "bytes": 5445
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_kv-seed101-20261017T144040/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_kv-seed101-20261017T144040/result.json",
+      "original_sha256": "a1b0f742641c43f9087090d260e1743787ea3f2f851c60fe4636776222464808",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "52d1d0de543320c3222549939a821f55c0cca816562d556bd7f607c605690d3e",
+      "bytes": 5356
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_kv_bal-seed100-20261017T140559/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_kv_bal-seed100-20261017T140559/result.json",
+      "original_sha256": "344d75e1385a2a9e7d5807663de56fd14de755a1837f42a9269c408f671166c9",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "396a0dd15ca641b79fe7708c2a512ca7c29a919a5b31203d0d8822c9407b5300",
+      "bytes": 5401
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/mod_c30_warm50_kv_bal-seed101-20261017T144341/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/mod_c30_warm50_kv_bal-seed101-20261017T144341/result.json",
+      "original_sha256": "781c8bd801282bd3e089f432cdbea314e6684fa506801ed5ced7097aa76cfc63",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f7d0810e7531141d2e0b14b2f1415685905989b1218a1614f90ee4d0d303e72b",
+      "bytes": 5417
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/moe_top1_initdense-seed100-20261017T135707/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/moe_top1_initdense-seed100-20261017T135707/result.json",
+      "original_sha256": "15285bccd607f194fb72c957bab1d2a220c3f404871923c411997d08dc22bf97",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "dcbe54cbe81a0ad6c0f1908fcd13a54dc67672ece9a6701014b0256f32e6f853",
+      "bytes": 7422
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/moe_top1_initdense-seed101-20261017T143511/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/moe_top1_initdense-seed101-20261017T143511/result.json",
+      "original_sha256": "da6b09348b774ed35a5ca778b4f7debbfadccca62ea7fbb885d13ae9bcf8356b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "44e260d3c843695fcf30f676a59473f6dea6e5b448db98aca1e88322a2b271b0",
+      "bytes": 7408
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/moe_top1_initdense_bal-seed100-20261017T134907/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/moe_top1_initdense_bal-seed100-20261017T134907/result.json",
+      "original_sha256": "df6c1ecd3b20c79af2a717cd29b02341280709d89fb688bb1d752fdb1f9b4498",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "6cbd8568e4e23f2dec0bffb16b1f9f232511c0122d2a47ea7f0a292a7b309542",
+      "bytes": 5064
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/moe_top1_initdense_bal-seed101-20261017T142741/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/moe_top1_initdense_bal-seed101-20261017T142741/result.json",
+      "original_sha256": "c6d8c886a144ce2597f61bbb5d6f3b55c28ec197e684ae45361fd04e7c13335c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "087a8ed92326740e565921d081b53522bf383ab5229bc69b7fcd9dfdb38abc79",
+      "bytes": 5054
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense-seed100-20261017T123029/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense-seed100-20261017T123029/result.json",
+      "original_sha256": "cf4581aa025b837f3861d8cdc9b7d0987efb85c1d1975c1b08b43ccebfd0ab82",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "e21507bc9fa58c138ece5e1850fb4802604e35e6af6aba17f370cc6044b31ef2",
+      "bytes": 5332
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense-seed101-20261017T131002/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense-seed101-20261017T131002/result.json",
+      "original_sha256": "1027a2430d604fa35a5452de99dd45c689c5a2b6f345dca5724d0816aeed48c4",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "673fb7c9dce5dd8f594a9c7459e012bdb6a0131e9279e1f4f8bc23e8516e49eb",
+      "bytes": 5384
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_bias3-seed100-20261017T124954/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_bias3-seed100-20261017T124954/result.json",
+      "original_sha256": "56270d3d9240bbcdab10b706c4d7775811766e2e8394dffbc092ec0e36ae7c82",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "0c429d5559e36171e15d0a05215a7852ec8e91b42e49c1c3b788b9480ccb2694",
+      "bytes": 5331
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_bias3-seed101-20261017T133045/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_bias3-seed101-20261017T133045/result.json",
+      "original_sha256": "4ea07ce85f7d8b23a8130dd52020379663deb4391a758479a8672ee8b65de348",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "70f4a77ee6556e479ee34540370ee713f0caade3eef243f5074d3e2fa0e948b3",
+      "bytes": 5315
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50-seed100-20261017T124004/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50-seed100-20261017T124004/result.json",
+      "original_sha256": "25decb97fe7f1ee763ff1b3637015783848c539cc9dc71922d8110732fcd5997",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "4e8e0f7227ad2bc916a236bd7e14a8fe46db47309b9c4e0550d2ec44fce1ca8c",
+      "bytes": 5385
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50-seed101-20261017T132038/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50-seed101-20261017T132038/result.json",
+      "original_sha256": "8d678d3c574156380943025cb4de263db36cfbf7c7e8d22876ed89621291ce81",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "862dcdd6d7a4d5eac8b6e0a9eca0955973469530681accaf5ad3fe5d01265110",
+      "bytes": 5341
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_bias3-seed100-20261017T130028/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_bias3-seed100-20261017T130028/result.json",
+      "original_sha256": "786020e55c3c08d7164dc8027d112e0736dec9674464b19d51b91a6522fb79da",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "d3e1c540cd4a6e141e5022585dba09b669431a7a3ccddad8dc761a00a129adea",
+      "bytes": 5411
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_bias3-seed101-20261017T134122/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_bias3-seed101-20261017T134122/result.json",
+      "original_sha256": "a6db8a0fc92def4ea4648db52cf98985d8d76da8245ffe948a8e0363680c96ab",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b5e9ab8d070751834039b86dcc6d195649a86ff3eadd802d3298c7f85a035195",
+      "bytes": 5420
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv-seed100-20261017T141322/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv-seed100-20261017T141322/result.json",
+      "original_sha256": "035e6b16b31a3fe6e7bc419d42b16ae532a090ff05d2879af218ecc1032ccce9",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b44e51efc185eb7b5f0b8a75b40887b222acb72c70b023c27d7c4d58a680a4f5",
+      "bytes": 5495
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv-seed101-20261017T145040/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv-seed101-20261017T145040/result.json",
+      "original_sha256": "02e0d17c7878b7b06ccd4a2872649a6632135723496f9abf008175c2e3277236",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b4f3dccfed426b57605ca35c4bc1d06d783cdbbc1b3360e12429b1f5da8c15f4",
+      "bytes": 5544
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv_bal-seed100-20261017T142051/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv_bal-seed100-20261017T142051/result.json",
+      "original_sha256": "f6ea8cc6c19fda812e16759def68c21dd4617e8fdc507c62c81b0fd0abadd9fd",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ef8c1d693fa4352f57c68d945ed88c4367e6cab22ce6b61841559087d5469c1c",
+      "bytes": 5476
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv_bal-seed101-20261017T145740/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev/ti_tnn_adaptive_c30_initdense_warm50_kv_bal-seed101-20261017T145740/result.json",
+      "original_sha256": "e63cafbd87636b46817f7c3cf53d8b69f1e20cf2572265169d7acdf37e4e69f2",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "5b8e9fa3531c33d4738204611a70028148a9292aa62acb27656b8b196abf4432",
+      "bytes": 5529
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/dense-seed0-20261017T153128/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/dense-seed0-20261017T153128/result.json",
+      "original_sha256": "4de5cda4a47fee0fbb9d65e1f0235dc63d6cc99b7c7c71a5ec2cbaa4dc4a5caf",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "9940a749b9b114bc174c1d6b030d3bde07d6626761e62671efdbd74bf799bbb5",
+      "bytes": 4804
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/dense-seed100-20261017T150107/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/dense-seed100-20261017T150107/result.json",
+      "original_sha256": "0dd26efd9e7300cae4a90fcdcaca4004320d30a385cfda368ba2056ad9a41ce7",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "03009300248e326e2bd0796d6f827884eb16b8cd5dc4a83502e869f113fe2fe6",
+      "bytes": 4862
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/dense-seed101-20261017T150325/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/dense-seed101-20261017T150325/result.json",
+      "original_sha256": "df221ebabdc5087d243154f202d75b616e127863a3999b8485377ebaecc583b8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "613dc8388d1ed3dc43c9265b5caac7b9f8ff2d56049ae071986683a6429e6556",
+      "bytes": 4855
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/dense-seed102-20261017T150619/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/dense-seed102-20261017T150619/result.json",
+      "original_sha256": "831611ab90a34da6fcbedb6e776abe5111ccd29075b60b5826590a7b546af208",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "989dd11ffa516a137016183cac97fea7ddd903ce260fde0658260f0b122d4538",
+      "bytes": 4851
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/dense-seed103-20261017T151849/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/dense-seed103-20261017T151849/result.json",
+      "original_sha256": "0c6caa170bac09d3e0955f377ff9c86b93e0fe020ca6f9c072d56e68b0c68593",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "262bdf6e6474ce9467ab39c3ad2b01289ebad5ffecefbb2b4bf4731a3d0d979d",
+      "bytes": 4854
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/mod_c30_warm50_kv-seed102-20261017T150918/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/mod_c30_warm50_kv-seed102-20261017T150918/result.json",
+      "original_sha256": "a5ca422ddb25ecc89dc816454756662d41ec76af10d384ab2ef1b62955e8d8db",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "3fbfa4c1c68232a1fd9e833738d6be6c815849cc0cb5d0bcacb0d82e8f75b1b6",
+      "bytes": 5403
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/mod_c30_warm50_kv-seed103-20261017T152118/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/mod_c30_warm50_kv-seed103-20261017T152118/result.json",
+      "original_sha256": "3535bd6382da2f9e7031eeded5ad80d9578c64176e7de95e2b383ca5f1841d09",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "4b004c07e02fb5886c0b81e0d718638990d0275e41251a4ac67b4330a2f8c47e",
+      "bytes": 5346
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/ti_tnn_adaptive_c30_initdense_warm50_kv-seed102-20261017T151616/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/ti_tnn_adaptive_c30_initdense_warm50_kv-seed102-20261017T151616/result.json",
+      "original_sha256": "3c745a02e0141ec2a71f83b16ddf54f76f4a47af11a905c466a1e218cbb62dbc",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f4a4f7afe769f55063fe896c168caedf8d585f2d0f4e34fca87dcbdc703eb5ec",
+      "bytes": 5485
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev3/ti_tnn_adaptive_c30_initdense_warm50_kv-seed103-20261017T152814/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev3/ti_tnn_adaptive_c30_initdense_warm50_kv-seed103-20261017T152814/result.json",
+      "original_sha256": "445d4486126a1c73df555532c5af7b552590aa3188379796f333882b095b6115",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1ecc01f95844f76225956c5a709a7c1c996be374c55da036446640dda6ac24d5",
+      "bytes": 5496
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50-seed100-20261017T153503/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50-seed100-20261017T153503/result.json",
+      "original_sha256": "b09cf37192e3d40f63e98f05553bd95acab59b7502d8877cb4c3f3f972512026",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "6d8a2df9acaffe69f639abf86fd8e755f6e147253e06bc700d39e25b2c186bcf",
+      "bytes": 4843
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50-seed101-20261017T153820/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50-seed101-20261017T153820/result.json",
+      "original_sha256": "6471395534d612d079521c0de4a7dc81dad10f8393adbb04d504d94a3192cdec",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "053efb8d2553216446df42d294de95adbed6883ca90731a840a0785e3f987647",
+      "bytes": 4872
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50-seed102-20261017T154029/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50-seed102-20261017T154029/result.json",
+      "original_sha256": "734ba7f62724ec828afcbd11c6d82658ac65716b4d8a6623ce984b0ac5861612",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "a816a0e5dd11804bc02f8da1e6bbc5f5370f203337162571627377b818c9f4f5",
+      "bytes": 4841
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50-seed103-20261017T154322/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50-seed103-20261017T154322/result.json",
+      "original_sha256": "bae0e5be844594ec55eb845de1c62db38f0daeb1071cace7349facf6d4864ac7",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "18dddbd3d043d259706230416424bfa57871dd016f5a6653e28d7fdb36431be0",
+      "bytes": 4871
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50_s18000-seed100-20261017T161148/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50_s18000-seed100-20261017T161148/result.json",
+      "original_sha256": "006207916191113bfcd291e3371c162a0d01b321fd2e72224898638c2e6d7e86",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1e7439620050fa304f7dfdd33909198be75c878c6f00d68c11b0c2f42826f7a3",
+      "bytes": 9206
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50_s18000-seed101-20261017T161626/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50_s18000-seed101-20261017T161626/result.json",
+      "original_sha256": "7d5c02c15593de4367941133db57f0a5cd427bf4d66a9239bc3b1c639642a7a7",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "5a3170dd5ca13f340e14fc54e592fb186a85ea2a1e85a54c673316f5b8866217",
+      "bytes": 9197
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50_s18000-seed102-20261017T162149/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50_s18000-seed102-20261017T162149/result.json",
+      "original_sha256": "2d56b67179699d72c7a45468e39caca5b272aac628ed73a008487d23147d8c50",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "921e1fc3c44697db1f43938174fb26d95ac2d27b6eb10977c67e5f60b5906c67",
+      "bytes": 9222
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_cur50_s18000-seed103-20261017T162638/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_cur50_s18000-seed103-20261017T162638/result.json",
+      "original_sha256": "b7d929facdb1c15366f3b82d906429ededbcb7264dac04a5872e04e741c32c92",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1fcec6d7eb46337dce8dd2663d6820a413701f67655c74d367725bf3f25a64d9",
+      "bytes": 9202
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_s18000-seed100-20261017T154838/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_s18000-seed100-20261017T154838/result.json",
+      "original_sha256": "cf6aa010ca30ac8d127be826be5d733108ad71515c170b70163dd683147a398f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "fdeae289a81157c6dd9b7b698d86ac4e65bc24bed275ca8cb2207140c8429cb2",
+      "bytes": 9189
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_s18000-seed101-20261017T155433/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_s18000-seed101-20261017T155433/result.json",
+      "original_sha256": "56356d999096d2dd2f9b3ce5dbf5b3d20213db185a9c0ae4567ae5b7f5651902",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1ca5b2392ce0b16cb9e4ea2177a46509255bb9ac306751b1f5fa49bbf3410e3c",
+      "bytes": 9201
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_s18000-seed102-20261017T160020/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_s18000-seed102-20261017T160020/result.json",
+      "original_sha256": "cb79738a76935c2c4e6beb638ef259904c8e1c9bf655d6fdfb3cb00f59a3a7de",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "5d19cb6c9fce8bf1526320be3c678dbe02a9c2b35eae4d5d6332a6fd649ac1d5",
+      "bytes": 9213
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev4/dense_s18000-seed103-20261017T160632/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev4/dense_s18000-seed103-20261017T160632/result.json",
+      "original_sha256": "682fabd89d039dfc63d6a9f177087957958a0cf59e93dd61c94735e8931deb94",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "bc02bb7679cb4e003b429828577f711bbadedc9161d6e8d71bf35034fa8b3e6a",
+      "bytes": 9197
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/mod_c30_warm50_kv_s18000-seed100-20261017T163252/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/mod_c30_warm50_kv_s18000-seed100-20261017T163252/result.json",
+      "original_sha256": "6db91bdd45a60a0b54a8555f501506251b736ee36d0a41aad032f86af25f5d00",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "114195e4773cbf758457eaa52828ccdbf675be96b22e33d1c84c3a022d150bb4",
+      "bytes": 10676
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/mod_c30_warm50_kv_s18000-seed101-20261017T170828/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/mod_c30_warm50_kv_s18000-seed101-20261017T170828/result.json",
+      "original_sha256": "2f76b1a926aa995f3a84bb8c7b2a8ead3356b6b274f5a9090bba510c7d5b76ee",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "72ab11283384c0892bd6ee51bc21c36a9d1d66301f590e14572b328d84e3fe0f",
+      "bytes": 10691
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/moe_top1_initdense_s18000-seed100-20261017T170258/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/moe_top1_initdense_s18000-seed100-20261017T170258/result.json",
+      "original_sha256": "62ee7b3707e645830a6b69e8367ac6ce915c10021b06808b8277081ba60c0aa8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f720ca17698fff12460c020f581990011eddbb65bf31a12bd4111a32d2fdf0f0",
+      "bytes": 9806
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/moe_top1_initdense_s18000-seed101-20261017T173844/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/moe_top1_initdense_s18000-seed101-20261017T173844/result.json",
+      "original_sha256": "e80d349550a6f1d29226a9287414e219f4acfa94dd6faa68f85b6d397b14cfca",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "1f07b6d2a0a11d18c57dfc28099b0185c791a036b8e5c57b667de7a00dde7583",
+      "bytes": 9789
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/ti_tnn_adaptive_c30_initdense_warm50_kv_s18000-seed100-20261017T165134/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/ti_tnn_adaptive_c30_initdense_warm50_kv_s18000-seed100-20261017T165134/result.json",
+      "original_sha256": "6b304596609814884827724e4dd3d55c28ca7d66bf0508fecaab1573fc26bbc9",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "8ff66513219c0a8cb11a8332644b9980ccbd943f51052dc225b85b4f454e2706",
+      "bytes": 10745
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev5/ti_tnn_adaptive_c30_initdense_warm50_kv_s18000-seed101-20261017T172744/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev5/ti_tnn_adaptive_c30_initdense_warm50_kv_s18000-seed101-20261017T172744/result.json",
+      "original_sha256": "d232e5e7c86a85d788403c395855a33e2a4f2de72a569b9ba2ba398716cda6cc",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "74fd2fd84c7a7773f44118a66105d44a8e06f09e54010511a671846a48c6c6d9",
+      "bytes": 10845
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed100-20261017T174404/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed100-20261017T174404/result.json",
+      "original_sha256": "9e9855883644325272af95fc68f11534c951b306f5c33bb9d23fe231cb24c5c5",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f6da1ffefd21ca27c4984c3818fce910fb1685f3ca42beaaae96c7844c47cb0e",
+      "bytes": 4900
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed100-20261017T174702/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed100-20261017T174702/result.json",
+      "original_sha256": "79ba712d9a8bf8655272303df2f465cab5713029e5135a4d69c21462e91dd6c5",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "c8c709ff4a45e22fe1312985609d6278efe8f93659cde459b0d715e322846828",
+      "bytes": 5114
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed100-20261017T175626/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed100-20261017T175626/result.json",
+      "original_sha256": "b1b749cdb8cee7e35764d14152bee2a5bac31ed4b7094ef00fc8e5790d1bff86",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "7f100a4609cdca2e8b69491ce058b903d677834871f32a7e5d3bf11d347441e0",
+      "bytes": 5094
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed101-20261017T180121/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed101-20261017T180121/result.json",
+      "original_sha256": "0e76ec0cea59f9b1ebeb9bae4d75a3a30c8f4c804b0139f4e267e1dda5d3880c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "16d33d6ff62c915547fadd4f8edacac515258a8ad9fc1bef11bf96d3ca21da68",
+      "bytes": 4889
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed101-20261017T180417/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed101-20261017T180417/result.json",
+      "original_sha256": "674fec14eef74e71360b1b5cac5469bb95acb98172c2ac3ae2f59e79f1744d1b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "bddb0705b6352b4cde737a73e7c7da9616e2e89c2d7fd0ac66ae5a0c04f52b68",
+      "bytes": 5081
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top1_initdense-seed101-20261017T181410/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top1_initdense-seed101-20261017T181410/result.json",
+      "original_sha256": "10e0e60b57b8c96eebd34c91d611fe001408ddf5e9bc23420ca941939c91cd39",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "62adc1a20d479deb3f005084260fe48676a1f8e933b1e9e4a972f02e1ce75b8c",
+      "bytes": 5098
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top2_initdense-seed100-20261017T175205/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top2_initdense-seed100-20261017T175205/result.json",
+      "original_sha256": "a08b54ce40331ea321bc8fbe84e5a0e7ef818bcbb77e0377a95190d2aaa43d1a",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ed3e02623363f9da4a7fb70e5601c0bb9fb3734bf2985997c82261484f37bacc",
+      "bytes": 5098
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev6/moe_top2_initdense-seed101-20261017T180918/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev6/moe_top2_initdense-seed101-20261017T180918/result.json",
+      "original_sha256": "8a9fad3d7d69e8a39cf52687ab9467f9e75290a8c7e296e02a9f05e532fbef6a",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2fc741e22907be9c151ec04c1c2213864571a620f95ed3d57d7bf953497085a5",
+      "bytes": 5095
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev7/moe_top1_initdense_s18000-seed100-20261017T182423/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev7/moe_top1_initdense_s18000-seed100-20261017T182423/result.json",
+      "original_sha256": "6fb8a4f2418267a4a33bf0bc350833eb80370d0e51cce6e22119caaf883abc1f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "d39b2af99983dc7ee9a3d963c0a0e73fede4e241c260683d023d66f96ff3497b",
+      "bytes": 9785
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev7/moe_top1_initdense_s18000-seed100-20261017T183135/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev7/moe_top1_initdense_s18000-seed100-20261017T183135/result.json",
+      "original_sha256": "3f8a995efaeed463cd26992469b568674853fbe47aab5f1087b2a8aab8faad9c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ea6ca0a82c8e91612ab3e09d5261fa36ddb36caccee6a2ce57358a4e09a27d2e",
+      "bytes": 9799
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev7/moe_top1_initdense_s18000-seed101-20261017T184015/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev7/moe_top1_initdense_s18000-seed101-20261017T184015/result.json",
+      "original_sha256": "a32c67585670fb46b8e72a766921c255d6dfa6117873e7773e391b346fb13778",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2ed7138e27b4943d0b2e48940bd2818c04d0b6648e56c1a6b963f38763f7c46e",
+      "bytes": 9792
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev7/moe_top1_initdense_s18000-seed101-20261017T184702/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev7/moe_top1_initdense_s18000-seed101-20261017T184702/result.json",
+      "original_sha256": "2d0f121ffc6516fe137664b07ca47a7e2ac3f0df6d0c16b2c64b4df35e73a62f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "268a3cc82d44aa6e2b05a89f84a5950f5b9656684dac67cae87f8b8805a973fb",
+      "bytes": 9797
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev8/moe_top1_initdense_sh50_s18000-seed100-20261018T021003/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev8/moe_top1_initdense_sh50_s18000-seed100-20261018T021003/result.json",
+      "original_sha256": "9e4da8a45808ba455cafc1b83fd21b1def0ec3acc83360367e222338cce299c3",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2520ed5e5c965f74414fb09d33eeac85d88516e94f08f949aff3f4f73f32dd64",
+      "bytes": 9855
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev8/moe_top1_initdense_sh50_s18000-seed101-20261018T023945/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev8/moe_top1_initdense_sh50_s18000-seed101-20261018T023945/result.json",
+      "original_sha256": "bbf1a47346eb9bf018fe504a11b2a9a86baf2909e8135f34708ca8dc6e4f12cd",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "8db7cd2101bfedf654e4cf008943136178d4409417937488ef6f0bc2817dc87b",
+      "bytes": 9873
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev8/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed100-20261018T022847/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev8/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed100-20261018T022847/result.json",
+      "original_sha256": "224dca6c906038b610547468258f6bf60b24e131ade68bb198689a829e3e835c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "43f6d73760960b541b9691ceff9b978cf6815f9d881731c017e622fa53d9e6ad",
+      "bytes": 10930
+    },
+    {
+      "path": "lookup_learning_diagnostics/hops_dev8/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed101-20261018T025900/result.json",
+      "experiment": "lookup_learning_diagnostics",
+      "original_path": "runs/titnn_efficiency/hops_dev8/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed101-20261018T025900/result.json",
+      "original_sha256": "f1b075a688407cdd669a68afcea5e9a4ac1829a3c6814142a5d8b4645cfd3a73",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "30db2bb7a9c208e5996a1785c84031b6e0471aca98a50032ee3149544c0c7b93",
+      "bytes": 10934
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l2_s18000-seed200-20261018T030351/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l2_s18000-seed200-20261018T030351/result.json",
+      "original_sha256": "03fc4bbaeffddd0a145eebf0dfaa9e710f114cbd0c4cee279f4cd48838aa54a7",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "204b791749c54e4d505c3da7bff66c6e8ef97acf59a2fda808b054796a332770",
+      "bytes": 9247
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l2_s18000-seed201-20261018T042610/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l2_s18000-seed201-20261018T042610/result.json",
+      "original_sha256": "6ce0129765ce3da20f15ec828baf9c20954d8623deb483b9d477258b8d844873",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "e9bf63cb6b4163780b101732d3c1f32c842ff35ae779d29df834825eae8dd55b",
+      "bytes": 9230
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l2_s18000-seed202-20261018T054559/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l2_s18000-seed202-20261018T054559/result.json",
+      "original_sha256": "aee5fb7f1fe39263291e7ccef7087d53b8f11c01fde9c9686577533456793b67",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "ba248fe657700ac0a0a18cbdeefa1d6104ddc2eed7f802883e6cc70de3f02d23",
+      "bytes": 9241
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l2_s18000-seed203-20261018T070827/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l2_s18000-seed203-20261018T070827/result.json",
+      "original_sha256": "5f35a9fb97f259e9412fb3880f2dd2676a54a3b8bc5750b370593b33a2acb333",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "15392491e43c7c9edcf25f7e8a0af36fb99f2c3b6c52e15ba4441600d171ead0",
+      "bytes": 9237
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l2_s18000-seed204-20261018T082953/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l2_s18000-seed204-20261018T082953/result.json",
+      "original_sha256": "d215fcaf3363d345822bb96e1c46df7d931dab6562ba4c5d3fb77fff944a3c9e",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "562c1120fca054023658534de210344a3a053d447fd1ff9f5d69bcbee1ee5067",
+      "bytes": 9232
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l3_s18000-seed200-20261018T030651/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l3_s18000-seed200-20261018T030651/result.json",
+      "original_sha256": "57beeeeebc5a767f0d7ad00e182c90e2d650f9422df7bd92be387390bbeea144",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2543f43b2c1ce7810b7f4435ac724d38ffd1c726ad0ae57402baa5dac986149d",
+      "bytes": 9265
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l3_s18000-seed201-20261018T042907/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l3_s18000-seed201-20261018T042907/result.json",
+      "original_sha256": "f3b5a932a9ddd7f2a2481334b7c561f6572e596eb8d8eff69ecb44ec38574083",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "860e22c674792fe40820de25ba7f4753d388f37b987ccccd2a46fdf325c87775",
+      "bytes": 9258
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l3_s18000-seed202-20261018T054932/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l3_s18000-seed202-20261018T054932/result.json",
+      "original_sha256": "3cdb3987d321f2b468ba1730d5854fe69128d170ecfd48f1ab7936bcf236eb9b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "08f565081daa750c79b1fc98f21627ed57466f97315cb0df6e6508b1c1b5b521",
+      "bytes": 9248
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l3_s18000-seed203-20261018T071228/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l3_s18000-seed203-20261018T071228/result.json",
+      "original_sha256": "76875d27f000347703df2a8a16ae7e94051db2e755764c3230baba4953eb2080",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2cc12da301d4a8dae2d93e1431378e74b228a52b180d9c7116b6dd5122fa08ef",
+      "bytes": 9257
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l3_s18000-seed204-20261018T083332/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l3_s18000-seed204-20261018T083332/result.json",
+      "original_sha256": "56c30d1227b9e51611e6aa4bacb27ca701f920a7bb88efcdd67944f7b373838b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "6e8f6117e02c2776e57d07cc196bbafbc828e595c9e753d231a1601d2323d94b",
+      "bytes": 9230
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l4_s18000-seed200-20261018T031156/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l4_s18000-seed200-20261018T031156/result.json",
+      "original_sha256": "b75591b5e82463e7811453e0a94be0181c08cce0ce844f8b7f482211fcbcefa1",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "428842ada164895f8be8d4438d121a87c65c565fe4701b1fdc670b33037a6620",
+      "bytes": 9293
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l4_s18000-seed201-20261018T043325/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l4_s18000-seed201-20261018T043325/result.json",
+      "original_sha256": "a7eaa6dbd7b31124e32a5d711f409b1bc1108e8bbbe1d3a86f7321f67e75aa67",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "01d7747c517faa5e30521af208bd6235c2950f1caad775aad6c623486cff4fad",
+      "bytes": 9246
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l4_s18000-seed202-20261018T055348/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l4_s18000-seed202-20261018T055348/result.json",
+      "original_sha256": "62e2463e4240d8b5662bbb8a170977a2df50f2bf4be806e9cf16e86c479bf1de",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "d04021f75d8325a73984a964386733e7946806ca52cd5bb3524055aa207a7e93",
+      "bytes": 9286
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l4_s18000-seed203-20261018T071619/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l4_s18000-seed203-20261018T071619/result.json",
+      "original_sha256": "083fb31b20e620231e568e2181d521b50f104738eb183a9ae44d5c99a165a7cf",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "aa025f92aec8b51fd55adb1d86c8d5ba8d9ca89cb99963fb0904315d5744583c",
+      "bytes": 9262
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l4_s18000-seed204-20261018T083758/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l4_s18000-seed204-20261018T083758/result.json",
+      "original_sha256": "820fc82bf19525e8e2f31dde500e116c80d010ca89ad4bf80aa4330d7f0b35fa",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "7ec5a3bb9b6beae62f0b24d83b591b532caac867342407f7d8c0dfbcfc9dc859",
+      "bytes": 9249
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l6_s18000-seed200-20261018T031702/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l6_s18000-seed200-20261018T031702/result.json",
+      "original_sha256": "c295ee5b7391b19a8b3e001cf8db67b439807a912bb185c2f5b54ceb0fd2f7d6",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "51bdf05a510c918eb00c129a4e9c7f8ba0eb5cd68a3b07cfe1f33cc408f154bd",
+      "bytes": 9254
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l6_s18000-seed201-20261018T043727/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l6_s18000-seed201-20261018T043727/result.json",
+      "original_sha256": "bcbf055ad1a6649178968d33b392e177bcec2728bf179b04e8b404933b1a8baf",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2d6f01e23e82bfdc193d1bb2a0f855de23e6d621c964ef58578f217ecb2717ff",
+      "bytes": 9286
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l6_s18000-seed202-20261018T055849/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l6_s18000-seed202-20261018T055849/result.json",
+      "original_sha256": "cd74914b2b29b3485b95f416aff33f506344a2d5176b50c81a693b78324ea687",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b9c625e4df1c66cd89582d1da44ba8d7271cf53fd4c5d3aa6a183e44b2362a95",
+      "bytes": 9252
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l6_s18000-seed203-20261018T072116/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l6_s18000-seed203-20261018T072116/result.json",
+      "original_sha256": "2fe7a2fdce2f66cfa19bd8b9dcba75828d510cb86f19b576e70bf75ecc2e05ae",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f7904d059a734fadc2ba50bd05de635070d2a1bd0e324ecd9ac201eda042466c",
+      "bytes": 9251
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_d128_l6_s18000-seed204-20261018T084259/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_d128_l6_s18000-seed204-20261018T084259/result.json",
+      "original_sha256": "4ba4eae9bf6c39f3778d3814d92e3c35f27e6772c09afab9073e1157d5ef9de0",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "3e870d945bd89f205e7a39ee04041382cfebfc8f75f1b114dff26c0bf4697762",
+      "bytes": 9266
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_s18000-seed200-20261018T032331/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_s18000-seed200-20261018T032331/result.json",
+      "original_sha256": "ab55305e6b8e596934335fc96b840120bae12bc1991c1825a362ffa36bd1446d",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "4217e9d59680e2979893d9508c65062023d5b84e9c91127c8c7e4918c7f06730",
+      "bytes": 9249
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_s18000-seed201-20261018T044242/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_s18000-seed201-20261018T044242/result.json",
+      "original_sha256": "22c046b3ed4591374f94828f80556fd8a5607a8dd2bb2fb85096a178a6fac6ed",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "44f2b517219a30b8475f08d30bbdb4b7679ab2e38f4ca4f0f960888da11bd276",
+      "bytes": 9265
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_s18000-seed202-20261018T060521/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_s18000-seed202-20261018T060521/result.json",
+      "original_sha256": "27d4917fc01f9bb95b26dcfef5314c37fd07788d817f7e36e6df2ac5c3091a67",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "03785784e036a2329abf4b1ca002d7186314926a7dfafd65f7cf4e8948639f44",
+      "bytes": 9274
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_s18000-seed203-20261018T072652/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_s18000-seed203-20261018T072652/result.json",
+      "original_sha256": "185a7b7ffc07acbd8a2891783e0f1b392022d8221d9f8ec5d29fcbc23390ff2c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "55d2c65dcff777db594da15f46cb0a5a521a849cc1e57b75d7a663f68e24e91a",
+      "bytes": 9246
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/dense_s18000-seed204-20261018T084827/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/dense_s18000-seed204-20261018T084827/result.json",
+      "original_sha256": "d8277405248b3f1a77263b16a2753d699c63021708857939fd3c18ef0bbc8115",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "980b3a6a6746c3cf31da171b79dc51f4ac6b7dee33344f68c981590354a54f45",
+      "bytes": 9287
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c30_warm50_kv_s18000-seed200-20261018T034519/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c30_warm50_kv_s18000-seed200-20261018T034519/result.json",
+      "original_sha256": "4ce218280cca753db3732f17334098c90db69951968328fb5c6dfc0c7fd3242b",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "9e75ecfdc2ad4011e3021fce23050809549634f1b93be815085898ed0bff03a1",
+      "bytes": 10575
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c30_warm50_kv_s18000-seed201-20261018T050523/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c30_warm50_kv_s18000-seed201-20261018T050523/result.json",
+      "original_sha256": "86cd9c7b48d36b00f7b75a3931d39e6e251ac7e8d265601c30a55e2946d45dd3",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "c1e468ad5b786af28c99e71093b5f57979e2d882907bed1b42c4191be7438776",
+      "bytes": 10650
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c30_warm50_kv_s18000-seed202-20261018T062806/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c30_warm50_kv_s18000-seed202-20261018T062806/result.json",
+      "original_sha256": "574f648117780bd9f31fc618334286b05d9d81b4213fa4fbf49c21fe285891f8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "a861e09c1fc19ec9264c2ba3ef5f1841d6da83b18dda609cdf405d43a7f05ef6",
+      "bytes": 10564
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c30_warm50_kv_s18000-seed203-20261018T074836/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c30_warm50_kv_s18000-seed203-20261018T074836/result.json",
+      "original_sha256": "e7da98782a3fc20374c104223b18693f658bcac4e812c2d034cfb09e557160c4",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b6b92c96dd3400857f0f89e0abaf03957681360f3d6d8e5a6782002caa71831b",
+      "bytes": 10632
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c30_warm50_kv_s18000-seed204-20261018T091011/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c30_warm50_kv_s18000-seed204-20261018T091011/result.json",
+      "original_sha256": "b5349baad282c19f8097406a1e5cd579372880e72248f5e35e5552929f2edcf8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "fb010848177d69b7f1cdf99feea5ac11e4265fd273bb2aeb8bc6217380b7bdd1",
+      "bytes": 10577
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c50_warm50_kv_s18000-seed200-20261018T033955/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c50_warm50_kv_s18000-seed200-20261018T033955/result.json",
+      "original_sha256": "ca8be846b68ef754f6f13702503de2f431d968f2e338c35cf9ae6ca2cc1e23f9",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "9be413fc6e369a6f318ef906a033c72bad5c4e3f8dfcbdc9c9986af7cb1fd3ab",
+      "bytes": 10158
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c50_warm50_kv_s18000-seed201-20261018T045929/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c50_warm50_kv_s18000-seed201-20261018T045929/result.json",
+      "original_sha256": "dda2cdf2445b8c5592e4c99d351520239298688a366c82270ac71b6bea303c3c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "586a504d2d8527978964e799b955d953f958b68d503c17471f214989b925b019",
+      "bytes": 10150
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c50_warm50_kv_s18000-seed202-20261018T062213/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c50_warm50_kv_s18000-seed202-20261018T062213/result.json",
+      "original_sha256": "1474b1c52cd1f9154caf1e969bd946c90cf390eecd02190b3880aeada1c7e858",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "2121aabbf075b2c449809d4f8484c36cf30a5aef6861eec54e8f1704d155ee88",
+      "bytes": 10421
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c50_warm50_kv_s18000-seed203-20261018T074313/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c50_warm50_kv_s18000-seed203-20261018T074313/result.json",
+      "original_sha256": "0cac3de904b5cdb9615434a960bab00de7a08a66738a4f10f91b219323c3c391",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "92ea61c7927543ae4a2f834d0b5dbfe12c69b2f189614e2cb110118405b2a0d8",
+      "bytes": 9967
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/mod_c50_warm50_kv_s18000-seed204-20261018T090447/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/mod_c50_warm50_kv_s18000-seed204-20261018T090447/result.json",
+      "original_sha256": "0ddc2e344055ebed7cad20e36d3485b228e3e90e736010436885cf2c5601718f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "bf3f6d9369d62641c938f1a5ac947f9998a6175ef5bc79d8f2e7e9db3c3b2556",
+      "bytes": 10124
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/moe_top1_initdense_sh50_s18000-seed200-20261018T033432/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/moe_top1_initdense_sh50_s18000-seed200-20261018T033432/result.json",
+      "original_sha256": "b40c189ed213044c5e0ed109a805016db958b35803c9271c2f60a6df10e5692e",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "494f6e2c3579f27a7916910d2571079638cee7bcd1b3c85f3a00318ea24a4190",
+      "bytes": 9853
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/moe_top1_initdense_sh50_s18000-seed201-20261018T045337/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/moe_top1_initdense_sh50_s18000-seed201-20261018T045337/result.json",
+      "original_sha256": "b32d10f5a3d4143c51903d86d7477fbcc276e8809ac9752074cc61c5b9d81297",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "e2a181b78191840f5fa06e3147f86ea9309fae330962f05d501fb685dfe32421",
+      "bytes": 9858
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/moe_top1_initdense_sh50_s18000-seed202-20261018T061620/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/moe_top1_initdense_sh50_s18000-seed202-20261018T061620/result.json",
+      "original_sha256": "dbbc204fe30346e12815c7c58291527726db5a671b80179808503df7c7cb0a6d",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f4e2c58efa03c51a1c08fc96ef0778a348649fd2350d84f4d251118f0f333288",
+      "bytes": 9851
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/moe_top1_initdense_sh50_s18000-seed203-20261018T073719/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/moe_top1_initdense_sh50_s18000-seed203-20261018T073719/result.json",
+      "original_sha256": "e9f30e56bf2d27e8d3253af6e29638471b235d7f4050233d42a48061eb397b28",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "463dab13a8a687d8815701eebffbd5b5fbe49a5a87311ca147680ff9bd776141",
+      "bytes": 9860
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/moe_top1_initdense_sh50_s18000-seed204-20261018T085923/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/moe_top1_initdense_sh50_s18000-seed204-20261018T085923/result.json",
+      "original_sha256": "6332f8ef44ab867b8f0be7eebf0056d87c5d63a135b8a51abbfa46f51e884aea",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "95746e4468be7cfe47e046f9b1e3eafe1a4bf5f219e6ddb6013d5ee5aebea107",
+      "bytes": 9863
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed200-20261018T042249/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed200-20261018T042249/result.json",
+      "original_sha256": "35a98828f6b8a3fffd80bfc1bb59c514773d0bff5949ce86b41a3329438489ab",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "4b7afce65c763bfe35838e9e439e2bb13782dd8f8bdc8a8980d1b4f884679a73",
+      "bytes": 10786
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed201-20261018T054254/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed201-20261018T054254/result.json",
+      "original_sha256": "e3f6168fe23eebf5798c79256031d3f9abb12da3b2e972400e4f98975986e69c",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "31149243e5d4acca26a6c63fd273c34d51cabbb748db68cc5b393a74c3050405",
+      "bytes": 10937
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed202-20261018T070602/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed202-20261018T070602/result.json",
+      "original_sha256": "bd68a20183c8840adc79622edfed197a9c792dd2229b082913bbbb7fb4a7d6e0",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "f0a5d260b0638e8e9710842b70bac1779fe90bcd3417370165422b5c2393de91",
+      "bytes": 10881
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed203-20261018T082652/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed203-20261018T082652/result.json",
+      "original_sha256": "a6e29384a8301ee2792899d584d1785125c37ee72250803029d92722359765f8",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "7427ee4fc26db3caf695ae94422d437c72515ab7c91874a2ec8dcf40e9586277",
+      "bytes": 10912
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed204-20261018T094818/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_s18000-seed204-20261018T094818/result.json",
+      "original_sha256": "344c3772552ca6e0ab8ca4bdc1d1c81d7e057c03d8d2c733a44afb2bc9888dd0",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "36240850ee1fb18861072f56c1fe5b9e585edfe94f1f9e8b467a20e1efb58e68",
+      "bytes": 10919
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed200-20261018T040402/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed200-20261018T040402/result.json",
+      "original_sha256": "194c9f091df1b2951c3f47614cd93c3fd4d840e239fbc6e0bc47ef012547ed17",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "49af609cb0ef0d2f837aa55750c0e6d1e27ec611ef62cc50454c60d5cb422957",
+      "bytes": 10596
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed201-20261018T052409/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed201-20261018T052409/result.json",
+      "original_sha256": "a8f9457b934e1375cef889841965667aa8bfcfe6814de7ccc2013ff1c571b52f",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "16292f2c03db83b04ecabe0d8b6e727cf73a69e9ceeb6b52538e8d6c8861ab2f",
+      "bytes": 10771
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed202-20261018T064719/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed202-20261018T064719/result.json",
+      "original_sha256": "68854546903ac2087e127f21a324c3e7291eeb2082c70f75d1d698e58ffa44e4",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "b72d3ddd2ca96fc0f84a8a1d3dc843c0a62753f4ffc1c0c43e501053c3c30256",
+      "bytes": 10619
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed203-20261018T080729/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed203-20261018T080729/result.json",
+      "original_sha256": "296b0e9208d1ffb6509b97aca028bd56191ed971542c5f94cb571d3ff4b19446",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "bbf3820441bfd40e9e666fa0862e04401312ab4e3ad67f3b5e48a4bbfcdd1dc3",
+      "bytes": 10769
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed204-20261018T092927/result.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/hops_v2/ti_tnn_adaptive_c50_initdense_warm50_kv_sh50_s18000-seed204-20261018T092927/result.json",
+      "original_sha256": "29ceaffcbba4d7d50c2afc1728398a38ca1ee9de4807157a27dc847970bdde91",
+      "sanitized": "a local absolute path prefix was removed, making paths repository-relative; no other byte changed",
+      "sha256": "a51d1f2ede57301605ae0320be19f57bb7eb97a8257e03237bb3712050a363ee",
+      "bytes": 10829
+    },
+    {
+      "path": "adaptive_compute_part_a_v2/frontier_part_a_v2.json",
+      "experiment": "adaptive_compute_part_a_v2",
+      "original_path": "runs/titnn_efficiency/frontier_part_a_v2.json",
+      "sha256": "04ccf46cffeae7fc1a8e04f9872a659bfe4b763ad12a7bc10b2d0de35403f0cb",
+      "bytes": 64354
     }
   ]
 }

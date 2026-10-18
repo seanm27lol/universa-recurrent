@@ -24,7 +24,7 @@ import json
 import math
 import platform
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -117,6 +117,19 @@ def parse_args(argv=None):
     p.add_argument("--bridge-cost", type=float, default=0.01)
     p.add_argument("--target-compute", type=float, default=1.0)
     p.add_argument("--dual-lr", type=float, default=0.01)
+    p.add_argument("--expert-init", choices=models.EXPERT_INITS, default="legacy")
+    p.add_argument("--cap-warmup-frac", type=float, default=0.0,
+                   help="adaptive variants: anneal the cap from full compute to the target over this fraction of steps")
+    p.add_argument("--router-full-bias", type=float, default=0.0,
+                   help="adaptive variants: initial compute-router bias toward the full option")
+    p.add_argument("--skip-keeps-kv", action="store_true",
+                   help="adaptive variants: a skipped token still writes its key and value")
+    p.add_argument("--shared-expert-frac", type=float, default=0.0,
+                   help="mixtures: share of the hidden width given to an always-on shared MLP")
+    p.add_argument("--hop-curriculum-frac", type=float, default=0.0,
+                   help="train on at most 1 hop, then 2, ... up to max_hops, in equal stages over this fraction of steps")
+    p.add_argument("--balanced-loss", action="store_true",
+                   help="weight easy tokens and hard queries equally in the loss (default: per scored position)")
     for field, default in asdict(Task()).items():
         p.add_argument(f"--{field.replace('_', '-')}", dest=f"task_{field}", type=int, default=default,
                        help=f"task: {field}")
@@ -134,8 +147,25 @@ def parse_args(argv=None):
 
 
 def variant_name(args) -> str:
-    return models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
+    name = models.variant_name(args.ffn, args.bridge_cost, args.target_compute,
                                models.size_tag(args.d_model, args.layers, args.ffn_mult, REFERENCE_SIZE))
+    if args.expert_init != "legacy":
+        name += f"_init{args.expert_init}"
+    if args.cap_warmup_frac > 0:
+        name += f"_warm{round(100 * args.cap_warmup_frac)}"
+    if args.router_full_bias:
+        name += f"_bias{args.router_full_bias:g}"
+    if args.skip_keeps_kv:
+        name += "_kv"
+    if args.balanced_loss:
+        name += "_bal"
+    if args.shared_expert_frac > 0:
+        name += f"_sh{round(100 * args.shared_expert_frac)}"
+    if args.hop_curriculum_frac > 0:
+        name += f"_cur{round(100 * args.hop_curriculum_frac)}"
+    if args.steps != 6000:
+        name += f"_s{args.steps}"
+    return name
 
 
 def lr_at(step: int, steps: int, args) -> float:
@@ -210,6 +240,27 @@ def task_of(args) -> Task:
     return Task(**{f: getattr(args, f"task_{f}") for f in asdict(Task())})
 
 
+def curriculum_task(task: Task, step: int, steps: int, frac: float) -> Task:
+    """The training task at a step: hop counts up to s in stage s of max_hops equal stages spanning the
+    first `frac` of training, then the full task (the full task throughout when frac is 0)."""
+    if frac <= 0:
+        return task
+    stage = 1 + int(step / max(1.0, frac * steps / task.max_hops))
+    return replace(task, max_hops=min(task.max_hops, stage))
+
+
+def task_loss(logits: torch.Tensor, b: dict, balanced: bool) -> torch.Tensor:
+    """Mean cross-entropy over scored positions; or, balanced, the mean over easy tokens and the mean over
+    hard queries, weighted equally (the hard queries are otherwise about 12% of the scored positions)."""
+    flat = logits.float().reshape(-1, logits.shape[-1])
+    if not balanced:  # exactly the frozen benchmark's loss
+        return F.cross_entropy(flat, b["targets"].reshape(-1), ignore_index=-100)
+    ce = F.cross_entropy(flat, b["targets"].reshape(-1), ignore_index=-100, reduction="none")
+    kind = b["kind"].reshape(-1)
+    easy, query = kind == KIND_NAMES.index("easy"), kind == KIND_NAMES.index("query")
+    return 0.5 * ce[easy].mean() + 0.5 * ce[query].mean()
+
+
 def train(args, task: Task | None = None) -> dict:
     task = task or task_of(args)
     device = torch.device(args.device if args.device != "cuda" or torch.cuda.is_available() else "cpu")
@@ -217,7 +268,9 @@ def train(args, task: Task | None = None) -> dict:
     cfg = models.ModelConfig(vocab_size=task.vocab, context=task.length, d_model=args.d_model, n_layers=args.layers,
                              n_heads=args.heads, ffn=args.ffn, n_experts=args.experts, d_edge=args.d_edge,
                              balance_coef=args.balance_coef, bridge_cost=args.bridge_cost, ffn_mult=args.ffn_mult,
-                             small_mult=args.small_mult, target_compute=args.target_compute, dual_lr=args.dual_lr)
+                             small_mult=args.small_mult, target_compute=args.target_compute, dual_lr=args.dual_lr,
+                             expert_init=args.expert_init, router_full_bias=args.router_full_bias,
+                             skip_keeps_kv=args.skip_keeps_kv, shared_expert_frac=args.shared_expert_frac)
     model = models.LanguageModel(cfg).to(device)
     decay = [p for p in model.parameters() if p.dim() >= 2]
     no_decay = [p for p in model.parameters() if p.dim() < 2]
@@ -230,16 +283,16 @@ def train(args, task: Task | None = None) -> dict:
     for step in range(args.steps):
         for g in opt.param_groups:
             g["lr"] = lr_at(step, args.steps, args)
-        b = to(make_batch(args.batch, task, gen), device)
+        b = to(make_batch(args.batch, curriculum_task(task, step, args.steps, args.hop_curriculum_frac), gen), device)
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=device.type == "cuda"):
             logits, stats = model(b["tokens"])
-            loss = F.cross_entropy(logits.float().reshape(-1, logits.shape[-1]), b["targets"].reshape(-1), ignore_index=-100)
+            loss = task_loss(logits, b, args.balanced_loss)
             aux = sum((s["aux_loss"] for s in stats if "aux_loss" in s), torch.zeros((), device=device))
         opt.zero_grad(set_to_none=True)
         (loss + aux).backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
-        model.dual_update(stats)
+        model.dual_update(stats, models.cap_schedule(args.target_compute, step, args.steps, args.cap_warmup_frac))
         if step % args.log_every == 0 or step == args.steps - 1:
             realized = [float(s["realized_cost"]) for s in stats if "realized_cost" in s]
             entry = {"step": step, "loss": loss.item(), "aux": aux.item(), "elapsed": time.time() - t0,
@@ -252,6 +305,7 @@ def train(args, task: Task | None = None) -> dict:
     result = evaluate(model, task, args.eval_sequences, 256, device)
     return {"config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
             "task": asdict(task), "model_config": vars(cfg), "parameters": models.parameter_counts(model),
+            "source": __import__("lm").source_version(),
             "same_size_dense_non_embedding_macs_per_token": models.full_block_macs_per_token(cfg, task.length),
             "train_seconds": train_seconds, "eval": result, "train_log": log}
 
