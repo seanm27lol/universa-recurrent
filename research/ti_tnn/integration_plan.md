@@ -489,10 +489,12 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    - The augmented word interpreter met the joint novelty criterion in all 15 confirmation units.
    - Taught-synonym transfer into two-step questions and three-step composition did not meet their
      criteria.
-   - **The S2 diagnosis** ([report](reports/s2_diagnosis_v1.md)): S2 failures are mostly one-relation programs,
-     with stopping after the first relation far more likely than in matched Base questions.
-     - Wrapping the taught training questions in longer contexts did not help beyond extra exposure in a fresh,
-       frozen confirmation.
+   - **The S2 diagnosis** ([report](reports/s2_diagnosis_v1.md)): for the augmented word interpreter, S2 failures
+     are mostly one-relation programs, with stopping after the first relation far more likely than in matched
+     Base questions.
+     - The specified wrapper augmentation (taught one-step questions padded with familiar filler words) did not
+       consistently outperform the repetition control or meet the frozen criteria in a fresh, frozen
+       confirmation. Other ways of changing length or context were not tested.
      - Training on taught two-step questions removed the failure in development. That is extra supervision, not
        transfer.
 3. **The full integration test:** not started.

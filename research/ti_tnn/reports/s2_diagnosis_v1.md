@@ -1,4 +1,4 @@
-# S2 diagnosis: taught wording produces one-relation programs; longer contexts did not help beyond extra exposure — 2026-10-19
+# S2 diagnosis: taught wording yields one-relation programs in the augmented word interpreter; the specified wrapper augmentation did not beat repetition — 2026-10-19
 
 **Briefs:**
 - [development brief](../protocols/s2_diagnosis_brief.md), committed at `d991d12` before any intervention fit;
@@ -49,7 +49,8 @@ produce; it does not establish the rule as the mechanism.
 
 ## The five answers
 
-1. **What goes wrong in S2.** Mostly **one relation where two are required**, then refusals.
+1. **What goes wrong in S2.** For the augmented word interpreter, mostly **one relation where two are required**,
+   then refusals.
    - **Historical records.** `word_aug` parsed 10,927 of 12,000 S2 questions exactly. Of the other 1,073:
 
      | What the program did | Count |
@@ -64,7 +65,8 @@ produce; it does not establish the rule as the mechanism.
      - **Entities:** no S2 error, in any arm or part of this diagnosis, involved the entity.
      - **S2_base:** exact in every `word_aug` unit.
      - **Pairs:** in no arm was S2 right while its S2_base pair was wrong.
-     - **Other arms:** all show the same kinds of failure (counts below).
+     - **Other arms:** the same kinds of failure occur, in different proportions (counts below). `char_aug`'s
+       failures are mostly `<unsupported>` refusals (1,839 of 2,336), not one-relation programs (174).
 2. **Premature stopping, where another relation is required: yes,** in arms A, B and C, in both world sets.
    - **The measurement.** With the correct first relation supplied (teacher forcing), we compare the
      probability of `<end>` on S2 and on S2_base.
@@ -76,7 +78,7 @@ produce; it does not establish the rule as the mechanism.
      - 390–525 of 1,317–1,502 failures per arm (confirmation, fresh worlds).
 
      The other large failure kind in fresh worlds is skipping the relation applied first.
-3. **Does longer context help beyond exposure? Not in fresh worlds.**
+3. **Does longer context help beyond exposure? The specified wrapper augmentation did not.**
    - **Development.** C (taught one-step questions in longer real-word wrappers) beat B (the same questions
      repeated) in both development worlds. That met the rule for a confirmation.
    - **Fresh worlds.** Both frozen predictions failed:
@@ -84,6 +86,10 @@ produce; it does not establish the rule as the mechanism.
      - C's mean S2 exact accuracy exceeded B's in only one of three worlds.
    - **Exposure alone** did not consistently help either. B was below A in both development worlds, and
      above A in two of three fresh worlds.
+   - **Scope.** C added randomly assembled filler, made of familiar frame words, around the original one-step
+     question. This experiment does not determine whether other ways of changing input length or context would
+     help. The frozen design set no minimum detectable effect or equivalence margin. C minus B in mean S2 exact
+     accuracy was −5.450, −2.675 and +3.725 percentage points in worlds 710, 711 and 712.
 4. **Does any improvement preserve S3/S4?**
    - **No intervention broke novelty handling in fresh worlds.** A, B and C met the S3/S4 joint criterion in
      all 15 confirmation units.
@@ -101,11 +107,15 @@ produce; it does not establish the rule as the mechanism.
      This is consistent with a learned association between taught wording and one-relation programs, the
      only context in which training showed that wording.
    - **What it does not show.** It does not establish that association as the cause: the evidence is
-     behavioural. Longer surrounding context does not remove the failure.
+     behavioural. The specified wrapper augmentation did not remove the failure.
    - **Open questions:**
      - the large variation between inits (S2 exact 0.58–0.99 for A in fresh worlds);
      - why the relation applied first is sometimes skipped;
      - whether anything short of taught two-step supervision gives zero-shot transfer.
+
+     A next intervention should be judged on recovering the correct ordered program, not on making outputs
+     longer. In fresh worlds, A's one-relation outputs kept the second relation (537) more often than the first
+     (413), so some failures omit a required relation before stopping becomes the issue.
 
    S2 remains a valid transfer test under the declared training design. An association like this would
    explain the failure; it would not invalidate the measurement.
@@ -336,9 +346,10 @@ S2 exact per unit ranged from 0.583 to 0.994 for A, 0.719 to 0.993 for B and 0.7
   scores the same 800 S2 draws, so inits are not independent samples of questions. The C-over-B difference
   that triggered the confirmation was within the large init-to-init variation, and it did not replicate.
 - **What the padding test can show.** C leaves "taught wording → one-relation target" intact; it tests whether
-  input length and surrounding context contribute. Its failure to help in fresh worlds is evidence against a
-  length or context contribution of a size this design could detect. It is not evidence about the shortcut
-  itself.
+  input length and surrounding context contribute. The specified wrapper augmentation did not consistently
+  outperform the repetition control or satisfy the frozen competence criteria. This experiment does not
+  determine whether other ways of changing input length or context would help. It is not evidence about the
+  shortcut itself.
 - **What D shows.** D trains on the distribution S2 tests (on other instances). Its development success shows
   that the architecture and recipe can learn taught wording inside two-step programs when shown it. It is not
   zero-shot transfer, and it was not confirmed on fresh worlds.
@@ -362,16 +373,49 @@ The bundle is in [`experiments/results/ti_tnn/s2_diagnosis/`](../../../experimen
 | `confirmation/20261019T084110/` | the confirmation summary and 45 decision-record files |
 | `confirmation_analysis/s2_development_analysis.json` | the confirmation analysis, with the frozen verdict |
 | `local_traces.json` | sha256 of the 63 trace files that were not bundled, for size: B–D in development, all confirmation traces |
+| `trace_release.json` | where those 63 files are published (a GitHub release asset per file) and how to rebuild from them |
+
+**The trace release.** The 63 trace files not bundled (85.2 MiB) are published as assets of the release
+[`ti-tnn-s2-diagnosis-traces-v1`](https://github.com/seanm27lol/universa-recurrent/releases/tag/ti-tnn-s2-diagnosis-traces-v1).
+Each asset is a byte-identical copy of its run's file. Its sha256 is the one committed in `local_traces.json`
+with the original results, so a downloaded set is checked against hashes recorded before the release existed.
 
 **Rebuilding.** `python experiments/results/ti_tnn/make_tables.py` re-derives everything from the bundled
 records and stops on any difference from the bundled analyses (`s2_diagnosis_tables`):
 - every class count;
-- every unit metric and outcome;
+- every unit metric, certificate and outcome;
 - the decision rule;
 - the confirmation verdict;
-- arm A's trace statistics.
+- arm A's development trace tables.
 
-The B–D and confirmation trace statistics need the local traces.
+Every trace-derived table for every arm needs the trace release:
+
+```bash
+gh release download ti-tnn-s2-diagnosis-traces-v1 --repo seanm27lol/universa-recurrent --dir s2_traces
+python experiments/results/ti_tnn/make_tables.py --s2-traces s2_traces
+```
+
+That covers teacher-forced stopping and the greedy failure kinds that separate premature stopping, relation
+confusion and error propagation. It first checks every downloaded file against the committed hashes. Each trace
+is then checked against its decision records as it loads.
+
+**What the verification checks** (`bench/s2_development_analysis.py`), for every fit:
+- **Certificate:** the complete certificate is re-derived from the decision records: threshold, every step's
+  counts and p-value, the stop reason, alpha and delta.
+- **Training additions:** each world's additions are rebuilt with the frozen construction and checked against
+  the recorded counts, sha256, audit and length distributions.
+- **Traces:** every trace present is compared with the decision records, independently of the run's own
+  mismatch list:
+  - the greedy chain must give the recorded program and refusal reason;
+  - its chosen probabilities times the entity probability must give the recorded score exactly.
+- **Source binding:**
+  - the development rule requires each development run's recorded commit (`ece0f86` or `d991d12`) and the
+    frozen producer-file hashes;
+  - the confirmation verdict requires `07bb97e` and the same hashes.
+
+`tests/test_ti_tnn_s2_diagnosis.py` alters a certificate's p-value and stop reason, a trace's greedy choice and
+entity probability, a recorded addition hash, and the confirmation's commit and source hash. Each change is
+rejected; the version merged in #54 accepted all of them.
 
 **Reproduction.** All runs are CPU only: `CUDA_VISIBLE_DEVICES=`, 4 threads, `nice -n 10`.
 
@@ -389,3 +433,17 @@ The B–D and confirmation trace statistics need the local traces.
   - **8 countries:** it stopped because D needed more two-step training instances than the world had.
   - **16 countries, 20 updates:** it completed.
 - **Total fits.** 69 counted fits: 24 development and 45 confirmation, the budget's maximum.
+
+## Corrections (2026-10-19, after an outside review of #54)
+
+No number in this report changed. The review recomputed the frozen verdict from the bundled summaries and found
+it exact. It also found that every bundled A trace agreed with its decision records.
+
+| What changed | Why |
+|---|---|
+| **The failed intervention is scoped.** The title, answer 3, answer 5 and the padding paragraph now name the specified wrapper augmentation. One sentence was replaced: it had called the result "evidence against a length or context contribution of a size this design could detect". The replacement says the augmentation did not consistently outperform repetition or meet the frozen criteria, and that the experiment does not determine whether other ways of changing length or context would help. | The frozen design set no minimum detectable effect, power analysis or equivalence margin. C was one construction: random familiar filler words. |
+| **The one-relation diagnosis is scoped to the augmented word interpreter.** The title and answer 1 change, and answer 1 now states `char_aug`'s refusal-dominated failures. | `char_aug` failed mostly by refusing (1,839 of 2,336), not with one-relation programs (174). |
+| **The public evidence now covers every trace-derived table.** The trace release and `--s2-traces` were added. | Before, only arm A's development trace tables could be rebuilt from public evidence. That left out the fresh-world stopping table that supports "stopping replicates". |
+| **The verification gained three checks:** complete certificates, independent trace checks and source binding (see "What the verification checks"). | The analysis compared only the certificate threshold, relied on the run's own trace-mismatch list, and did not bind the confirmation to its frozen source. No discrepancy was found in the supplied evidence; the strengthened analysis reproduces both bundled analyses byte for byte. |
+| **One open question was added:** judge interventions on the correct ordered program. | In fresh worlds, A's one-relation outputs more often kept the second relation than the first. |
+

@@ -166,7 +166,7 @@ def test_the_decision_rule_needs_c_above_b_in_every_world_and_novelty_in_every_u
 def test_the_confirmation_needs_s2_and_novelty_in_the_same_unit():
     C = DA.CONFIRMATION
     run = [{"run": "r", "config": {"countries": 96, "updates": 1500},
-            "provenance": {"commit": "abc", "research_tree_dirty": False}}]
+            "provenance": {"commit": C["commit"], "research_tree_dirty": False, "sha256": dict(DA.FROZEN_SOURCES)}}]
     unit = lambda s2, joint, exact=0.9: {"outcome_s2_transfer": s2, "outcome_joint_novelty": joint, "S2_exact": exact}
     units = {f"{a}/{w}/{i}": unit(a == "C", True) for a in C["arms"] for w in C["worlds"] for i in C["inits"]}
     v = DA.confirmation_verdict(units, run, C["worlds"], C["inits"])
@@ -184,8 +184,15 @@ def test_the_confirmation_needs_s2_and_novelty_in_the_same_unit():
     assert not DA.confirmation_verdict(three, run, C["worlds"], C["inits"])["prediction_C_holds"]
     missing = {k: v for k, v in units.items() if k != "B/712/200"}
     assert not DA.confirmation_verdict(missing, run, C["worlds"], C["inits"])["complete"]
-    dirty = [{**run[0], "provenance": {"commit": "abc", "research_tree_dirty": True}}]
+    provenance = run[0]["provenance"]
+    dirty = [{**run[0], "provenance": {**provenance, "research_tree_dirty": True}}]
     assert not DA.confirmation_verdict(units, dirty, C["worlds"], C["inits"])["complete"]
+    # the full inventory is not enough: the run must come from the frozen commit with the frozen producer files
+    other_commit = [{**run[0], "provenance": {**provenance, "commit": "0" * 40}}]
+    assert not DA.confirmation_verdict(units, other_commit, C["worlds"], C["inits"])["complete"]
+    other_source = [{**run[0], "provenance": {**provenance, "sha256": {**DA.FROZEN_SOURCES, "s2_development.py": "0" * 64}}}]
+    v = DA.confirmation_verdict(units, other_source, C["worlds"], C["inits"])
+    assert not v["complete"] and any("hashes" in p for p in v["problems"])
     wrong = [{**run[0], "config": {"countries": 48, "updates": 1500}}]
     assert not DA.confirmation_verdict(units, wrong, C["worlds"], C["inits"])["complete"]
 
@@ -223,6 +230,72 @@ def test_greedy_traces_reproduce_the_decisions_and_the_analysis_rebuilds_every_f
     (bad / "s2_development.json").write_text(json.dumps(tampered))
     with pytest.raises(AssertionError):
         DA.analyse([bad])
+
+
+def _tampered_copy(out: Path, name: str, edit_summary=None, edit_trace=None) -> Path:
+    """A copy of the tiny run with one change: to the stored summary, or to arm B's trace file."""
+    import shutil
+    bad = out.parent / name
+    shutil.copytree(out, bad, ignore=shutil.ignore_patterns("checkpoints"))
+    if edit_summary:
+        summary = json.loads((bad / "s2_development.json").read_text())
+        edit_summary(summary)
+        (bad / "s2_development.json").write_text(json.dumps(summary))
+    if edit_trace:
+        path = bad / "traces" / "B_w7_i0.json.gz"
+        with gzip.open(path, "rt") as f:
+            trace = json.load(f)
+        edit_trace(trace)
+        with gzip.open(path, "wt") as f:
+            json.dump(trace, f)
+    return bad
+
+
+def test_the_analysis_rejects_a_changed_certificate_trace_or_addition(tiny_development):
+    out, _ = tiny_development
+
+    def certificate(field):
+        def edit(summary):
+            cert = summary["units"][1]["policies"]["certified"]["certificate"]
+            if field == "p_value":
+                cert["steps"][0]["p_value"] *= 0.5  # the threshold and every outcome stay the same
+            else:
+                cert["stop_reason"] = "edited"
+        return edit
+
+    def swap_greedy_choice(trace):  # one traced question's first greedy step now picks a different output
+        dist = trace["greedy"][0][0]
+        top = max(range(len(dist)), key=dist.__getitem__)
+        other = (top + 1) % len(dist)
+        dist[top], dist[other] = dist[other], dist[top]
+
+    def entity_probability(trace):
+        trace["entity_p_chosen"][0] *= 0.999
+
+    def addition_hash(summary):
+        summary["worlds"]["7"]["addition_sha256"]["C"] = "0" * 64
+
+    cases = {"p_value": (dict(edit_summary=certificate("p_value")), "certificate steps differ"),
+             "stop_reason": (dict(edit_summary=certificate("stop_reason")), "certificate stop_reason"),
+             "greedy": (dict(edit_trace=swap_greedy_choice), "disagree with the records"),
+             "entity": (dict(edit_trace=entity_probability), "disagree with the records"),
+             "addition": (dict(edit_summary=addition_hash), "recorded additions differ")}
+    for name, (edit, message) in cases.items():
+        bad = _tampered_copy(out, f"tampered_{name}", **edit)
+        summary = json.loads((bad / "s2_development.json").read_text())
+        assert all(not u["greedy_trace_mismatches"] for u in summary["units"])  # the producer's list says nothing
+        with pytest.raises(AssertionError, match=message):
+            DA.analyse([bad])
+    DA.analyse([_tampered_copy(out, "untouched")])  # the copying itself changes nothing
+
+
+def test_development_runs_must_come_from_the_frozen_source():
+    good = {"run": "r", "provenance": {"commit": DA.DEVELOPMENT_COMMITS[1], "research_tree_dirty": False,
+                                       "sha256": dict(DA.FROZEN_SOURCES)}}
+    assert DA.source_problems([good], DA.DEVELOPMENT_COMMITS) == []
+    assert DA.source_problems([good], (DA.CONFIRMATION["commit"],))  # a development commit cannot confirm
+    changed = {**good, "provenance": {**good["provenance"], "sha256": {**DA.FROZEN_SOURCES, "../integrated/routing.py": "0"}}}
+    assert DA.source_problems([changed], DA.DEVELOPMENT_COMMITS)
 
 
 # --- the bundled historical analysis ---------------------------------------------------------------------------

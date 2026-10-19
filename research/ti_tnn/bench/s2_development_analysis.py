@@ -2,9 +2,19 @@
 
     .venv-phase2/bin/python research/ti_tnn/bench/s2_development_analysis.py <run_dir> [<run_dir> ...] --out <dir>
 
-Nothing stored in a run's summary is trusted. For every fit it re-derives the category metrics, the certificate
-and the unit outcomes from the decision records, with the robustness verifier's independent code
-(interpreter_robustness_verify.rederive_arm), and stops on any difference from the stored summary. It then reports:
+Nothing stored in a run's summary is trusted. Any difference from the stored summary stops the analysis. It checks:
+- **Metrics and outcomes:** for every fit, the category metrics, the complete certificate (threshold, every
+  step's counts and p-value, the stop reason, alpha and delta) and the unit outcomes are re-derived from the
+  decision records with the robustness verifier's independent code (`interpreter_robustness_verify`).
+- **Training additions:** each world's additions are rebuilt with the frozen construction and checked against
+  the recorded counts, sha256, audit and length distributions.
+- **Traces:** every trace that is present is compared with the decision records, without using the run's own
+  mismatch list. The greedy chain must give the recorded program and refusal reason, and its chosen probabilities
+  times the entity probability must give the recorded score exactly.
+- **Source binding:** the development rule and the confirmation verdict require the recorded source commit and
+  file hashes to be the frozen ones.
+
+It then reports:
 - **Classes**: s2_diagnosis's classification of every S2 question, per arm.
 - **Teacher-forced stopping**: at each reference step, with the correct prefix supplied, the probabilities of
   `<end>`, `<unsupported>`, the correct output and the strongest alternative relation. The decisive comparison is
@@ -27,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import statistics
 import sys
@@ -40,6 +51,8 @@ import interpreter_robustness_verify as V  # noqa: E402
 import s2_diagnosis as D2  # noqa: E402
 from integrated import relations as W  # noqa: E402
 from integrated import routing as J  # noqa: E402
+import s2_development as DV  # noqa: E402
+import torch  # noqa: E402
 from s2_development import DEVELOPMENT  # noqa: E402
 
 TERMINAL = (J.END, J.UNSUPPORTED, J.AMBIGUOUS)
@@ -156,10 +169,79 @@ def failure_summary(rows: list[dict]) -> dict:
     return out
 
 
+# --- independent checks ----------------------------------------------------------------------------------------
+CERTIFICATE_KEYS = ("alpha", "certified", "delta", "steps", "stop_reason", "threshold")
+
+
+def certificate_problems(stored: dict | None, derived: dict) -> list[str]:
+    """Every field of a stored certificate against the one re-derived from the records (verifier's `certificate`)."""
+    if stored is None:
+        return ["certificate missing"]
+    problems = []
+    if tuple(sorted(stored)) != CERTIFICATE_KEYS:
+        problems.append(f"certificate fields {sorted(stored)}")
+    for key in ("threshold", "certified", "alpha", "delta", "stop_reason"):
+        if not V._close(stored.get(key), derived[key]):
+            problems.append(f"certificate {key}: stored {stored.get(key)!r}, re-derived {derived[key]!r}")
+    steps = [(s.get("threshold"), s.get("accepted"), s.get("errors"), s.get("p_value"), s.get("rejected"))
+             for s in stored.get("steps", [])]
+    if len(steps) != len(derived["steps"]) or not all(
+            all(V._close(a, b) for a, b in zip(x, y)) for x, y in zip(steps, derived["steps"])):
+        problems.append("certificate steps differ")
+    return problems
+
+
+def trace_problems(items_by_id: dict, rec: dict, ids: list[str], trace: dict) -> list[str]:
+    """A trace file against the decision records, independently of the run's own mismatch list. For every traced
+    question the greedy chain must give the recorded program and refusal reason, its chosen probabilities times the
+    chosen entity probability must give the recorded score exactly (as `interpreters.interpret` computes it), and a
+    right entity must be the reference position's probability."""
+    index, outputs, problems = {x: k for k, x in enumerate(ids)}, trace["outputs"], []
+    for k, item_id in enumerate(trace["ids"]):
+        r = index.get(item_id)
+        if r is None:
+            problems.append(f"{item_id}: traced but not recorded")
+            continue
+        dists = trace["greedy"][k]
+        chain = greedy_chain(dists, outputs)
+        relations = [o for o in chain if o not in TERMINAL]
+        stop = chain[-1] if chain[-1] in TERMINAL else None
+        reason = S.REASONS[rec["reason"][r]]
+        expected = ("unsupported" if stop == J.UNSUPPORTED else "ambiguous" if stop == J.AMBIGUOUS
+                    else "malformed" if stop is None or not relations else None)
+        if rec["program"][r] is None or list(rec["program"][r]) != relations:
+            problems.append(f"{item_id}: greedy chain {chain} against recorded program {rec['program'][r]}")
+        elif (expected is not None and reason != expected) or (expected is None and reason in D2.INTERPRETER_REFUSALS):
+            problems.append(f"{item_id}: greedy chain {chain} against recorded reason {reason!r}")
+        chosen = [d[argmax(d)] for d in dists[:len(chain)]]
+        if float(torch.tensor(chosen).prod()) * trace["entity_p_chosen"][k] != rec["score"][r]:
+            problems.append(f"{item_id}: score {rec['score'][r]!r} not reproduced from the trace")
+        if rec["entity"][r] == items_by_id[item_id]["entity"] and \
+                trace["entity_p_chosen"][k] != trace["entity_p_reference"][k]:
+            problems.append(f"{item_id}: right entity, but the chosen position is not the reference position")
+    return problems
+
+
+def world_additions(world, study) -> tuple[list, dict, dict]:
+    """The frozen addition construction, rebuilt: (augmentation, additions by arm, the run's world record)."""
+    aug = S.augment(study, world.seed)
+    adds = {a: DV.additions(world, study, a) for a in DV.ARMS}
+    record = {"identity": world.identity, "audit": DV.audit_additions(world, study, aug, adds),
+              "phrase_length_distribution": DV.phrase_length_distribution(study),
+              "added": {a: len(adds[a]) for a in DV.ARMS},
+              "c_filler_words": dict(sorted(Counter(x["filler_words"] for x in adds["C"]).items())),
+              "c_lengths": dict(sorted(Counter(len(x["text"].split()) for x in adds["C"]).items())),
+              "d_taught_position": dict(sorted(Counter(x["taught_position"] for x in adds["D"]).items())),
+              "addition_sha256": {a: hashlib.sha256(json.dumps([[x["text"], x["outputs"]] for x in adds[a]]).encode())
+                                  .hexdigest() for a in DV.ARMS}}
+    return aug, adds, json.loads(json.dumps(record))
+
+
 # --- loading and re-derivation ---------------------------------------------------------------------------------
 def load_runs(run_dirs: list[Path]) -> dict:
-    """Every fit of the given runs, re-derived from its records and checked against its stored summary."""
-    fits, worlds, configs = {}, {}, []
+    """Every fit of the given runs, re-derived from its records and checked against its stored summary (module
+    docstring). Raises VerificationError on the first fit with a problem."""
+    fits, configs = {}, []
     studies = {}
     for run_dir in map(Path, run_dirs):
         result = json.loads((run_dir / "s2_development.json").read_text())
@@ -175,9 +257,15 @@ def load_runs(run_dirs: list[Path]) -> dict:
                 study = S.make_study(world, w)
                 held = [x for x in study["items"] if x["split"] != "train"]
                 vocab_words = {t for x in study["items"] if x["split"] == "train" for t in x["text"].split()}
-                studies[w] = (world, study, held, vocab_words)
-            world, study, held, vocab_words = studies[w]
+                aug, adds, world_record = world_additions(world, study)
+                ordinary = sum(x["split"] == "train" for x in study["items"])
+                studies[w] = (held, {x["id"]: x for x in held}, vocab_words, aug, adds, world_record, ordinary)
+            held, by_id, vocab_words, aug, adds, world_record, ordinary = studies[w]
             tag = f"{arm}_w{w}_i{i}"
+            if result["worlds"].get(str(w)) != world_record:
+                raise V.VerificationError(f"{run_dir.name} world {w}: recorded additions differ from the rebuilt ones")
+            if (u["added_examples"], u["training_examples"]) != (len(adds[arm]), ordinary + len(aug) + len(adds[arm])):
+                raise V.VerificationError(f"{tag}: training-set size differs from the rebuilt additions")
             with gzip.open(run_dir / "records" / f"{tag}.json.gz", "rt") as f:
                 rec = json.load(f)
             trace = None
@@ -191,15 +279,26 @@ def load_runs(run_dirs: list[Path]) -> dict:
                 if not V._same(u["policies"][policy]["categories"], d["policies"][policy]["categories"]):
                     raise V.VerificationError(f"{tag} {policy}: stored metrics differ from the records")
             cert = d["policies"]["certified"]["certificate"]
-            if not V._close(u["policies"]["certified"]["certificate"]["threshold"], cert["threshold"]):
-                raise V.VerificationError(f"{tag}: certificate differs")
+            problems = certificate_problems(u["policies"]["certified"]["certificate"], cert)
+            if u["policies"]["none"]["certificate"] is not None:
+                problems.append("the uncertified policy has a certificate")
+            if problems:
+                raise V.VerificationError(f"{tag}: {problems[:3]}")
             outcomes = S.unit_outcomes({"policies": {"certified": {"certificate": cert,
                                                                    "categories": d["policies"]["certified"]["categories"]},
                                                      "none": {"categories": d["policies"]["none"]["categories"]}}})
             if outcomes != u["outcomes"]:
                 raise V.VerificationError(f"{tag}: stored outcomes differ from the re-derived ones")
-            if u["greedy_trace_mismatches"]:
-                raise V.VerificationError(f"{tag}: greedy traces do not reproduce the decisions")
+            if trace is not None:
+                if trace["ids"] != [x["id"] for x in held if x["category"] in DV.TRACED] or \
+                        (trace["world"], trace["init"], trace["arm"]) != (w, i, arm):
+                    raise V.VerificationError(f"{tag}: trace inventory differs")
+                problems = trace_problems(by_id, rec["records"], rec["ids"], trace)
+                if problems:
+                    raise V.VerificationError(f"{tag}: traces disagree with the records ({len(problems)} problems; "
+                                              f"first: {problems[:3]})")
+            if u["greedy_trace_mismatches"]:  # the producer's own check, kept as a second signal
+                raise V.VerificationError(f"{tag}: the run reported greedy-trace mismatches")
             fits[(arm, w, i)] = {"derived": d, "outcomes": outcomes, "threshold": cert["threshold"],
                                  "records": rec["records"], "ids": rec["ids"], "trace": trace, "held": held,
                                  "train_seconds": u["train_seconds"], "train_loss": u["train_loss"],
@@ -260,15 +359,47 @@ def analyse(run_dirs: list[Path]) -> dict:
            "failure_kinds": {a: failure_summary(rs) for a, rs in sorted(traces_by_arm.items())},
            "failure_kind_by_class": {a: cross_tab(rows_by_arm[a], traces_by_arm[a]) for a in sorted(traced)}}
     if set(worlds) == set(DEVELOPMENT["worlds"]) and set("BC") <= set(arms):
+        problems = source_problems(loaded["runs"], DEVELOPMENT_COMMITS)
+        if problems:
+            raise V.VerificationError(f"development runs are not bound to the frozen source: {problems}")
         out["decision_rule"] = decision_rule(units, worlds, inits)
     if set(worlds) == set(CONFIRMATION["worlds"]):
         out["confirmation"] = confirmation_verdict(units, loaded["runs"], worlds, inits)
     return out
 
 
+# --- the frozen source --------------------------------------------------------------------------------------------
+# The producer's files as hashed into every run (s2_development.SOURCES), unchanged from `ece0f86` (the harness)
+# through `07bb97e` (the confirmation freeze).
+FROZEN_SOURCES = {
+    "interpreter_robustness.py": "f1653d63a00bb4164a1b8055e05338bbe6b12390efce2e0a03c3e701789a8d46",
+    "s2_development.py": "3ebc1922fe605370b9cf328fabe12902339db3c752919eb680dd51cd0816f67e",
+    "s2_diagnosis.py": "a847afe96e7f45e49bb465cad7918f36e945a2c7f592707dd689f70be8051938",
+    "../integrated/interpreters.py": "8e56388e6051e442309e804483ce915ecea0d0cc1c365e4e2be10bd8b88b6c43",
+    "../integrated/routing.py": "0997d1798adec59f8c56f931276ed393675927bbc978837c19927fe33f719db7",
+}
+DEVELOPMENT_COMMITS = ("ece0f862afe77fbe3da08c260ed6a2b60a75dfd4",  # arm A, before the brief
+                       "d991d127258abc9f0a289fbc8c98541aa0267181")  # B, C, D: the brief's commit
+
+
+def source_problems(runs: list[dict], commits) -> list[str]:
+    """Each run must have started from one of the given commits, with an unmodified research tree and the frozen
+    producer files."""
+    problems = []
+    for r in runs:
+        prov = r["provenance"]
+        if prov.get("commit") not in commits:
+            problems.append(f"{r['run']}: commit {prov.get('commit')!r} is not a frozen one")
+        if prov.get("sha256") != FROZEN_SOURCES:
+            problems.append(f"{r['run']}: producer file hashes differ from the frozen ones")
+        if prov.get("research_tree_dirty") is not False:
+            problems.append(f"{r['run']}: ran from a modified research tree")
+    return problems
+
+
 # --- the confirmation (protocols/s2_context_confirmation_v1.md) -------------------------------------------------
 CONFIRMATION = {"worlds": (710, 711, 712), "inits": (200, 201, 202, 203, 204), "arms": ("A", "B", "C"),
-                "countries": 96, "updates": 1500}
+                "countries": 96, "updates": 1500, "commit": "07bb97e35ca5e636d93d34a763d459d9407bd8b1"}
 
 
 def confirmation_verdict(units: dict, runs: list[dict], worlds, inits) -> dict:
@@ -284,8 +415,7 @@ def confirmation_verdict(units: dict, runs: list[dict], worlds, inits) -> dict:
         cfg = r["config"]
         if cfg["countries"] != CONFIRMATION["countries"] or cfg["updates"] != CONFIRMATION["updates"]:
             problems.append(f"{r['run']}: configuration differs from the frozen one")
-        if r["provenance"]["research_tree_dirty"]:
-            problems.append(f"{r['run']}: ran from a modified research tree")
+    problems += source_problems(runs, (CONFIRMATION["commit"],))
     if problems:
         return {"complete": False, "problems": problems}
     arms, ws, its = CONFIRMATION["arms"], CONFIRMATION["worlds"], CONFIRMATION["inits"]
