@@ -186,3 +186,25 @@ D's result is reported separately; it cannot trigger the confirmation.
   draws are scored by every init of a world, so inits are not independent samples of questions. Unit-to-unit
   variation in S2 is large (part 1).
 - **Negative findings.** A well-supported negative finding is a successful outcome.
+
+## Execution record (appended 2026-10-19, after the intervention fits)
+
+- **The intervention fits:** run `20261019T083141`.
+  - Ran from `d991d12` with an unmodified research tree.
+  - 18 fits, all completed.
+  - Every greedy trace reproduced its recorded decisions.
+  - Every metric was re-derived from the decision records.
+- **The decision rule was met:**
+
+| World | C mean S2 exact | B mean S2 exact |
+|---|---:|---:|
+| 100 | 0.8958 | 0.8746 |
+| 101 | 0.9613 | 0.8963 |
+
+  C also met the S3/S4 joint criterion in all six units.
+- **Reported separately:**
+  - D: S2 exact 1.000 in all six units, with the S2 criterion and the joint criterion met in each.
+  - B: lost the joint criterion in unit 100/100 (S4b abstention 0.946).
+- **What followed:** the fresh confirmation was frozen at `07bb97e` and run
+  ([protocol](s2_context_confirmation_v1.md), [report](../reports/s2_diagnosis_v1.md)).
+- **Deviations from this brief:** none.
