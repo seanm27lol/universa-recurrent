@@ -254,8 +254,8 @@ Migration is **potentially** cheaper than restart. Its cost counts:
 ### Pause indices and the budget contract
 
 - **Pause index.** Index k means the run is paused after exactly k calls to `step`, counting the call that
-  terminates it. That call does not increase `steps_used`. Indices run from 0 up to the uninterrupted run's
-  number of calls.
+  terminates it. That call does not increase `steps_used`. If the uninterrupted run makes n calls, a paused
+  run has k from 0 to n − 1; at k = n the run has finished, and nothing is resumed.
 - **The budget contract** is an integer from 1 to 16. It is validated and bound into the query before
   execution, separately from `query_problems` (which does not check it). A question asking for more than 16
   connections is refused as an invalid query.
@@ -342,8 +342,7 @@ The guarantee is **per snapshot**:
 - **The queries:**
   - every query whose S0 and S1ᵢ outcomes, visited paths or applications differ;
   - a fixed random sample of 200 that do not differ.
-- **The pause indices:** every index from 0 to the uninterrupted run's number of calls, for every policy and
-  for naive continuation.
+- **The pause indices:** every index k from 0 to n − 1, for every policy and for naive continuation.
 - **Both conditions:**
   - supplied queries;
   - accepted interpreted test questions.
