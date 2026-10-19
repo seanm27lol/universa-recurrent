@@ -20,7 +20,13 @@ Also:
 - `trace_and_continuation`: the candidate's records replay, its modules use only their input, and records
   made under the old registry are refused;
 - `calibration_and_resources`: a calibration bound to the old registry needs refitting, and no changed
-  module costs more than the registered limit;
+  module costs more than the registered limit. A versioned `QueryCertificate` (`certificates.py`) is judged
+  against the *expected* serving context the caller supplies (`expected`), never against its own fields:
+  - it must be bound to the candidate snapshot's digest, and to the interpreter, policy, event,
+    distribution and grid that will actually serve;
+  - it must re-derive exactly from its own records;
+  - it must have certified a rule.
+  The older `Calibration` path is unchanged.
 - `record_context`: the record names exactly the checked base and candidate snapshots, the target world,
   this checker, and the calibration actually supplied. A required calibration that is missing is
   insufficient evidence.
@@ -45,6 +51,7 @@ from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import Mapping
 
+from .certificates import Expectation, QueryCertificate
 from .contracts import Budget, Program, content_identity, facts_mapping
 from .interventions import consumed_as_recorded, intervene, law_defects, replay
 from .records import to_record
@@ -187,11 +194,24 @@ def trace_and_continuation(candidate, base, world, sample: int = 60) -> dict:
     return _gate(FAIL if problems else PASS, problems=problems[:10], checked=len(picks))
 
 
-def calibration_and_resources(candidate, base, record, calibration=None, policy_version: str = "") -> dict:
-    """A calibration bound to the old registry must be refit; no changed module may exceed the cost limit."""
+def calibration_and_resources(candidate, base, record, calibration=None, policy_version: str = "", *,
+                              expected: Expectation | None = None, candidate_digest: str | None = None) -> dict:
+    """A calibration bound to the old registry must be refit; no changed module may exceed the cost limit.
+
+    For a `QueryCertificate`, `expected` (what will serve) and `candidate_digest` (the snapshot being checked)
+    come from the caller. Without `expected` the gate has insufficient evidence."""
     from .costs import module_macs
     problems, insufficient = [], []
-    if calibration is not None:
+    if isinstance(calibration, QueryCertificate):
+        if expected is None:
+            insufficient.append("no expected serving context was supplied: which interpreter, policy, event and "
+                                "distribution will serve")
+        else:
+            problems += [f"certificate: {p}" for p in calibration.binding_problems(expected, candidate_digest)]
+        problems += [f"certificate: {p}" for p in calibration.rederivation_problems()]
+        if not calibration.certified:
+            problems.append("certificate: no rule was certified, so this context would refuse every question")
+    elif calibration is not None:
         issues = calibration.binding_problems(calibration.interpreter_identity, candidate.identity, policy_version)
         if issues:
             insufficient.append("the calibration was fit for the old registry; refit before activation")
@@ -208,6 +228,8 @@ def calibration_and_resources(candidate, base, record, calibration=None, policy_
 
 
 def calibration_identity(calibration) -> str | None:
+    if isinstance(calibration, QueryCertificate):
+        return calibration.identity
     return None if calibration is None else content_identity(
         {k: (None if isinstance(v, float) and v != v else v) for k, v in calibration.__dict__.items()})
 
@@ -256,6 +278,7 @@ class CheckResult:
     counts: Mapping[str, object]
     snapshot: Snapshot
     seal: str
+    expectation_identity: str | None = None  # the serving context the calibration gate was judged against
 
     def outcome(self, gate: str) -> str:
         return self.gates[gate]["outcome"]
@@ -268,10 +291,13 @@ class CheckResult:
 
     def bound(self) -> dict:
         """Everything the seal covers."""
-        return {"record": self.record_identity, "base": self.base_digest, "candidate": self.candidate_digest,
-                "old_world": self.old_world_identity, "new_world": self.new_world_identity,
-                "checker": self.checker_version, "calibration": self.calibration_identity,
-                "max_macs": self.max_macs_per_application, "outcomes": self.outcomes()}
+        bound = {"record": self.record_identity, "base": self.base_digest, "candidate": self.candidate_digest,
+                 "old_world": self.old_world_identity, "new_world": self.new_world_identity,
+                 "checker": self.checker_version, "calibration": self.calibration_identity,
+                 "max_macs": self.max_macs_per_application, "outcomes": self.outcomes()}
+        if self.expectation_identity is not None:
+            bound["expectation"] = self.expectation_identity
+        return bound
 
 
 class Checker:
@@ -288,7 +314,10 @@ class Checker:
     def _seal(self, bound: dict) -> str:
         return hmac.new(self._key, content_identity(bound).encode(), hashlib.sha256).hexdigest()
 
-    def check(self, base, candidate, record, old_world, new_world, calibration=None) -> CheckResult:
+    def check(self, base, candidate, record, old_world, new_world, calibration=None, *,
+              expected: Expectation | None = None) -> CheckResult:
+        """Run every gate. `expected` is the serving context the caller will actually serve; a `QueryCertificate`
+        is judged against it and against the candidate snapshot checked here."""
         base_snap = base if isinstance(base, Snapshot) else publish(base)
         cand_snap = publish(candidate.registry if isinstance(candidate, Snapshot) else candidate)
         b, c = base_snap.registry, cand_snap.registry
@@ -298,14 +327,15 @@ class Checker:
                  "types_and_laws": types_and_laws(c, new_world),
                  "intended_behavior": intended, "unaffected_behavior": unaffected,
                  "trace_and_continuation": trace_and_continuation(c, b, new_world),
-                 "calibration_and_resources": calibration_and_resources(c, b, record, calibration)}
+                 "calibration_and_resources": calibration_and_resources(c, b, record, calibration, expected=expected,
+                                                                        candidate_digest=cand_snap.digest)}
         if not cand_snap.verify() or not base_snap.verify():  # running the gates must not have changed either
             gates["record_context"] = _gate(FAIL, problems=["a snapshot changed while it was being checked"],
                                             insufficient=[])
         result = CheckResult(record.identity, base_snap.digest, cand_snap.digest, old_world.identity,
                              new_world.identity, self.version, calibration_identity(calibration),
                              record.max_macs_per_application, MappingProxyType(gates), MappingProxyType(counts),
-                             cand_snap, "")
+                             cand_snap, "", None if expected is None else expected.identity)
         return replace(result, seal=self._seal(result.bound()))
 
     def verify(self, result: CheckResult) -> bool:
