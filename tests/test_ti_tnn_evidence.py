@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 325
+    assert len(manifest["files"]) == 407
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
                    if not f["path"].endswith(".gz"))  # no local paths
     import gzip
@@ -154,3 +154,17 @@ def test_interpreter_robustness_unit_rebuilds_from_its_records():
     assert verdict["successes_by_world"]["joint_novelty"]["word_aug"] == {"700": 5, "701": 5, "702": 5}
     assert not any(verdict["separate_verdicts"]["s2_transfer"].values())
     assert not any(verdict["separate_verdicts"]["s1_structure"].values())
+
+
+def test_s2_diagnosis_development_rebuilds_from_its_records():
+    pytest.importorskip("torch")
+    out = tables.s2_diagnosis_tables(quick=True)  # development part; raises on any discrepancy
+    dev = out["development"]
+    assert dev["decision_rule"]["proceed_to_confirmation"]
+    assert {w: m["C"] > m["B"] for w, m in dev["decision_rule"]["S2_exact_world_means"].items()} == {"100": True,
+                                                                                                    "101": True}
+    assert all(dev["units"][f"D/{w}/{i}"]["S2_exact"] == 1.0 for w in (100, 101) for i in (100, 101, 102))
+    import json
+    conf = json.loads((BUNDLE / "s2_diagnosis/confirmation_analysis/s2_development_analysis.json").read_text())
+    assert conf["confirmation"]["complete"] and not conf["confirmation"]["prediction_C_holds"]
+    assert not conf["confirmation"]["secondary_C_above_B_every_world"]

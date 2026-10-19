@@ -106,3 +106,20 @@ and surrounding context and leaves that mapping intact (see the brief's interpre
 
 The overnight budget allows the 45 fits. If they cannot complete, the run is reported as incomplete: no verdict
 is drawn from a partial inventory.
+
+## Execution record (appended 2026-10-19, after the run)
+
+- **The run:** `20261019T084110`, from `07bb97e` with an unmodified research tree.
+  - 45 fits, all completed, 12:41–12:55 UTC on CPU.
+  - Every greedy trace reproduced its decisions.
+- **The analysis:** run unchanged. Every metric, certificate and unit outcome was re-derived from the records
+  and matched the stored summary. The verdict is complete.
+- **Primary prediction: not met.** C passed S2 and S3/S4 in the same unit in 0, 0 and 3 of 5 units (worlds
+  710, 711 and 712).
+- **Secondary prediction: not met.** C's mean S2 exact accuracy was 0.8578, 0.8778 and 0.8912, against B's
+  0.9123, 0.9045 and 0.8540, so C was above B only in world 712.
+- **Reported arms:**
+  - A: 2/2/1;
+  - B: 2/0/1;
+  - every arm met the S3/S4 joint criterion in all 15 units.
+- **Deviations from this protocol:** none.
