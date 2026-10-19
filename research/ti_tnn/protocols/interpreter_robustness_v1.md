@@ -302,3 +302,64 @@ CPU only. Measured in a smoke run, 100 updates take about 1 s for a word arm and
     halved.
 - **Runtime refusal.** The claim was narrowed to "given a faithful parse"; the unknown-entity invariant is
   stated.
+
+## Development pilot, round 1 (2026-10-18; disclosed; not a result)
+
+**Setup.** Worlds 100–101 × inits 100–101: 4 units, 4 arms and 1,500 updates, run at `613e736`. Every audit
+passed. Retraining two arms of one unit reproduced their recorded decisions and scores exactly.
+
+**1. The certification design cannot work at this size. No arm earned a certificate in any unit.**
+- **The first rule was too thin.** The strictest rule (0.9999) accepted only 77–289 of the roughly 375
+  calibration questions, below the 299 needed even with zero errors, so the stopping rule never reached
+  looser rules.
+- **The next rule would have worked, barely.** At 0.999, the rules accepted 346–378 questions with 0–1
+  errors. A single calibration error at that size already prevents a certificate (473 are needed for one
+  error).
+- **What it was not.** Under `none`, every arm answered all ID calibration questions with 0–9 errors. The
+  failure is statistical power, not accuracy.
+
+**2. What each arm did, pooled over 4 units.**
+
+| Arm | T1 accuracy | ID at 0.999: coverage, errors | S3 at 0.999: coverage, errors | S4a abstention at 0.999 (type-ambiguous / type-determined) | S2 at 0.999: coverage, errors | S1 at 0.999: coverage, errors |
+|---|---|---|---|---|---|---|
+| `word` | 1.00 | 1.00, 0 | 0.31, 0 | 0.94 / 0.87 | 0.34, 0 | 0.23, 552 |
+| `word_aug` | 1.00 | 1.00, 0 | **0.98, 0** | **1.00 / 1.00** | 0.60, 19 | 0.26, 617 |
+| `char` | 1.00 | 0.97, 0 | 0.27, 6 | 0.77 / 0.86 | 0.38, 0 | 0.21, 510 |
+| `char_aug` | 1.00 | 0.98, 0 | 0.43, 1 | 0.88 / **0.42** | 0.51, 4 | 0.16, 395 |
+| grammar control | 1.00 | 1.00, 0 | 1.00, 0 | 1.00 / 1.00 | 1.00, 0 | 1.00, 0 |
+
+**The 0.999 columns are diagnostic.** 0.999 is the first adequately populated rule, applied to see what a
+certified policy would do; nothing was certified. Under `none`, every arm answered nearly all of S3 and S2,
+with more errors.
+
+**3. Many held-out questions can be answered from the entity's type.**
+- **The leak.** `operator_of` is the only relation that applies to an airport, so "the outfit managing X"
+  on an airport can be answered from the type alone.
+- **The character model uses it.** When `char_aug` answered S4 (one unit), 231 of its 245 answers were the
+  *intended* program, mostly `operator_of`.
+- **The pattern.** Character input lets the model guess untaught wording from type and spelling; the word
+  model sees only `<unk>` and refuses.
+
+**4. Certifying on ID does not bound errors under the length shift.** At 0.999, every accepted
+three-step answer in every arm was wrong.
+
+**5. No information limit was found between S3 and S4.**
+- No program collisions or decision conflicts with the copied entity, in either encoding.
+- No S3/S4 conflicts.
+- The word encoding has 16 and 26 conflict groups if the copied entity is ignored, all from refusals
+  whose entity is unknown.
+
+**Changes proposed for review before freezing** (none applied yet):
+1. **Make certification feasible:**
+   - start the grid at 0.999, which accepted 92–100% of calibration questions in the pilot;
+   - double the worlds to 96 countries, giving about 750 calibration questions so that up to two errors
+     can still certify;
+   - verify both with a short second pilot on development worlds.
+2. **Make the primary S4 type-ambiguous.** Use only held-out phrases whose input type allows two
+   relations (capital or largest city on a country; country or airport on a city). Report the
+   type-determined case (`operator_of` on airports) separately.
+3. **Restate the predictions per arm,** informed by this pilot and disclosed as such. The pilot suggests:
+   - `word_aug` separates S3 from S4;
+   - character input trades S4 refusals for type and spelling inference;
+   - no arm's ID certificate protects S1;
+   - S2 coverage at a certified threshold is low for every arm.
