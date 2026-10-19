@@ -120,6 +120,13 @@
       "report": "research/ti_tnn/reports/local_updates_v1.md#corrections-after-review-2026-10-18",
       "source": "the contract-repair branch ti-tnn-contract-repairs (uncommitted working tree at the time of the rerun; committed with it)",
       "command": "python research/ti_tnn/bench/local_updates.py --worlds 600 601 602 --inits 0 1 2 3 4"
+    },
+    "adaptive_compute_shared_path_control": {
+      "what": "lookup task, shared-path control: a half-width dense model (the shared path alone) and a one-expert TI-TNN at the 0.3 cap, seeds 200-204, 18,000 steps; and the frozen evaluator's output",
+      "protocol": "research/ti_tnn/protocols/adaptive_compute_shared_path_control.md",
+      "report": "research/ti_tnn/reports/adaptive_compute_shared_path_control.md",
+      "source": "9da9c82 (recorded in each run); evaluation by frontier.py --shared-control at 9da9c82",
+      "command": "GATE=<gate> bash research/ti_tnn/bench/run_shared_path_control.sh; python research/ti_tnn/bench/frontier.py --shared-control runs/titnn_efficiency/hops_shared_control --hops-v2 runs/titnn_efficiency/hops_v2 --out runs/titnn_efficiency/frontier_sc.json"
     }
   },
   "files": [
@@ -2466,6 +2473,83 @@
       "original_path": "runs/titnn_updates/20261018T182038/verdict.json",
       "sha256": "0d21262cf84ff75bb4c057a52b18ac3cf1ec401ee00f93aa91c062cdca84b29c",
       "bytes": 2215
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/frontier_sc_shared_control.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/frontier_sc_shared_control.json",
+      "sha256": "0680c49f41059837236a7d132c6af3e3285738dc24ce5783363d8f5e5f510c41",
+      "bytes": 8492
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/dense_d128_l8_m2_s18000-seed200-20261018T135706/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/dense_d128_l8_m2_s18000-seed200-20261018T135706/result.json",
+      "sha256": "c0149a9c9913c54853dddde97283df4096a43b27a93665f2bfa65f58c84cf82a",
+      "bytes": 9273
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/dense_d128_l8_m2_s18000-seed201-20261018T141307/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/dense_d128_l8_m2_s18000-seed201-20261018T141307/result.json",
+      "sha256": "eaff1bcce0e30ac9fd108de9b1943ffd2ead3014dadbb9313c77ea8fa74d0fd3",
+      "bytes": 9273
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/dense_d128_l8_m2_s18000-seed202-20261018T142942/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/dense_d128_l8_m2_s18000-seed202-20261018T142942/result.json",
+      "sha256": "01185de79f3f1deb28113c222cdb64ae8a05ebe15ddae53d6a8f20b3e60de5d3",
+      "bytes": 9269
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/dense_d128_l8_m2_s18000-seed203-20261018T144501/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/dense_d128_l8_m2_s18000-seed203-20261018T144501/result.json",
+      "sha256": "31d57e82e290480e8d23cf128a57749a28db3aa2c0121146731056e3d483cdeb",
+      "bytes": 9281
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/dense_d128_l8_m2_s18000-seed204-20261018T150148/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/dense_d128_l8_m2_s18000-seed204-20261018T150148/result.json",
+      "sha256": "6e30fcc3e165bd8392ef0e0ac5910eb2f510c34c2f4b8fe7d7a5f24a712304a2",
+      "bytes": 9272
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed200-20261018T140745/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed200-20261018T140745/result.json",
+      "sha256": "5afe7e29806b6eaa717c19e9f0f61dc2b4624d6b91a8a19becc7b46e34bb0394",
+      "bytes": 10894
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed201-20261018T142347/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed201-20261018T142347/result.json",
+      "sha256": "6175d138f12e56989540e06b6f94f14a56576e336ef3f11c054004a865f7fc7c",
+      "bytes": 10935
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed202-20261018T144019/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed202-20261018T144019/result.json",
+      "sha256": "1af2c57d6c2d891cada68660db11884eff83a431b258251488e42bd8c425562a",
+      "bytes": 10871
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed203-20261018T145630/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed203-20261018T145630/result.json",
+      "sha256": "70f6527aa387c3af20c5b514c2cf2fcf67e29090a14f98904addbc86df2da17d",
+      "bytes": 10897
+    },
+    {
+      "path": "adaptive_compute_shared_path_control/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed204-20261018T151326/result.json",
+      "experiment": "adaptive_compute_shared_path_control",
+      "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed204-20261018T151326/result.json",
+      "sha256": "5b15e3fbf8f79149123af277550aa4f8602f79c472a049c9f18e9453f86eeea6",
+      "bytes": 10862
     }
   ]
 }

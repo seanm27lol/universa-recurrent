@@ -46,6 +46,7 @@ records the declared source version and command.
 | `local_updates/` | 2 (450 learned updates and 30 faulty-suite cases in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report](../../../research/ti_tnn/reports/local_updates_v1.md) | `dd1d937` (committed immediately before the run) |
 | `local_updates_post_repair/` | 2 (the same 450 updates and 30 fault cases, rerun through the repaired interfaces; the verdict must equal the original) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report corrections](../../../research/ti_tnn/reports/local_updates_v1.md) | the contract-repair branch |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
+| `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
 
 **Source versions.**
 - The run files do not record their source version. The manifest takes it from each protocol's

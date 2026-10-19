@@ -339,7 +339,9 @@ fed another country's Trait-B stalk.
     - skipping hides facts that later queries need.
 
     With fresh training seeds and the fixes, a mixture of experts with a shared expert learns the task
-    on 5 of 5 seeds; whether the routed experts or the shared path does the work is not yet known.
+    on 5 of 5 seeds. The [shared-path control](reports/adaptive_compute_shared_path_control.md) found
+    the shared path alone (a half-width dense model) learns it on 4 of 5, with a fifth of the
+    parameters, so the routed experts are not shown to add much.
     TI-TNN at 30% charged compute learns it on 2 of 5, near-perfectly when it does (0.98, 1.000). The
     dense reference learns it on only 3 of 5, so by the frozen rule TI-TNN's efficiency test was
     untestable.
