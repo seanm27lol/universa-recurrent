@@ -362,7 +362,7 @@ S2 exact per unit ranged from 0.583 to 0.994 for A, 0.719 to 0.993 for B and 0.7
 ## Evidence
 
 The bundle is in [`experiments/results/ti_tnn/s2_diagnosis/`](../../../experiments/results/ti_tnn/s2_diagnosis/)
-(82 files, about 26 MB). Every file is listed in `manifest.json` with its sha256.
+(83 files, about 26 MB). Every file is listed in `manifest.json` with its sha256.
 
 | Path | What it holds |
 |---|---|
