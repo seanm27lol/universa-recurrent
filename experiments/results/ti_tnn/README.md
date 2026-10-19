@@ -48,6 +48,8 @@ records the declared source version and command.
 | `interpreter_robustness/` | 18 (aggregate summaries, `verdict.json`, 15 per-unit decision-record files as gzip-compressed JSON, the verifier's output; about 16 MB) | [brief](../../../research/ti_tnn/protocols/interpreter_robustness_v1.md) | [report](../../../research/ti_tnn/reports/interpreter_robustness_v1.md) | `69b7fd7` (frozen; committed immediately before the run) |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 | `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
+| `s2_diagnosis/` (historical, development) | 35 (the classification of the robustness records; 24 development fits' summaries and decision records; arm A's six trace files; the development analysis; `local_traces.json`) | [brief](../../../research/ti_tnn/protocols/s2_diagnosis_brief.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `6435719` (analysis); `ece0f86` (arm A); `d991d12` (B, C, D); recorded in each run |
+| `s2_diagnosis/confirmation*` | 47 (45 fits' decision records, the run summary and the analysis with the frozen verdict) | [protocol](../../../research/ti_tnn/protocols/s2_context_confirmation_v1.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `07bb97e` (frozen; recorded in the run) |
 
 **Source versions.**
 - The run files do not record their source version. The manifest takes it from each protocol's
@@ -74,6 +76,14 @@ refers to, and `make_tables.py` uses it there.
   unchanged since `69b7fd7`.
 - **What it covers.** Training time, training loss and execution provenance are not derivable from
   decision records and are not covered.
+
+**S2 diagnosis.**
+- **Traces.** Only arm A's development traces are bundled (six files, about 8 MB).
+- **Not bundled:** the other 63 trace files, about 86 MB. These are B–D in development and every
+  confirmation fit. `s2_diagnosis/local_traces.json` gives each one's sha256.
+- **Rebuilding.** `make_tables.py` re-derives every class count, unit outcome, decision rule and verdict from
+  the bundled decision records, plus arm A's trace statistics.
+- **Checkpoints** were written locally and are weights, so they are excluded.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

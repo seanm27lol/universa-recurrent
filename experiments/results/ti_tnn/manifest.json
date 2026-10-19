@@ -134,6 +134,20 @@
       "report": "research/ti_tnn/reports/interpreter_robustness_v1.md",
       "source": "69b7fd7 (the frozen revision 4, committed immediately before the run; the run file does not record its commit); the corrected verifier is in the commit that adds this bundle",
       "command": "python research/ti_tnn/bench/interpreter_robustness.py --worlds 700 701 702 --inits 0 1 2 3 4; python research/ti_tnn/bench/interpreter_robustness_verify.py experiments/results/ti_tnn/interpreter_robustness/20261018T232057 --confirmation"
+    },
+    "s2_diagnosis": {
+      "what": "S2 diagnosis: the classification of every S2 question in the interpreter robustness confirmation records; six instrumented development fits of the word_aug recipe (arm A, worlds 100-101 x inits 100-102) with their full-precision greedy and teacher-forced traces; 18 development fits of the training-data interventions B (exposure), C (real-word wrappers) and D (taught two-step supervision) with their decision records; the development analysis; the hashes of the traces not bundled",
+      "protocol": "research/ti_tnn/protocols/s2_diagnosis_brief.md",
+      "report": "research/ti_tnn/reports/s2_diagnosis_v1.md",
+      "source": "6435719 (record analysis); ece0f86 (arm A fits, recorded in the run); d991d12 (B, C, D fits, committed immediately before them, recorded in the run)",
+      "command": "python research/ti_tnn/bench/s2_diagnosis.py experiments/results/ti_tnn/interpreter_robustness/20261018T232057 --out <dir>; python research/ti_tnn/bench/s2_development.py --arms A; python research/ti_tnn/bench/s2_development.py --arms B C D; python research/ti_tnn/bench/s2_development_analysis.py <both runs> --out <dir>"
+    },
+    "s2_context_confirmation": {
+      "what": "S2 diagnosis, fresh confirmation of arms A, B and C: worlds 710-712 (96 countries) x inits 200-204, 45 fits; the run summary, every per-fit decision record and the analysis with the frozen verdict",
+      "protocol": "research/ti_tnn/protocols/s2_context_confirmation_v1.md",
+      "report": "research/ti_tnn/reports/s2_diagnosis_v1.md",
+      "source": "07bb97e (frozen; committed immediately before the run; recorded in the run)",
+      "command": "python research/ti_tnn/bench/s2_development.py --arms A B C --worlds 710 711 712 --inits 200 201 202 203 204 --out runs/titnn_s2_diagnosis/confirmation; python research/ti_tnn/bench/s2_development_analysis.py <run> --out <dir>"
     }
   },
   "files": [
@@ -2683,6 +2697,580 @@
       "original_path": "(produced by the verifier on this bundle)",
       "sha256": "350d6be04031e5a1477c17a6de38651da1c2883f04385fc55f1fcea59aa47d99",
       "bytes": 69332
+    },
+    {
+      "path": "s2_diagnosis/historical/s2_diagnosis.json",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/historical/s2_diagnosis.json",
+      "sha256": "7b2634d5e5a643c8d2c5b71d9048ec0c57ac53d3266822c0757acd508da8e0e5",
+      "bytes": 232497
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/s2_development.json",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/s2_development.json",
+      "sha256": "dda28513d8e4397b77bad568be5ec3891443f6775a67394ce9b3b29590537384",
+      "bytes": 154720
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w100_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w100_i100.json.gz",
+      "sha256": "4dc4060e36fc07a513057af967ca4193b198639a7264fe4fef8e3b8f985fddcd",
+      "bytes": 213315
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w100_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w100_i101.json.gz",
+      "sha256": "cf262b020703fd46242fb905366a685a66a7807a0b6f5801d60d0671dd8d7e8b",
+      "bytes": 210469
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w100_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w100_i102.json.gz",
+      "sha256": "bc8489020265c90fe0541ee328cc0bc28896ddac4a72d50855bc1c27605db8af",
+      "bytes": 210833
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w101_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w101_i100.json.gz",
+      "sha256": "64096162e4e3f09c806007e6efb66e7aa82c2b1c5d572afad6f53153b5c8cead",
+      "bytes": 207294
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w101_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w101_i101.json.gz",
+      "sha256": "579fc2932bde5d870f95d5dbda027f35c220a47891dc5395c261fd033f338536",
+      "bytes": 209703
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/records/A_w101_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/records/A_w101_i102.json.gz",
+      "sha256": "2914c271ea380f98f2f5c7fb9bcf56c05e26770c2708aaeaa12f0930093a6b4f",
+      "bytes": 207144
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w100_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w100_i100.json.gz",
+      "sha256": "e9ed3acbd990f679d7a083138a2f3409a670e10c2e1a4c3193e299139ca5a6a4",
+      "bytes": 1455860
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w100_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w100_i101.json.gz",
+      "sha256": "ca9c32781b052673f879f5c7665a554db3538804cf27e84669105af15aa18a78",
+      "bytes": 1424544
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w100_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w100_i102.json.gz",
+      "sha256": "03c2531456a736d1ebc4df180a22f3236854bf08df23df5b8ba1d545bd2704ce",
+      "bytes": 1425850
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w101_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w101_i100.json.gz",
+      "sha256": "0adb521ab5fe8440c98650e49b96e2167eb4040005f3728640dd2718a1809d49",
+      "bytes": 1431094
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w101_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w101_i101.json.gz",
+      "sha256": "678fe468c4715b100ee5eb572198cd11f393c3a9c77bc5a63fe12d6b8baf0dde",
+      "bytes": 1424956
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T082758/traces/A_w101_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T082758/traces/A_w101_i102.json.gz",
+      "sha256": "dd71114f3994bf343a4178f3d9ca071a364892c9a53a71b93dcca9aa1262c25b",
+      "bytes": 1400659
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/s2_development.json",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/s2_development.json",
+      "sha256": "e56389fdfd379815d617f60ddc18cc6c47115424e9c23a4a65283e6b415956b4",
+      "bytes": 459807
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w100_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w100_i100.json.gz",
+      "sha256": "82ac6893400a9629013be08a8c57de4ff1198246206167bb5409c5daa013b86c",
+      "bytes": 212322
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w100_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w100_i101.json.gz",
+      "sha256": "a46d1a4d2b720bd1eb86d2d3f01d4c5616fc1d337185d44eac864099c23fde52",
+      "bytes": 211219
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w100_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w100_i102.json.gz",
+      "sha256": "dca842ebe892ff10a01395cc9d1b7c39d64c5fc6ba494102726cf446ebc695ce",
+      "bytes": 211066
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w101_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w101_i100.json.gz",
+      "sha256": "0c8d112cc1b28b2691087f3a29cb698897598857c446c281fe3012e6ab583027",
+      "bytes": 214200
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w101_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w101_i101.json.gz",
+      "sha256": "85f621c3daedb3e8e1625e530634274e534ecb2f4a908f6f04a29c47731147d7",
+      "bytes": 211699
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/B_w101_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/B_w101_i102.json.gz",
+      "sha256": "3f6bf032b61095017ed934059678b8a713bf203b1c6040a22d6ae1af09895252",
+      "bytes": 212610
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w100_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w100_i100.json.gz",
+      "sha256": "5abc73163668aa24711fc421264e56ec678e7e2de8b26883cd13cf2e1151d8d4",
+      "bytes": 209582
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w100_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w100_i101.json.gz",
+      "sha256": "55994b1c26ea17cefdccd944e06bbd1e8e4641d8bc5c1b07d2fa2f92cbb1f0cd",
+      "bytes": 209854
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w100_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w100_i102.json.gz",
+      "sha256": "5052b1d832dfb79c6b76f89e072d35bb63eac82e0bc12bf7611679080300826a",
+      "bytes": 214619
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w101_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w101_i100.json.gz",
+      "sha256": "f8ed728a1739f151e9584b4e76944116f0384e06286dae579e5ed40826011721",
+      "bytes": 213618
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w101_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w101_i101.json.gz",
+      "sha256": "8f6cca5f3328dfa5b9fd1babfdbd4f694f0574c011c243d042a0a2aeddc89835",
+      "bytes": 210646
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/C_w101_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/C_w101_i102.json.gz",
+      "sha256": "fc7d775147734341f2898ac14b958b1dcbe10fc23b63f0e3971121d425023612",
+      "bytes": 213455
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w100_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w100_i100.json.gz",
+      "sha256": "e88c5279b96ed487228928b532ca50708a213adb93cf47747245f5f757499198",
+      "bytes": 208145
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w100_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w100_i101.json.gz",
+      "sha256": "feb8fa4e5d769f75f2fb2046a0464a1408aff87b20afc3a57e85714d959aa4d7",
+      "bytes": 207785
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w100_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w100_i102.json.gz",
+      "sha256": "38609d60608fa239b9e01106c26fd1cab9850839b8cdb970306bcf7f68b68119",
+      "bytes": 205670
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w101_i100.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w101_i100.json.gz",
+      "sha256": "dac8e5cd1e29f5c8434117869e8bab506f3d1ed29a2d8fbba40475ec42689904",
+      "bytes": 206635
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w101_i101.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w101_i101.json.gz",
+      "sha256": "0744f20f90a132e364c0b519fbc68eb0b8b14c3542463c7ee5b29d513c379129",
+      "bytes": 208605
+    },
+    {
+      "path": "s2_diagnosis/development/20261019T083141/records/D_w101_i102.json.gz",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/development/20261019T083141/records/D_w101_i102.json.gz",
+      "sha256": "532349d2909f57ef2ab289f69c28061cf1d49c87379ede6fd6d006bd4a4e0210",
+      "bytes": 211462
+    },
+    {
+      "path": "s2_diagnosis/development_analysis/s2_development_analysis.json",
+      "experiment": "s2_diagnosis",
+      "original_path": "runs/titnn_s2_diagnosis/phase4_analysis/s2_development_analysis.json",
+      "sha256": "ca7a1d00b1011bfd85b734092f733c915a6fe7c25db9419b41390e40ef69ea14",
+      "bytes": 265607
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/s2_development.json",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/s2_development.json",
+      "sha256": "370ef2c91fd479cef079ea4831a5d8c6f33679c54ef476caa59a6465207359fa",
+      "bytes": 1157878
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w710_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w710_i200.json.gz",
+      "sha256": "5de548e28057a38fdea61e506168d16c5682dd3afa49b11fecf08b03c5adfee3",
+      "bytes": 207928
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w710_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w710_i201.json.gz",
+      "sha256": "d755f3313b7bef8ea4c7f30e67292a89f4e60613438307013729f81aceddbee8",
+      "bytes": 210967
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w710_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w710_i202.json.gz",
+      "sha256": "a873c85186f73dd61e48bdbc31142d95c88a2c57eb1b7e6f16fa17f5a09f1626",
+      "bytes": 209228
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w710_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w710_i203.json.gz",
+      "sha256": "de4271492c4743bdcdfbc47ff5e67ab9c5b3d99248e4805de24fde8aa354d9cc",
+      "bytes": 210186
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w710_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w710_i204.json.gz",
+      "sha256": "a983ca67ffe91272d1c0b1d1e5341ae09f73da214af949af46e71b8e38dd920a",
+      "bytes": 209568
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w711_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w711_i200.json.gz",
+      "sha256": "facbba54d74cfefcc9c1391084d8b79f950ecd1b730bcdabb75cb75256c564f2",
+      "bytes": 210515
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w711_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w711_i201.json.gz",
+      "sha256": "98ea9d3f4b0877770f0ced194cebe31195041cdacf30628452018c6486c3c098",
+      "bytes": 207376
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w711_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w711_i202.json.gz",
+      "sha256": "8d3d4ea0b49301f89c6cffab5cc68248f4b203294782c9adaa13e564120a4d1b",
+      "bytes": 211174
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w711_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w711_i203.json.gz",
+      "sha256": "98196c5a2230ddbf3028e40415e06c5bed5f22dbaa4bec9542f38affef252358",
+      "bytes": 211752
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w711_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w711_i204.json.gz",
+      "sha256": "293837c3a6550f8a8b4f21d11bcfa208fceca849b4cc843c1085f46b6470ed80",
+      "bytes": 211969
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w712_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w712_i200.json.gz",
+      "sha256": "c10beecc3f1c7542734d4cb84b24314c0701a385591e353897a3e1392638da02",
+      "bytes": 209901
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w712_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w712_i201.json.gz",
+      "sha256": "f13bc6c426810565e1b5c53390d9604e2bf19229d04082b476c4fe8fee2bb956",
+      "bytes": 211724
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w712_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w712_i202.json.gz",
+      "sha256": "cd4f903ee3aba23582abf4cd948564f4159b7460d863c0f5232e931d2e0b8c35",
+      "bytes": 212035
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w712_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w712_i203.json.gz",
+      "sha256": "fb4ef4704fcfe167202765c92cd569e8b1cf0c1561410500516d26a46b762f06",
+      "bytes": 212995
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/A_w712_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/A_w712_i204.json.gz",
+      "sha256": "1268c0c07441b159ff45854b07b64a27315175ae430ec925d102d885ff87b4f1",
+      "bytes": 213035
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w710_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w710_i200.json.gz",
+      "sha256": "830ba3e8d6e1cbb472e5b7ed9229a7b8594a09ee89549e371f8e00d1b1147f86",
+      "bytes": 213774
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w710_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w710_i201.json.gz",
+      "sha256": "6440b1d71ba4b61c5b29bed33adf7d19aa73322985125fb5892c7449e739af00",
+      "bytes": 207834
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w710_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w710_i202.json.gz",
+      "sha256": "4d4f6537d7776a9b5d8ca810bd2668e6136d3ffa6b97f2284ca16378a88627ea",
+      "bytes": 208501
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w710_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w710_i203.json.gz",
+      "sha256": "0fa6ef94556ed22a52e8a4d10dbdddaa6cc669bb5c2e2d4792ad0face08eda86",
+      "bytes": 211631
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w710_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w710_i204.json.gz",
+      "sha256": "75214d1e007ccc250b21b1ac90030987828c1dc4e574ce1b50d5dfbd556c812a",
+      "bytes": 212828
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w711_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w711_i200.json.gz",
+      "sha256": "a48cb609f5962ebd41302b2c44905156ace05e5aad68aee8ade1c30080a3dcd2",
+      "bytes": 208896
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w711_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w711_i201.json.gz",
+      "sha256": "66db13e2d0aadba70dc96fd5bdd32fb8d55da112ea128cfaa387e79aa3c9f243",
+      "bytes": 212850
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w711_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w711_i202.json.gz",
+      "sha256": "c9306bb89662965e9757eb2c94578165ae4ae1b3a2e36938f0d18a654ad9db63",
+      "bytes": 214202
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w711_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w711_i203.json.gz",
+      "sha256": "1d992aada1cbe35482ba78941b32b199d89e26a5410b5a1d8e3228ec1cd06d9f",
+      "bytes": 215008
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w711_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w711_i204.json.gz",
+      "sha256": "986dd88dfef87f115655618e983b2ce7c880ef7a1c44d07e5115e79922ef1682",
+      "bytes": 213138
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w712_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w712_i200.json.gz",
+      "sha256": "a4b324e7076e80eec1d90d7e5edc80f59b0e3e3b6ec3279565021808671fb8cc",
+      "bytes": 214149
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w712_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w712_i201.json.gz",
+      "sha256": "3ea51dd55aa83e50a0154d0d94a633265fd6a865f2d62c5da3e5b9e65e0b67d5",
+      "bytes": 212620
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w712_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w712_i202.json.gz",
+      "sha256": "60c162bf67d49635e5cbd550f7f07c17295117a1bb3e8c1a6488bb1ac887023c",
+      "bytes": 211167
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w712_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w712_i203.json.gz",
+      "sha256": "51f193be614c81d94fecb9d49af26ce3e205042382ef18e4d19238643acf428f",
+      "bytes": 215520
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/B_w712_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/B_w712_i204.json.gz",
+      "sha256": "1e3b501d03a0d0f8db2d2b699d779f6bf20c4b5b764ae755ae621999d420aff1",
+      "bytes": 213728
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w710_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w710_i200.json.gz",
+      "sha256": "94a1d8589eb8a7fd3a4e7d792f8355be294faa1ba517baf1d3abc004fbaa0338",
+      "bytes": 212888
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w710_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w710_i201.json.gz",
+      "sha256": "f5a1a8431feaa2b304c9acce7233233e80b1720544cce5e80d50baacc808a3e0",
+      "bytes": 207310
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w710_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w710_i202.json.gz",
+      "sha256": "0b80424310db047348812d38a29847b4ce0e2d48262d54f410263d1f0cf8ed3f",
+      "bytes": 210219
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w710_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w710_i203.json.gz",
+      "sha256": "226a6aa384132149638df9d5928c07e326d6196e6c59e784fbffa6a9e88e9757",
+      "bytes": 212915
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w710_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w710_i204.json.gz",
+      "sha256": "cf66bd26ac3c59367019b1f3b5b94c754067bea60b3ecaad501466f6f7ba371f",
+      "bytes": 211964
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w711_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w711_i200.json.gz",
+      "sha256": "df4b4a97d2a1fa69696a39f97abe090fc64dddc3c980a784679c6fc533219e8b",
+      "bytes": 211737
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w711_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w711_i201.json.gz",
+      "sha256": "e142c3685f1f9e54e7f6c96c13d6e68fe71f4b22aad1d202567b93e6688cdcbb",
+      "bytes": 211127
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w711_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w711_i202.json.gz",
+      "sha256": "1f848ae838568444a76cbcb5e81477d689b242d3f250b36e7409040c96232239",
+      "bytes": 212650
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w711_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w711_i203.json.gz",
+      "sha256": "f1eb9791c5895a5bfb3cc456fc01c0542038563ca4b4f5bab7470c56b12ed920",
+      "bytes": 213620
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w711_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w711_i204.json.gz",
+      "sha256": "5050906718819c25f338e485deb420c96bd713ee01e5447759cabf0cd6b398fe",
+      "bytes": 214446
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w712_i200.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w712_i200.json.gz",
+      "sha256": "a0d3406fbf8b14e9e3af65a0295247cca06561628d9532c4ac02e5f032464c45",
+      "bytes": 212630
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w712_i201.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w712_i201.json.gz",
+      "sha256": "0596cfd879bcac01359cc6f969f67b237f1fc27e1e47d7f365dc5cb804ec5849",
+      "bytes": 212172
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w712_i202.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w712_i202.json.gz",
+      "sha256": "f4bdcb9193838a441f4d4e401c0d6729dd7136d812140d106bfd14a122d0f4b8",
+      "bytes": 215334
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w712_i203.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w712_i203.json.gz",
+      "sha256": "28ae5f1b773eb4b79c3f536647585cb64d4e12cdad5465319f797f8d88a7f1ec",
+      "bytes": 214201
+    },
+    {
+      "path": "s2_diagnosis/confirmation/20261019T084110/records/C_w712_i204.json.gz",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation/20261019T084110/records/C_w712_i204.json.gz",
+      "sha256": "79dfc6603b0383fd5e51b5eac5af5368b1bf9e2c5c515f527e62b0670e20a052",
+      "bytes": 211422
+    },
+    {
+      "path": "s2_diagnosis/confirmation_analysis/s2_development_analysis.json",
+      "experiment": "s2_context_confirmation",
+      "original_path": "runs/titnn_s2_diagnosis/confirmation_analysis/s2_development_analysis.json",
+      "sha256": "e2ead4de88ad587705561cc9f9169f6660f674208a8a24b21866b12be6d920ef",
+      "bytes": 299790
+    },
+    {
+      "path": "s2_diagnosis/local_traces.json",
+      "experiment": "s2_diagnosis",
+      "original_path": null,
+      "sha256": "e2b6f41b323c7c2c488c6ff625c161d49d4de2745f104b3012488e713c4e7edf",
+      "bytes": 13559
     }
   ]
 }

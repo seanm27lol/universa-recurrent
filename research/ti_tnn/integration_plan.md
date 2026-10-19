@@ -489,7 +489,12 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    - The augmented word interpreter met the joint novelty criterion in all 15 confirmation units.
    - Taught-synonym transfer into two-step questions and three-step composition did not meet their
      criteria.
-   - S2 is the next research decision: the saved programs show every S2 error is a wrong relation program.
+   - **The S2 diagnosis** ([report](reports/s2_diagnosis_v1.md)): S2 failures are mostly one-relation programs,
+     with stopping after the first relation far more likely than in matched Base questions.
+     - Wrapping the taught training questions in longer contexts did not help beyond extra exposure in a fresh,
+       frozen confirmation.
+     - Training on taught two-step questions removed the failure in development. That is extra supervision, not
+       transfer.
 3. **The full integration test:** not started.
 4. **Evolutionary proposals (PR 9):** still deferred. The novelty result gives them no objective.
 
