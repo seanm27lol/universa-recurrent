@@ -16,6 +16,7 @@ output before any training (`audit`), and refuses to run if any check fails:
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import platform
 import random
@@ -51,16 +52,16 @@ NOVEL_FRAMES = ("could you tell me {q} ?", "i would like to know {q} .")
 NOVEL_FILLERS = ("exactly", "precisely")
 UNSUPPORTED_BASE = {t: v[0][0] for t, v in TQ.UNSUPPORTED.items()}
 AMBIGUOUS_BASE = TQ.AMBIGUOUS[0][0]
-SPLITS = (("train", 0.3), ("calibration", 0.3), ("test", 0.4))
-REFUSAL_SHARE = 0.06
+REFUSAL_SHARE = 0.06  # training refusals: a quota per kind (training is fixed, not sampled for a claim)
 REFUSALS = ("ill_typed", "unsupported", "unknown_entity", "ambiguous")
 AUG_SHARE = 0.25
 ARMS = ("word", "word_aug", "char", "char_aug")
 POLICIES = ("none", "certified", "novelty", "novelty_certified")
 GRID = (0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8, 0.6, 0.4, 0.2, 0.0)  # provisional (round 2: starts at 0.999)
 DIAGNOSTIC_CUTOFF = 0.999  # a fixed raw cutoff for diagnostics only; never a certificate
-ANSWER_CATEGORIES = ("ID", "T1", "T1_base", "S2", "S2_base", "Q_base", "S3", "S1", "L3_base", "S2_L3", "S3_L3")
-ABSTAIN_CATEGORIES = ("R", "S4a", "S4b", "S4_L3")
+ANSWER_CATEGORIES = ("CAL", "ID", "T1", "T1_base", "S2", "S2_base", "S3", "S3_base", "S4_base", "S4_primary_base", "S1",
+                     "L3_base", "S2_L3", "S3_L3")
+ABSTAIN_CATEGORIES = ("CAL_R", "R", "S4a", "S4b", "S4a_primary", "S4b_primary", "S4_L3")
 
 
 def words_of(templates) -> set[str]:
@@ -124,22 +125,45 @@ def s4_stratum(world, program, entity, j) -> tuple[str, int, int]:
     return stratum, len(compatible), len(answers)
 
 
-def make_study(world: W.World, seed: int, n_noncancel: int = 800, n_round: int = 300, n_diag: int = 300) -> dict:
-    """Every item for one world: {"items": [...], "pseudo_pool": [...]}. Item fields: id, split, category,
-    kind, text, program (execution order, or the intended program for S4), entity, entity_position, expected
-    ("answer" or "abstain"), answer, length, family, style, group (shared by matched variants), outputs
-    (training target, train items only)."""
-    rng = random.Random(f"robustness|{world.identity}|{seed}")
-    short = [p for p in R.well_typed_paths(world, 2)]
+# --- the frozen sampling design (revision 4) ---------------------------------------------------------------
+SIZES = {"calibration": 1000, "id_test": 1000, "T1": 500, "S2": 800, "S3": 1000, "S4_population": 1000,
+         "S4_primary": 2000, "S1_length3": 800, "S1_round_trip": 300, "L3_diagnostic": 300}
+TRAIN_SHARE = 0.3
+P_REFUSAL = 0.24  # an ID-distribution draw is a refusal with this probability, its kind uniform (0.06 each)
+VARIANTS = {  # each draw of these designs is a group of matched variants
+    "T1": ("T1", "T1_base"), "S2": ("S2", "S2_base"), "S3": ("S3", "S3_base"),
+    "S4_population": ("S4a", "S4b", "S4_base"), "S4_primary": ("S4a_primary", "S4b_primary", "S4_primary_base"),
+    "L3_diagnostic": ("L3_base", "S2_L3", "S3_L3", "S4_L3")}
+
+
+def make_study(world: W.World, seed: int, sizes: dict | None = None) -> dict:
+    """Every item for one world (revision 4).
+
+    Training is fixed first: 30% of the (program of at most two relations, entity) instances, with their Base
+    questions, the taught wording on the one-step ones, quota refusals (deduplicated within training) and, built
+    later from these, the augmentation. Everything evaluated is then drawn independently, with replacement, from
+    declared distributions over what training did not use:
+    - the held-out population: the other 70% of short instances; length-3 instances are all held out;
+    - calibration and the ID test: independent draws from one ID distribution (refusal with probability 0.24, its
+      kind uniform, drawn from the refusal generator conditioned on its text not being a training question; else a
+      held-out instance, uniform, in a uniform style, frame and Base phrasing). Duplicates within or between the two
+      samples are allowed, as independent draws imply;
+    - each other design draws its base case independently from its declared population and builds matched variants
+      from it (see VARIANTS). Variants are separate categories, never pooled as independent observations.
+    Every item has a unique draw id."""
+    sizes = {**SIZES, **(sizes or {})}
+    rng = random.Random(f"robustness-v4|{world.identity}|{seed}")
+    short = list(R.well_typed_paths(world, 2))
     long3 = [p for p in R.well_typed_paths(world, 3) if len(p) == 3]
     instances = [(p, s) for p in short for s in world.types[world.relations[p[0]].source].values]
     rng.shuffle(instances)
-    cut, parts = 0, {}
-    for split, share in SPLITS:
-        n = round(share * len(instances)) if split != "test" else len(instances) - cut
-        parts[split] = instances[cut:cut + n]
-        cut += n
-    items, refusal_texts = [], set()
+    n_train = round(TRAIN_SHARE * len(instances))
+    train_inst, held = instances[:n_train], instances[n_train:]
+    held_len = {n: [(p, s) for p, s in held if len(p) == n] for n in (1, 2)}
+    long_inst = [(p, s) for p in long3 for s in world.types[world.relations[p[0]].source].values]
+    noncancel = [(p, s) for p, s in long_inst if TQ.path_family(p) == "length3"]
+    round_trips = [(p, s) for p, s in long_inst if TQ.path_family(p) == "round_trip"]
+    items: list[dict] = []
 
     def add(**kw):
         kw.setdefault("program", None)
@@ -147,38 +171,27 @@ def make_study(world: W.World, seed: int, n_noncancel: int = 800, n_round: int =
         kw.setdefault("family", None)
         kw.setdefault("style", "prefix")
         kw.setdefault("group", None)
+        kw.setdefault("frame", None)
         kw["length"] = len(kw["program"]) if kw["program"] else None
         kw["id"] = f"{world.seed}-{len(items)}"
         kw["entity_position"] = TQ.entity_position(kw["text"], kw["entity"])
         items.append(kw)
         return kw
 
-    def supported(split, category, p, s, style, frame, phrases, group, expected="answer", held=None):
+    def supported(split, category, p, s, style, frame, phrases, group=None, expected="answer", held_at=None, **extra):
         it = add(split=split, category=category, kind="supported", text=render(s, phrases, frame), program=list(p),
                  entity=s, expected=expected, answer=R.reference_answer(world, p, s), style=style,
-                 family=TQ.path_family(p), group=group)
-        if held is not None:  # the position of the held-out phrase, and how much the question determines it
-            it["held_position"] = held
-            it["stratum"], it["compatible_programs"], it["compatible_answers"] = s4_stratum(world, p, s, held)
+                 family=TQ.path_family(p), group=group, frame=frame, **extra)
+        if held_at is not None:
+            it["held_position"] = held_at
+            it["stratum"], it["compatible_programs"], it["compatible_answers"] = s4_stratum(world, p, s, held_at)
         return it
 
-    def refusals(split, n_instances):
-        k = max(1, round(REFUSAL_SHARE * n_instances))
-        for kind in REFUSALS:
-            made = 0
-            while made < k:
-                it = refusal(kind, rng, split)
-                if it["text"] in refusal_texts:
-                    continue  # refusal strings are never repeated, within or across splits
-                refusal_texts.add(it["text"])
-                add(**it)
-                made += 1
-
-    def refusal(kind, rng, split):
-        base = {"split": split, "category": "R", "kind": kind, "expected": "abstain"}
+    def refusal(kind, split, category):
         frame, style = rng.choice(BASE_FRAMES), rng.choice(("prefix", "possessive"))
+        base = {"split": split, "category": category, "kind": kind, "expected": "abstain", "frame": frame}
         if kind in ("ill_typed", "unknown_entity"):
-            p = rng.choice(short)  # never longer than two relations: refusals must respect the structural limit
+            p = rng.choice(short)  # at most two relations: refusals respect the structural limit too
             source = world.relations[p[0]].source
             if kind == "ill_typed":
                 s = rng.choice(world.types[rng.choice([t for t in sorted(world.types) if t != source])].values)
@@ -201,61 +214,104 @@ def make_study(world: W.World, seed: int, n_noncancel: int = 800, n_round: int =
         np_ = UNSUPPORTED_BASE[t].format(x=render(s, base_phrases(inner, "prefix", rng), "{q}"))
         return {**base, "text": frame.format(q=np_), "entity": s, "outputs": [J.UNSUPPORTED]}
 
-    # training: Base wording up to two relations; taught wording only in one-step questions
-    for p, s in parts["train"]:
+    # --- training (fixed; not part of any statistical claim)
+    train_texts = set()
+    for p, s in train_inst:
         style = rng.choice(("prefix", "possessive"))
-        it = supported("train", "train_base", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng), None)
+        it = supported("train", "train_base", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng))
         it["outputs"] = list(p) + [J.END]
+        train_texts.add(it["text"])
         if len(p) == 1:
-            it = supported("train", "train_taught", p, s, "prefix", rng.choice(BASE_FRAMES), [TAUGHT[p[0]]], None)
+            it = supported("train", "train_taught", p, s, "prefix", rng.choice(BASE_FRAMES), [TAUGHT[p[0]]])
             it["outputs"] = list(p) + [J.END]
-    refusals("train", len(parts["train"]))
-    # calibration (certification population): Base wording, one rendering per instance, plus refusals
-    for p, s in parts["calibration"]:
+            train_texts.add(it["text"])
+    k = max(1, round(REFUSAL_SHARE * len(train_inst)))
+    for kind in REFUSALS:
+        made = 0
+        while made < k:
+            it = refusal(kind, "train", "R")
+            if it["text"] not in train_texts:
+                train_texts.add(it["text"])
+                add(**it)
+                made += 1
+
+    # --- the ID distribution: calibration and the ID test are independent samples from it
+    def id_draw(split, supported_category, refusal_category):
+        if rng.random() < P_REFUSAL:
+            kind = rng.choice(REFUSALS)
+            while True:  # conditioned on not being a training question
+                it = refusal(kind, split, refusal_category)
+                if it["text"] not in train_texts:
+                    return add(**it)
+        p, s = rng.choice(held)
         style = rng.choice(("prefix", "possessive"))
-        supported("calibration", "CAL", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng), None)
-    refusals("calibration", len(parts["calibration"]))
-    # test categories, matched within each instance
-    for gi, (p, s) in enumerate(parts["test"]):
-        g = f"t{gi}"
-        style = rng.choice(("prefix", "possessive"))
-        supported("test", "ID", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng), g)
-        frame, phrases = rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng)
-        if len(p) == 1:
-            supported("test", "T1", p, s, "prefix", frame, [TAUGHT[p[0]]], g)
-            supported("test", "T1_base", p, s, "prefix", frame, phrases, g)
-        else:
-            j = rng.randrange(2)
-            supported("test", "S2", p, s, "prefix", frame, [TAUGHT[r] if i == j else phrases[i] for i, r in enumerate(p)], g)
-            supported("test", "S2_base", p, s, "prefix", frame, phrases, g)
-        wrapper = rng.choice([rng.choice(NOVEL_FRAMES), with_filler(frame, rng.choice(NOVEL_FILLERS))])
-        j = rng.randrange(len(p))
-        held = [HELD[r] if i == j else phrases[i] for i, r in enumerate(p)]
-        supported("test", "Q_base", p, s, "prefix", frame, phrases, g)
-        supported("test", "S3", p, s, "prefix", wrapper, phrases, g)
-        supported("test", "S4a", p, s, "prefix", frame, held, g, expected="abstain", held=j)
-        supported("test", "S4b", p, s, "prefix", wrapper, held, g, expected="abstain", held=j)
-    refusals("test", len(parts["test"]))
-    # length three: structure (S1), with its own declared count for the primary non-cancelling family; the interaction
-    # diagnostics are matched prefix variants of the first n_diag non-cancelling S1 instances
-    pool = [(p, s) for p in long3 for s in world.types[world.relations[p[0]].source].values]
-    rng.shuffle(pool)
-    noncancel = [(p, s) for p, s in pool if TQ.path_family(p) == "length3"]
-    round_trips = [(p, s) for p, s in pool if TQ.path_family(p) == "round_trip"]
-    for gi, (p, s) in enumerate(noncancel[:n_noncancel] + round_trips[:n_round]):
-        style = rng.choice(("prefix", "possessive"))
-        supported("test", "S1", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng), f"l{gi}")
-    for gi, (p, s) in enumerate(noncancel[:min(n_diag, n_noncancel)]):
-        g, frame, phrases = f"d{gi}", rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng)
+        return supported(split, supported_category, p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng))
+
+    for _ in range(sizes["calibration"]):
+        id_draw("calibration", "CAL", "CAL_R")
+    for _ in range(sizes["id_test"]):
+        id_draw("test", "ID", "R")
+
+    def wrapper(frame):  # the declared novel-wrapper distribution: two novel frames, or the frame with one of two fillers
+        return rng.choice([NOVEL_FRAMES[0], NOVEL_FRAMES[1], with_filler(frame, NOVEL_FILLERS[0]),
+                           with_filler(frame, NOVEL_FILLERS[1])])
+
+    gid = 0
+    def group():
+        nonlocal gid
+        gid += 1
+        return f"g{gid}"
+
+    for _ in range(sizes["T1"]):  # one-step held-out instances, taught phrase against its Base phrasing
+        p, s = rng.choice(held_len[1])
+        g, frame = group(), rng.choice(BASE_FRAMES)
+        supported("test", "T1", p, s, "prefix", frame, [TAUGHT[p[0]]], g)
+        supported("test", "T1_base", p, s, "prefix", frame, base_phrases(p, "prefix", rng), g)
+    for _ in range(sizes["S2"]):  # two-step: one Base phrase replaced by its taught synonym
+        p, s = rng.choice(held_len[2])
+        g, frame, phrases, j = group(), rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng), rng.randrange(2)
+        supported("test", "S2", p, s, "prefix", frame, [TAUGHT[r] if i == j else phrases[i] for i, r in enumerate(p)], g)
+        supported("test", "S2_base", p, s, "prefix", frame, phrases, g)
+    for _ in range(sizes["S3"]):  # the broad inessential-novelty distribution, over all held-out short instances
+        p, s = rng.choice(held)
+        g, frame, phrases = group(), rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng)
+        supported("test", "S3", p, s, "prefix", wrapper(frame), phrases, g)
+        supported("test", "S3_base", p, s, "prefix", frame, phrases, g)
+
+    def s4_case(categories, primary):
+        while True:
+            p, s = rng.choice(held)
+            j = rng.randrange(len(p))
+            if not primary or s4_stratum(world, p, s, j)[0] == "answer_ambiguous":
+                break  # primary: conditioned on the answer-ambiguous stratum
+        g, frame, phrases = group(), rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng)
+        held_phrases = [HELD[r] if i == j else phrases[i] for i, r in enumerate(p)]
+        a, b, base_cat = categories
+        supported("test", a, p, s, "prefix", frame, held_phrases, g, expected="abstain", held_at=j)
+        supported("test", b, p, s, "prefix", wrapper(frame), held_phrases, g, expected="abstain", held_at=j)
+        supported("test", base_cat, p, s, "prefix", frame, phrases, g)
+
+    for _ in range(sizes["S4_population"]):  # the full held-out population: every stratum, as in rounds 1-2
+        s4_case(VARIANTS["S4_population"], primary=False)
+    for _ in range(sizes["S4_primary"]):  # the primary test: answer-ambiguous base cases only
+        s4_case(VARIANTS["S4_primary"], primary=True)
+    for family, pool, n in (("length3", noncancel, sizes["S1_length3"]), ("round_trip", round_trips, sizes["S1_round_trip"])):
+        for _ in range(n):
+            p, s = rng.choice(pool)
+            style = rng.choice(("prefix", "possessive"))
+            supported("test", "S1", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng))
+    for _ in range(sizes["L3_diagnostic"]):
+        p, s = rng.choice(noncancel)
+        g, frame, phrases, j = group(), rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng), rng.randrange(3)
         supported("test", "L3_base", p, s, "prefix", frame, phrases, g)
-        j = rng.randrange(3)
         supported("test", "S2_L3", p, s, "prefix", frame, [TAUGHT[r] if i == j else phrases[i] for i, r in enumerate(p)], g)
         supported("test", "S3_L3", p, s, "prefix", rng.choice(NOVEL_FRAMES), phrases, g)
         supported("test", "S4_L3", p, s, "prefix", frame, [HELD[r] if i == j else phrases[i] for i, r in enumerate(p)], g,
-                  expected="abstain", held=j)
+                  expected="abstain", held_at=j)
     entities = {v for t in world.types.values() for v in t.values}
     forbidden = set().union(*LEXICON.values()) | entities
-    return {"items": items, "pseudo_pool": pseudo_words(random.Random(f"pseudo|{world.identity}|{seed}"), 400, forbidden)}
+    return {"items": items, "sizes": sizes, "train_instances": [(list(p), s) for p, s in train_inst],
+            "pseudo_pool": pseudo_words(random.Random(f"pseudo|{world.identity}|{seed}"), 400, forbidden)}
 
 
 def augment(study: dict, seed: int) -> list[dict]:
@@ -285,10 +341,12 @@ def augment(study: dict, seed: int) -> list[dict]:
     return out
 
 
-def audit(study: dict, aug: list[dict]) -> dict:
-    """Checks that must all hold before anything trains."""
-    items = study["items"]
+def audit(world: W.World, study: dict, aug: list[dict]) -> dict:
+    """Checks that must all hold before anything trains (revision 4). Beyond properties of the items present, it
+    enforces the declared inventory: a missing category, a wrong count or a broken variant group fails the audit."""
+    items, sizes = study["items"], study["sizes"]
     train = [x for x in items if x["split"] == "train"] + aug
+    evals = [x for x in items if x["split"] != "train"]
     rel_count = lambda x: sum(o not in (J.END, J.UNSUPPORTED, J.AMBIGUOUS) for o in x["outputs"])
     toks = lambda x: set(x["text"].split())
     checks = {
@@ -304,14 +362,50 @@ def audit(study: dict, aug: list[dict]) -> dict:
         "one_style_per_question": all(x["text"].split().count("'s") in (0, x["length"] or 0) or x["kind"] != "supported"
                                       for x in items + aug),
         "all_questions_encodable": all(_encodable(x["text"]) for x in items + aug),
+        "unique_draw_ids": len({x["id"] for x in items}) == len(items),
     }
-    seen = defaultdict(set)
-    for x in items:
-        if x["kind"] == "supported" and x["split"] != "test" or x["category"] in ("ID",):
-            seen[(tuple(x["program"]), x["entity"])].add(x["split"])
-    checks["splits_disjoint_by_instance"] = all(len(v) == 1 for v in seen.values())
-    texts = Counter(x["text"] for x in items if x["kind"] != "supported")
-    checks["refusal_strings_unique"] = all(c == 1 for c in texts.values())
+    train_inst = {(tuple(p), s) for p, s in study["train_instances"]}
+    train_texts = {x["text"] for x in items if x["split"] == "train"}
+    checks["evaluation_instances_not_in_training"] = all(
+        (tuple(x["program"]), x["entity"]) not in train_inst for x in evals if x["kind"] == "supported")
+    checks["evaluation_refusals_are_not_training_questions"] = all(
+        x["text"] not in train_texts for x in evals if x["kind"] != "supported")
+    count = Counter(x["category"] for x in evals)
+    families = Counter(x["family"] for x in evals if x["category"] == "S1")
+    checks["declared_inventory"] = (
+        count["CAL"] + count["CAL_R"] == sizes["calibration"] and count["ID"] + count["R"] == sizes["id_test"]
+        and all(count[c] == sizes[design] for design, cats in VARIANTS.items() for c in cats)
+        and families["length3"] == sizes["S1_length3"] and families["round_trip"] == sizes["S1_round_trip"]
+        and set(count) == {"CAL", "CAL_R", "ID", "R", "S1"} | {c for cats in VARIANTS.values() for c in cats})
+    groups = defaultdict(dict)
+    for x in evals:
+        if x["group"]:
+            if x["category"] in groups[x["group"]]:
+                groups[x["group"]]["__duplicate__"] = x
+            groups[x["group"]][x["category"]] = x
+    designs = {frozenset(cats): cats for cats in VARIANTS.values()}
+
+    def matched(g):
+        cats = designs.get(frozenset(g))
+        if cats is None or len({(tuple(v["program"]), v["entity"]) for v in g.values()}) != 1:
+            return False
+        frame = {"T1": "T1_base", "S2": "S2_base", "S3": "S3_base", "S4a": "S4_base", "S4b": "S4_base",
+                 "S4a_primary": "S4_primary_base", "S4b_primary": "S4_primary_base", "S2_L3": "L3_base", "S4_L3": "L3_base",
+                 "S3_L3": "L3_base"}
+        for c, ref in frame.items():
+            if c in g:
+                base = g[ref]["frame"]
+                ok_frames = ({base} if c not in ("S3", "S4b", "S4b_primary", "S3_L3") else
+                             set(NOVEL_FRAMES) | ({with_filler(base, f) for f in NOVEL_FILLERS} if c != "S3_L3" else set()))
+                if g[c]["frame"] not in ok_frames:
+                    return False
+        return True
+    checks["variant_groups_complete_and_matched"] = bool(groups) and all(matched(g) for g in groups.values())
+    s4 = [x for x in evals if "held_position" in x]
+    checks["s4_strata_recomputed"] = bool(s4) and all(
+        x["stratum"] == s4_stratum(world, x["program"], x["entity"], x["held_position"])[0] for x in s4)
+    checks["s4_primary_is_answer_ambiguous"] = all(
+        x["stratum"] == "answer_ambiguous" for x in evals if x["category"] in ("S4a_primary", "S4b_primary"))
     return checks
 
 
@@ -385,6 +479,7 @@ def measure(items, rows, policy, threshold, vocab_words) -> dict:
         out[cat] = {"n": len(pairs), "answered": len(acc), "errors": errors,
                     "coverage": len(acc) / len(pairs), "abstention": 1 - len(acc) / len(pairs),
                     "error_upper_95": K.clopper_pearson_upper(errors, len(acc)),
+                    "abstention_interval_95": K.exact_interval(len(pairs) - len(acc), len(pairs)),
                     "exact_parse": sum(r["exact"] for _, r in pairs) / len(pairs),
                     "right_answer_wrong_parse": sum(correct(x, r) and not r["exact"] for x, r in acc),
                     "reasons": dict(reasons),
@@ -415,7 +510,7 @@ def collisions(study, vocab: J.TokenVocab) -> dict:
             dec_strict[e].add(x["expected"])
         s34 = defaultdict(set)
         for x in test:
-            if x["category"] in ("S3", "S4a", "S4b", "Q_base"):
+            if x["category"] in ("S3", "S3_base", "S4a", "S4b", "S4_base", "S4a_primary", "S4b_primary", "S4_primary_base"):
                 s34[enc(x)].add(x["expected"])
         out[name] = {"program_collision_groups": sum(len(v) > 1 for v in prog.values()),
                      "decision_conflict_groups": sum(len(v) > 1 for v in dec.values()),
@@ -430,23 +525,41 @@ def grammar_control() -> GrammarInterpreter:
                               {r: [t] for r, t in BASE_POSSESSIVE.items()})
 
 
-def run_unit(world, study, aug, init, args) -> dict:
+REASONS = ("answered", "unsupported", "ambiguous", "malformed", "unknown entity", "ill-typed program",
+           "module gave no answer", "module produced a value outside its declared type", "unsupported characters",
+           "budget exhausted")
+
+
+def compact_records(items, rows) -> dict:
+    """Full-precision decision records, column-wise: everything the verifier needs to rebuild every metric, the
+    certificate and the verdict without trusting any stored summary or flag."""
+    return {"decision": [r["decision"] == "answer" for r in rows], "reason": [REASONS.index(r["reason"] or "answered")
+                                                                          for r in rows],
+            "score": [r["score"] for r in rows], "program": [r.get("steps") for r in rows],
+            "entity": [r.get("entity") for r in rows], "answer": [r["answer"] for r in rows]}
+
+
+def run_unit(world, study, aug, init, args) -> tuple[dict, dict]:
+    """(summary, records) for one unit. Records cover calibration and test items in study order."""
     items = study["items"]
     table = G.table_registry(world)
     ordinary = [x for x in items if x["split"] == "train"]
     vocab_texts = [x["text"] for x in ordinary]
     vocab_words = {w for t in vocab_texts for w in t.split()}
-    cal = [x for x in items if x["split"] == "calibration"]
-    evals = [x for x in items if x["split"] == "test"]
+    held = [x for x in items if x["split"] != "train"]
+    cal = [x for x in held if x["split"] == "calibration"]
+    evals = [x for x in held if x["split"] == "test"]
     unit = {"world": world.seed, "init": init, "arms": {}}
+    records = {"world": world.seed, "init": init, "ids": [x["id"] for x in held], "arms": {}}
     for arm in ARMS:
         train_items = ordinary + (aug if arm.endswith("_aug") else [])
         examples = [J.Example(x["text"], tuple(x["outputs"]), x["entity_position"]) for x in train_items]
         t0 = time.time()
         net, vocab, loss = I.train(arm.split("_")[0], examples, vocab_texts, tuple(world.relations), init, args.updates)
         seconds = time.time() - t0
-        cal_rows = decide(I.interpret(net, vocab, [x["text"] for x in cal]), cal, world, table)
-        ev_rows = decide(I.interpret(net, vocab, [x["text"] for x in evals]), evals, world, table)
+        rows = decide(I.interpret(net, vocab, [x["text"] for x in held]), held, world, table)
+        cal_rows, ev_rows = rows[:len(cal)], rows[len(cal):]
+        assert [x["id"] for x in held] == [x["id"] for x in cal + evals]
         res = {"train_seconds": round(seconds, 1), "train_loss": loss, "training_examples": len(examples), "policies": {}}
         for policy in POLICIES:
             cert = certify(cal, cal_rows, policy, vocab_words) if policy.endswith("certified") else None
@@ -454,41 +567,34 @@ def run_unit(world, study, aug, init, args) -> dict:
             res["policies"][policy] = {"certificate": {k: v for k, v in (cert or {}).items() if k != "records"} or None,
                                        "categories": measure(evals, ev_rows, policy, threshold, vocab_words),
                                        "calibration_categories": measure(cal, cal_rows, policy, threshold, vocab_words)}
-            if cert:
-                res["policies"][policy]["certification_records"] = cert["records"]
         answered = [(x, r) for x, r in zip(cal, cal_rows) if r["decision"] == "answer"]
         a, b = K.platt_fit_increasing([r["score"] for _, r in answered], [correct(x, r) for x, r in answered])
         id_ans = [(x, r) for x, r in zip(evals, ev_rows) if x["category"] == "ID" and r["decision"] == "answer"]
         res["probability_calibration"] = {"platt": [a, b], "id_test": K.reliability(
             [K.platt_probability(r["score"], a, b) for _, r in id_ans], [correct(x, r) for x, r in id_ans])}
-        res["records"] = [{"id": x["id"], "category": x["category"], "stratum": x.get("stratum"), "family": x["family"],
-                           "decision": r["decision"], "reason": r["reason"], "score": r["score"],  # full precision
-                           "proposed_program": r.get("steps"), "copied_entity": r.get("entity"),
-                           "produced_answer": r["answer"], "correct": correct(x, r), "exact": r["exact"],
-                           "accepted_at_diagnostic_cutoff": r["decision"] == "answer" and r["score"] >= DIAGNOSTIC_CUTOFF,
-                           "novel": novel(x, r, vocab_words)}
-                          for x, r in zip(evals, ev_rows)]
         unit["arms"][arm] = res
+        records["arms"][arm] = compact_records(held, rows)
         c = res["policies"]["certified"]
         cats = c["categories"]
         print(f"  world {world.seed} init {init} {arm:8s} ({seconds:.0f}s) cert {c['certificate']['threshold']} | "
-              + " ".join(f"{k} {cats[k]['coverage']:.2f}/{cats[k]['errors']}" for k in ("ID", "T1", "S2", "S3", "S1")
-                         if k in cats)
-              + " | " + " ".join(f"{k} abst {cats[k]['abstention']:.2f}" for k in ("R", "S4a", "S4b") if k in cats),
+              + " ".join(f"{k} {cats[k]['coverage']:.2f}/{cats[k]['errors']}" for k in ("ID", "S2", "S3", "S1:length3"))
+              + " | " + " ".join(f"{k} abst {cats[k]['abstention']:.3f}" for k in ("R", "S4a_primary", "S4b_primary")),
               flush=True)
     grammar = grammar_control()
     g_rows = decide([grammar.parse(x["text"]) for x in evals], evals, world, table)
     unit["grammar"] = {"categories": measure(evals, g_rows, "none", None, vocab_words)}
-    return unit
+    records["grammar"] = compact_records(evals, g_rows)
+    return unit, records
 
 
-def run(args) -> dict:
+def run(args, out: Path) -> dict:
     worlds, units = {}, []
+    (out / "records").mkdir(parents=True, exist_ok=True)
     for wseed in args.worlds:
         world = W.generate_world(wseed, n_countries=args.countries)
         study = make_study(world, wseed)
         aug = augment(study, wseed)
-        checks = audit(study, aug)
+        checks = audit(world, study, aug)
         if not all(checks.values()):
             raise SystemExit(f"audit failed for world {wseed}: {[k for k, v in checks.items() if not v]}")
         vocab = J.TokenVocab([x["text"] for x in study["items"] if x["split"] == "train"])
@@ -496,33 +602,86 @@ def run(args) -> dict:
         worlds[str(wseed)] = {"identity": world.identity, "audit": checks, "collisions": collisions(study, vocab),
                               "counts": {f"{s}/{c}": n for (s, c), n in sorted(counts.items())},
                               "augmentation": dict(Counter(x["category"] for x in aug))}
-        print(f"world {wseed}: audit passed; counts {worlds[str(wseed)]['counts']}", flush=True)
+        print(f"world {wseed}: audit passed", flush=True)
         for init in args.inits:
-            units.append(run_unit(world, study, aug, init, args))
+            unit, records = run_unit(world, study, aug, init, args)
+            units.append(unit)
+            with gzip.open(out / "records" / f"w{wseed}_i{init}.json.gz", "wt") as f:
+                json.dump(records, f)
     return {"config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
             "environment": {"torch": torch.__version__, "python": platform.python_version(),
-                            "platform": platform.platform()}, "grid": list(GRID),
+                            "platform": platform.platform()}, "grid": list(GRID), "sizes": SIZES,
             "diagnostic_cutoff": DIAGNOSTIC_CUTOFF, "worlds": worlds, "units": units}
+
+
+# --- the frozen predictions (revision 4) --------------------------------------------------------------------
+CONFIRMATION = {"worlds": (700, 701, 702), "inits": (0, 1, 2, 3, 4)}
+LEAD = "word_aug"
+COVERAGE, ERROR_BOUND, REFUSAL, ID_COVERAGE, T1_ACCURACY = 0.80, 0.01, 0.95, 0.90, 0.95
+
+
+def unit_outcomes(arm_res: dict) -> dict:
+    """Every per-unit criterion for one arm, from its stored summary (the verifier rebuilds the same from records)."""
+    cert = arm_res["policies"]["certified"]["certificate"]
+    c = arm_res["policies"]["certified"]["categories"]
+    n = arm_res["policies"]["none"]["categories"]
+    certified = bool(cert and cert["certified"])
+    answers = lambda k, cov: certified and c[k]["coverage"] >= cov and c[k]["error_upper_95"] <= ERROR_BOUND
+    return {"certified": certified,
+            "sanity": answers("ID", ID_COVERAGE) and c["R"]["abstention"] >= REFUSAL,
+            "taught_wording_learned": (n["T1"]["answered"] - n["T1"]["errors"]) / n["T1"]["n"] >= T1_ACCURACY,
+            "joint_novelty": answers("S3", COVERAGE) and c["S4a_primary"]["abstention"] >= REFUSAL
+                             and c["S4b_primary"]["abstention"] >= REFUSAL,
+            "s2_transfer": answers("S2", COVERAGE), "s1_structure": answers("S1:length3", COVERAGE)}
+
+
+def evaluate(result: dict, worlds=CONFIRMATION["worlds"], inits=CONFIRMATION["inits"]) -> dict:
+    """The frozen verdict. Every criterion is judged jointly within a unit; a world holds a criterion when at least
+    4 of its 5 inits meet it; a prediction holds when every world does. An uncertified unit is not successful and
+    stays in the denominator."""
+    from integrated import inventory
+    bad = inventory.problems([(u["world"], u["init"], arm) for u in result["units"] for arm in u["arms"]],
+                             [(w, i, a) for w in worlds for i in inits for a in ARMS])
+    if bad:
+        return {"complete": False, **bad}
+    by = {(u["world"], u["init"]): u for u in result["units"]}
+    per_unit = {arm: {f"{w}/{i}": unit_outcomes(by[(w, i)]["arms"][arm]) for w in worlds for i in inits} for arm in ARMS}
+    holds = lambda arm, key: all(sum(per_unit[arm][f"{w}/{i}"][key] for i in inits) >= 4 for w in worlds)
+    by_world = lambda arm, key: {w: sum(per_unit[arm][f"{w}/{i}"][key] for i in inits) for w in worlds}
+    return {"complete": True,
+            "predictions": {"1_sanity_every_arm": all(holds(a, "sanity") for a in ARMS),
+                            "2_taught_wording_learned_every_arm": all(holds(a, "taught_wording_learned") for a in ARMS),
+                            "3_word_aug_joint_novelty": holds(LEAD, "joint_novelty")},
+            "separate_verdicts": {key: {a: holds(a, key) for a in ARMS}
+                                  for key in ("joint_novelty", "s2_transfer", "s1_structure")},
+            "successes_by_world": {key: {a: by_world(a, key) for a in ARMS}
+                                   for key in ("certified", "sanity", "taught_wording_learned", "joint_novelty",
+                                               "s2_transfer", "s1_structure")},
+            "per_unit": per_unit}
 
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--worlds", nargs="+", type=int, default=[100, 101])
-    p.add_argument("--inits", nargs="+", type=int, default=[100, 101])
+    p.add_argument("--worlds", nargs="+", type=int, default=list(CONFIRMATION["worlds"]))
+    p.add_argument("--inits", nargs="+", type=int, default=list(CONFIRMATION["inits"]))
     p.add_argument("--countries", type=int, default=96)
     p.add_argument("--updates", type=int, default=1500)
     p.add_argument("--threads", type=int, default=4)
-    p.add_argument("--out", type=Path, default=Path("runs/titnn_robustness_pilot"))
+    p.add_argument("--out", type=Path, default=Path("runs/titnn_robustness"))
     return p.parse_args(argv)
 
 
 def main(argv=None):
     args = parse_args(argv)
     torch.set_num_threads(args.threads)
-    result = run(args)
     out = args.out / time.strftime("%Y%m%dT%H%M%S")
     out.mkdir(parents=True, exist_ok=False)
+    result = run(args, out)
     (out / "interpreter_robustness.json").write_text(json.dumps(result))
+    if tuple(args.worlds) == CONFIRMATION["worlds"] and tuple(args.inits) == CONFIRMATION["inits"]:
+        verdict = evaluate(result)
+        (out / "verdict.json").write_text(json.dumps(verdict, indent=1))
+        print(json.dumps(verdict["predictions"], indent=2))
     print(f"-> {out}")
 
 
