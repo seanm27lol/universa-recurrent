@@ -1,9 +1,10 @@
-# Interpreter robustness: new structure, taught wording, unfamiliar wording (DRAFT brief, revision 2)
+# Interpreter robustness: new structure, taught wording, unfamiliar wording (DRAFT brief, revision 3)
 
-**Status: DRAFT, not frozen.** This revision follows the review of the first draft (dfe142e); the changes
-it made are listed at the end. A bounded development pilot on worlds 100–101 runs next. Its results will
-fix the threshold grid, the bars, the sample sizes and the aggregation rule before anything is frozen.
-Confirmation worlds 700–702 stay untouched until then.
+**Status: DRAFT, not frozen.** Revision 2 followed the review of the first draft (dfe142e). Revision 3
+applies the changes approved after development pilot round 1 (see "Round 2 design"); round 2 runs on
+development worlds and inits only. The grid start, world size, bars, sample sizes, aggregation rule and
+the sampling justification stay provisional until round 2 shows the evaluation has enough evidence.
+Confirmation worlds 700–702 stay untouched.
 
 ## Why
 
@@ -349,7 +350,28 @@ three-step answer in every arm was wrong.
 - The word encoding has 16 and 26 conflict groups if the copied entity is ignored, all from refusals
   whose entity is unknown.
 
-**Changes proposed for review before freezing** (none applied yet):
+**Corrections to round 1** (made after review; the statements above are left as written):
+- **Errors without a threshold.** That arms answered all ID calibration questions with 0–9 errors and no
+  threshold does not establish that any arm is below the 1% target. Round 1 established only that the
+  first rule failed because it accepted too few questions.
+- **No certificate existed,** so item 4 must not be read as an ID certificate failing under shift. The
+  observed statement is narrower: at the diagnostic raw cutoff 0.999, every accepted three-step answer was
+  wrong. Separately, and in theory, a guarantee scoped to ID questions would not cover three-step
+  questions.
+- **Rounded scores.** The pooled 0.999 table used test scores rounded to six decimals. 8 of 86,944
+  records sit exactly on the boundary, and only three could move a count:
+  - two correct `word_aug` S2 answers and one correct `char` S2 answer (coverage of about 1,050);
+  - one wrong `word` S1 answer.
+
+  No conclusion changes. The calibration counts used full precision. Round 2 keeps full precision
+  throughout.
+- **The type-inference reading is not established.** 231 of 245 accepted `char_aug` S4 answers matching the
+  intended program is consistent with type or context inference. It does not identify which cue
+  decided.
+- **The arms differ in dropout too.** Word arms get entity-token dropout and character arms do not, so the
+  comparison is between complete configurations.
+
+**Changes proposed for review before freezing** (round 1's proposals; applied in revision 3 as below):
 1. **Make certification feasible:**
    - start the grid at 0.999, which accepted 92–100% of calibration questions in the pilot;
    - double the worlds to 96 countries, giving about 750 calibration questions so that up to two errors
@@ -363,3 +385,127 @@ three-step answer in every arm was wrong.
    - character input trades S4 refusals for type and spelling inference;
    - no arm's ID certificate protects S1;
    - S2 coverage at a certified threshold is low for every arm.
+
+## Round 2 design (revision 3; changes applied after review of round 1)
+
+**1. Certification, both provisional.**
+- **Grid.** It starts at 0.999: 0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8, 0.6, 0.4, 0.2, 0.
+- **World size.** 96 countries, giving 763 supported calibration questions per development world, plus
+  184 refusals.
+- **What a certificate needs.** Tolerating two errors requires at least 628 *accepted* questions, after
+  the runtime, the threshold and any novelty filter. A total count does not help if too few survive.
+- **Possible is not reliable.** For a fixed rule with a true accepted-error rate of 0.5%, the chance of
+  certification is about 33% at 690 accepted and about 28% at 750. The allowed error count stays at two
+  until 773. A nearly perfect policy has much better chances.
+- **What round 2 decides.** It records accepted counts and errors at every tested threshold, and the
+  power at the observed counts. Confirmation sample sizes are then chosen against a declared error
+  margin and power.
+
+**2. S4 strata over the complete typed program.**
+- **The construction.** At the held-out phrase's position, every relation is tried while the rest of the
+  question stays fixed. An alternative is compatible if the whole program is well typed from the entity.
+- **Three strata, for S4a, S4b and S4_L3:**
+  - **answer-ambiguous:** at least two compatible programs giving at least two answers. This is the
+    primary test.
+  - **program-ambiguous with one answer:** several compatible programs, all giving the same answer
+    (for example, the capital and the largest city, then `country_of`). A diagnostic.
+  - **type-determined:** only one compatible program. A diagnostic.
+- **Why not count outgoing relations.** "The operator of the aerodrome near X" allows two relations from
+  a city, but only `airport_of` fits under `operator_of`.
+- **Counts (development worlds 100 and 101).**
+
+  | World | Answer-ambiguous | One answer | Type-determined |
+  |---|---:|---:|---:|
+  | 100 | 541 | 98 | 379 |
+  | 101 | 537 | 100 | 381 |
+
+  These reproduce the review's independent counts. The full S4 populations and their results are kept.
+
+**3. S1 allocation.**
+- **Separate counts.** The primary non-cancelling family gets its own declared count of 800, and round
+  trips get 300.
+- **Why.** At 80% coverage, 800 allows the 1% bound with up to two errors, which needs 785. Round 1's 600
+  mixed questions held only 260–268 non-cancelling ones, below the 299 needed even with zero errors and
+  full coverage.
+- **Diagnostics.** The length-3 diagnostics are matched prefix variants of the first 300 S1 non-cancelling
+  instances.
+
+**4. Inventory per development world** (96 countries):
+
+| Category | Count |
+|---|---|
+| ID | 1,018 |
+| R | 244 |
+| T1 | 473 / 464 |
+| S2 (two-step) | 545 / 554 |
+| Q_base, S3, S4a, S4b | 1,018 each |
+| S1 | 800 non-cancelling + 300 round trips |
+| Length-3 diagnostics | 300 each |
+
+**S2's power is limited.** With 545–554 questions, 80% coverage allows a 1% bound with at most one error.
+
+**5. Records.** These are kept:
+- full-precision scores;
+- the proposed program, copied entity and produced answer;
+- acceptance at the diagnostic cutoff, computed before any rounding;
+- `bench/interpreter_robustness_tables.py`, which rebuilds every table from the run file, per unit, with
+  S4a and S4b separate.
+
+**6. Unresolved: the sampling justification.**
+- **The gap.** The sampler partitions a finite population of instances without replacement, fixes
+  refusal counts by kind, and deduplicates refusal strings. One rendering per instance avoids inflating
+  n, but does not make the observations independent and identically distributed, which the exact
+  binomial test assumes.
+- **What must be decided before a confirmation-stage guarantee:**
+  - either justify the test for this design (for example, as a statement about the finite instance
+    population), or change the sampler to draw calibration questions independently from a declared
+    question distribution;
+  - which future question distribution the certificate is meant to cover. The calibration split is the
+    evidence, not that population.
+
+  Round 2 is diagnostic and does not depend on this.
+
+### Predictions, restated per arm (revision 3; informed by round 1, disclosed)
+
+**`word_aug` now leads.** It is the leading prospective candidate for the novelty question. The choice
+was made after round 1, on development worlds, so confirmation on fresh worlds is what tests it. All four
+arms remain.
+
+**The criteria are unchanged (provisional):**
+- **answers where it should:** coverage ≥ 0.80 and a 95% error bound ≤ 1%;
+- **abstains where it should:** abstention ≥ 0.95;
+- each is judged per unit, holds for a world on 4 of 5 inits, and is reported per unit;
+- "no certificate" is kept apart from failure.
+
+1. **Sanity.** Each arm with `certified` answers ID where it should (coverage ≥ 0.90) and abstains on R
+   where it should.
+2. **Taught wording was learned.** Each arm's T1 accuracy under `none` is at least 0.95.
+3. **The lead hypothesis.** `word_aug` with `certified` answers S3 where it should, *and* abstains where
+   it should on the answer-ambiguous strata of both S4a and S4b.
+4. **Taught-wording transfer (S2) is evaluated separately from novelty.** No arm is predicted to meet it:
+   round 1's diagnostic coverage was 0.34–0.60.
+5. **S1 is expected to fail for every arm** (non-cancelling chains). The evaluation can now recognize
+   success if it occurs.
+
+**Reported, not predicted:**
+- the other strata;
+- the full 2 × 2 factorial against the grammar control;
+- the length-3 diagnostics;
+- collisions and probability calibration.
+
+**Kept for the record: revision 2's predictions, superseded.**
+- `char_aug` was the primary arm for S2, S3, S4 and S1.
+- My stated expectation was that `char_aug` would meet S2, with S3 and S4 uncertain.
+- Round 1 did not support those, but they remain the original prospective statement.
+
+## Changes from revision 2 (after review of round 1)
+
+1. **Certification and world size:** the grid starts at 0.999 and worlds have 96 countries, both
+   provisional.
+2. **S4:** strata over the complete typed program, with the original S4 kept.
+3. **S1:** the non-cancelling family gets its own count, and the diagnostics are matched to it.
+4. **Records:** full precision, and a tables script.
+5. **Predictions:** restated per arm, with `word_aug` leading.
+6. **Round 1:** its wording corrected.
+7. **Sampling:** the justification is recorded as unresolved.
+

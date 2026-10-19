@@ -57,7 +57,8 @@ REFUSALS = ("ill_typed", "unsupported", "unknown_entity", "ambiguous")
 AUG_SHARE = 0.25
 ARMS = ("word", "word_aug", "char", "char_aug")
 POLICIES = ("none", "certified", "novelty", "novelty_certified")
-GRID = (0.9999, 0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8, 0.6, 0.4, 0.2, 0.0)  # provisional; the pilot sets it
+GRID = (0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8, 0.6, 0.4, 0.2, 0.0)  # provisional (round 2: starts at 0.999)
+DIAGNOSTIC_CUTOFF = 0.999  # a fixed raw cutoff for diagnostics only; never a certificate
 ANSWER_CATEGORIES = ("ID", "T1", "T1_base", "S2", "S2_base", "Q_base", "S3", "S1", "L3_base", "S2_L3", "S3_L3")
 ABSTAIN_CATEGORIES = ("R", "S4a", "S4b", "S4_L3")
 
@@ -103,7 +104,27 @@ def pseudo_words(rng, n: int, forbidden: set[str]) -> list[str]:
 
 
 # --- the study's items -------------------------------------------------------------------------------------
-def make_study(world: W.World, seed: int, n_long: int = 600, n_diag: int = 300) -> dict:
+def s4_stratum(world, program, entity, j) -> tuple[str, int, int]:
+    """How much of the held-out relation the rest of the question determines. Alternatives replace the relation at
+    position j (the held-out phrase) while every other relation stays fixed; an alternative is compatible when the
+    whole program is well typed from the entity. Returns (stratum, compatible programs, distinct answers):
+    - "type_determined": only one complete program satisfies the known type constraints;
+    - "program_ambiguous_one_answer": several compatible programs, all giving the same answer for this entity;
+    - "answer_ambiguous": several compatible programs giving at least two different answers (the primary test)."""
+    start = next(t for t in world.types if world.types[t].contains(entity))
+    compatible = []
+    for r in sorted(world.relations):
+        alt = tuple(program[:j]) + (r,) + tuple(program[j + 1:])
+        types = R.path_types(world, alt)
+        if types is not None and types[0] == start:
+            compatible.append(alt)
+    answers = {R.reference_answer(world, alt, entity) for alt in compatible}
+    stratum = ("type_determined" if len(compatible) == 1 else
+               "program_ambiguous_one_answer" if len(answers) == 1 else "answer_ambiguous")
+    return stratum, len(compatible), len(answers)
+
+
+def make_study(world: W.World, seed: int, n_noncancel: int = 800, n_round: int = 300, n_diag: int = 300) -> dict:
     """Every item for one world: {"items": [...], "pseudo_pool": [...]}. Item fields: id, split, category,
     kind, text, program (execution order, or the intended program for S4), entity, entity_position, expected
     ("answer" or "abstain"), answer, length, family, style, group (shared by matched variants), outputs
@@ -132,10 +153,14 @@ def make_study(world: W.World, seed: int, n_long: int = 600, n_diag: int = 300) 
         items.append(kw)
         return kw
 
-    def supported(split, category, p, s, style, frame, phrases, group, expected="answer"):
-        return add(split=split, category=category, kind="supported", text=render(s, phrases, frame), program=list(p),
-                   entity=s, expected=expected, answer=R.reference_answer(world, p, s), style=style,
-                   family=TQ.path_family(p), group=group)
+    def supported(split, category, p, s, style, frame, phrases, group, expected="answer", held=None):
+        it = add(split=split, category=category, kind="supported", text=render(s, phrases, frame), program=list(p),
+                 entity=s, expected=expected, answer=R.reference_answer(world, p, s), style=style,
+                 family=TQ.path_family(p), group=group)
+        if held is not None:  # the position of the held-out phrase, and how much the question determines it
+            it["held_position"] = held
+            it["stratum"], it["compatible_programs"], it["compatible_answers"] = s4_stratum(world, p, s, held)
+        return it
 
     def refusals(split, n_instances):
         k = max(1, round(REFUSAL_SHARE * n_instances))
@@ -208,23 +233,26 @@ def make_study(world: W.World, seed: int, n_long: int = 600, n_diag: int = 300) 
         held = [HELD[r] if i == j else phrases[i] for i, r in enumerate(p)]
         supported("test", "Q_base", p, s, "prefix", frame, phrases, g)
         supported("test", "S3", p, s, "prefix", wrapper, phrases, g)
-        supported("test", "S4a", p, s, "prefix", frame, held, g, expected="abstain")
-        supported("test", "S4b", p, s, "prefix", wrapper, held, g, expected="abstain")
+        supported("test", "S4a", p, s, "prefix", frame, held, g, expected="abstain", held=j)
+        supported("test", "S4b", p, s, "prefix", wrapper, held, g, expected="abstain", held=j)
     refusals("test", len(parts["test"]))
-    # length three: structure (S1) and its interaction diagnostics
+    # length three: structure (S1), with its own declared count for the primary non-cancelling family; the interaction
+    # diagnostics are matched prefix variants of the first n_diag non-cancelling S1 instances
     pool = [(p, s) for p in long3 for s in world.types[world.relations[p[0]].source].values]
     rng.shuffle(pool)
-    for gi, (p, s) in enumerate(pool[:n_long]):
+    noncancel = [(p, s) for p, s in pool if TQ.path_family(p) == "length3"]
+    round_trips = [(p, s) for p, s in pool if TQ.path_family(p) == "round_trip"]
+    for gi, (p, s) in enumerate(noncancel[:n_noncancel] + round_trips[:n_round]):
         style = rng.choice(("prefix", "possessive"))
         supported("test", "S1", p, s, style, rng.choice(BASE_FRAMES), base_phrases(p, style, rng), f"l{gi}")
-    for gi, (p, s) in enumerate(pool[n_long:n_long + n_diag]):
+    for gi, (p, s) in enumerate(noncancel[:min(n_diag, n_noncancel)]):
         g, frame, phrases = f"d{gi}", rng.choice(BASE_FRAMES), base_phrases(p, "prefix", rng)
         supported("test", "L3_base", p, s, "prefix", frame, phrases, g)
         j = rng.randrange(3)
         supported("test", "S2_L3", p, s, "prefix", frame, [TAUGHT[r] if i == j else phrases[i] for i, r in enumerate(p)], g)
         supported("test", "S3_L3", p, s, "prefix", rng.choice(NOVEL_FRAMES), phrases, g)
         supported("test", "S4_L3", p, s, "prefix", frame, [HELD[r] if i == j else phrases[i] for i, r in enumerate(p)], g,
-                  expected="abstain")
+                  expected="abstain", held=j)
     entities = {v for t in world.types.values() for v in t.values}
     forbidden = set().union(*LEXICON.values()) | entities
     return {"items": items, "pseudo_pool": pseudo_words(random.Random(f"pseudo|{world.identity}|{seed}"), 400, forbidden)}
@@ -346,6 +374,8 @@ def measure(items, rows, policy, threshold, vocab_words) -> dict:
             by_cat[f"T1:{x['program'][0]}"].append((x, r))
         if x["category"] == "S1":  # non-cancelling chains apart from round trips
             by_cat[f"S1:{x['family']}"].append((x, r))
+        if "stratum" in x:  # S4 by how much the rest of the question determines the held-out relation
+            by_cat[f"{x['category']}:{x['stratum']}"].append((x, r))
     out = {}
     for cat, pairs in by_cat.items():
         acc = [(x, r) for x, r in pairs if accepts(policy, x, r, threshold, vocab_words)[0]]
@@ -431,8 +461,12 @@ def run_unit(world, study, aug, init, args) -> dict:
         id_ans = [(x, r) for x, r in zip(evals, ev_rows) if x["category"] == "ID" and r["decision"] == "answer"]
         res["probability_calibration"] = {"platt": [a, b], "id_test": K.reliability(
             [K.platt_probability(r["score"], a, b) for _, r in id_ans], [correct(x, r) for x, r in id_ans])}
-        res["records"] = [{"id": x["id"], "category": x["category"], "decision": r["decision"], "reason": r["reason"],
-                           "score": round(r["score"], 6), "correct": correct(x, r), "exact": r["exact"]}
+        res["records"] = [{"id": x["id"], "category": x["category"], "stratum": x.get("stratum"), "family": x["family"],
+                           "decision": r["decision"], "reason": r["reason"], "score": r["score"],  # full precision
+                           "proposed_program": r.get("steps"), "copied_entity": r.get("entity"),
+                           "produced_answer": r["answer"], "correct": correct(x, r), "exact": r["exact"],
+                           "accepted_at_diagnostic_cutoff": r["decision"] == "answer" and r["score"] >= DIAGNOSTIC_CUTOFF,
+                           "novel": novel(x, r, vocab_words)}
                           for x, r in zip(evals, ev_rows)]
         unit["arms"][arm] = res
         c = res["policies"]["certified"]
@@ -467,14 +501,15 @@ def run(args) -> dict:
             units.append(run_unit(world, study, aug, init, args))
     return {"config": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
             "environment": {"torch": torch.__version__, "python": platform.python_version(),
-                            "platform": platform.platform()}, "grid": list(GRID), "worlds": worlds, "units": units}
+                            "platform": platform.platform()}, "grid": list(GRID),
+            "diagnostic_cutoff": DIAGNOSTIC_CUTOFF, "worlds": worlds, "units": units}
 
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--worlds", nargs="+", type=int, default=[100, 101])
     p.add_argument("--inits", nargs="+", type=int, default=[100, 101])
-    p.add_argument("--countries", type=int, default=48)
+    p.add_argument("--countries", type=int, default=96)
     p.add_argument("--updates", type=int, default=1500)
     p.add_argument("--threads", type=int, default=4)
     p.add_argument("--out", type=Path, default=Path("runs/titnn_robustness_pilot"))
