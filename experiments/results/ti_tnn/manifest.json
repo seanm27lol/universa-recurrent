@@ -136,7 +136,7 @@
       "command": "python research/ti_tnn/bench/interpreter_robustness.py --worlds 700 701 702 --inits 0 1 2 3 4; python research/ti_tnn/bench/interpreter_robustness_verify.py experiments/results/ti_tnn/interpreter_robustness/20261018T232057 --confirmation"
     },
     "s2_diagnosis": {
-      "what": "S2 diagnosis: the classification of every S2 question in the interpreter robustness confirmation records; six instrumented development fits of the word_aug recipe (arm A, worlds 100-101 x inits 100-102) with their full-precision greedy and teacher-forced traces; 18 development fits of the training-data interventions B (exposure), C (real-word wrappers) and D (taught two-step supervision) with their decision records; the development analysis; the hashes of the traces not bundled",
+      "what": "S2 diagnosis: the classification of every S2 question in the interpreter robustness confirmation records; six instrumented development fits of the word_aug recipe (arm A, worlds 100-101 x inits 100-102) with their full-precision greedy and teacher-forced traces; 18 development fits of the training-data interventions B (exposure), C (real-word wrappers) and D (taught two-step supervision) with their decision records; the development analysis; the hashes of the traces not bundled; where those traces are published (release ti-tnn-s2-diagnosis-traces-v1, trace_release.json); rebuild every trace table with make_tables.py --s2-traces",
       "protocol": "research/ti_tnn/protocols/s2_diagnosis_brief.md",
       "report": "research/ti_tnn/reports/s2_diagnosis_v1.md",
       "source": "6435719 (record analysis); ece0f86 (arm A fits, recorded in the run); d991d12 (B, C, D fits, committed immediately before them, recorded in the run)",
@@ -3271,6 +3271,13 @@
       "original_path": null,
       "sha256": "e2b6f41b323c7c2c488c6ff625c161d49d4de2745f104b3012488e713c4e7edf",
       "bytes": 13559
+    },
+    {
+      "path": "s2_diagnosis/trace_release.json",
+      "experiment": "s2_diagnosis",
+      "original_path": null,
+      "sha256": "c01a57aad3865332cfc765bce8914cde45456448f9f3c388968c53c2aeebc2cb",
+      "bytes": 17980
     }
   ]
 }

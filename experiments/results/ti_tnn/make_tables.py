@@ -25,7 +25,12 @@ Checks every file against manifest.json first (sha256), then prints:
   against the recorded output.
 - the S2 diagnosis: the historical classification of every S2 question, the development fits and the fresh
   confirmation, re-derived from the bundled records with research/ti_tnn/bench/s2_diagnosis.py and
-  s2_development_analysis.py and checked against the bundled analyses (about five minutes).
+  s2_development_analysis.py and checked against the bundled analyses (about five minutes). Arm A's
+  development trace tables are rebuilt from the bundle. The other arms' trace tables need the trace release
+  (s2_diagnosis/trace_release.json):
+
+      gh release download ti-tnn-s2-diagnosis-traces-v1 --repo seanm27lol/universa-recurrent --dir s2_traces
+      python experiments/results/ti_tnn/make_tables.py --s2-traces s2_traces
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -337,15 +342,20 @@ def interpreter_robustness_tables(bundle: Path = HERE, quick: bool = False) -> d
     return out
 
 
-def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False) -> dict:
+def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False, traces_dir: Path | None = None) -> dict:
     """The S2 diagnosis, rebuilt from this bundle and checked against its bundled analyses.
     - historical: every S2 question of the interpreter robustness confirmation classified again from its bundled
       records (the robustness verifier runs first; about four minutes);
-    - development (worlds 100-101) and confirmation (worlds 710-712): every metric, class, unit outcome and verdict
-      re-derived from the bundled decision records, and arm A's development traces (teacher-forced stopping).
-      The other arms' traces are not bundled (about 25 MB for B-D in development, more for the confirmation);
-      `s2_diagnosis/local_traces.json` lists their sha256.
+    - development (worlds 100-101) and confirmation (worlds 710-712): every metric, certificate, class, unit outcome
+      and verdict re-derived from the bundled decision records, with each run's training additions rebuilt and its
+      source bound to the frozen one;
+    - trace-derived tables (teacher-forced stopping, greedy failure kinds): arm A's development traces are bundled.
+      The other 63 trace files are a release asset (`s2_diagnosis/trace_release.json`). With `traces_dir` (where
+      they were downloaded), each is checked against the sha256 committed in `s2_diagnosis/local_traces.json`, every
+      trace is checked against its decision records, and every arm's trace tables are rebuilt and compared.
     `quick` rebuilds the development part only (for tests)."""
+    import shutil
+    import tempfile
     sys.path.insert(0, str(BENCH))
     import s2_development_analysis as DA  # research/ti_tnn/bench/s2_development_analysis.py
     import s2_diagnosis as D2  # research/ti_tnn/bench/s2_diagnosis.py
@@ -363,16 +373,44 @@ def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False) -> dict:
                     raise ValueError(f"{recorded_path}: {k} for arm {arm} differs from the rebuilt value")
         return rebuilt
 
-    out = {"development": check(DA.analyse(sorted(p for p in (root / "development").iterdir() if p.is_dir())),
-                                "development_analysis/s2_development_analysis.json",
-                                ("units", "classes", "decision_rule", "runs"), traced=("A",))}
-    if not quick:
-        summary, _ = D2.analyse_run(bundle / "interpreter_robustness/20261018T232057")
-        out["historical"] = check(summary, "historical/s2_diagnosis.json",
-                                  ("counts", "details", "strata", "per_unit", "examples", "source"))
-        out["confirmation"] = check(DA.analyse(sorted(p for p in (root / "confirmation").iterdir() if p.is_dir())),
-                                    "confirmation_analysis/s2_development_analysis.json",
-                                    ("units", "classes", "confirmation", "runs"))
+    runs = {part: sorted(p for p in (root / part).iterdir() if p.is_dir()) for part in ("development", "confirmation")}
+    staging = None
+    if traces_dir is not None:  # stage each run with its full set of traces (links; nothing is copied)
+        release = json.loads((root / "trace_release.json").read_text())
+        committed = {f["original_path"]: f for f in json.loads((root / "local_traces.json").read_text())["files"]}
+        staging = Path(tempfile.mkdtemp(prefix="s2_traces_"))
+        staged = {}
+        for part, dirs in runs.items():
+            for run in dirs:
+                target = staging / part / run.name
+                (target / "traces").mkdir(parents=True)
+                for name in ("s2_development.json", "records"):
+                    (target / name).symlink_to((run / name).resolve())
+                for f in sorted((run / "traces").glob("*.json.gz")) if (run / "traces").exists() else ():
+                    (target / "traces" / f.name).symlink_to(f.resolve())
+                staged.setdefault(part, []).append(target)
+        for asset in release["assets"]:
+            expected = committed[asset["original_path"]]
+            data = (Path(traces_dir) / asset["name"]).read_bytes()
+            if hashlib.sha256(data).hexdigest() != expected["sha256"] or len(data) != expected["bytes"]:
+                raise ValueError(f"{asset['name']}: does not match the sha256 committed in local_traces.json")
+            part, run, name = asset["name"].split(".", 2)
+            (staging / part / run / "traces" / name).symlink_to((Path(traces_dir) / asset["name"]).resolve())
+        runs = staged
+    try:
+        dev = DA.analyse(runs["development"])
+        out = {"development": check(dev, "development_analysis/s2_development_analysis.json",
+                                    ("units", "classes", "decision_rule", "runs"), traced=dev["traced_arms"])}
+        if not quick:
+            summary, _ = D2.analyse_run(bundle / "interpreter_robustness/20261018T232057")
+            out["historical"] = check(summary, "historical/s2_diagnosis.json",
+                                      ("counts", "details", "strata", "per_unit", "examples", "source"))
+            conf = DA.analyse(runs["confirmation"])
+            out["confirmation"] = check(conf, "confirmation_analysis/s2_development_analysis.json",
+                                        ("units", "classes", "confirmation", "runs"), traced=conf["traced_arms"])
+    finally:
+        if staging is not None:
+            shutil.rmtree(staging)
     return out
 
 def frontier_names(learning: dict) -> list:
@@ -399,6 +437,8 @@ def wikitext_fixed_tables(bundle: Path = HERE) -> dict:
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--json", type=Path, help="also write every table as JSON")
+    p.add_argument("--s2-traces", type=Path, help="the downloaded S2 trace release (s2_diagnosis/trace_release.json); "
+                   "rebuilds every arm's trace-derived tables too")
     args = p.parse_args(argv)
     manifest = verify()
     print(f"{len(manifest['files'])} files match manifest.json\n")
@@ -509,7 +549,7 @@ def main(argv=None):
     print("\nInterpreter robustness (worlds 700-702 x 5 inits), every number re-derived from the bundled records")
     for key, arms in robust["verdict"]["successes_by_world"].items():
         print(f"  {key:22s} " + "  ".join(f"{a} {'/'.join(str(v) for v in w.values())}" for a, w in arms.items()))
-    s2 = s2_diagnosis_tables()
+    s2 = s2_diagnosis_tables(traces_dir=args.s2_traces)
     print("\nS2 diagnosis, rebuilt from the bundled records and matching the bundled analyses")
     print("  historical S2 classes (12,000 questions per arm): " + "; ".join(
         f"{arm} exact {c['exact']['n']}, single relation {c.get('dropped:taught', {}).get('n', 0) + c.get('dropped:other', {}).get('n', 0)}"
@@ -519,6 +559,15 @@ def main(argv=None):
     conf = s2["confirmation"]["confirmation"]
     print(f"  confirmation: S2 and S3/S4 in the same unit {conf['successes_by_world']}; C holds {conf['prediction_C_holds']}; "
           f"C above B in every world {conf['secondary_C_above_B_every_world']}")
+    for part in ("development", "confirmation"):
+        a = s2[part]
+        print(f"  {part} trace tables rebuilt for arms {a['traced_arms']}"
+              + ("" if args.s2_traces else " (the other arms need --s2-traces)"))
+        for arm in a["traced_arms"]:
+            e = a["stopping"][arm]["all"]["step1_p_end"]
+            print(f"    {arm}: P(<end>) after the first relation, S2 mean {e['S2']['mean']:.4f} "
+                  f"(share > 0.5: {e['S2']['share_above_half']:.4f}); S2_base mean {e['S2_base']['mean']:.2e}; "
+                  f"greedy failure kinds {a['failure_kinds'][arm]['s2']['all']}")
     print(f"  predictions: {robust['verdict']['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
