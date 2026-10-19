@@ -58,3 +58,11 @@ A run learns the task if its 3-hop accuracy is at least 0.9.
 
 **Run:** `GATE=<gate script> bash research/ti_tnn/bench/run_shared_path_control.sh`, from the run
 directory's repository root.
+
+## Execution record (appended after the run; nothing above was changed)
+
+- **The run.** 10 runs from `9da9c82`, 2026-10-18 17:52 to 19:13 UTC, under the idle-GPU gate, with no
+  failures. Evaluated by `frontier.py --shared-control` as frozen.
+- **Both predictions hold, each by one seed.** The shared path alone learned the task on 4 of 5 seeds;
+  the one-expert TI-TNN on 1 of 5. See the [report](../reports/adaptive_compute_shared_path_control.md).
+  - A post hoc Fisher exact test (not part of this brief) gives p = 1.0 for both comparisons.

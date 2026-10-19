@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 296
+    assert len(manifest["files"]) == 307
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -129,3 +129,11 @@ def test_local_updates_verdict_rebuilds_from_the_bundle():
 def test_the_post_repair_rerun_reproduces_the_module_replacement_verdict():
     pytest.importorskip("torch")
     assert tables.local_updates_post_repair_tables() == tables.local_updates_tables()  # raises on any difference
+
+def test_shared_path_control_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    sc = tables.shared_control_tables()  # raises unless it matches the recorded output
+    assert sc["complete"]
+    assert sc["learned"] == {"dense_d128_l8_m2_s18000": 4, "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000": 1}
+    assert sc["reference_counts"]["moe_top1_initdense_sh50_s18000"] == 5
+    assert sc["shared_path_insufficient"]["holds"] and sc["routing_helps_ti_tnn"]["holds"]
