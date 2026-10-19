@@ -482,3 +482,14 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    replay allowance. They would be compared with ordinary fine-tuning, early stopping and matched random
    search, counting every proposed and rejected candidate and every check.
 
+**Status of section 12's order (2026-10-19):**
+1. **The repairs:** merged (#52).
+2. **The interpreter robustness experiment:** run against its frozen protocol
+   ([report](reports/interpreter_robustness_v1.md)).
+   - The augmented word interpreter met the joint novelty criterion in all 15 confirmation units.
+   - Taught-synonym transfer into two-step questions and three-step composition did not meet their
+     criteria.
+   - S2 is the next research decision: the saved programs show every S2 error is a wrong relation program.
+3. **The full integration test:** not started.
+4. **Evolutionary proposals (PR 9):** still deferred. The novelty result gives them no objective.
+
