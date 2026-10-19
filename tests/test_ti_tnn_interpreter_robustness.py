@@ -27,7 +27,7 @@ from integrated import registry as G  # noqa: E402
 @pytest.fixture(scope="module")
 def study():
     world = W.generate_world(7, n_countries=10, cities_per_country=(2, 3), n_operators=3)
-    st = S.make_study(world, 7, n_long=60, n_diag=30)
+    st = S.make_study(world, 7, n_noncancel=60, n_round=20, n_diag=30)
     return world, st, S.augment(st, 7)
 
 
@@ -117,3 +117,25 @@ def test_a_tiny_run_produces_every_category_policy_and_record(study):
         assert len(arm["records"]) == sum(x["split"] == "test" for x in st["items"])
         assert arm["policies"]["certified"]["certificate"]["steps"]
     assert unit["grammar"]["categories"]["S4a"]["abstention"] == 1.0
+
+
+def test_s4_strata_follow_the_complete_typed_program():
+    world = W.generate_world(100, n_countries=96)
+    country = world.types["Country"].values[0]
+    city = world.facts["capital_of"][country]
+    # "the operator of the aerodrome near <city>": a city allows two relations, but only airport_of fits operator_of
+    assert S.s4_stratum(world, ("airport_of", "operator_of"), city, 0)[0] == "type_determined"
+    # capital or largest city, then country_of: two programs, one answer (the country itself)
+    assert S.s4_stratum(world, ("capital_of", "country_of"), country, 0)[0] == "program_ambiguous_one_answer"
+    differ = next(c for c in world.types["Country"].values
+                  if world.facts["capital_of"][c] != world.facts["largest_city_of"][c])
+    assert S.s4_stratum(world, ("capital_of", "airport_of"), differ, 0)[0] == "answer_ambiguous"
+
+
+def test_s1_has_its_declared_non_cancelling_count_and_matched_diagnostics(study):
+    world, st, _ = study
+    s1 = [x for x in st["items"] if x["category"] == "S1"]
+    noncancel = {(tuple(x["program"]), x["entity"]) for x in s1 if x["family"] == "length3"}
+    diag = {(tuple(x["program"]), x["entity"]) for x in st["items"] if x["category"] == "L3_base"}
+    assert diag and diag <= noncancel  # diagnostics are variants of S1 non-cancelling instances
+    assert all("stratum" in x for x in st["items"] if x["category"] in ("S4a", "S4b", "S4_L3"))
