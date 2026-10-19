@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 407
+    assert len(manifest["files"]) == 408
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
                    if not f["path"].endswith(".gz"))  # no local paths
     import gzip
@@ -168,3 +168,17 @@ def test_s2_diagnosis_development_rebuilds_from_its_records():
     conf = json.loads((BUNDLE / "s2_diagnosis/confirmation_analysis/s2_development_analysis.json").read_text())
     assert conf["confirmation"]["complete"] and not conf["confirmation"]["prediction_C_holds"]
     assert not conf["confirmation"]["secondary_C_above_B_every_world"]
+
+
+def test_s2_trace_release_is_bound_to_the_committed_hashes(tmp_path):
+    pytest.importorskip("torch")
+    import json
+    release = json.loads((BUNDLE / "s2_diagnosis/trace_release.json").read_text())
+    committed = {f["original_path"]: f for f in json.loads((BUNDLE / "s2_diagnosis/local_traces.json").read_text())["files"]}
+    assert len(release["assets"]) == len(committed) == 63
+    assert all(committed[a["original_path"]]["sha256"] == a["sha256"] for a in release["assets"])
+    assert len({a["name"] for a in release["assets"]}) == 63
+    for a in release["assets"]:  # a downloaded set whose bytes differ from the committed hashes is refused
+        (tmp_path / a["name"]).write_bytes(b"not the trace")
+    with pytest.raises(ValueError, match="sha256"):
+        tables.s2_diagnosis_tables(quick=True, traces_dir=tmp_path)
