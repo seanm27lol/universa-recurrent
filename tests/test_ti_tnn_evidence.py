@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 297
+    assert len(manifest["files"]) == 307
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
@@ -87,6 +87,48 @@ def test_typed_composition_verdict_rebuilds_from_the_bundle():
     assert all(typed["families"][f]["competent_runs"] == 15 for f in ("specialists", "shared_dense", "moe"))
     assert typed["families"]["endpoint"]["same_endpoint_min"] == pytest.approx(6 / 19)
     assert typed["families"]["answer_only"]["intermediate_min"] is None
+
+
+def test_semantic_interventions_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")  # semantic_interventions.py imports the learned modules
+    sem = tables.semantic_interventions_tables()  # raises unless it matches the recorded verdict.json
+    assert sem["complete"] and all(sem["predictions"].values())
+    assert (sem["executions"], sem["interventions"]) == (83616, 387264)
+    assert sem["families"]["endpoint"]["law_defects_max"] == 0 and sem["families"]["endpoint"]["competent"] == 0
+    assert sem["families"]["hidden_dependency"]["undeclared_calls_max"] == 477
+
+
+def test_typed_routing_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")  # typed_questions.py imports the interpreter
+    routing = tables.typed_routing_tables()  # raises unless it matches the recorded verdict.json
+    p = routing["predictions"]
+    assert routing["complete"] and p["6_shift_accepted_error_bounded"] is False
+    assert all(v for k, v in p.items() if not k.startswith("6_"))
+    t = routing["systems"]["typed_specialists"]
+    assert (t["test"]["accepted_errors_total"], t["test"]["answered_total"]) == (2, 13714)
+    assert (t["shift"]["accepted_errors_total"], t["shift"]["answered_total"]) == (59, 100)
+
+
+def test_typed_recurrence_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    recur = tables.typed_recurrence_tables()  # raises unless it matches the recorded verdict.json
+    assert recur["complete"] and all(recur["predictions"].values())
+    assert (recur["queries"], recur["pause_points"]) == (15480, 53970)
+    assert recur["systems"]["recurrent"]["accuracy"] == [1.0, 1.0]
+
+
+def test_local_updates_verdict_rebuilds_from_the_bundle():
+    pytest.importorskip("torch")
+    upd = tables.local_updates_tables()  # raises unless it matches the recorded verdict.json
+    assert upd["complete"] and all(upd["predictions"].values())
+    assert upd["families"]["specialists"]["activated"] == 150
+    assert upd["families"]["shared_same_data"]["unaffected_changed_from_base_total"] == 4387
+    assert upd["families"]["shared_same_data"]["atomic_changed_by_relation"] == {"largest_city_of": 373}
+
+
+def test_the_post_repair_rerun_reproduces_the_module_replacement_verdict():
+    pytest.importorskip("torch")
+    assert tables.local_updates_post_repair_tables() == tables.local_updates_tables()  # raises on any difference
 
 def test_shared_path_control_rebuilds_from_the_bundle():
     pytest.importorskip("torch")

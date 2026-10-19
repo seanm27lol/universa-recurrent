@@ -95,3 +95,4 @@ writes `verdict.json` via `evaluate()`.
   - A rerun of world 200, init 0 reproduced every recorded field except timings.
   - Scoring the answer-only model path by path shows its 3-step score comes from a shortcut (answering
     with the start city's own airport).
+- **Correction after review (2026-10-18), with the contract-repair PR.** Predictions 4 and 5 were labeled as following from prediction 1. They follow from *exact* atomic correctness, which every run had (1.000), not from the 0.99 threshold. The mixture's wording in the report was also corrected: it computes all four experts.

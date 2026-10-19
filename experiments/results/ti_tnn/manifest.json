@@ -86,6 +86,41 @@
       "source": "ef604a1 (committed immediately before the run; the run file does not record its commit)",
       "command": "python research/ti_tnn/bench/typed_composition.py --worlds 200 201 202 --inits 0 1 2 3 4"
     },
+    "semantic_interventions": {
+      "what": "execution records, replay, probes, disabled computation and interventions on worlds 300-302: the four learned families (inits 0-4), the table modules and three deliberately faulty sets, CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/semantic_interventions_v1.md",
+      "report": "research/ti_tnn/reports/semantic_interventions_v1.md",
+      "source": "75cb47a (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/semantic_interventions.py --worlds 300 301 302 --inits 0 1 2 3 4"
+    },
+    "typed_routing": {
+      "what": "controlled-language questions, a learned interpreter and calibrated abstention on worlds 400-402 (48 countries), inits 0-4: three typed systems sharing the interpreter and an answer-only baseline, CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_routing_v1.md",
+      "report": "research/ti_tnn/reports/typed_routing_v1.md",
+      "source": "fd0aa20 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/typed_questions.py --worlds 400 401 402 --inits 0 1 2 3 4"
+    },
+    "typed_recurrence": {
+      "what": "bounded recurrence on route worlds 500-502 (48 countries), inits 0-4: recurrence with learned specialists, the fixed-depth control and recurrence with tables; answers, stopping reasons, pause/resume at every pause point, applications, MACs and timing, one CPU thread; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/typed_recurrence_v1.md",
+      "report": "research/ti_tnn/reports/typed_recurrence_v1.md",
+      "source": "7ba0b79 (committed immediately before the run; the run file does not record its commit)",
+      "command": "OMP_NUM_THREADS=1 python research/ti_tnn/bench/typed_recurrence.py --worlds 500 501 502 --inits 0 1 2 3 4"
+    },
+    "local_updates": {
+      "what": "offline module replacement on worlds 600-602, inits 0-4: 10 single-fact updates per world for specialists, a same-data shared network and a rehearsal shared network, each through every gate with activation and rollback; and a faulty suite per world, CPU; and the frozen evaluator's verdict",
+      "protocol": "research/ti_tnn/protocols/local_updates_v1.md",
+      "report": "research/ti_tnn/reports/local_updates_v1.md",
+      "source": "dd1d937 (committed immediately before the run; the run file does not record its commit)",
+      "command": "python research/ti_tnn/bench/local_updates.py --worlds 600 601 602 --inits 0 1 2 3 4"
+    },
+    "local_updates_post_repair": {
+      "what": "the module-replacement confirmation rerun after the contract repairs (sealed, bound check results; frozen, digested snapshots; exact inventories), same worlds, inits and command; its verdict must equal the original's",
+      "protocol": "research/ti_tnn/protocols/local_updates_v1.md",
+      "report": "research/ti_tnn/reports/local_updates_v1.md#corrections-after-review-2026-10-18",
+      "source": "the contract-repair branch ti-tnn-contract-repairs (uncommitted working tree at the time of the rerun; committed with it)",
+      "command": "python research/ti_tnn/bench/local_updates.py --worlds 600 601 602 --inits 0 1 2 3 4"
+    },
     "adaptive_compute_shared_path_control": {
       "what": "lookup task, shared-path control: a half-width dense model (the shared path alone) and a one-expert TI-TNN at the 0.3 cap, seeds 200-204, 18,000 steps; and the frozen evaluator's output",
       "protocol": "research/ti_tnn/protocols/adaptive_compute_shared_path_control.md",
@@ -2368,6 +2403,76 @@
       "original_path": "runs/titnn_typed/20261018T145735/verdict.json",
       "sha256": "43b047d5b84a2b6982c421a080e29058058844783f3c0444e15ece0536c81ba8",
       "bytes": 1673
+    },
+    {
+      "path": "semantic_interventions/20261018T153819/semantic_interventions.json",
+      "experiment": "semantic_interventions",
+      "original_path": "runs/titnn_semantic/20261018T153819/semantic_interventions.json",
+      "sha256": "e872a7a07ee0e8654f7dc2f055c9c858f0abce120c2cc305326c8778e257b04b",
+      "bytes": 84873
+    },
+    {
+      "path": "semantic_interventions/20261018T153819/verdict.json",
+      "experiment": "semantic_interventions",
+      "original_path": "runs/titnn_semantic/20261018T153819/verdict.json",
+      "sha256": "dca14f2e950711db384e0d03678a76bb9b518dd0eabcdc3a71da2879ef1ee453",
+      "bytes": 3294
+    },
+    {
+      "path": "typed_routing/20261018T160927/typed_questions.json",
+      "experiment": "typed_routing",
+      "original_path": "runs/titnn_routing/20261018T160927/typed_questions.json",
+      "sha256": "80715c381008322914c990b71859cc152c5cbfe9c06fbc4239c902277f7dca05",
+      "bytes": 553715
+    },
+    {
+      "path": "typed_routing/20261018T160927/verdict.json",
+      "experiment": "typed_routing",
+      "original_path": "runs/titnn_routing/20261018T160927/verdict.json",
+      "sha256": "1fcd7aeea27e3c4a4f9a0f1ec6ce98778fc7f8ce46a891661db9947b67dd8b8a",
+      "bytes": 2201
+    },
+    {
+      "path": "typed_recurrence/20261018T162814/typed_recurrence.json",
+      "experiment": "typed_recurrence",
+      "original_path": "runs/titnn_recurrence/20261018T162814/typed_recurrence.json",
+      "sha256": "e1dcd05c28e10f1d390eb1faea76971180de1cf5672d816b99894fe878606a2e",
+      "bytes": 51720
+    },
+    {
+      "path": "typed_recurrence/20261018T162814/verdict.json",
+      "experiment": "typed_recurrence",
+      "original_path": "runs/titnn_recurrence/20261018T162814/verdict.json",
+      "sha256": "fcbd69f505d0177af1d21113fd1c5a1af6545b3b40988da4332ae0a66c450c2e",
+      "bytes": 2018
+    },
+    {
+      "path": "local_updates/20261018T164944/local_updates.json",
+      "experiment": "local_updates",
+      "original_path": "runs/titnn_updates/20261018T164944/local_updates.json",
+      "sha256": "f267dc85eb46283b60ec6d39e68dbf81add45d1cab16e15e53e337112e420cbb",
+      "bytes": 506693
+    },
+    {
+      "path": "local_updates/20261018T164944/verdict.json",
+      "experiment": "local_updates",
+      "original_path": "runs/titnn_updates/20261018T164944/verdict.json",
+      "sha256": "0d21262cf84ff75bb4c057a52b18ac3cf1ec401ee00f93aa91c062cdca84b29c",
+      "bytes": 2215
+    },
+    {
+      "path": "local_updates_post_repair/20261018T182038/local_updates.json",
+      "experiment": "local_updates_post_repair",
+      "original_path": "runs/titnn_updates/20261018T182038/local_updates.json",
+      "sha256": "01bb06aa2fb2828f332a5b04021075a245f5acb051f089192174503036508154",
+      "bytes": 522920
+    },
+    {
+      "path": "local_updates_post_repair/20261018T182038/verdict.json",
+      "experiment": "local_updates_post_repair",
+      "original_path": "runs/titnn_updates/20261018T182038/verdict.json",
+      "sha256": "0d21262cf84ff75bb4c057a52b18ac3cf1ec401ee00f93aa91c062cdca84b29c",
+      "bytes": 2215
     },
     {
       "path": "adaptive_compute_shared_path_control/frontier_sc_shared_control.json",
