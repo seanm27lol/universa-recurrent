@@ -76,6 +76,10 @@ def platt_fit(scores: list[float], labels: list[bool], prior: float = 1.0, iters
 
 
 def _binom_cdf(k: int, n: int, p: float) -> float:
+    if k >= n:
+        return 1.0
+    if k < 0:
+        return 0.0
     if p <= 0:
         return 1.0
     if p >= 1:
@@ -174,3 +178,60 @@ def fit(scores: list[float], correct: list[bool], item_ids: list[str], interpret
     threshold = choose_threshold(probs, correct, target_risk, alpha)
     return Calibration(VERSION, a, b, threshold, target_risk, alpha, EVENT, interpreter_identity, registry_identity,
                        policy_version, len(scores), content_identity(sorted(item_ids)))
+
+
+# --- Interpreter robustness study (protocols/interpreter_robustness_v1.md): certified acceptance rules ---------
+
+def binomial_p_value(errors: int, n: int, alpha: float) -> float:
+    """P(Binomial(n, alpha) <= errors): the exact p-value for H0 "accepted-error rate >= alpha", given n accepted.
+    1.0 when nothing is accepted, so an empty acceptance set is never certified."""
+    return 1.0 if n == 0 else _binom_cdf(errors, n, alpha)
+
+
+def fixed_sequence_certify(scores: list[float], correct: list[bool], grid: tuple[float, ...], alpha: float = 0.01,
+                           delta: float = 0.05) -> dict:
+    """Certify one rule from the predeclared family "accept when score >= t", t in `grid` (strictest first).
+
+    Each t is tested in order with the exact binomial p-value above, and testing stops at the first t whose
+    null cannot be rejected at level `delta`. The loosest rejected t is selected; if the first is not rejected,
+    nothing is certified and the policy never answers. Because the order is fixed in advance and testing stops
+    at the first acceptance, the chance of selecting a rule whose true accepted-error rate exceeds `alpha` is at
+    most `delta` (fixed-sequence testing; the multiple-testing framing of Learn then Test, Angelopoulos et al.,
+    arXiv 2110.01052). `correct` must describe the decisions the rule would make, and `grid` must not depend on
+    these data. Every step is returned so the selection can be rebuilt."""
+    if list(grid) != sorted(grid, reverse=True):
+        raise ValueError("the grid must run from strictest to loosest")
+    steps, selected, stop = [], None, "every rule rejected its null"
+    for t in grid:
+        accepted = [i for i, s in enumerate(scores) if s >= t]
+        errors = sum(not correct[i] for i in accepted)
+        p = binomial_p_value(errors, len(accepted), alpha)
+        steps.append({"threshold": t, "accepted": len(accepted), "errors": errors, "p_value": p, "rejected": p <= delta})
+        if p > delta:
+            stop = ("no certificate: the strictest rule could not be certified" if selected is None
+                    else f"stopped at {t}")
+            break
+        selected = t
+    return {"certified": selected is not None, "threshold": selected, "alpha": alpha, "delta": delta,
+            "steps": steps, "stop_reason": stop}
+
+
+def certification_power(true_error: float, n: int, alpha: float = 0.01, delta: float = 0.05) -> float:
+    """The probability that a fixed rule with this true accepted-error rate and n accepted examples is certified."""
+    if n == 0:
+        return 0.0
+    k_max = -1
+    while binomial_p_value(k_max + 1, n, alpha) <= delta:
+        k_max += 1
+    return 0.0 if k_max < 0 else _binom_cdf(k_max, n, true_error)
+
+
+def platt_fit_increasing(scores: list[float], labels: list[bool]) -> tuple[float, float]:
+    """Platt parameters for reporting probabilities only. The slope is forced positive (an identity map if the fit
+    is not increasing), so the transform never reorders examples, and thresholds map one to one."""
+    a, b = platt_fit(scores, labels)
+    return (a, b) if a > 0 else (1.0, 0.0)
+
+
+def platt_probability(score: float, a: float, b: float) -> float:
+    return _sigmoid(a * _logit(score) + b)
