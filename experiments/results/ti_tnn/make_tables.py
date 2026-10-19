@@ -17,7 +17,9 @@ Checks every file against manifest.json first (sha256), then prints:
 - the bounded-recurrence verdict, recomputed with research/ti_tnn/bench/typed_recurrence.py and checked
   against its bundled verdict.json;
 - the module-replacement verdict, recomputed with research/ti_tnn/bench/local_updates.py and checked
-  against its bundled verdict.json.
+  against its bundled verdict.json;
+- the interpreter robustness confirmation, re-derived from its bundled decision records by
+  research/ti_tnn/bench/interpreter_robustness_verify.py (about two minutes).
   and checked against the bundled verdict.json.
 - the lookup task's shared-path control, recomputed with frontier.py --shared-control and checked
   against the recorded output.
@@ -46,7 +48,8 @@ def verify(bundle: Path = HERE) -> dict:
         digest = hashlib.sha256((bundle / f["path"]).read_bytes()).hexdigest()
         if digest != f["sha256"]:
             raise ValueError(f"{f['path']}: sha256 {digest} does not match the manifest")
-    stray = {str(p.relative_to(bundle)) for p in bundle.rglob("*.json")} - listed - {"manifest.json"}
+    stray = {str(p.relative_to(bundle)) for pattern in ("*.json", "*.json.gz") for p in bundle.rglob(pattern)} \
+        - listed - {"manifest.json"}
     if stray:
         raise ValueError(f"files not in the manifest: {sorted(stray)}")
     return manifest
@@ -320,6 +323,17 @@ def local_updates_post_repair_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def interpreter_robustness_tables(bundle: Path = HERE, quick: bool = False) -> dict:
+    """The interpreter robustness confirmation, re-derived from its bundled records by the independent verifier
+    (which regenerates every study from its seed) and checked against the stored summaries and verdict. `quick`
+    re-derives one unit only and skips the verdict (for tests)."""
+    sys.path.insert(0, str(BENCH))
+    import interpreter_robustness_verify as V  # research/ti_tnn/bench/interpreter_robustness_verify.py
+    run = bundle / "interpreter_robustness/20261018T232057"
+    out = V.verify(run, require_confirmation=not quick, only={(700, 0)} if quick else None)
+    return out
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -450,6 +464,11 @@ def main(argv=None):
     print(f"  predictions: {upd['predictions']}")
     local_updates_post_repair_tables()
     print("  rerun after the contract repairs: identical verdict")
+    robust = interpreter_robustness_tables()
+    print("\nInterpreter robustness (worlds 700-702 x 5 inits), every number re-derived from the bundled records")
+    for key, arms in robust["verdict"]["successes_by_world"].items():
+        print(f"  {key:22s} " + "  ".join(f"{a} {'/'.join(str(v) for v in w.values())}" for a, w in arms.items()))
+    print(f"  predictions: {robust['verdict']['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},

@@ -45,6 +45,7 @@ records the declared source version and command.
 | `typed_recurrence/` | 2 (45 CPU system runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_recurrence_v1.md) | [report](../../../research/ti_tnn/reports/typed_recurrence_v1.md) | `7ba0b79` (committed immediately before the run) |
 | `local_updates/` | 2 (450 learned updates and 30 faulty-suite cases in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report](../../../research/ti_tnn/reports/local_updates_v1.md) | `dd1d937` (committed immediately before the run) |
 | `local_updates_post_repair/` | 2 (the same 450 updates and 30 fault cases, rerun through the repaired interfaces; the verdict must equal the original) | [brief](../../../research/ti_tnn/protocols/local_updates_v1.md) | [report corrections](../../../research/ti_tnn/reports/local_updates_v1.md) | the contract-repair branch |
+| `interpreter_robustness/` | 18 (aggregate summaries, `verdict.json`, 15 per-unit decision-record files as gzip-compressed JSON, the verifier's output; about 16 MB) | [brief](../../../research/ti_tnn/protocols/interpreter_robustness_v1.md) | [report](../../../research/ti_tnn/reports/interpreter_robustness_v1.md) | `69b7fd7` (frozen; committed immediately before the run) |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 | `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
 
@@ -64,6 +65,15 @@ per-window execution checks behind the "untestable" latency verdict. The 12 adap
 the run script passed absolute roots. The prefix was removed so every path is repository-relative; no
 other byte changed. The manifest gives each such file's original sha256, which the analysis's run manifest
 refers to, and `make_tables.py` uses it there.
+
+**Interpreter robustness.**
+- **Records.** Its decision records are gzip-compressed JSON (`.json.gz`), still weight-free result data.
+  The manifest hashes the compressed bytes.
+- **Rebuilding.** `research/ti_tnn/bench/interpreter_robustness_verify.py` regenerates each study from its
+  world seed and re-derives every reported number from these records. It needs the frozen generator,
+  unchanged since `69b7fd7`.
+- **What it covers.** Training time, training loss and execution provenance are not derivable from
+  decision records and are not covered.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization
