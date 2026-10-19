@@ -127,6 +127,13 @@
       "report": "research/ti_tnn/reports/adaptive_compute_shared_path_control.md",
       "source": "9da9c82 (recorded in each run); evaluation by frontier.py --shared-control at 9da9c82",
       "command": "GATE=<gate> bash research/ti_tnn/bench/run_shared_path_control.sh; python research/ti_tnn/bench/frontier.py --shared-control runs/titnn_efficiency/hops_shared_control --hops-v2 runs/titnn_efficiency/hops_v2 --out runs/titnn_efficiency/frontier_sc.json"
+    },
+    "interpreter_robustness": {
+      "what": "interpreter robustness confirmation: worlds 700-702 (96 countries) x inits 0-4 x four arms (word, word_aug, char, char_aug) plus the grammar control; the aggregate summaries, the frozen verdict, all 15 per-unit full-precision decision records (calibration and test, every arm and the grammar control, gzip-compressed JSON) and the verifier's output",
+      "protocol": "research/ti_tnn/protocols/interpreter_robustness_v1.md",
+      "report": "research/ti_tnn/reports/interpreter_robustness_v1.md",
+      "source": "69b7fd7 (the frozen revision 4, committed immediately before the run; the run file does not record its commit); the corrected verifier is in the commit that adds this bundle",
+      "command": "python research/ti_tnn/bench/interpreter_robustness.py --worlds 700 701 702 --inits 0 1 2 3 4; python research/ti_tnn/bench/interpreter_robustness_verify.py experiments/results/ti_tnn/interpreter_robustness/20261018T232057 --confirmation"
     }
   },
   "files": [
@@ -2550,6 +2557,132 @@
       "original_path": "runs/titnn_efficiency/hops_shared_control/ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000-seed204-20261018T151326/result.json",
       "sha256": "5b15e3fbf8f79149123af277550aa4f8602f79c472a049c9f18e9453f86eeea6",
       "bytes": 10862
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/interpreter_robustness.json",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/interpreter_robustness.json",
+      "sha256": "e71d3858b4bfda1102d76e93c864fa8e809fc82206b403c5df0bd6d65099774f",
+      "bytes": 3529546
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w700_i0.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w700_i0.json.gz",
+      "sha256": "2c2eb7f2f0d345cbacc5f98566f66722e4b97b2e26911e7394276d0218eb7582",
+      "bytes": 809958
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w700_i1.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w700_i1.json.gz",
+      "sha256": "e74d87968d0342c88de854b00f967f2d2c6b401ce8a5c1200c156e820ec25086",
+      "bytes": 802136
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w700_i2.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w700_i2.json.gz",
+      "sha256": "0ea80b2940e954ff205364005f8317a5fe5874709e495a3f60d1f9372e2aab1d",
+      "bytes": 825753
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w700_i3.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w700_i3.json.gz",
+      "sha256": "885bf2b7df1572b8f8a5d03e7efa10873ea10947c356c69ac0f0bdb45e867022",
+      "bytes": 810386
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w700_i4.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w700_i4.json.gz",
+      "sha256": "def54dbdfeb13113b5ae893ad3514c53eb6401263b032f2aab5498693c5c9f59",
+      "bytes": 810002
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w701_i0.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w701_i0.json.gz",
+      "sha256": "21dab2124f503105a0efa8bbd4e67cab74d91758d99fa730e6b8221e045dc941",
+      "bytes": 807386
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w701_i1.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w701_i1.json.gz",
+      "sha256": "e95673d13b9ed626c968dd87017de1fbaeb89df0d4aa636b078870d9c9c73262",
+      "bytes": 811459
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w701_i2.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w701_i2.json.gz",
+      "sha256": "20b7acbfd2e53848214b01fe4202760000f78f0c80c59ef99d091325c69e3b90",
+      "bytes": 827124
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w701_i3.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w701_i3.json.gz",
+      "sha256": "546f6fd150776640f70210e020b1ed977007caa1cacc2e89ff8f6dec3e26aa20",
+      "bytes": 819213
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w701_i4.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w701_i4.json.gz",
+      "sha256": "d966a065616a2b0344268aed0e38c45cd3f98015c36f75bab6f65eda5191b6af",
+      "bytes": 794953
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w702_i0.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w702_i0.json.gz",
+      "sha256": "1cd023871d88c863ee1669484a462ae61460985c6c91ae615c0b464fe06a8824",
+      "bytes": 808773
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w702_i1.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w702_i1.json.gz",
+      "sha256": "4ab88277ed520190820eb40ebfc5ef2f559bd55b01ba9ff15cbf7204373af9e9",
+      "bytes": 809767
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w702_i2.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w702_i2.json.gz",
+      "sha256": "053d385c69424792090d21ff6d72e9042563297cbd2e6df4bea0db92f0c46197",
+      "bytes": 815762
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w702_i3.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w702_i3.json.gz",
+      "sha256": "bdca9bf5dec317f0c009163ba50d0a5a9f8220ed3e2ba8b0bf8cca0eee5dcec0",
+      "bytes": 805764
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/records/w702_i4.json.gz",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/records/w702_i4.json.gz",
+      "sha256": "da01862ea2f8432817df0ad6c92745bc24efe47c5ac5850c5430491409b44a92",
+      "bytes": 811576
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/verdict.json",
+      "experiment": "interpreter_robustness",
+      "original_path": "runs/titnn_robustness/20261018T232057/verdict.json",
+      "sha256": "7d0d7d6a0c82a870b4fd1a76d7ae04ad41b55458418300671d0e5e83da0ae88a",
+      "bytes": 12954
+    },
+    {
+      "path": "interpreter_robustness/20261018T232057/verification_output.txt",
+      "experiment": "interpreter_robustness",
+      "original_path": "(produced by the verifier on this bundle)",
+      "sha256": "350d6be04031e5a1477c17a6de38651da1c2883f04385fc55f1fcea59aa47d99",
+      "bytes": 69332
     }
   ]
 }

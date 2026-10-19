@@ -434,6 +434,14 @@ fed another country's Trait-B stalk.
     of 75 capital updates, the relation sharing `capital_of`'s endpoints.
   - **Shared network, with rehearsal.** Behavior was kept, but the update could never be shown local.
   - **Faulty candidates.** Every one was refused for the right reason.
+- **Interpreter robustness, confirmation over 3 fresh worlds × 5 inits, 2026-10-19**
+  ([report](reports/interpreter_robustness_v1.md), [frozen protocol](protocols/interpreter_robustness_v1.md)).
+  - **The positive result.** The augmented word interpreter met the joint novelty criterion in 15 of 15
+    units: it answered questions with unfamiliar inessential wording and refused those whose essential
+    wording was unfamiliar. Without augmentation, or with character input, it did not (0, 0 and 3 of 15).
+  - **The negative results.** Synonyms taught in one-step questions did not transfer reliably into
+    two-step ones (wrong relation programs), and no arm composed three-step questions.
+  - **Scope.** These are controlled-language results with table modules.
 - **Earlier CPU development runs** (one seed, 1,000 to 2,000 steps) showed the same
   pattern: held-out XOR 1.000 with the bridge, 0.555 without, 0.625 with a shared
   embedding.

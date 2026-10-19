@@ -208,6 +208,43 @@ def test_the_verifier_rebuilds_a_run_and_rejects_tampering(tiny_run, tmp_path):
     with pytest.raises(V.VerificationError):
         V.verify(gone)
 
+    def stop_reason(r):  # certificate metadata, not only its steps
+        r["units"][0]["arms"]["word"]["policies"]["certified"]["certificate"]["stop_reason"] = "edited"
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_result=stop_reason))
+
+    def platt(r):
+        r["units"][0]["arms"]["word"]["probability_calibration"]["platt"][0] += 0.5
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_result=platt))
+
+    def grammar_metric(r):
+        r["units"][0]["grammar"]["categories"]["S3"]["reasons"]["answered"] = -1
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_result=grammar_metric))
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_records=lambda rec: rec.pop("grammar")))  # missing grammar records are not skipped
+    with pytest.raises(V.VerificationError):  # the frozen configuration is required in confirmation mode
+        V.verify(out, require_confirmation=True)
+    assert V.verify(out, only={(7, 0)})["partial"]
+
+
+def test_the_verifier_checks_stored_world_counts(tiny_run, tmp_path):
+    import json
+    import shutil
+    out, result = tiny_run
+    V = verifier()
+    V.S.SIZES = S.SIZES
+    d = tmp_path / "with_verdict"
+    shutil.copytree(out, d)
+    verdict = V.verify(d)["verdict"]
+    (d / "verdict.json").write_text(json.dumps(verdict))
+    assert V.verify(d)["verified"]
+    verdict["successes_by_world"]["joint_novelty"]["word"]["7"] += 1
+    (d / "verdict.json").write_text(json.dumps(verdict))
+    with pytest.raises(V.VerificationError):
+        V.verify(d)
+
 
 def fake_unit(world, init, ok):
     """Per-unit summaries in which `ok` names the criteria that pass (S3, S4a, S4b, cert)."""

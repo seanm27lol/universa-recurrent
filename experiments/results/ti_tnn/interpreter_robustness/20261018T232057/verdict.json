@@ -1,0 +1,652 @@
+{
+ "complete": true,
+ "predictions": {
+  "1_sanity_every_arm": true,
+  "2_taught_wording_learned_every_arm": true,
+  "3_word_aug_joint_novelty": true
+ },
+ "separate_verdicts": {
+  "joint_novelty": {
+   "word": false,
+   "word_aug": true,
+   "char": false,
+   "char_aug": false
+  },
+  "s2_transfer": {
+   "word": false,
+   "word_aug": false,
+   "char": false,
+   "char_aug": false
+  },
+  "s1_structure": {
+   "word": false,
+   "word_aug": false,
+   "char": false,
+   "char_aug": false
+  }
+ },
+ "successes_by_world": {
+  "certified": {
+   "word": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "word_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "char": {
+    "700": 4,
+    "701": 5,
+    "702": 4
+   },
+   "char_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   }
+  },
+  "sanity": {
+   "word": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "word_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "char": {
+    "700": 4,
+    "701": 5,
+    "702": 4
+   },
+   "char_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   }
+  },
+  "taught_wording_learned": {
+   "word": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "word_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "char": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "char_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   }
+  },
+  "joint_novelty": {
+   "word": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   },
+   "word_aug": {
+    "700": 5,
+    "701": 5,
+    "702": 5
+   },
+   "char": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   },
+   "char_aug": {
+    "700": 1,
+    "701": 1,
+    "702": 1
+   }
+  },
+  "s2_transfer": {
+   "word": {
+    "700": 1,
+    "701": 2,
+    "702": 1
+   },
+   "word_aug": {
+    "700": 3,
+    "701": 1,
+    "702": 0
+   },
+   "char": {
+    "700": 0,
+    "701": 1,
+    "702": 1
+   },
+   "char_aug": {
+    "700": 1,
+    "701": 3,
+    "702": 1
+   }
+  },
+  "s1_structure": {
+   "word": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   },
+   "word_aug": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   },
+   "char": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   },
+   "char_aug": {
+    "700": 0,
+    "701": 0,
+    "702": 0
+   }
+  }
+ },
+ "per_unit": {
+  "word": {
+   "700/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "700/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "701/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "702/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "702/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   }
+  },
+  "word_aug": {
+   "700/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "700/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "700/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "700/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "701/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   }
+  },
+  "char": {
+   "700/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/2": {
+    "certified": false,
+    "sanity": false,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "701/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "702/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/2": {
+    "certified": false,
+    "sanity": false,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   }
+  },
+  "char_aug": {
+   "700/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "700/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "700/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "701/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "701/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "701/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "702/0": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": true,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/1": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": true,
+    "s1_structure": false
+   },
+   "702/2": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/3": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   },
+   "702/4": {
+    "certified": true,
+    "sanity": true,
+    "taught_wording_learned": true,
+    "joint_novelty": false,
+    "s2_transfer": false,
+    "s1_structure": false
+   }
+  }
+ }
+}

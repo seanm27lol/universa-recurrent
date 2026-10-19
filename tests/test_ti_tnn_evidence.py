@@ -14,8 +14,12 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 307
-    assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"])  # no local paths
+    assert len(manifest["files"]) == 325
+    assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
+                   if not f["path"].endswith(".gz"))  # no local paths
+    import gzip
+    assert not any("/home/" in gzip.open(BUNDLE / f["path"], "rt").read() for f in manifest["files"]
+                   if f["path"].endswith(".gz"))
     assert {f["experiment"] for f in manifest["files"]} == set(manifest["experiments"])
     assert not any(p.suffix in (".pt", ".bin", ".safetensors") for p in BUNDLE.rglob("*"))  # weight-free
 
@@ -137,3 +141,16 @@ def test_shared_path_control_rebuilds_from_the_bundle():
     assert sc["learned"] == {"dense_d128_l8_m2_s18000": 4, "ti_tnn_adaptive_c30_initdense_warm50_kv_sh50_e1_s18000": 1}
     assert sc["reference_counts"]["moe_top1_initdense_sh50_s18000"] == 5
     assert sc["shared_path_insufficient"]["holds"] and sc["routing_helps_ti_tnn"]["holds"]
+
+
+def test_interpreter_robustness_unit_rebuilds_from_its_records():
+    pytest.importorskip("torch")
+    out = tables.interpreter_robustness_tables(quick=True)  # one unit re-derived; raises on any discrepancy
+    assert out["verified"] and out["partial"]
+    import json
+    verdict = json.loads((BUNDLE / "interpreter_robustness/20261018T232057/verdict.json").read_text())
+    assert verdict["predictions"] == {"1_sanity_every_arm": True, "2_taught_wording_learned_every_arm": True,
+                                      "3_word_aug_joint_novelty": True}
+    assert verdict["successes_by_world"]["joint_novelty"]["word_aug"] == {"700": 5, "701": 5, "702": 5}
+    assert not any(verdict["separate_verdicts"]["s2_transfer"].values())
+    assert not any(verdict["separate_verdicts"]["s1_structure"].values())
