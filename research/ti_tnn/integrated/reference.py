@@ -49,3 +49,21 @@ def law_violations(world: World) -> list[str]:
             if reference_answer(world, law["path"], x) != x:
                 out.append(f"{' then '.join(law['path'])} does not return {x}")
     return out
+
+
+def reference_until(world, start: str, target: str, max_steps: int, step_relation: str = "connects_to",
+                    test_relation: str = "operator_of") -> tuple[str | None, str]:
+    """Plan PR 7's until-queries: follow `step_relation` from `start` until `test_relation` gives `target`.
+    The answer and the stopping reason ("found", "dead end", "cycle", "budget exhausted"), from the facts."""
+    current, visited = start, {start}
+    for _ in range(max_steps):
+        nxt = world.facts[step_relation][current]
+        if nxt == current:
+            return None, "dead end"
+        if nxt in visited:
+            return None, "cycle"
+        visited.add(nxt)
+        current = nxt
+        if world.facts[test_relation][nxt] == target:
+            return nxt, "found"
+    return None, "budget exhausted"

@@ -1,0 +1,77 @@
+{
+  "complete": true,
+  "systems": {
+    "typed_specialists": {
+      "test": {
+        "coverage_min": 0.9817767653758542,
+        "coverage_max": 1.0,
+        "accepted_errors_total": 2,
+        "answered_total": 13714,
+        "accuracy_no_threshold_min": 0.9943052391799544
+      },
+      "shift": {
+        "coverage_min": 0.0,
+        "coverage_max": 0.049891540130151846,
+        "accepted_errors_total": 59,
+        "answered_total": 100,
+        "accuracy_no_threshold_min": 0.0021691973969631237
+      }
+    },
+    "typed_shared_dense": {
+      "test": {
+        "coverage_min": 0.9817767653758542,
+        "coverage_max": 1.0,
+        "accepted_errors_total": 2,
+        "answered_total": 13714,
+        "accuracy_no_threshold_min": 0.9943052391799544
+      },
+      "shift": {
+        "coverage_min": 0.0,
+        "coverage_max": 0.049891540130151846,
+        "accepted_errors_total": 59,
+        "answered_total": 100,
+        "accuracy_no_threshold_min": 0.0021691973969631237
+      }
+    },
+    "typed_table": {
+      "test": {
+        "coverage_min": 0.9817767653758542,
+        "coverage_max": 1.0,
+        "accepted_errors_total": 2,
+        "answered_total": 13714,
+        "accuracy_no_threshold_min": 0.9943052391799544
+      },
+      "shift": {
+        "coverage_min": 0.0,
+        "coverage_max": 0.049891540130151846,
+        "accepted_errors_total": 59,
+        "answered_total": 100,
+        "accuracy_no_threshold_min": 0.0021691973969631237
+      }
+    },
+    "answer_only": {
+      "test": {
+        "coverage_min": 0.0,
+        "coverage_max": 0.0,
+        "accepted_errors_total": 0,
+        "answered_total": 0,
+        "accuracy_no_threshold_min": 0.5728929384965832
+      },
+      "shift": {
+        "coverage_min": 0.0,
+        "coverage_max": 0.0,
+        "accepted_errors_total": 0,
+        "answered_total": 0,
+        "accuracy_no_threshold_min": 0.1540130151843818
+      }
+    }
+  },
+  "predictions": {
+    "1_interpreter_competence": true,
+    "2_selective_answering": true,
+    "3_invalid_questions_refused": true,
+    "4_end_to_end_matches_supplied_program": true,
+    "5_answer_only_fails_multi_step": true,
+    "6_shift_accepted_error_bounded": false
+  }
+}
