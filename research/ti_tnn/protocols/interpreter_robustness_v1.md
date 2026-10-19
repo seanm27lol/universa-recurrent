@@ -1,192 +1,304 @@
-# Interpreter robustness: new structure, taught wording, unfamiliar wording (DRAFT brief)
+# Interpreter robustness: new structure, taught wording, unfamiliar wording (DRAFT brief, revision 2)
 
-**Status: DRAFT for review, not frozen.** Nothing here has run. A development pilot on worlds 100–101 may
-revise the proposed bars before freezing, as the plan allows. Confirmation worlds stay untouched until
-then. The decisions still open are listed at the end.
+**Status: DRAFT, not frozen.** This revision follows the review of the first draft (dfe142e); the changes
+it made are listed at the end. A bounded development pilot on worlds 100–101 runs next. Its results will
+fix the threshold grid, the bars, the sample sizes and the aggregation rule before anything is frozen.
+Confirmation worlds 700–702 stay untouched until then.
 
 ## Why
 
-In [#48](../reports/typed_routing_v1.md), a learned interpreter turned controlled-language questions into
-programs. In distribution it answered 98–100% of supported questions with 2 errors in 13,714. Under
-unseen phrasings, 59 of the 100 answers it accepted were wrong. The [review](../integration_plan.md) found
-three reasons that result cannot be read as a statement about interpretation:
+In [#48](../reports/typed_routing_v1.md) the interpreter failed under unseen phrasings, but that result
+mixed three things:
+- **information loss:** every unfamiliar word became `<unk>`;
+- **a trivial control:** rejecting unfamiliar words would have refused the whole shift;
+- **calibration:** it was barely needed, and its threshold had no selection-corrected guarantee.
 
-- **Information loss.** Every unfamiliar word becomes `<unk>`, so "the nation that includes X" and "the
-  airfield that serves X" are the same input. That forces 9.9–12.0% errors before any learning question
-  arises.
-- **A trivial control would have passed.** Every shifted question contained an unfamiliar word and no
-  in-distribution one did, so rejecting unfamiliar words refuses the whole shift. The old rule (bounded
-  error, or nothing answered) would count that as success.
-- **Calibration was barely needed and not validly certified.** With no threshold, the error bound held in
-  14 of 15 units. The threshold search also had no selection-corrected guarantee.
-
-**This experiment separates three questions:**
-1. Can the interpreter compose familiar words in structures it has not seen?
-2. Can it use alternate wording whose meaning it was taught?
-3. Does it abstain when essential wording is unfamiliar, while still answering when only inessential
-   wording is unfamiliar?
-
-The simple controls run first. Any competence claim requires coverage as well as bounded error.
+This study separates the questions, runs simple controls first, and requires coverage for any
+competence claim.
 
 ## Design
 
-### Worlds, units and modules
+Code: `bench/interpreter_robustness.py`, `integrated/interpreters.py`, `integrated/grammar.py`, and the
+certification functions in `integrated/calibration.py`.
 
-- **Worlds.** Development pilot: worlds 100–101, inits 100–101. Confirmation: `generate_world` seeds
-  **700, 701, 702** (48 countries, as in #48), inits 0–4. Each (world, init) is a unit.
-- **Modules.** The relation modules are the table modules. In #48 the specialist, shared and table
-  registries gave identical results, so the interpreter was the only source of error. Fixing the modules
-  isolates it. *(Open decision 4.)*
+### Worlds, units, modules
+
+- **Worlds.** `generate_world`, 48 countries. Development: worlds 100–101, inits 100–101. Confirmation:
+  worlds **700–702**, inits 0–4. Each (world, init) is a unit.
+- **Modules.** Table modules, to isolate the interpreter. In #48 the module registries gave identical
+  results.
 
 ### Language
 
-Entities are copied from the question as in #48. All other words come from four disjoint phrase sets:
+The four phrase sets are disjoint except for the function words "the" and "of":
 
-| Set | Where it appears | Examples |
+| Set | Contents | Where it appears |
 |---|---|---|
-| **Base** | Training, calibration, every test category | The #48 phrasings ("the capital of X", "X 's capital", "the airport serving X") and frames ("what is ... ?", "name ... .") |
-| **Taught synonyms (T)** | Training **only in one-step questions**; tested in longer questions | "the administrative centre of X" (capital), "the most populous city of X" (largest city), "the nation of X" (country), "the airfield of X" (airport), "the firm running X" (operator) |
-| **Held-out essential (H)** | Never in training; tested only | "the seat of government of X" (capital), "the metropolis of X" (largest city), "the state that holds X" (country), "the aerodrome near X" (airport), "the outfit managing X" (operator); unsupported relations with unseen words ("the currency of X") |
-| **Novel inessential (N)** | Never in training; tested only | Frames "could you tell me ... ?", "i would like to know ... ." and fillers "exactly", "currently", inserted where they don't change the program |
+| **Base** | #48's phrasings, in prefix ("the capital of X") and possessive ("X 's capital") style; frames "what is … ?", "name … ." | Everywhere |
+| **Taught (T)** | Prefix only: "the administrative centre of X" (capital), "the most populous city of X" (largest city), "the nation of X" (country), "the airfield of X" (airport), "the firm running X" (operator) | Training **only in one-step questions**; test T1, S2, S2-L3 |
+| **Held-out essential (H)** | Prefix only: "the seat of government of X", "the metropolis of X", "the state that holds X", "the aerodrome near X", "the outfit managing X" | Test only (S4) |
+| **Novel inessential (N)** | Frames "could you tell me … ?", "i would like to know … ."; fillers "exactly", "precisely", placed after a Base frame's opening words | Test only (S3, S4b) |
 
-**How H and N were chosen.** H phrases share no word with T or Base, apart from "the" and "of", so their
-meaning cannot be guessed from shared words. N words carry no relation meaning by construction. Every
-question uses one style (all prefix or all possessive), as repaired in #48, so each has exactly one
-reading. Refusal-question strings are deduplicated across splits.
+- **What H means.** H wording was never taught, and the protocol requires abstention on it. Having no
+  word in common with the taught sets rules out one shortcut (shared words). It does not rule out
+  inference from morphology, position, entity types or the small set of relations.
+- **One style per question.** Each question is all prefix or all possessive, so it has exactly one
+  reading.
 
-### Training and test categories
+### Items
 
-Programs of length 1–2 are split by (program, entity) instance: training 30%, calibration 30%,
-in-distribution test 40%. Length-3 instances appear only in category S1.
+Programs of length 1–2 are split by (program, entity) instance: training 30%, calibration 30%, test 40%,
+one rendering per instance.
 
-| Category | What it contains | Correct behavior | Question it answers |
+**Training:**
+- Base questions;
+- the taught wording, for every one-step training instance;
+- refusals (6% of instances each): ill-typed, unknown entity, unsupported (Base wording), ambiguous;
+- novelty augmentation, in the augmented arms only.
+
+**The structural limit applies to every training target, refusals included.** In #48's generator,
+ill-typed and unknown-entity refusals were drawn from paths of up to three relations, and the
+interpreter's target is the full relation sequence. Here every training target has at most two
+relations, and an audit checks the actual targets before any training (see Audit).
+
+**Test categories.** Variants of one instance share its program, entity, style and outer frame, and
+differ only where stated.
+
+| Category | Construction | Correct | Question it answers |
 |---|---|---|---|
-| **ID** | Base wording, length 1–2, test instances | Answer | Sanity |
-| **S1, structure** | Base wording, **length 3** (training has length ≤ 2) | Answer | 1 |
-| **S2, taught synonyms** | Length 2–3 with at least one T phrase (training saw T only in one-step questions) | Answer | 2 |
-| **S3, inessential novelty** | ID questions with an N frame or filler | Answer | 3 |
-| **S4, essential novelty** | Length 1–3 with at least one H phrase | **Abstain** | 3 |
-| **R, refusals** | Ill-typed, unsupported, unknown entity, ambiguous (base wording) | **Abstain** | Sanity |
+| **ID** | Base, length 1–2, either style | Answer | Sanity |
+| **R** | Refusals of the four kinds, Base wording, length ≤ 2 | Abstain | Sanity |
+| **T1** (+ `T1_base`) | One-step, taught phrase (matched Base version) | Answer | Was the taught wording learned at all? Reported per phrase |
+| **S2** (+ `S2_base`) | Two-step, prefix, one Base phrase replaced by its T synonym | Answer | Does taught wording transfer into composition at a trained length? |
+| **Q_base** | Two-step or one-step prefix, Base wording, Base frame | Answer | Matched reference for S3/S4 |
+| **S3** | Q_base with a novel frame or filler (N) | Answer | Inessential novelty |
+| **S4a** | Q_base with one relation phrase replaced by its H synonym | Abstain | Essential novelty |
+| **S4b** | S4a with the S3 wrapper as well | Abstain | Essential novelty despite a novel wrapper |
+| **S1** | Length 3, Base, either style; non-cancelling chains and round trips reported apart | Answer | Can familiar words compose in a longer structure? |
+| **L3_base**, **S2_L3**, **S3_L3**, **S4_L3** | Length-3 diagnostics: Base; with one T phrase; with a novel frame; with one H phrase | Answer, answer, answer, abstain | Interactions with the length shift; secondary only |
 
-### Interpreters
+S3 and S4 are matched one- and two-step questions, so a model that fails at length three earns no credit
+for refusing S4. Refusal strings are never repeated within or across splits.
 
-All three are trained on the same training split.
+### Audit (before any training; the run refuses to start if any check fails)
 
-| Name | What it is |
-|---|---|
-| `word` | The #48 interpreter: word embeddings, every unfamiliar word `<unk>` (the control) |
-| `char` | The same encoder and decoder, but each word is embedded by a character-level BiGRU, so unfamiliar spellings stay distinct |
-| `char_aug` (proposed method) | `char`, plus **declared extra supervision**: novelty augmentation, described below |
+The audit checks that:
+- every training target, in every source, has at most two relations;
+- taught words appear in training only in one-step questions;
+- no H or N word appears in training;
+- pseudo-words are disjoint from every lexicon word and entity;
+- H shares no word with Base or T, apart from "the" and "of";
+- each question has one style;
+- every question meets the character contract;
+- splits are disjoint by instance;
+- refusal strings are unique.
 
-**Novelty augmentation** (`char_aug`) adds two kinds of training question:
-- some relation phrases are replaced by pseudo-words, labeled `<unsupported>`. This teaches abstention
-  when the word that decides the relation is unknown;
-- pseudo-word frames and fillers are inserted into supported questions, keeping the original program.
-  This teaches that unknown words elsewhere don't matter.
+On the development worlds, the inventory is 374 and 378 calibration questions, and 500 and 504 ID test
+questions (plus refusals).
 
-The pseudo-words come from a seeded generator and are checked to be disjoint from every H and N word, so
-the test words themselves are never seen. *(Open decision 3.)*
+### Interpreters: a 2 × 2 factorial, and a grammar control
+
+| | No novelty augmentation | Novelty augmentation (declared extra supervision) |
+|---|---|---|
+| **Word embeddings** | `word` | `word_aug` |
+| **Character word encoder** | `char` | `char_aug` |
+
+**Encoder and decoder.** All four share #48's encoder and decoder, and differ only in how a word becomes
+a vector.
+
+**Word arms.**
+- **Vocabulary:** the ordinary training questions. Augmentation pseudo-words are **not** added, so a word
+  model sees them as `<unk>`, exactly as it sees unfamiliar test words.
+- **Dropout:** only the entity token is replaced by `<unk>` (probability 0.1), so the entity head learns
+  to copy unseen entities. Relation words are never dropped. #48 dropped any token, which trains the
+  decoder to output the original program when a relation word is `<unk>`: in effect, to guess.
+
+**Character arms.** A bidirectional GRU over the word's characters, under a declared input contract:
+- questions are lowercased and split on whitespace;
+- the alphabet is `a–z 0–9 _ ' ? . ,`;
+- a word is at most 48 characters and a question at most 40 words;
+- no truncation, and no shared unknown-character symbol. A question outside the contract is refused as
+  "unsupported characters".
+
+Distinct strings are therefore distinct input sequences. A finite-dimensional encoder is not guaranteed
+to keep every distinction in its vectors.
+
+**Novelty augmentation** (the `_aug` arms). It adds 25% of the Base training count in each of two forms,
+built from Base training questions only:
+- **essential:** one relation phrase is replaced by pseudo-words ("the *wosa cilu* of X", "X 's *mucit*"),
+  with target `<unsupported>`;
+- **inessential:** a pseudo-word frame, or pseudo-word fillers after a Base frame, with the target
+  unchanged.
+
+Both forms draw on **one pseudo-word pool, with the same count distribution (1–3 words)**. So only where
+the pseudo-words sit tells an essential use from an inessential one.
+
+**Matched budgets.** Every arm trains for the same number of optimizer updates on batches of 64, so
+smaller sets repeat more. The pilot uses 1,500 updates.
+
+**The grammar control** is not learned.
+- **What it knows:** the Base and T lexicon, plus one declared structural rule. A prefix noun phrase
+  starts at the first "the" and is a sequence of lexicon phrases, then the entity; a possessive one is
+  the entity, then "'s" phrases.
+- **What it does:** unknown material outside the noun phrase (frames, fillers) is allowed. A noun phrase
+  that cannot be parsed, or parses more than one way, is refused.
+- **What it is not given:** the H or N word lists, or any test label. It handles every category by
+  construction, and serves as the standard to compare against, not as a finding.
 
 ### Answering policies
 
-Each policy is applied to each interpreter.
+These apply to each learned arm:
 
 | Policy | Rule |
 |---|---|
 | `none` | Answer whenever the interpreter proposes a program that the runtime accepts and runs |
-| `raw` | Answer only above a threshold on the raw score, certified as below |
-| `calibrated` | The same, on Platt-calibrated probabilities |
-| `novelty_reject` | `none`, plus abstain whenever a non-entity token is outside the training vocabulary |
+| `certified` | Answer when the raw score is at least the certified threshold (below); never, if no certificate |
+| `novelty` | `none`, but abstain when any token other than the copied entity is outside the training vocabulary |
+| `novelty_certified` | Both filters; certified with the novelty filter applied |
 
-**Certification.** Thresholds are chosen on the calibration split, which is in distribution, with
-selection controlled as a multiple-testing problem, in the spirit of Learn then Test (Angelopoulos,
-Bates, Candès, Jordan and Lei, [arXiv 2110.01052](https://arxiv.org/abs/2110.01052), 2021).
-- A grid of thresholds is fixed in advance and tested in order, from strictest to loosest.
-- For each threshold, the null hypothesis is "accepted error > 1%", with an exact binomial p-value.
-- Testing stops at the first threshold that cannot be rejected at δ = 0.05, and the loosest rejected one
-  is chosen. If none is rejected, the policy never answers.
-- Testing a fixed sequence this way bounds the probability of choosing a threshold whose true error
-  exceeds 1% by 0.05.
+**Calibrated probabilities are for reporting only.** Platt scaling is fitted on the calibration split,
+with its slope forced positive, so it never reorders examples. Its quality is reported as Brier score,
+log loss and calibration error on the ID test split. Under a positive-slope transform `g`,
+`score ≥ t` exactly when `g(score) ≥ g(t)`. A calibrated threshold would therefore accept the same
+questions and carry the same certificate, so no separate calibrated-threshold policy is run.
 
-The test categories are then scored once. Per-unit 95% Clopper–Pearson bounds are reported for every
-category. *(Open decision 6.)*
+### Certification
+
+The certified population is the calibration split: supported ID questions plus refusals, one rendering
+per instance. Answering a refusal counts as an error.
+
+**The rule family** is "answer when the raw score is at least t", for t in a grid fixed in advance and
+ordered strictest first. The provisional grid is 0.9999, 0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8,
+0.6, 0.4, 0.2, 0.
+
+**The test.** For each t in order:
+- the null hypothesis is "accepted-error rate ≥ 1%";
+- its p-value is P(Binomial(n_t, 0.01) ≤ e_t), with n_t accepted and e_t errors;
+- testing stops at the first t whose p-value exceeds δ = 0.05, and the loosest rejected t is selected.
+
+With a fixed order, stopping at the first non-rejection bounds by 0.05 the chance of selecting a rule
+whose true accepted-error rate exceeds 1%. This holds even though the tests are dependent and risk need
+not fall monotonically. This follows the multiple-testing framing of Learn then Test (Angelopoulos,
+Bates, Candès, Jordan and Lei, [arXiv 2110.01052](https://arxiv.org/abs/2110.01052)).
+
+**What the guarantee assumes.** It treats calibration questions as independent draws given the unit. One
+rendering per instance supports that, and extra paraphrases are never added to raise n.
+
+**Power.** With zero errors, the 95% bound reaches 1% only with at least 299 accepted examples (473,
+628 and 773 for 1, 2 and 3 errors).
+- **The first rule matters.** A first rule accepting fewer than 299 cannot pass, and the stopping rule then
+  tests nothing looser.
+- **Counts here.** The calibration split has about 374 supported questions per development world. A fixed
+  policy with a true error rate of 0.5% is certified only about 15% of the time at that size.
+- **Recording.** "No certificate" is therefore recorded separately from an observed failure.
+- **Design consequence.** The pilot checks how full the strictest rule is, and the grid's start is fixed
+  from that. The calibration split is not halved.
+
+Every step is recorded (threshold, accepted, errors, p-value, outcome), together with the stopping
+reason, the selected threshold, and every calibration question's ID, score and correctness.
 
 ### Measurements
 
-For each unit, interpreter, policy and category:
-- coverage, as answers over questions that should be answered;
-- accepted errors over answers, with the 95% bound;
-- abstention on S4 and R;
-- the interpreter's exact program-and-entity accuracy;
-- input collisions: identical model inputs with the same copied entity and different required answers.
+For each unit, arm, policy and category:
+- coverage (answered over all questions);
+- accepted errors over answers, with the 95% Clopper–Pearson bound;
+- abstention;
+- exact program-and-entity accuracy;
+- answers that are right despite a wrong parse (coincident facts or cancelling paths);
+- why each question was not answered: a learned unsupported or ambiguous output, a malformed output, a
+  runtime rejection (ill-typed), an unknown entity, the threshold, the novelty filter, or unsupported
+  characters;
+- for wrong answers, whether the entity or the program was wrong.
 
-**Retained records.** Every shifted-question decision is kept: question id, category, parse, score,
-decision and correctness. A deterministic sample of 200 per unit for ID is kept too.
+**Input collisions.** These are reported per world for the word and character encodings:
+- **program collisions:** the same encoded input and copied entity, with different reference programs
+  or answers;
+- **decision conflicts:** the same encoded input and copied entity, requiring an answer in one case and a
+  refusal in another;
+- **encoding-only conflicts:** the stricter version without the entity. This is the relevant one for S3
+  against S4.
 
-## Proposed predictions (one-sided; the bars may be revised by the development pilot, then frozen)
+**Retained records.** Every test question's compact decision for every arm, and the full certification
+records.
 
-**What counts as competence.** For a category that should be answered, an interpreter-and-policy pair
-**answers where it should** if:
-- its coverage is at least **0.80**;
-- its 95% bound on accepted error is at most **1%**.
+## What runtime refusals do and do not show
 
-For a category that should be refused, it **abstains where it should** if it abstains on at least
-**0.95**. Either holds for a world if it holds on at least 4 of its 5 inits.
+- **Ill-typed refusals hold only given a faithful parse.** If the interpreter reads "what is the capital of
+  country_0_city_0 ?" as `country_of(country_0_city_0)`, the program is well-typed and the runtime
+  answers "country_0". So R abstention measures the interpreter as well as the runtime.
+- **Unknown-entity refusal has a narrower guarantee.** Such a question contains no valid world entity, and
+  the entity head can only copy a question token, so the policy cannot bind a valid entity.
 
-1. **Sanity.** Every interpreter with `calibrated` answers in-distribution questions where it should,
-   with coverage of at least 0.90, and abstains on R where it should.
-2. **The representation removes collisions.** `char` and `char_aug` have no conflicting input
-   collisions on S1–S4; `word` has some on S4. *(This holds by construction, since distinct strings give
-   distinct character inputs; it is recorded, not claimed as learned.)*
-3. **Taught synonyms (question 2).** `char_aug` with `calibrated` answers S2 where it should.
-4. **Inessential novelty (question 3a).** `char_aug` with `calibrated` answers S3 where it should, and
-   `novelty_reject` does not (its S3 coverage is near zero by construction).
-5. **Essential novelty (question 3b).** `char_aug` with `calibrated` abstains on S4 where it should.
-6. **The augmentation is what separates 4 from 5.** No pairing of `word` or `char` with any of the
-   four policies meets both 4 and 5.
-7. **Structure (question 1).** `char_aug` with `calibrated` answers S1 where it should.
+## Proposed predictions (one-sided; bars provisional until the pilot)
+
+**Answers where it should:** coverage at least **0.80** and a 95% upper bound on accepted error of at most
+**1%**. **Abstains where it should:** abstention at least **0.95** (an observed proportion).
+
+**How the criteria aggregate:**
+- each criterion is judged per unit, and holds for a world on at least 4 of its 5 inits;
+- this is a benchmark aggregation rule, and the per-unit 95% statements do not form one simultaneous
+  guarantee;
+- "no certificate" is reported apart from failure.
+
+1. **Sanity.** Each arm with `certified` answers ID where it should, with coverage at least 0.90, and
+   abstains on R where it should.
+2. **Taught wording was learned.** Each arm's T1 accuracy under `none` is at least 0.95. This is a
+   prerequisite for reading S2.
+3. **Taught wording transfers (two steps).** `char_aug` with `certified` answers S2 where it should.
+4. **Inessential novelty.** `char_aug` with `certified` answers S3 where it should. `novelty` does not:
+   its S3 coverage is about 0 by construction.
+5. **Essential novelty.** `char_aug` with `certified` abstains on S4a and on S4b where it should.
+6. **Structure.** `char_aug` with `certified` answers S1's non-cancelling chains where it should.
+
+**Reported, not predicted:**
+- the full 2 × 2 table for S3 and S4 against the grammar control. It answers three questions: did the
+  augmentation help, did character input add anything beyond it, and did any learned arm reach the
+  grammar's standard?
+- the length-3 diagnostics;
+- the collision counts;
+- probability calibration.
 
 **What I expect** (stated, not predicted):
-- 1–4 hold.
-- 5 and 6 are uncertain. They are the core question: can a model learn which unfamiliar words matter
-  from their position alone?
-- 7 is likely to fail. Recurrent sequence-to-sequence models are known to generalize poorly to longer
-  outputs than they were trained on. If so, that is a finding about this interpreter, not a defect of the
-  test.
-
-**Holds by construction** (recorded, not counted as findings):
-- 2;
-- `novelty_reject`'s S4 abstention (1.0) and its S3 coverage (about 0);
-- the runtime's refusal of ill-typed and unknown-entity questions.
+- 1 and 2 hold.
+- 3 probably holds.
+- 4 and 5 together are the open question.
+- 6 probably fails.
 
 ## Limits
 
-- **Controlled language, with synonyms we defined.** This says nothing about natural language.
-- **The augmentation is extra supervision.** It teaches the property tested in S3 and S4 using different
-  words, so a success shows the property can be taught. It does not show it emerges unaided.
-- **Pseudo-words are random strings.** Real unfamiliar words have morphology; a character model may
-  exploit it, rightly or not.
-- **Table modules.** End-to-end results with learned modules are #48's.
+- **Controlled language with defined synonyms.** Nothing here concerns natural language.
+- **The augmentation teaches the property under test,** with other words. A success shows it can be taught,
+  not that it emerges unaided.
+- **The grammar control knows the grammar.** Matching it is useful; it does not establish that a learned
+  model is needed.
+- **Table modules.** End-to-end learned-module results are #48's.
 
 ## Compute
 
-CPU only. Expected cost:
-- **Pilot:** 2 worlds × 2 inits × 3 interpreters, estimated under 15 minutes.
-- **Confirmation:** 3 worlds × 5 inits × 3 interpreters. The char encoder is roughly 3–5 times the word
-  encoder's cost, about 30–60 minutes in total.
+CPU only. Measured in a smoke run, 100 updates take about 1 s for a word arm and 2.5 s for a char arm. At
+1,500 updates:
+- **pilot:** 16 fits, about 10 minutes;
+- **confirmation:** 60 fits, under 1 hour.
 
-The pilot measures this before the budget is frozen.
+## Changes from the first draft (after review)
 
-## Open decisions for review
-
-1. **Representation:** a character-level word encoder (proposed), bytes, or subwords. Characters keep
-   unfamiliar spellings distinct with the least machinery; subwords would need a tokenizer trained on the
-   training split.
-2. **Taught versus held-out wording:** the T and H tables above.
-3. **Novelty augmentation as the method under test.** It is declared extra supervision. Without it,
-   prediction 6 asks whether confidence alone can tell essential from inessential novelty, which #48
-   suggests it cannot.
-4. **Table modules** to isolate the interpreter (proposed), or learned specialists as in #48.
-5. **The bars:** coverage 0.80 with a 1% bound; abstention 0.95; in-distribution coverage 0.90.
-6. **Certification:** fixed-sequence testing on the in-distribution calibration split (proposed), or a
-   separate select-then-certify split.
+- **Training targets.** All training targets, refusals included, are limited to two relations, and audited.
+  Taught wording stays in one-step training contexts.
+- **Category structure:**
+  - T1 added as a prerequisite;
+  - S2 restricted to two steps, with three-step versions as diagnostics;
+  - S3, S4a and S4b matched one- and two-step questions, with S4b added;
+  - S1 split by family;
+  - the length-3 contradiction removed.
+- **Wording.** "currently" was replaced by "precisely". The "cannot be guessed" claim was narrowed.
+- **Arms and controls.** `word_aug` was added (a 2 × 2 factorial) with matched update budgets, and the
+  pseudo-word pool and count distribution were matched across uses. The grammar control was added.
+- **Collisions.** Program collisions are separated from decision conflicts. The character claim now
+  concerns input sequences under a declared contract.
+- **Certification.**
+  - It certifies raw-score rules, with Platt kept for reporting only (positive slope).
+  - The population and sampling assumption are stated.
+  - Power is computed, "no certificate" is kept apart from failure, and the calibration split is not
+    halved.
+- **Runtime refusal.** The claim was narrowed to "given a faithful parse"; the unknown-entity invariant is
+  stated.
