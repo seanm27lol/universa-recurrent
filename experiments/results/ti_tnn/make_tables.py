@@ -9,7 +9,15 @@ Checks every file against manifest.json first (sha256), then prints:
   and checked against the bundled frontier.json. Every hash in that file's run manifest must match a
   bundled run, so the bundle holds exactly the files that were evaluated.
 - the learned-relation-operator verdict, recomputed with research/ti_tnn/bench/typed_composition.py
-  and checked against the bundled verdict.json.
+  and checked against the bundled verdict.json;
+- the execution-record and intervention verdict, recomputed with
+  research/ti_tnn/bench/semantic_interventions.py and checked against its bundled verdict.json;
+- the learned-interpreter verdict, recomputed with research/ti_tnn/bench/typed_questions.py and checked
+  against its bundled verdict.json;
+- the bounded-recurrence verdict, recomputed with research/ti_tnn/bench/typed_recurrence.py and checked
+  against its bundled verdict.json;
+- the module-replacement verdict, recomputed with research/ti_tnn/bench/local_updates.py and checked
+  against its bundled verdict.json.
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -221,6 +229,79 @@ def typed_composition_tables(bundle: Path = HERE) -> dict:
     return rebuilt
 
 
+def semantic_interventions_tables(bundle: Path = HERE) -> dict:
+    """Execution records, replay and interventions (integration plan PR 5): the frozen verdict rebuilt with
+    semantic_interventions.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import semantic_interventions  # research/ti_tnn/bench/semantic_interventions.py
+    root = bundle / "semantic_interventions/20261018T153819"
+    result = json.loads((root / "semantic_interventions.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = semantic_interventions.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt semantic-interventions verdict differs from verdict.json")
+    return dict(rebuilt, executions=sum(r["executions"] for r in result["runs"]),
+                interventions=sum(r["interventions"]["n"] for r in result["runs"]))
+
+
+def typed_routing_tables(bundle: Path = HERE) -> dict:
+    """The learned interpreter with calibrated abstention (integration plan PR 6): the frozen verdict rebuilt with
+    typed_questions.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import typed_questions  # research/ti_tnn/bench/typed_questions.py
+    root = bundle / "typed_routing/20261018T160927"
+    result = json.loads((root / "typed_questions.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = typed_questions.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt typed-routing verdict differs from verdict.json")
+    return rebuilt
+
+
+def typed_recurrence_tables(bundle: Path = HERE) -> dict:
+    """Bounded recurrence and cost accounting (integration plan PR 7): the frozen verdict rebuilt with
+    typed_recurrence.evaluate() from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import typed_recurrence  # research/ti_tnn/bench/typed_recurrence.py
+    root = bundle / "typed_recurrence/20261018T162814"
+    result = json.loads((root / "typed_recurrence.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = typed_recurrence.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt typed-recurrence verdict differs from verdict.json")
+    rec = [r for r in result["runs"] if r["system"] == "recurrent"]
+    return dict(rebuilt, queries=sum(r["queries"] for r in rec),
+                pause_points=sum(r["pause_resume"]["pause_points"] for r in rec))
+
+
+def local_updates_tables(bundle: Path = HERE) -> dict:
+    """Offline module replacement (integration plan PR 8): the frozen verdict rebuilt with local_updates.evaluate()
+    from the bundled runs and checked against the recorded verdict.json."""
+    sys.path.insert(0, str(BENCH))
+    import local_updates  # research/ti_tnn/bench/local_updates.py
+    root = bundle / "local_updates/20261018T164944"
+    result = json.loads((root / "local_updates.json").read_text())
+    recorded = json.loads((root / "verdict.json").read_text())
+    rebuilt = local_updates.evaluate(result)
+    if rebuilt != recorded:
+        raise ValueError("the rebuilt local-updates verdict differs from verdict.json")
+    return rebuilt
+
+
+def local_updates_post_repair_tables(bundle: Path = HERE) -> dict:
+    """The module-replacement rerun after the contract repairs: its verdict rebuilt from its own runs, checked
+    against its recorded verdict and against the original run's verdict (they must be identical)."""
+    sys.path.insert(0, str(BENCH))
+    import local_updates
+    root = bundle / "local_updates_post_repair/20261018T182038"
+    rebuilt = local_updates.evaluate(json.loads((root / "local_updates.json").read_text()))
+    if rebuilt != json.loads((root / "verdict.json").read_text()):
+        raise ValueError("the rebuilt post-repair verdict differs from its verdict.json")
+    if rebuilt != json.loads((bundle / "local_updates/20261018T164944/verdict.json").read_text()):
+        raise ValueError("the post-repair rerun does not reproduce the original verdict")
+    return rebuilt
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -312,6 +393,38 @@ def main(argv=None):
         print(f"  {n:13s} atomic {f['atomic_min']:.3f}  same-endpoint {f['same_endpoint_min']:.3f}  {paths}  "
               f"competent runs {f['competent_runs']}/15")
     print(f"  predictions: {typed['predictions']}")
+    sem = semantic_interventions_tables()
+    print(f"\nExecution records and interventions ({sem['executions']} executions, {sem['interventions']} interventions), "
+          "rebuilt and matching verdict.json; lowest value per family")
+    for n, f in sem["families"].items():
+        print(f"  {n:17s} answers {f['answer_accuracy_min']:.3f}  history independence {f['history_independence_min']:.3f}  "
+              f"counterfactual {f['counterfactual_accuracy_min']:.3f}  undeclared calls (max) {f['undeclared_calls_max']}  "
+              f"disabled unchanged {f['disabled_unchanged_min']:.3f}  law defects (max) {f['law_defects_max']}")
+    print(f"  predictions: {sem['predictions']}")
+    routing = typed_routing_tables()
+    print("\nLearned interpreter with calibrated abstention (15 units), rebuilt and matching verdict.json")
+    for n, f in routing["systems"].items():
+        print(f"  {n:18s} " + "  ".join(f"{s}: coverage {v['coverage_min']:.3f}-{v['coverage_max']:.3f}, accepted errors "
+                                         f"{v['accepted_errors_total']}/{v['answered_total']}" for s, v in f.items()))
+    print(f"  predictions: {routing['predictions']}")
+    recur = typed_recurrence_tables()
+    print(f"\nBounded recurrence ({recur['queries']} queries, {recur['pause_points']} pause points), rebuilt and "
+          "matching verdict.json; ranges over runs")
+    for n, f in recur["systems"].items():
+        print(f"  {n:15s} accuracy {f['accuracy'][0]:.3f}  applications {f['module_applications_mean'][0]:.2f}-"
+              f"{f['module_applications_mean'][1]:.2f}  wall {f['wall_us_median'][0]:.0f}-{f['wall_us_median'][1]:.0f} us  "
+              f"bookkeeping {f['bookkeeping_share_median'][0]:.2f}-{f['bookkeeping_share_median'][1]:.2f}")
+    print(f"  predictions: {recur['predictions']}")
+    upd = local_updates_tables()
+    print("\nOffline module replacement (150 updates per system), rebuilt and matching verdict.json")
+    for n, f in upd["families"].items():
+        print(f"  {n:17s} activated {f['activated']}/{f['cases']}  write locality {f['gate_pass']['identity_and_scope']}  "
+              f"unaffected kept {f['gate_pass']['unaffected_behavior']}  unaffected answers changed "
+              f"{f['unaffected_changed_from_base_total']}  atomic moves {f['atomic_changed_by_relation']}")
+    print(f"  faulty suite (as designed, per case): {upd['faulty_suite']}")
+    print(f"  predictions: {upd['predictions']}")
+    local_updates_post_repair_tables()
+    print("  rerun after the contract repairs: identical verdict")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
                                          "adaptive_compute": adaptive, "typed_composition": typed},

@@ -87,7 +87,7 @@ minutes.
 | endpoint control | 0.14–0.16, the irreducible conflict between the two relations |
 
 **Parameters.**
-- **The families are not matched in parameters,** and the mixture runs only one of its 4 experts per query.
+- **The families are not matched in parameters,** and the mixture selects one of its 4 experts per query (this implementation computes all four; see the corrections below).
 - **Every family is far larger than the roughly 300 facts it stores.** This experiment tests whether the
   facts are learned and kept apart; it says nothing about efficiency.
 
@@ -158,3 +158,14 @@ single machine. CPU results may differ between PyTorch builds or hardware.
   bundled runs.
 - **Development pilot.** It ran on worlds 100–101 and inits 100–101 before freezing, and is disclosed in
   the protocol. No confirmation world was used before the freeze.
+
+## Corrections after review (2026-10-18)
+
+- **The mixture does not compute sparsely.** The report said it "runs only one of its 4 experts per query".
+  It selects one, but `TopOneMoE.forward` computes all four and keeps the selected output. Its compute is
+  that of all experts. The memorization results are unaffected; this implementation supports no
+  sparse-compute claim.
+- **"By construction, given competence" was too strong.** Chain and intermediate accuracy follow by
+  construction from *exact* atomic correctness. The registered 0.99 threshold allows a wrong fact, and one
+  wrong fact can break many chains. Every run here had atomic accuracy exactly 1.000, so predictions 4 and
+  5 still hold as reported, but they rest on that observation, not on prediction 1 alone.
