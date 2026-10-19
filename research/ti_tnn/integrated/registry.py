@@ -40,6 +40,9 @@ class TableModule:
         out = self.table.get(value.value)
         return None if out is None else self.target.value(out)
 
+    def __deepcopy__(self, memo):
+        return TableModule(self.version, dict(self.table), self.target)  # a new read-only view of a new copy
+
 
 def table_module(world, relation_id: str, module_id: str | None = None) -> TableModule:
     """A table module implementing a world relation, with a content identity over its table."""
