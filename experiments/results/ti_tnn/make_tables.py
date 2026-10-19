@@ -23,6 +23,9 @@ Checks every file against manifest.json first (sha256), then prints:
   and checked against the bundled verdict.json.
 - the lookup task's shared-path control, recomputed with frontier.py --shared-control and checked
   against the recorded output.
+- the S2 diagnosis: the historical classification of every S2 question, the development fits and the fresh
+  confirmation, re-derived from the bundled records with research/ti_tnn/bench/s2_diagnosis.py and
+  s2_development_analysis.py and checked against the bundled analyses (about five minutes).
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -334,6 +337,44 @@ def interpreter_robustness_tables(bundle: Path = HERE, quick: bool = False) -> d
     return out
 
 
+def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False) -> dict:
+    """The S2 diagnosis, rebuilt from this bundle and checked against its bundled analyses.
+    - historical: every S2 question of the interpreter robustness confirmation classified again from its bundled
+      records (the robustness verifier runs first; about four minutes);
+    - development (worlds 100-101) and confirmation (worlds 710-712): every metric, class, unit outcome and verdict
+      re-derived from the bundled decision records, and arm A's development traces (teacher-forced stopping).
+      The other arms' traces are not bundled (about 25 MB for B-D in development, more for the confirmation);
+      `s2_diagnosis/local_traces.json` lists their sha256.
+    `quick` rebuilds the development part only (for tests)."""
+    sys.path.insert(0, str(BENCH))
+    import s2_development_analysis as DA  # research/ti_tnn/bench/s2_development_analysis.py
+    import s2_diagnosis as D2  # research/ti_tnn/bench/s2_diagnosis.py
+    root = bundle / "s2_diagnosis"
+
+    def check(rebuilt: dict, recorded_path: str, keys, traced=()) -> dict:
+        recorded = json.loads((root / recorded_path).read_text())
+        rebuilt = json.loads(json.dumps(rebuilt, sort_keys=True))  # the stored file's JSON round trip
+        for k in keys:
+            if rebuilt[k] != recorded[k]:
+                raise ValueError(f"{recorded_path}: {k} differs from the rebuilt value")
+        for k in ("stopping", "failure_kinds", "failure_kind_by_class"):
+            for arm in traced:
+                if rebuilt[k][arm] != recorded[k][arm]:
+                    raise ValueError(f"{recorded_path}: {k} for arm {arm} differs from the rebuilt value")
+        return rebuilt
+
+    out = {"development": check(DA.analyse(sorted(p for p in (root / "development").iterdir() if p.is_dir())),
+                                "development_analysis/s2_development_analysis.json",
+                                ("units", "classes", "decision_rule", "runs"), traced=("A",))}
+    if not quick:
+        summary, _ = D2.analyse_run(bundle / "interpreter_robustness/20261018T232057")
+        out["historical"] = check(summary, "historical/s2_diagnosis.json",
+                                  ("counts", "details", "strata", "per_unit", "examples", "source"))
+        out["confirmation"] = check(DA.analyse(sorted(p for p in (root / "confirmation").iterdir() if p.is_dir())),
+                                    "confirmation_analysis/s2_development_analysis.json",
+                                    ("units", "classes", "confirmation", "runs"))
+    return out
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -468,6 +509,16 @@ def main(argv=None):
     print("\nInterpreter robustness (worlds 700-702 x 5 inits), every number re-derived from the bundled records")
     for key, arms in robust["verdict"]["successes_by_world"].items():
         print(f"  {key:22s} " + "  ".join(f"{a} {'/'.join(str(v) for v in w.values())}" for a, w in arms.items()))
+    s2 = s2_diagnosis_tables()
+    print("\nS2 diagnosis, rebuilt from the bundled records and matching the bundled analyses")
+    print("  historical S2 classes (12,000 questions per arm): " + "; ".join(
+        f"{arm} exact {c['exact']['n']}, single relation {c.get('dropped:taught', {}).get('n', 0) + c.get('dropped:other', {}).get('n', 0)}"
+        for arm, c in s2["historical"]["counts"].items()))
+    dr = s2["development"]["decision_rule"]
+    print(f"  development S2 exact means {dr['S2_exact_world_means']}; proceed to confirmation {dr['proceed_to_confirmation']}")
+    conf = s2["confirmation"]["confirmation"]
+    print(f"  confirmation: S2 and S3/S4 in the same unit {conf['successes_by_world']}; C holds {conf['prediction_C_holds']}; "
+          f"C above B in every world {conf['secondary_C_above_B_every_world']}")
     print(f"  predictions: {robust['verdict']['predictions']}")
     if args.json:
         args.json.write_text(json.dumps({"toys": toys, "real_benchmarks": real, "composition": comp,
