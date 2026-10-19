@@ -557,5 +557,5 @@ w100 i100, w100 i101, w101 i100, w101 i101. "Amb." is the answer-ambiguous strat
 1. **Sampling** (unresolved item 6).
 2. **S2's sample size,** which allows at most one error at 80% coverage.
 3. **The 0.95 abstention bar** is an observed proportion. With about 540 answer-ambiguous questions,
-   its sampling noise is about ±0.02 (95%), so a true rate of 0.96 is observed below 0.95 roughly 14% of
-   the time.
+   its sampling noise is about ±0.02 (95%). A true rate of 0.96 is observed below 0.95 10–14% of the time
+   (exact binomial at 541 and 537 questions).
