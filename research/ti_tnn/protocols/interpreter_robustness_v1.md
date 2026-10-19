@@ -509,3 +509,53 @@ arms remain.
 6. **Round 1:** its wording corrected.
 7. **Sampling:** the justification is recorded as unresolved.
 
+
+## Development pilot, round 2 (2026-10-18; disclosed; not a result)
+
+**Setup.**
+- Worlds 100–101 at 96 countries, inits 100–101: 4 units, 4 arms, 1,500 updates.
+- Run at `3986bba`, and every audit passed.
+- Tables rebuilt with `bench/interpreter_robustness_tables.py` from full-precision records.
+
+**Certification.**
+- **Feasible and adequately populated.** The first rule (0.999) accepted 737–763 of the 763 calibration
+  questions. No arm made a calibration error at any threshold, so every arm certified all the way to the
+  loosest rule (0).
+- **Here, `certified` is the same as `none`.** When calibration shows no errors, the certified policy
+  filters nothing. The certificate then bounds in-distribution risk but does nothing about shifted
+  questions.
+- **Power.** At about 760 accepted with zero errors, the chance of certification is 0.96 if the true
+  error is 0.1%, 0.70 at 0.25% and 0.27 at 0.5%.
+
+**Per unit, certified policy (here the same as `none`).** In each cell, units are listed in the order
+w100 i100, w100 i101, w101 i100, w101 i101. "Amb." is the answer-ambiguous stratum.
+
+| Arm | S3 coverage, errors | S4a amb. abstention | S4b amb. abstention | S2 coverage, errors | S1 non-cancelling errors (of 800) |
+|---|---|---|---|---|---|
+| `word` | 0.95/119, 0.94/69, 0.82/4, 1.00/0 | 0.75, 0.57, 0.50, 0.78 | 0.93, 0.60, 0.64, 0.79 | 0.83/55, 0.75/0, 0.74/0, 1.00/14 | 144, 537, 628, 516 |
+| `word_aug` | 0.99/0, 0.98/0, 1.00/0, 1.00/0 | **1.00, 1.00, 1.00, 0.94** | **1.00, 1.00, 0.97, 0.94** | 1.00/0, 1.00/0, 0.99/11, 1.00/16 | 244, 682, 409, 425 |
+| `char` | 0.88/196, 0.68/226, 0.69/128, 0.91/60 | 0.39, 0.58, 0.42, 0.38 | 0.60, 0.61, 0.44, 0.56 | 0.85/12, 0.89/0, 0.60/0, 1.00/0 | 433, 740, 469, 360 |
+| `char_aug` | 0.90/60, 0.95/0, 0.94/34, 0.98/0 | 0.64, 0.59, 1.00, 0.69 | 0.89, 0.87, 1.00, 0.91 | 0.69/0, 0.73/0, 0.60/1, 0.98/0 | 696, 188, 800, 686 |
+
+**Other categories, every arm:**
+- ID coverage was 1.00, with at most 1 error.
+- R abstention was 1.00.
+- T1 accuracy was 1.00.
+- The grammar control was perfect on every category, by construction.
+- The other S4 strata and S1's round trips are in the tables output.
+
+**What round 2 shows.**
+- **The lead hypothesis meets its criteria in 3 of 4 development units.** In the fourth, both S4 variants
+  reached 0.94 against 0.95.
+- **Augmentation is necessary but not sufficient.** It helps the word encoder a great deal. The character
+  encoder with it is unstable across inits.
+- **S2 is not solved.** `word_aug`'s errors in two units break the bound. The revision-3 expectation that
+  coverage would be low is wrong once the certificate is loose.
+- **S1 fails in every arm,** and the evaluation could now have recognized success.
+
+**Decisions still needed before freezing:**
+1. **Sampling** (unresolved item 6).
+2. **S2's sample size,** which allows at most one error at 80% coverage.
+3. **The 0.95 abstention bar** is an observed proportion. With about 540 answer-ambiguous questions,
+   its sampling noise is about ±0.02 (95%), so a true rate of 0.96 is observed below 0.95 roughly 14% of
+   the time.
