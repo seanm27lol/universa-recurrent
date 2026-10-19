@@ -40,6 +40,7 @@ import interpreter_robustness_verify as V  # noqa: E402
 import s2_diagnosis as D2  # noqa: E402
 from integrated import relations as W  # noqa: E402
 from integrated import routing as J  # noqa: E402
+from s2_development import DEVELOPMENT  # noqa: E402
 
 TERMINAL = (J.END, J.UNSUPPORTED, J.AMBIGUOUS)
 FAILURE_KINDS = ("premature_stop", "relation_confusion", "error_propagation", "overrun", "refusal_token", "broader")
@@ -179,8 +180,10 @@ def load_runs(run_dirs: list[Path]) -> dict:
             tag = f"{arm}_w{w}_i{i}"
             with gzip.open(run_dir / "records" / f"{tag}.json.gz", "rt") as f:
                 rec = json.load(f)
-            with gzip.open(run_dir / "traces" / f"{tag}.json.gz", "rt") as f:
-                trace = json.load(f)
+            trace = None
+            if (run_dir / "traces" / f"{tag}.json.gz").exists():
+                with gzip.open(run_dir / "traces" / f"{tag}.json.gz", "rt") as f:
+                    trace = json.load(f)
             if rec["ids"] != [x["id"] for x in held]:
                 raise V.VerificationError(f"{tag}: record ids are not the declared items")
             d = V.rederive_arm(held, rec["records"], vocab_words, S.GRID, S.DIAGNOSTIC_CUTOFF, ("none", "certified"))
@@ -245,18 +248,62 @@ def analyse(run_dirs: list[Path]) -> dict:
     if missing:
         raise V.VerificationError(f"incomplete inventory: {missing}")
     units, rows_by_arm, traces_by_arm = {}, defaultdict(list), defaultdict(list)
+    traced = {a for a in arms if all(fits[(a, w, i)]["trace"] is not None for w in worlds for i in inits)}
     for (arm, w, i), fit in sorted(fits.items()):
         units[f"{arm}/{w}/{i}"] = unit_table(fit)
         rows_by_arm[arm] += D2.question_rows(fit["held"], fit["records"], fit["ids"], fit["threshold"], w, i, arm)
-        traces_by_arm[arm] += [{**r, "world": w, "init": i} for r in trace_rows(fit["held"], fit["trace"])]
+        if arm in traced:
+            traces_by_arm[arm] += [{**r, "world": w, "init": i} for r in trace_rows(fit["held"], fit["trace"])]
     out = {"runs": loaded["runs"], "arms": arms, "worlds": worlds, "inits": inits, "units": units,
-           "classes": D2.summarize(rows_by_arm),
-           "stopping": {a: stopping_summary(rs) for a, rs in traces_by_arm.items()},
-           "failure_kinds": {a: failure_summary(rs) for a, rs in traces_by_arm.items()},
-           "failure_kind_by_class": {a: cross_tab(rows_by_arm[a], traces_by_arm[a]) for a in arms}}
-    if set("BC") <= set(arms):
+           "traced_arms": sorted(traced), "classes": D2.summarize(rows_by_arm),
+           "stopping": {a: stopping_summary(rs) for a, rs in sorted(traces_by_arm.items())},
+           "failure_kinds": {a: failure_summary(rs) for a, rs in sorted(traces_by_arm.items())},
+           "failure_kind_by_class": {a: cross_tab(rows_by_arm[a], traces_by_arm[a]) for a in sorted(traced)}}
+    if set(worlds) == set(DEVELOPMENT["worlds"]) and set("BC") <= set(arms):
         out["decision_rule"] = decision_rule(units, worlds, inits)
+    if set(worlds) == set(CONFIRMATION["worlds"]):
+        out["confirmation"] = confirmation_verdict(units, loaded["runs"], worlds, inits)
     return out
+
+
+# --- the confirmation (protocols/s2_context_confirmation_v1.md) -------------------------------------------------
+CONFIRMATION = {"worlds": (710, 711, 712), "inits": (200, 201, 202, 203, 204), "arms": ("A", "B", "C"),
+                "countries": 96, "updates": 1500}
+
+
+def confirmation_verdict(units: dict, runs: list[dict], worlds, inits) -> dict:
+    """The frozen confirmation rule. A unit passes when the same unit meets the study's S2 criterion and its S3/S4
+    joint criterion; an arm holds in a world when at least 4 of its 5 units pass, and holds when every world does.
+    The primary prediction is that C holds; the secondary, that C's mean S2 exact accuracy over the inits of a world
+    exceeds B's in every world. A and B are reported with the same rule. Also reported: each criterion alone."""
+    expected = {f"{a}/{w}/{i}" for a in CONFIRMATION["arms"] for w in CONFIRMATION["worlds"] for i in CONFIRMATION["inits"]}
+    problems = []
+    if set(units) != expected:
+        problems.append(f"inventory differs: missing {sorted(expected - set(units))}, extra {sorted(set(units) - expected)}")
+    for r in runs:
+        cfg = r["config"]
+        if cfg["countries"] != CONFIRMATION["countries"] or cfg["updates"] != CONFIRMATION["updates"]:
+            problems.append(f"{r['run']}: configuration differs from the frozen one")
+        if r["provenance"]["research_tree_dirty"]:
+            problems.append(f"{r['run']}: ran from a modified research tree")
+    if problems:
+        return {"complete": False, "problems": problems}
+    arms, ws, its = CONFIRMATION["arms"], CONFIRMATION["worlds"], CONFIRMATION["inits"]
+    passes = {a: {f"{w}/{i}": units[f"{a}/{w}/{i}"]["outcome_s2_transfer"] and units[f"{a}/{w}/{i}"]["outcome_joint_novelty"]
+                  for w in ws for i in its} for a in arms}
+    count = lambda a, key: {str(w): sum(bool(key(a, w, i)) for i in its) for w in ws}
+    joint = lambda a, w, i: passes[a][f"{w}/{i}"]
+    by_world = {a: count(a, joint) for a in arms}
+    holds = {a: all(n >= 4 for n in by_world[a].values()) for a in arms}
+    means = {str(w): {a: statistics.fmean(units[f"{a}/{w}/{i}"]["S2_exact"] for i in its) for a in arms} for w in ws}
+    return {"complete": True, "commits": sorted({r["provenance"]["commit"] for r in runs}),
+            "per_unit": passes, "successes_by_world": by_world, "holds": holds, "prediction_C_holds": holds["C"],
+            "s2_criterion_by_world": {a: count(a, lambda a, w, i: units[f"{a}/{w}/{i}"]["outcome_s2_transfer"]) for a in arms},
+            "joint_novelty_by_world": {a: count(a, lambda a, w, i: units[f"{a}/{w}/{i}"]["outcome_joint_novelty"])
+                                       for a in arms},
+            "s2_exact_world_means": means,
+            "c_above_b_by_world": {w: m["C"] > m["B"] for w, m in means.items()},
+            "secondary_C_above_B_every_world": all(m["C"] > m["B"] for m in means.values())}
 
 
 def cross_tab(class_rows, trace_rows_) -> dict:
@@ -288,6 +335,22 @@ def tables(a: dict) -> str:
                          + f"; C above B: {dr['C_above_B_by_world'][w]}")
         lines.append(f"- C joint criterion by unit: {dr['C_joint_by_unit']}")
         lines.append(f"- **proceed to confirmation: {dr['proceed_to_confirmation']}**")
+    if "confirmation" in a:
+        c = a["confirmation"]
+        lines.append("\n## Confirmation (worlds 710-712 x inits 200-204)\n")
+        if not c["complete"]:
+            lines.append(f"- incomplete: {c['problems']}")
+        else:
+            lines.append("| arm | S2 and S3/S4 in the same unit, by world | holds | S2 criterion by world "
+                         "| S3/S4 joint by world | S2 exact means by world |")
+            lines.append("|---|---|---|---|---|---|")
+            for arm in c["holds"]:
+                lines.append(f"| {arm} | {c['successes_by_world'][arm]} | {c['holds'][arm]} | "
+                             f"{c['s2_criterion_by_world'][arm]} | {c['joint_novelty_by_world'][arm]} | "
+                             + ", ".join(f"{w}: {m[arm]:.4f}" for w, m in c["s2_exact_world_means"].items()) + " |")
+            lines.append(f"\n- **prediction (C holds): {c['prediction_C_holds']}**")
+            lines.append(f"- C above B in S2 exact mean, by world: {c['c_above_b_by_world']}; "
+                         f"**secondary prediction (every world): {c['secondary_C_above_B_every_world']}**")
     lines.append("\n## Teacher-forced P(<end>) at step 1 (after the first required relation; a second is required)\n")
     lines.append("| arm | taught position | n | S2 mean | S2 median | S2 share > 0.5 | S2_base mean | S2_base share > 0.5 "
                  "| mean paired difference | share S2 higher |")
