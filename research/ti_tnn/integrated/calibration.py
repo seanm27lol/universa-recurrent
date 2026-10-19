@@ -235,3 +235,10 @@ def platt_fit_increasing(scores: list[float], labels: list[bool]) -> tuple[float
 
 def platt_probability(score: float, a: float, b: float) -> float:
     return _sigmoid(a * _logit(score) + b)
+
+
+def exact_interval(k: int, n: int, level: float = 0.95) -> list[float]:
+    """Two-sided exact (Clopper–Pearson) interval for a proportion k/n: each side is a one-sided bound at
+    (1 - level) / 2. The lower bound for k/n is one minus the upper bound for the complementary count."""
+    tail = (1 - level) / 2
+    return [1 - clopper_pearson_upper(n - k, n, tail), clopper_pearson_upper(k, n, tail)]

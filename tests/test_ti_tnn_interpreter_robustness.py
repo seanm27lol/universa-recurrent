@@ -24,43 +24,62 @@ from integrated import interpreters as I  # noqa: E402
 from integrated import registry as G  # noqa: E402
 
 
+SMALL = {"calibration": 80, "id_test": 80, "T1": 20, "S2": 20, "S3": 20, "S4_population": 20, "S4_primary": 20,
+         "S1_length3": 20, "S1_round_trip": 10, "L3_diagnostic": 10}
+
+
 @pytest.fixture(scope="module")
 def study():
     world = W.generate_world(7, n_countries=10, cities_per_country=(2, 3), n_operators=3)
-    st = S.make_study(world, 7, n_noncancel=60, n_round=20, n_diag=30)
+    st = S.make_study(world, 7, SMALL)
     return world, st, S.augment(st, 7)
 
 
 def test_the_audit_passes_and_catches_a_three_step_training_target(study):
     world, st, aug = study
-    checks = S.audit(st, aug)
+    checks = S.audit(world, st, aug)
     assert all(checks.values()), checks
     leaked = dict(next(x for x in st["items"] if x["category"] == "train_base"))
     leaked["outputs"] = ["capital_of", "airport_of", "operator_of", "<end>"]
-    assert not S.audit({**st, "items": st["items"] + [leaked]}, aug)["training_targets_at_most_two_relations"]
+    assert not S.audit(world, {**st, "items": st["items"] + [leaked]}, aug)["training_targets_at_most_two_relations"]
     taught = dict(next(x for x in st["items"] if x["category"] == "S2"), split="train", outputs=["x", "<end>"])
-    assert not S.audit({**st, "items": st["items"] + [taught]}, aug)["taught_wording_only_in_one_step_training"]
+    assert not S.audit(world, {**st, "items": st["items"] + [taught]}, aug)["taught_wording_only_in_one_step_training"]
+
+
+def test_the_audit_enforces_the_declared_inventory(study):
+    world, st, aug = study
+    drop = lambda pred: {**st, "items": [x for x in st["items"] if not pred(x)]}
+    assert not S.audit(world, drop(lambda x: x["category"] == "S1"), aug)["declared_inventory"]  # the reported gap
+    one = next(x for x in st["items"] if x["category"] == "S4b_primary")
+    broken = drop(lambda x: x is one)
+    checks = S.audit(world, broken, aug)
+    assert not checks["declared_inventory"] and not checks["variant_groups_complete_and_matched"]
+    relabeled = {**st, "items": [dict(x, stratum="type_determined") if x is one else x for x in st["items"]]}
+    checks = S.audit(world, relabeled, aug)
+    assert not checks["s4_strata_recomputed"] and not checks["s4_primary_is_answer_ambiguous"]
+    dup = {**st, "items": st["items"] + [dict(st["items"][-1])]}
+    assert not S.audit(world, dup, aug)["unique_draw_ids"]
+    p, ent = st["train_instances"][0]
+    leak = dict(next(x for x in st["items"] if x["category"] == "ID"), program=list(p), entity=ent)
+    assert not S.audit(world, {**st, "items": st["items"] + [leak]}, aug)["evaluation_instances_not_in_training"]
+
+
+def test_independent_draws_may_repeat_strings_but_never_ids(study):
+    world, st, _ = study
+    held = [x for x in st["items"] if x["split"] != "train"]
+    assert len({x["id"] for x in held}) == len(held)
+    big = S.make_study(world, 7, {**SMALL, "calibration": 2000})  # with replacement, repeats are expected
+    cal = [x["text"] for x in big["items"] if x["split"] == "calibration"]
+    assert len(set(cal)) < len(cal)
 
 
 def test_matched_variants_differ_only_where_declared(study):
-    world, st, _ = study
-    groups = {}
-    for x in st["items"]:
-        if x["group"]:
-            groups.setdefault(x["group"], {})[x["category"]] = x
-    quads = [g for g in groups.values() if "S4a" in g]
-    assert quads
-    for g in quads:
-        assert len({(tuple(g[c]["program"]), g[c]["entity"]) for c in ("Q_base", "S3", "S4a", "S4b")}) == 1
-        assert g["Q_base"]["expected"] == g["S3"]["expected"] == "answer" and g["S4a"]["expected"] == g["S4b"]["expected"] == "abstain"
-        base, s4a = g["Q_base"]["text"].split(), g["S4a"]["text"].split()
-        assert base[:2] == s4a[:2] or base[0] == s4a[0]  # same familiar frame
-    for g in groups.values():
-        if "S2" in g:
-            assert g["S2"]["program"] == g["S2_base"]["program"] and len(g["S2"]["program"]) == 2
-            assert g["S2"]["text"].split()[0] == g["S2_base"]["text"].split()[0]
+    world, st, aug = study
+    assert S.audit(world, st, aug)["variant_groups_complete_and_matched"]
     assert all(len(x["program"]) == 1 for x in st["items"] if x["category"] in ("T1", "train_taught"))
+    assert all(len(x["program"]) == 2 for x in st["items"] if x["category"] in ("S2", "S2_base"))
     assert all(len(x["program"]) == 3 for x in st["items"] if x["category"] in ("S1", "S2_L3", "S3_L3", "S4_L3", "L3_base"))
+    assert all(x["expected"] == "abstain" for x in st["items"] if x["category"] in ("S4a", "S4b", "S4a_primary", "S4b_primary"))
 
 
 def test_the_character_contract_never_maps_characters_to_a_shared_symbol():
@@ -105,20 +124,6 @@ def test_platt_for_reporting_never_reverses_the_order():
     assert K.platt_probability(0.9, a, b) > K.platt_probability(0.6, a, b)
 
 
-def test_a_tiny_run_produces_every_category_policy_and_record(study):
-    world, st, aug = study
-    args = S.parse_args(["--updates", "20"])
-    unit = S.run_unit(world, st, aug, 0, args)
-    assert set(unit["arms"]) == set(S.ARMS)
-    for arm in unit["arms"].values():
-        assert set(arm["policies"]) == set(S.POLICIES)
-        cats = arm["policies"]["none"]["categories"]
-        assert set(S.ANSWER_CATEGORIES + S.ABSTAIN_CATEGORIES) <= set(cats)
-        assert len(arm["records"]) == sum(x["split"] == "test" for x in st["items"])
-        assert arm["policies"]["certified"]["certificate"]["steps"]
-    assert unit["grammar"]["categories"]["S4a"]["abstention"] == 1.0
-
-
 def test_s4_strata_follow_the_complete_typed_program():
     world = W.generate_world(100, n_countries=96)
     country = world.types["Country"].values[0]
@@ -132,10 +137,99 @@ def test_s4_strata_follow_the_complete_typed_program():
     assert S.s4_stratum(world, ("capital_of", "airport_of"), differ, 0)[0] == "answer_ambiguous"
 
 
-def test_s1_has_its_declared_non_cancelling_count_and_matched_diagnostics(study):
-    world, st, _ = study
-    s1 = [x for x in st["items"] if x["category"] == "S1"]
-    noncancel = {(tuple(x["program"]), x["entity"]) for x in s1 if x["family"] == "length3"}
-    diag = {(tuple(x["program"]), x["entity"]) for x in st["items"] if x["category"] == "L3_base"}
-    assert diag and diag <= noncancel  # diagnostics are variants of S1 non-cancelling instances
-    assert all("stratum" in x for x in st["items"] if x["category"] in ("S4a", "S4b", "S4_L3"))
+@pytest.fixture(scope="module")
+def tiny_run(tmp_path_factory, monkeypatch_module):
+    monkeypatch_module.setattr(S, "SIZES", {**S.SIZES, **SMALL})
+    out = tmp_path_factory.mktemp("robustness")
+    args = S.parse_args(["--worlds", "7", "--inits", "0", "--countries", "8", "--updates", "20"])
+    result = S.run(args, out)
+    (out / "interpreter_robustness.json").write_text(__import__("json").dumps(result))
+    verdict = S.evaluate(result, worlds=(7,), inits=(0,))
+    return out, result
+
+
+@pytest.fixture(scope="module")
+def monkeypatch_module():
+    mp = pytest.MonkeyPatch()
+    yield mp
+    mp.undo()
+
+
+def verifier():
+    spec_v = importlib.util.spec_from_file_location("ti_tnn_robustness_verify", ROOT / "bench" / "interpreter_robustness_verify.py")
+    V = importlib.util.module_from_spec(spec_v)
+    spec_v.loader.exec_module(V)
+    return V
+
+
+def test_the_verifier_rebuilds_a_run_and_rejects_tampering(tiny_run, tmp_path):
+    import gzip
+    import json
+    import shutil
+    out, result = tiny_run
+    V = verifier()
+    V.S.SIZES = S.SIZES  # the run used the reduced sizes
+    assert V.verify(out)["verified"]
+
+    def tampered(edit_result=None, edit_records=None):
+        d = tmp_path / f"t{len(list(tmp_path.iterdir()))}"
+        shutil.copytree(out, d)
+        if edit_result:
+            r = json.loads((d / "interpreter_robustness.json").read_text())
+            edit_result(r)
+            (d / "interpreter_robustness.json").write_text(json.dumps(r))
+        if edit_records:
+            p = d / "records" / "w7_i0.json.gz"
+            with gzip.open(p, "rt") as f:
+                rec = json.load(f)
+            edit_records(rec)
+            with gzip.open(p, "wt") as f:
+                json.dump(rec, f)
+        return d
+
+    def flip_answer(rec):  # a produced answer changes: correctness and every summary built on it must disagree
+        arm = rec["arms"]["word"]
+        i = next(k for k, a in enumerate(arm["decision"]) if a)
+        arm["answer"][i] = "not_a_real_answer"
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_records=flip_answer))
+
+    def summary(r):
+        r["units"][0]["arms"]["word"]["policies"]["none"]["categories"]["S3"]["errors"] += 1
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_result=summary))
+
+    def certificate_steps(r):
+        r["units"][0]["arms"]["char"]["policies"]["certified"]["certificate"]["steps"][0]["accepted"] += 1
+    with pytest.raises(V.VerificationError):
+        V.verify(tampered(edit_result=certificate_steps))
+    gone = tampered()
+    (gone / "records" / "w7_i0.json.gz").unlink()
+    with pytest.raises(V.VerificationError):
+        V.verify(gone)
+
+
+def fake_unit(world, init, ok):
+    """Per-unit summaries in which `ok` names the criteria that pass (S3, S4a, S4b, cert)."""
+    good, bad = {"coverage": 1.0, "error_upper_95": 0.003, "abstention": 1.0}, {"coverage": 0.5, "error_upper_95": 0.2, "abstention": 0.5}
+    cats = lambda: {"ID": dict(good), "R": dict(good), "S2": dict(bad), "S1:length3": dict(bad),
+                    "S3": dict(good if "S3" in ok else bad), "S4a_primary": dict(good if "S4a" in ok else bad),
+                    "S4b_primary": dict(good if "S4b" in ok else bad),
+                    "T1": {"n": 10, "answered": 10, "errors": 0}}
+    arm = {"policies": {"certified": {"certificate": {"certified": "cert" in ok}, "categories": cats()},
+                        "none": {"categories": cats()}}}
+    return {"world": world, "init": init, "arms": {a: arm for a in S.ARMS}}
+
+
+def test_the_joint_rule_needs_one_unit_to_pass_everything():
+    full = {"S3", "S4a", "S4b", "cert"}
+    units = [fake_unit(w, i, full) for w in (700, 701, 702) for i in range(5)]
+    assert S.evaluate({"units": units})["predictions"]["3_word_aug_joint_novelty"]
+    split = [fake_unit(700, 0, {"S3", "S4b", "cert"}), fake_unit(700, 1, {"S4a", "S4b", "cert"}),
+             fake_unit(700, 2, full), fake_unit(700, 3, full), fake_unit(700, 4, {"S3", "S4a", "cert"})]
+    v = S.evaluate({"units": split + units[5:]})  # each criterion passes on 4 inits, jointly on only 2
+    assert v["predictions"]["3_word_aug_joint_novelty"] is False
+    uncertified = [fake_unit(701, i, {"S3", "S4a", "S4b"} | ({"cert"} if i > 1 else set())) for i in range(5)]
+    v = S.evaluate({"units": units[:5] + uncertified + units[10:]})
+    assert v["predictions"]["3_word_aug_joint_novelty"] is False and v["successes_by_world"]["certified"]["word_aug"][701] == 3
+    assert S.evaluate({"units": units[1:]})["complete"] is False
