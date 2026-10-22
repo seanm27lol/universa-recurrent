@@ -21,7 +21,8 @@ independent verification").
     provenance, certified S1 equivalence.
 - **Unjustified mixing.** Any other record that changes snapshot is an *unjustified switch*, and never
   valid. If applications actually came from two snapshots, it is also *unjustified mixing*.
-- **Naive continuation's failures:**
+- **Naive continuation's failures,** judged on the outcome (the answer or terminal reason, and the visited
+  path); the applications may differ, because another version produced them:
   - **contract violation:** the outcome differs from the traversal over the snapshot it finished on;
   - **no-version outcome:** the outcome differs from the traversal over every snapshot that supplied an
     application.
@@ -92,7 +93,14 @@ def _record_outcome(record) -> dict:
 
 
 def _same_run(a: dict, b: dict) -> bool:
+    """The same execution: outcome, visited path, every application and the number of calls."""
     return all(a[k] == b[k] for k in ("reason", "answer", "visited", "applications", "calls"))
+
+
+def _same_outcome(a: dict, b: dict) -> bool:
+    """The same outcome, as the protocol defines it for naive continuation's failures: the answer or terminal
+    reason, and the visited path. Applications may differ (another version produced them)."""
+    return all(a[k] == b[k] for k in ("reason", "answer", "visited"))
 
 
 def difference_keys(t0: dict, t1: dict) -> set:
@@ -159,8 +167,8 @@ def check_session(record: dict, tables: dict, world=None) -> dict:
         if not justified:
             out["unjustified_switch"] = True  # a change of snapshot without a valid justification
             out["unjustified_mixing"] = len(suppliers) > 1  # and applications actually came from two snapshots
-    out["contract_violation"] = not _same_run(got, run(final))
-    out["no_version_outcome"] = all(not _same_run(got, run(d)) for d in suppliers or [final])
+    out["contract_violation"] = not _same_outcome(got, run(final))
+    out["no_version_outcome"] = all(not _same_outcome(got, run(d)) for d in suppliers or [final])
     if world is not None:
         ref = traverse(facts_table(world), start, target, budget, q["step_relation"], q["test_relation"])
         out["correct"] = (got["reason"], got["answer"]) == (ref["reason"], ref["answer"])
