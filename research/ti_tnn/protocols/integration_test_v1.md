@@ -1,6 +1,11 @@
-# Integration test: one question through recurrence, a checked update mid-run, and resume (DRAFT, revision 2)
+# Integration test: one question through recurrence, a checked update mid-run, and resume (DRAFT, revision 3)
 
-**Status: DRAFT, revision 2, 2026-10-19. Nothing has been fitted or run on any study world.**
+**Status: DRAFT, revision 3, 2026-10-22.**
+- **What revision 3 adds:** the development pilot's results, under "Development pilot", and the changes it
+  proposes for the freeze, which are pending review.
+- **No study world has been used.** Nothing has been fitted or run on worlds 800–802.
+- **Revision 2** (2026-10-19) is the specification below. It is unchanged except where this file says
+  otherwise.
 - **What revision 2 records.** It applies the review of revision 1 (`9fb811f`), including its decisions on
   the open choices, collected under "Decisions".
 - **The code it specifies** is in three groups:
@@ -221,11 +226,19 @@ A valid migration can therefore have **mixed provenance with certified S1 equiva
 justification. Naive continuation always produces such a record once it applies a module after the
 activation.
 
-Migration is **potentially** cheaper than restart. Its cost counts:
+**Migration's cost** counts:
 - verifying the snapshot;
 - looking up the prefix's inputs in the difference;
 - revalidating the prefix;
 - the suffix's module applications.
+
+Revision 2 called migration "potentially" cheaper than restart. The pilot measured that it is **not cheaper
+here**:
+- **Applications.** Revalidation re-applies S1's module to every prefix input, so the suffix's applications
+  plus the revalidations equal restart's applications exactly.
+- **Lookups** are extra.
+
+See "Development pilot".
 
 ### Three failures of naive continuation
 
@@ -445,21 +458,113 @@ Anything too large for git becomes a release asset with its sha256 committed fir
 
 ## Development pilot
 
-- **Cap:** **four hours of wall time, with at most four CPU threads,** at low priority. This is not four
-  CPU-hours.
-- **Units:** worlds 100–101 × inits 100–101 only, starting with **one learned unit** (world 100, init 100).
-- **It settles:**
-  - the question sizes;
-  - the interpreter's update count;
-  - whether the coverage threshold is feasible;
-  - the episode sample size;
-  - the pause-index sampling.
-- **It may not change:**
-  - the definitions;
-  - the check requirements;
-  - the bars, without review;
-  - the confirmation worlds.
-- **Disclosure:** pilot results are recorded in this file before the freeze.
+**Cap:** **four hours of wall time, with at most four CPU threads,** at low priority. This is not four
+CPU-hours.
+
+**Units:** worlds 100–101 × inits 100–101 only, starting with **one learned unit** (world 100, init 100).
+
+**What it settles:**
+- the question sizes;
+- the interpreter's update count;
+- whether the coverage threshold is feasible;
+- the episode sample size;
+- the pause-index sampling.
+
+**What it may not change:**
+- the definitions;
+- the check requirements;
+- the bars, without review;
+- the confirmation worlds.
+
+### Pilot runs (all disclosed)
+
+| Run | Commit | Units | Wall time | Status |
+|---|---|---|---:|---|
+| `runs/titnn_integration_pilot/20261019T145308` | `f83e7a4` | 100/100 | 985 s | superseded, see below |
+| three smoke runs | uncommitted harness edits, scratch output | 6-country world, 100/100 | about 4 min in all | code checks only, not results |
+| `runs/titnn_integration_pilot/20261022T121659` | `67a2f04`, clean tree | 100/100, 100/101, 101/100, 101/101 | 3,830 s | **the pilot result** |
+
+About 1.5 of the 4 hours were used. Two corrections were made between the first and last runs; both are
+disclosed here.
+
+1. **Naive continuation's failures.** The independent checker judged contract violations and no-version
+   outcomes on the full record, including which version produced each application. This file defines them
+   on the outcome: the answer or terminal reason, and the visited path. The stricter test made contract
+   violations equal ineligible migrations by construction (1,639 of 1,639 in the first run). The checker now
+   follows this file, and a fixture covers the difference. That fixture is an ineligible run whose outcome is
+   still S1's.
+2. **Resume costs.** The first run's migrate cost included the applications made before the pause, which are
+   sunk. Costs now count only work after the pause.
+
+The first run's construction checks and learned results are identical to the final run's unit 100/100.
+
+### Pilot results (`67a2f04`, four units)
+
+**Construction checks, required at 100%:**
+
+| Check | Count | Mismatches |
+|---|---:|---:|
+| C1/C2 supplied episodes: pin, restart and migrate against uninterrupted runs, with every record independently verified | 46,638 | 0 |
+| C1/C2 interpreted episodes | 15,960 | 0 |
+| C2: every naive switch flagged; no policy record flagged | 62,598 | 0 |
+| C4: complete-context activation and rollback | 48 branches | 0 |
+| C5: exhaustive sweep at every budget, against the independent traversal | 13 contexts per unit, 15,360–15,552 queries each | 0 |
+| F: injected faults with learned contexts (10 per unit) | 40 | 0 |
+| C3: the witness (two worlds) | 2 | 0. Naive continuation gives a no-version outcome; pin, restart and migrate are correct |
+
+**Learned competence.** L1–L4 hold in all four units, **at the ceiling**:
+- **Parses** are 100% exact on calibration, test and the default-budget diagnostic.
+- **The certificates:** every one (C0 and all 48 C1ᵢ) selects threshold 0.0, with zero errors among 780–789
+  calibration results.
+- **Test:** coverage is 1.000, errors 0, and the accepted-error bound is 0.0038, under C0 and every C1ᵢ.
+- **Refusals:** abstention is 1.000 in every category.
+- **Modules:** S0 and every S1ᵢ are atomically correct.
+- **Differences:** every actual difference is intended only. There are no corrections and no regressions.
+
+**Naive continuation (supplied episodes):**
+
+| Failure | Episodes | Share |
+|---|---:|---:|
+| unjustified switches | 46,638 | 100% |
+| unjustified mixing | 34,826 | 75% |
+| contract violations | 1,566 | 3.4% |
+| no-version outcomes | 34 | all from two-fact branches; none from single-fact branches, as defined |
+
+**Migration** was eligible in 41,606 of 46,638 episodes (89%). Where it migrated:
+
+| Policy | Work after the pause |
+|---|---|
+| migrate | 296,642 suffix applications + 184,816 revalidations = 481,458 applications, plus 184,816 difference lookups |
+| restart | 481,458 applications |
+
+**Cost:** 911–1,000 s per unit. Fifteen confirmation units would take about 4 hours at four threads, with
+every pause index.
+
+**Records:**
+- full session records are about 250 MB of JSON per unit (supplied episodes);
+- gzip compresses them about 66 times (sample: 1.58 MB to 24 KB);
+- about 5 MB per unit with the interpreted episodes included, or about 75 MB for 15 units.
+
+### Proposed for the freeze (pending review)
+
+1. **State the ceiling.** In these worlds the learned interpreter, modules and certificates are at their
+   ceiling, so L1–L4 are expected to hold. The test's informative content is the construction checks at the
+   seams. The report must say so, and must not present L1–L4 as evidence of robustness.
+2. **Drop the efficiency claim for migration.** It does no less module work than restart; it is kept only as
+   an exact-equivalence check (C1, C2). Restart remains the default.
+3. **Keep every pause index, and the sizes as specified:**
+   - 1,000 calibration and 1,000 test draws;
+   - 200 unaffected supplied queries per branch;
+   - 50 unaffected interpreted questions per branch.
+   No sampling is needed.
+4. **Store records in two places:**
+   - **in the bundle:** summaries, atomic tables, certificates with their records, and compact per-episode
+     outcome rows;
+   - **as release assets:** the full gzipped session records, with their sha256 committed before the
+     release.
+5. **Write the independent verifier before the freeze.** `bench/integration_test_verify.py` must rebuild every
+   reported number from those files, never calling the producer, as the #55 review required.
+6. **Remove the reserved-world check** in the freezing commit.
 
 ## Implementation order (before any learned fit)
 
@@ -480,6 +585,12 @@ Anything too large for git becomes a release asset with its sha256 committed fir
 4. **Deterministic table-module fixtures** for every construction check and injected fault, including the
    review's correction counterexample and the two-fact witness.
 5. **The query interpreter and the experiment harness**, then the pilot.
+
+Status, 2026-10-22:
+- item 1 is merged (#57);
+- items 2–4 are at `62a630e` and `67a2f04`;
+- item 5 and the pilot are done (above);
+- the record export and the independent verifier are next, before the freeze.
 
 ## Decisions (from the review of revision 1)
 
