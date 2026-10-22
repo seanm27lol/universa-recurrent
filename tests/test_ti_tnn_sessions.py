@@ -198,6 +198,17 @@ def test_one_actual_change_gives_naive_continuation_one_versions_outcome():
         assert check["unjustified_mixing"] and not check["no_version_outcome"]  # some version's outcome
 
 
+def test_contract_violations_are_judged_on_outcomes_not_on_which_version_produced_each_application():
+    c0, w1 = context(W0), world_with("harmless", a="operator_5")  # a changes, but to another non-target operator
+    dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", A, "operator_5"),))
+    diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, BASE.types)
+    p = paused(c0, 1)  # a tested under S0
+    assert not SS.resume_migrate(p, dep.active, diff, BASE.types)["migration"]["migrated"]  # ineligible...
+    check = SV.check_session(SS.continue_unchecked(p, dep.active, BASE.types), tables_of(c0, c1), w1)
+    assert check["unjustified_mixing"] and not check["ok"]
+    assert not check["contract_violation"] and not check["no_version_outcome"]  # ...yet S1's outcome
+
+
 def test_the_reviews_correction_counterexample_blocks_migration():
     s0_actual = world_with("s0-actual")  # S0's modules: a = U, wrong
     old_ref = world_with("old-reference", a=T)  # the old reference already had a = T

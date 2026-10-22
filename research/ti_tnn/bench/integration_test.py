@@ -353,11 +353,13 @@ def atomic_correctness(table, world) -> dict:
     return {"wrong_by_relation": wrong, "correct": not any(wrong.values())}
 
 
-def episodes(c0, c1, tables, world0, world1, queries, types) -> dict:
-    """Every policy and naive continuation at every pause index of every query, independently verified."""
+def episodes(c0, c1, tables, world0, world1, queries, types, sizes=None, sample=None, sample_queries=0) -> dict:
+    """Every policy and naive continuation at every pause index of every query, independently verified.
+    `sizes` accumulates each full session record's JSON size by policy; `sample` keeps the full records of the
+    first `sample_queries` queries (every pause index, every policy)."""
     diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, types)
     stats = Counter()
-    for query, budget in queries:
+    for qi, (query, budget) in enumerate(queries):
         full0 = SS.advance(SS.open_session(c0, query, budget, types), c0, types)
         full1 = SS.advance(SS.open_session(c1, query, budget, types), c1, types)
         for k in range(full0["calls"]):
@@ -383,9 +385,34 @@ def episodes(c0, c1, tables, world0, world1, queries, types) -> dict:
             stats["naive_contract_violation"] += check["contract_violation"]
             stats["naive_no_version"] += check["no_version_outcome"]
             stats["c2_naive_mixing_not_flagged"] += check["ok"]
-            stats["cost_migrate"] += sum(v for k_, v in migrate["costs"].items() if k_ != "discarded_applications")
-            stats["cost_restart"] += sum(v for k_, v in restart["costs"].items() if k_ != "discarded_applications")
+            stats["resume_cost_migrate"] += resume_cost(migrate, p)
+            stats["resume_cost_restart"] += resume_cost(restart, p)
+            stats["resume_cost_pin"] += resume_cost(pin, p)
+            if migrate["migration"]["migrated"]:
+                stats["migrated_suffix_applications"] += migrate["costs"]["applications"] - p["costs"]["applications"]
+                stats["migrated_revalidations"] += migrate["costs"]["revalidations"]
+                stats["migrated_lookups"] += migrate["costs"]["difference_lookups"]
+                stats["restart_applications_where_migrated"] += restart["costs"]["applications"]
+            for name, rec in (("pin", pin), ("restart", restart), ("migrate", migrate), ("naive", naive)):
+                if sizes is not None:
+                    sizes[name] += len(json.dumps(rec))
+                if sample is not None and qi < sample_queries:
+                    sample.append({"query": [query.start.value, query.target.value, budget], "k": k, "policy": name,
+                                   "record": rec})
     return dict(stats)
+
+
+COST_KEYS = ("applications", "snapshot_verifications", "difference_lookups", "revalidations")
+
+
+def resume_cost(record, paused) -> int:
+    """Work done after the pause: module applications, snapshot verifications, difference lookups and
+    revalidations. A record that continued the paused session subtracts the work done before the pause, which is
+    sunk; a restarted record is a fresh session and counts its whole run."""
+    total = sum(record["costs"].get(k, 0) for k in COST_KEYS)
+    if record.get("restarted_from") is None:
+        total -= sum(paused["costs"].get(k, 0) for k in COST_KEYS)
+    return total
 
 
 def affected_queries(table0, table1, world, types, budget=16) -> tuple[list, list]:
@@ -485,7 +512,7 @@ def registry_from(world, modules: dict):
     return reg
 
 
-def run_unit(world, study, branches, init, args) -> dict:
+def run_unit(world, study, branches, init, args, out: Path | None = None) -> dict:
     types = world.types
     t_start = time.time()
     timings = {}
@@ -538,6 +565,7 @@ def run_unit(world, study, branches, init, args) -> dict:
     unit["c0_exhaustive"] = exhaustive(c0, table0, world, types, budgets=args.exhaustive_budgets)
     timings["exhaustive_c0"] = time.time() - t0
     first_fault_done = False
+    sample_records = []
     for branch in branches:
         b = {"index": branch["index"], "kind": branch["kind"], "changes": branch["changes"], "timings": {}}
         new_world = edited(world, f"branch{branch['index']}", branch["changes"])
@@ -585,8 +613,12 @@ def run_unit(world, study, branches, init, args) -> dict:
         rng = random.Random(f"episodes|{world.identity}|{branch['index']}")
         sample = sorted(rng.sample(unaffected, min(EPISODE_UNAFFECTED, len(unaffected))))
         t0 = time.time()
+        sizes, kept = Counter(), []
         b["supplied_episodes"] = {"affected": len(affected), "unaffected_sampled": len(sample),
-                                  **episodes(c0, c1, tables, world, new_world, as_queries(affected + sample, types), types)}
+                                  **episodes(c0, c1, tables, world, new_world, as_queries(affected + sample, types), types,
+                                             sizes, kept, sample_queries=1)}
+        b["record_bytes_supplied"] = dict(sizes)
+        sample_records.append({"branch": branch["index"], "tables_digests": sorted(tables), "records": kept})
         b["timings"]["episodes_supplied"] = time.time() - t0
         accepted = [(x, p) for x, p, r in zip(test, parses["test"], test_rows0)
                     if r["result"] and cert0.certified and r["score"] >= cert0.threshold]
@@ -613,6 +645,13 @@ def run_unit(world, study, branches, init, args) -> dict:
         print(f"    branch {branch['index']:2d} {branch['kind']:8s} gates {'pass' if result.passed() else 'FAIL'} "
               f"cert {cert1.threshold} | exhaustive {b['exhaustive']} | episodes {b['supplied_episodes']['episodes']} "
               f"+{b['interpreted_episodes']['episodes']} | ({b['timings']['total']:.0f}s)", flush=True)
+    if out is not None:
+        path = out / f"records_sample_w{world.seed}_i{init}.json.gz"
+        with gzip.open(path, "wt") as f:
+            json.dump(sample_records, f)
+        raw = sum(len(json.dumps(r["record"])) for s_ in sample_records for r in s_["records"])
+        unit["record_sample"] = {"records": sum(len(s_["records"]) for s_ in sample_records), "json_bytes": raw,
+                                 "gz_bytes": path.stat().st_size}
     unit["timings"] = {**timings, "total": time.time() - t_start}
     return unit
 
@@ -667,7 +706,7 @@ def main(argv=None):
         print(f"world {wseed}: {len(study['items'])} items, 12 branches drawn, witness "
               f"{result['worlds'][str(wseed)]['witness']}", flush=True)
         for init in args.inits:
-            unit = run_unit(world, study, branches, init, args)
+            unit = run_unit(world, study, branches, init, args, out)
             result["units"].append(unit)
             (out / "integration_pilot.json").write_text(json.dumps(result))
             print(f"  unit w{wseed} i{init}: {json.dumps({k: unit[k] for k in ('c0_test', 's0_atomic')})[:400]} "
