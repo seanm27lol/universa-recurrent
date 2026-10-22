@@ -142,11 +142,16 @@ def _current_digest(session) -> str:
     return session["segments"][-1]["snapshot"]
 
 
+def _current_context(session) -> str:
+    return session["segments"][-1]["context"]
+
+
 def advance(session, context, types, calls: int | None = None) -> dict:
     """Up to `calls` more calls to `step` on `context` (all remaining if None). Returns a new session. The context
-    must be the one the session's current segment names."""
-    if context.snapshot.digest != _current_digest(session):
-        raise SessionRefused("this session is not running on that snapshot")
+    must be the complete context the session's current segment names: the same snapshot is not enough, since
+    the certificate, expectation and world are part of what serves."""
+    if context.snapshot.digest != _current_digest(session) or context.identity != _current_context(session):
+        raise SessionRefused("this session is not running on that serving context")
     s = copy.deepcopy(session)
     done = 0
     while running(s) and (calls is None or done < calls):
@@ -182,8 +187,8 @@ def resume_pin(session, pinned, types) -> dict:
     _paused(session, "pin")
     s = copy.deepcopy(session)
     s["costs"]["snapshot_verifications"] += 1
-    if pinned.snapshot.digest != _current_digest(s):
-        raise SessionRefused("pin: that is not the context this session runs on")
+    if pinned.identity != _current_context(s) or pinned.snapshot.digest != _current_digest(s):
+        raise SessionRefused("pin: that is not the complete context this session runs on")
     problems = pinned.problems()
     if problems:
         raise SessionRefused(f"pin: the pinned context can no longer serve: {problems}")
@@ -204,7 +209,7 @@ def resume_restart(session, active, types) -> dict:
     fresh = open_session(active, query, session["budget"], types)
     fresh["costs"]["snapshot_verifications"] += 1
     fresh["restarted_from"] = {"calls": session["calls"], "applications": len(session["state"]["applications"]),
-                               "snapshot": _current_digest(session)}
+                               "snapshot": _current_digest(session), "context": _current_context(session)}
     fresh["costs"]["discarded_applications"] = session["costs"]["applications"]
     fresh["policy"] = "restart"
     return advance(fresh, active, types)
