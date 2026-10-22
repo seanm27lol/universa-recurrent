@@ -61,9 +61,22 @@ W0 = world_with("s0")
 QUERY = R.UntilQuery(BASE.types["Airport"].value(S_), BASE.types["Operator"].value(T))
 
 
-def context(world, registry=None):
+EXPORTED = {}  # every context the fixtures create, as an export would list them: identity -> its parts
+
+
+def export(ctx):
+    EXPORTED[ctx.identity] = {"snapshot": ctx.snapshot.digest, "certificate": ctx.certificate.identity,
+                              "world": ctx.world_identity}
+    return ctx
+
+
+def check(record, tables, world=None):
+    return SV.check_session(record, tables, world, contexts=EXPORTED)
+
+
+def context(world, registry=None, records=RECORDS):
     snap = S.publish(registry or G.table_registry(world))
-    return V.ServingContext(snap, Q.certify(RECORDS, EXPECT, snap.digest), EXPECT, world.identity)
+    return export(V.ServingContext(snap, Q.certify(records, EXPECT, snap.digest), EXPECT, world.identity))
 
 
 def candidate(base_registry, new_world, relation="operator_of"):
@@ -82,7 +95,7 @@ def deploy(c0, old_world, new_world, intended, scope=("operator_of",)):
     rec = D.UpdateRecord(c0.snapshot.digest, S.digest_of(cand), scope, intended, new_world.identity, checker.version,
                          U.calibration_identity(cert), None, PROPOSER)
     res = checker.check(c0.snapshot, cand, rec, old_world, new_world, calibration=cert, expected=EXPECT)
-    c1 = V.context_for(res, cert, EXPECT, new_world.identity)
+    c1 = export(V.context_for(res, cert, EXPECT, new_world.identity))
     decision = dep.activate(rec, res, c1)
     assert decision["activated"], (decision, res.outcomes())
     return dep, c1, res, rec
@@ -110,7 +123,7 @@ def test_budgets_outside_the_contract_are_refused_before_anything_runs():
     for budget in (0, 17, -1, True, 3.0, "3", None):
         s = uninterrupted(c0, budget)
         assert SS.outcome(s)["kind"] == SS.REFUSED and not s["state"]["applications"], budget
-        assert SV.check_session(s, tables_of(c0))["ok"], budget
+        assert check(s, tables_of(c0))["ok"], budget
     for budget in (1, 16):
         assert SS.outcome(uninterrupted(c0, budget))["kind"] == "result"
 
@@ -136,8 +149,8 @@ def test_pin_reproduces_the_uninterrupted_run_at_every_pause_index_for_every_que
             query = R.UntilQuery(BASE.types["Airport"].value(start), BASE.types["Operator"].value(target))
             for budget in (1, 3, 16):
                 full = uninterrupted(c0, budget, query)
-                check = SV.check_session(full, tables, W0)
-                assert check["ok"] and check["equivalent_to"] == c0.snapshot.digest and check["correct"]
+                result_ = check(full, tables, W0)
+                assert result_["ok"] and result_["equivalent_to"] == c0.snapshot.digest and result_["correct"]
                 for k in range(full["calls"]):  # every pause index of a paused (unfinished) run
                     resumed = SS.resume_pin(json.loads(json.dumps(paused(c0, k, budget, query))), c0, BASE.types)
                     assert same_run(resumed, full) and resumed["calls"] == full["calls"]
@@ -167,9 +180,9 @@ def test_every_policy_at_every_pause_index_matches_its_declared_contract(label, 
         assert SS.outcome(migrate) == SS.outcome(full1)
         assert migrate["state"]["visited"] == full1["state"]["visited"]
         for rec, expected in ((pin, c0), (restart, c1), (migrate, c1)):
-            check = SV.check_session(rec, tables, w1 if expected is c1 else W0)
-            assert check["ok"] and check["equivalent_to"] == expected.snapshot.digest, (k, rec["policy"], check)
-            assert check["correct"]
+            result_ = check(rec, tables, w1 if expected is c1 else W0)
+            assert result_["ok"] and result_["equivalent_to"] == expected.snapshot.digest, (k, rec["policy"], result_)
+            assert result_["correct"]
         eligible += migrate["migration"]["migrated"]
         if migrate["migration"]["migrated"] and k > 0:  # mixed provenance, certified S1 equivalence
             assert [s["snapshot"] for s in migrate["segments"]] == [c0.snapshot.digest, c1.snapshot.digest]
@@ -184,9 +197,9 @@ def test_the_two_fact_witness_gives_an_outcome_no_version_produces():
     assert SS.outcome(uninterrupted(c0))["answer"] == C_ and SS.outcome(uninterrupted(c1))["answer"] == A
     naive = SS.continue_unchecked(paused(c0, 1), dep.active, BASE.types)  # a was tested under S0
     assert SS.outcome(naive)["answer"] == B
-    check = SV.check_session(naive, tables_of(c0, c1), w1)
-    assert not check["ok"] and check["unjustified_mixing"]
-    assert check["contract_violation"] and check["no_version_outcome"]
+    result_ = check(naive, tables_of(c0, c1), w1)
+    assert not result_["ok"] and result_["unjustified_mixing"]
+    assert result_["contract_violation"] and result_["no_version_outcome"]
 
 
 def test_one_actual_change_gives_naive_continuation_one_versions_outcome():
@@ -194,8 +207,8 @@ def test_one_actual_change_gives_naive_continuation_one_versions_outcome():
     dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", A, T),))
     tables = tables_of(c0, c1)
     for k in range(1, uninterrupted(c0)["calls"]):
-        check = SV.check_session(SS.continue_unchecked(paused(c0, k), dep.active, BASE.types), tables, w1)
-        assert check["unjustified_mixing"] and not check["no_version_outcome"]  # some version's outcome
+        result_ = check(SS.continue_unchecked(paused(c0, k), dep.active, BASE.types), tables, w1)
+        assert result_["unjustified_mixing"] and not result_["no_version_outcome"]  # some version's outcome
 
 
 def test_contract_violations_are_judged_on_outcomes_not_on_which_version_produced_each_application():
@@ -204,9 +217,9 @@ def test_contract_violations_are_judged_on_outcomes_not_on_which_version_produce
     diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, BASE.types)
     p = paused(c0, 1)  # a tested under S0
     assert not SS.resume_migrate(p, dep.active, diff, BASE.types)["migration"]["migrated"]  # ineligible...
-    check = SV.check_session(SS.continue_unchecked(p, dep.active, BASE.types), tables_of(c0, c1), w1)
-    assert check["unjustified_mixing"] and not check["ok"]
-    assert not check["contract_violation"] and not check["no_version_outcome"]  # ...yet S1's outcome
+    result_ = check(SS.continue_unchecked(p, dep.active, BASE.types), tables_of(c0, c1), w1)
+    assert result_["unjustified_mixing"] and not result_["ok"]
+    assert not result_["contract_violation"] and not result_["no_version_outcome"]  # ...yet S1's outcome
 
 
 def test_the_reviews_correction_counterexample_blocks_migration():
@@ -230,7 +243,7 @@ def test_the_reviews_correction_counterexample_blocks_migration():
     migrate = SS.resume_migrate(p, dep.active, diff, BASE.types)
     assert migrate["migration"] == {"migrated": False, "difference": diff.identity, "blocked_by": [["operator_of", A]]}
     assert SS.outcome(migrate)["answer"] == A == SS.outcome(uninterrupted(c1))["answer"]
-    assert SV.check_session(migrate, tables_of(c0, c1), new_ref)["ok"]
+    assert check(migrate, tables_of(c0, c1), new_ref)["ok"]
 
 
 # --- rollback and retained contexts ------------------------------------------------------------------------------
@@ -318,8 +331,8 @@ def test_a_migration_justification_for_another_pair_is_refused():
     assert good["migration"]["migrated"]
     forged = copy.deepcopy(good)
     forged["migration"]["from"] = other.snapshot.digest
-    check = SV.check_session(forged, tables_of(c0, c1, other), w1)
-    assert not check["ok"] and check["unjustified_switch"]
+    result_ = check(forged, tables_of(c0, c1, other), w1)
+    assert not result_["ok"] and result_["unjustified_switch"]
 
 
 def test_a_finished_session_cannot_be_resumed_and_a_tampered_record_is_caught():
@@ -331,8 +344,8 @@ def test_a_finished_session_cannot_be_resumed_and_a_tampered_record_is_caught():
             resume(done)
     tampered = copy.deepcopy(done)
     tampered["state"]["applications"][1]["produced"]["value"] = "operator_0"
-    check = SV.check_session(tampered, tables_of(c0), W0)
-    assert not check["ok"] and any("application 1" in p for p in check["problems"])
+    result = check(tampered, tables_of(c0), W0)
+    assert not result["ok"] and not result["execution_valid"]
 
 
 def test_the_reconstruction_is_independent_of_the_producer():
@@ -342,3 +355,117 @@ def test_the_reconstruction_is_independent_of_the_producer():
                 for n in ast.walk(ast.parse(source)) if isinstance(n, (ast.Import, ast.ImportFrom))
                 for a in (n.names if isinstance(n, ast.Import) else [n])}
     assert not imported & {"recurrence", "sessions", "update_checks", "runtime", "serving"}, imported
+
+
+# --- review of revision 3: corrupted controls, altered proofs, substituted contexts, unequal thresholds ----------
+def _harmless():
+    """The deterministic harmless-update fixture: a's operator changes to another non-target operator."""
+    c0, w1 = context(W0), world_with("harmless", a="operator_5")
+    dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", A, "operator_5"),))
+    return c0, c1, dep, w1
+
+
+def test_a_corrupted_naive_trace_fails_reconstruction_instead_of_counting_as_a_failure():
+    c0, c1, dep, w1 = _harmless()
+    naive = SS.continue_unchecked(paused(c0, 1), dep.active, BASE.types)
+    honest = check(naive, tables_of(c0, c1), w1)
+    assert honest["execution_valid"] and not honest["policy_valid"] and honest["unjustified_switch"]
+    assert honest["contract_violation"] is False and honest["no_version_outcome"] is False
+    tested_non_target = naive["state"]["visited"][1]  # a: tested, not the target
+    wrong_answer = copy.deepcopy(naive)
+    wrong_answer["state"]["status"], wrong_answer["state"]["answer"] = "answered", {
+        "type_id": "Airport", "value": tested_non_target, "type_version": 1}
+    unvisited = copy.deepcopy(naive)
+    unvisited["state"]["visited"].append(AIRPORTS[10])
+    for corrupted in (wrong_answer, unvisited):
+        r = check(corrupted, tables_of(c0, c1), w1)
+        assert not r["execution_valid"] and r["execution_problems"]
+        assert r["contract_violation"] is None and r["no_version_outcome"] is None  # never counted
+
+
+def test_every_field_of_a_migration_proof_is_rederived():
+    c0, w1 = context(W0), world_with("later", c=U_, d=T)
+    dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", C_, U_), ("operator_of", D_, T)))
+    diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, BASE.types)
+    good = SS.resume_migrate(paused(c0, 1), dep.active, diff, BASE.types)
+    assert good["migration"]["migrated"] and check(good, tables_of(c0, c1), w1)["ok"]
+    other = export(context(world_with("other", d=T)))
+    alterations = {
+        "difference identity": lambda r: r["migration"].__setitem__("difference", "wrong-difference"),
+        "prefix inputs": lambda r: r["migration"].__setitem__("prefix_inputs", []),
+        "revalidation count": lambda r: r["migration"].__setitem__("revalidated", 999),
+        "segment context": lambda r: r["segments"][1].__setitem__("context", other.identity),
+        "segment call index": lambda r: r["segments"][1].__setitem__("from_call", 999),
+        "segment application index": lambda r: r["segments"][1].__setitem__("from_application", 0),
+        "snapshot pair": lambda r: r["migration"].__setitem__("from", other.snapshot.digest),
+    }
+    for name, alter in alterations.items():
+        bad = copy.deepcopy(good)
+        alter(bad)
+        assert not check(bad, tables_of(c0, c1, other), w1)["ok"], name
+
+
+def test_restart_and_refused_migration_proofs_are_rederived():
+    c0, w1 = context(W0), world_with("witness", a=T, b=T)
+    dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", A, T), ("operator_of", B, T)))
+    diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, BASE.types)
+    p = paused(c0, 1)
+    restart, refused = SS.resume_restart(p, dep.active, BASE.types), SS.resume_migrate(p, dep.active, diff, BASE.types)
+    assert check(restart, tables_of(c0, c1), w1)["ok"] and check(refused, tables_of(c0, c1), w1)["ok"]
+    for record, alter in ((restart, lambda r: r["restarted_from"].__setitem__("calls", 2)),
+                          (restart, lambda r: r["restarted_from"].__setitem__("applications", 9)),
+                          (refused, lambda r: r["migration"].__setitem__("blocked_by", [["operator_of", C_]])),
+                          (refused, lambda r: r["migration"].__setitem__("difference", "wrong-difference"))):
+        bad = copy.deepcopy(record)
+        alter(bad)
+        assert not check(bad, tables_of(c0, c1), w1)["ok"]
+
+
+def test_pin_and_continuation_require_the_complete_recorded_context():
+    c0 = context(W0)
+    strict = [(f"q{i}", 0.9995, True) for i in range(400)] + [("w", 0.85, False)]
+    alternative = export(V.ServingContext(c0.snapshot, Q.certify(strict, EXPECT, c0.snapshot.digest), EXPECT,
+                                          W0.identity))  # same modules, another certificate
+    assert alternative.verify() and alternative.snapshot is c0.snapshot
+    assert c0.certificate.threshold == 0.0 and alternative.certificate.threshold == 0.9
+    p = paused(c0, 1)
+    with pytest.raises(SS.SessionRefused, match="complete context"):
+        SS.resume_pin(p, alternative, BASE.types)
+    with pytest.raises(SS.SessionRefused, match="serving context"):
+        SS.advance(p, alternative, BASE.types)
+    assert same_run(SS.resume_pin(p, c0, BASE.types), uninterrupted(c0))
+
+
+def certified_at(threshold):
+    """Calibration records whose fixed-sequence certificate selects `threshold` on EXPECT's grid."""
+    next_rule = {0.9: 0.85, 0.99: 0.95}[threshold]  # one error just below the selected rule stops the sequence
+    return [(f"q{i}", 0.9995, True) for i in range(400)] + [("err", next_rule, False)]
+
+
+def test_a_resumed_question_is_released_only_under_the_certificate_it_finishes_on():
+    from integrated import release as RL
+    w1 = world_with("later", c=U_, d=T)
+    c0 = context(W0, records=certified_at(0.9))
+    dep, c1, _, _ = deploy(c0, W0, w1, (("operator_of", C_, U_), ("operator_of", D_, T)))
+    assert (c0.certificate.threshold, c1.certificate.threshold) == (0.9, 0.0)
+    # the same S1 modules under a stricter certificate (the fixture grid is 0.999, 0.99, 0.9, 0.0, so 0.99 stands
+    # for the review's 0.98)
+    c1 = export(V.ServingContext(dep.active.snapshot, Q.certify(certified_at(0.99), EXPECT, dep.active.snapshot.digest),
+                                 EXPECT, w1.identity))
+    assert c1.certificate.threshold == 0.99
+    contexts = {c.identity: c for c in (c0, c1)}
+    diff, _, _ = SS.actual_difference(c0.snapshot, c1.snapshot, BASE.types)
+    admission = RL.admit(c0, 0.95)
+    assert admission["admitted"] and admission["threshold"] == 0.9
+    p = paused(c0, 1)
+    pin = RL.release(admission, SS.resume_pin(p, c0, BASE.types), contexts)
+    assert pin["released"] and pin["effective_threshold"] == 0.9 and pin["releasing_context"] == c0.identity
+    for record in (SS.resume_restart(p, c1, BASE.types), SS.resume_migrate(p, c1, diff, BASE.types)):
+        decision = RL.release(admission, record, contexts)
+        assert not decision["released"] and decision["effective_threshold"] == 0.99
+        assert decision["supporting_step"][0] == 0.99 and decision["reason"] == "below the effective threshold"
+        assert decision["releasing_context"] == c1.identity
+    high = RL.admit(c0, 0.995)
+    assert RL.release(high, SS.resume_restart(p, c1, BASE.types), contexts)["released"]
+    low = RL.admit(c0, 0.5)
+    assert not low["admitted"] and not RL.release(low, SS.resume_pin(p, c0, BASE.types), contexts)["released"]
