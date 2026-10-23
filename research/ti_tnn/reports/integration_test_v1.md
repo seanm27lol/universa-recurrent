@@ -116,8 +116,12 @@ per-world witness shows that the instrument detects them whenever the facts allo
 - **The update path:** a learned question → query → recurrence → pause → checked update → resume path kept every
   declared contract. That covers complete-context activation and rollback, binding of paused runs to complete
   contexts, exact pin and restart, proof-carrying migration, and release under the right certificate.
-- **On every exercised case:** these held on every exercised case, at every pause index and every budget, and
-  were rebuilt by a verifier independent of the producer.
+- **The scope of each check:**
+  - the declared episode sets passed at every exercised pause index (supplied episodes at budget 16,
+    interpreted episodes at their parsed budgets);
+  - separate exhaustive traversals covered budgets 1–16;
+  - the independent verifier reconstructed execution, policy equivalence and release decisions;
+  - activation mechanics and injected faults remain producer-record evidence.
 
 **It does not establish:**
 - **Learned robustness.** The learned parts were at the ceiling, and the five inits of a world behaved
@@ -184,3 +188,24 @@ The second command:
 - **wall time:** 9.5 hours for 15 units (1,639–2,968 s each). Another session's job on the machine slowed the
   later units; that job was logged and not acted on, and it does not affect results, which are deterministic
   on CPU.
+
+## Corrections (2026-10-23, after an outside review of #58)
+
+No reported number changed. The review downloaded the published session records and reconstructed all 15 units.
+It also bound every one of the 973,760 session records to its declared episode, and found no mismatch.
+
+| What changed | Why |
+|---|---|
+| **Session binding.** The verifier binds each embedded session to its declared episode: question, budget, relations, policy, snapshots and contexts, and pause index where the record carries one. For interpreted episodes, it also binds the item's proposed query and the release decision's score, contexts and certificates. A pin record is the uninterrupted C0 run whatever its pause index, so its content does not depend on it | The verifier checked that a record occupied a declared slot and that it verified on its own, but not that it belonged to that slot. A valid session for another question passed |
+| **The frozen inventory.** Frozen verification requires the frozen inventory and configuration (worlds 800–802 × inits 0–4, budgets 1–16, the recipe and the study constants) before verifying anything. No mode accepts an empty, repeated or incomplete inventory | Frozen mode had checked only the source binding. A run with no worlds or units verified as a complete success |
+| **Certificates and metadata.** Certificates must carry the expected alpha and delta, and in frozen mode the expectation must carry the frozen ones. Expectation and context identities are recomputed from their parts, and every interpreter record's split and category is checked against its regenerated draw | A certificate for another risk level, with consistent statistics, passed the certificate check |
+| **The scope sentence.** The sentence under "It establishes" now separates the scopes of the episode checks, the exhaustive traversals and the producer-record evidence | It had combined them |
+
+**The corrected verifier reproduced the bundled `verification.json` exactly** from the published evidence, with
+the session files staged as the release provides them. Each counterexample is a regression test, which the
+verifier merged in #58 accepted and the corrected verifier rejects:
+- a valid session from another case, both supplied and interpreted;
+- a restart from another pause index;
+- an empty run, a missing world, a missing init, a missing budget, a repeated unit and another configuration;
+- a re-derived certificate at another alpha.
+

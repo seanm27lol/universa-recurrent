@@ -197,3 +197,39 @@ def test_the_integration_test_bundle_is_bound_to_its_session_release(tmp_path):
         (tmp_path / a["name"]).write_bytes(b"not the sessions")
     with pytest.raises(ValueError, match="sha256"):
         tables.integration_test_tables(sessions_dir=tmp_path)
+
+
+def _verifier():
+    import sys
+    sys.path.insert(0, str(BUNDLE.parents[2] / "research" / "ti_tnn" / "bench"))
+    sys.path.insert(0, str(BUNDLE.parents[2] / "research" / "ti_tnn"))
+    import integration_test_verify as VF
+    return VF
+
+
+def test_frozen_verification_requires_the_complete_frozen_experiment(tmp_path):
+    """The review of #58: frozen mode accepted a run with no worlds or units. The published run is the frozen
+    design; every incomplete variant of its run.json is refused before any unit is verified."""
+    pytest.importorskip("torch")
+    import json
+    VF = _verifier()
+    run = json.loads((BUNDLE / "integration_test" / "20261022T205617" / "run.json").read_text())
+    assert VF.inventory_problems(run, development=False) == []
+    drop = lambda pred: [u for u in run["units"] if not pred(u)]
+    variants = {
+        "empty run": {**run, "worlds": {}, "units": []},
+        "missing world": {**run, "worlds": {k: v for k, v in run["worlds"].items() if k != "802"},
+                          "units": drop(lambda u: u["world"] == 802)},
+        "missing init": {**run, "units": drop(lambda u: u["init"] == 4)},
+        "missing budget": {**run, "config": {**run["config"], "exhaustive_budgets": [b for b in range(1, 17) if b != 7]}},
+        "repeated unit": {**run, "units": run["units"] + run["units"][:1]},
+        "another configuration": {**run, "config": {**run["config"], "update_steps": 100}},
+    }
+    for name, variant in variants.items():
+        assert VF.inventory_problems(variant, development=False), name
+        d = tmp_path / name.replace(" ", "_")
+        d.mkdir()
+        (d / "run.json").write_text(json.dumps(variant))
+        with pytest.raises(VF.VerificationError):
+            VF.verify(d)
+    assert VF.inventory_problems({**run, "worlds": {}, "units": []}, development=True)  # never accepted, in any mode

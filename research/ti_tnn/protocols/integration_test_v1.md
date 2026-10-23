@@ -389,3 +389,20 @@ It is a development diagnostic, like the pilot.
   certificate selected threshold 0.0. The five inits of each world have identical atomic tables, so the
   construction checks are replicated over three worlds, not 15 independent units.
 - **Deviations from this protocol:** none.
+
+## Verifier corrections (appended 2026-10-23, after the review of #58)
+
+The analysis code `bench/integration_test_verify.py` was strengthened after the run, in response to the review.
+The producer files and the run are unchanged; the verifier is not among `FROZEN_SOURCES`.
+
+It now additionally requires:
+- **session binding:** every embedded session belongs to its declared episode, and, for an interpreted episode,
+  to its item and release decision;
+- **the frozen inventory:** in frozen mode, the frozen inventory and configuration, before anything is verified;
+- **certificates:** the expected alpha and delta (frozen: 0.01 and 0.05);
+- **identities:** recomputed expectation and context identities;
+- **metadata:** draw split and category matching the regenerated draws.
+
+**The result.** On the published evidence the corrected verifier reproduces the bundled `verification.json`
+exactly. No verdict changed.
+
