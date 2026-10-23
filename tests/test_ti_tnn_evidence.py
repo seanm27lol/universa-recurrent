@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 408
+    assert len(manifest["files"]) == 516
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
                    if not f["path"].endswith(".gz"))  # no local paths
     import gzip
@@ -182,3 +182,18 @@ def test_s2_trace_release_is_bound_to_the_committed_hashes(tmp_path):
         (tmp_path / a["name"]).write_bytes(b"not the trace")
     with pytest.raises(ValueError, match="sha256"):
         tables.s2_diagnosis_tables(quick=True, traces_dir=tmp_path)
+
+
+def test_the_integration_test_bundle_is_bound_to_its_session_release(tmp_path):
+    import json
+    root = BUNDLE / "integration_test"
+    release = json.loads((root / "session_release.json").read_text())
+    assert len(release["assets"]) == 15 and len({a["name"] for a in release["assets"]}) == 15
+    verification = json.loads((root / "verification.json").read_text())
+    assert verification["verified"] and verification["commit"].startswith("e03075a")
+    assert verification["verdict"]["construction_every_unit"] and not verification["verdict"]["construction_not_exercised"]
+    assert all(v == {"800": 5, "801": 5, "802": 5} for v in verification["verdict"]["learned_successes_by_world"].values())
+    for a in release["assets"]:  # a downloaded set whose bytes differ from the committed hashes is refused
+        (tmp_path / a["name"]).write_bytes(b"not the sessions")
+    with pytest.raises(ValueError, match="sha256"):
+        tables.integration_test_tables(sessions_dir=tmp_path)
