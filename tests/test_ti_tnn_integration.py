@@ -222,3 +222,62 @@ def test_every_deliberate_corruption_of_the_export_is_rejected(runs, tmp_path, n
         return  # the export does not re-derive
     # a self-consistent record of a forbidden or unfaithful execution: a construction failure, never a pass
     assert not out["verdict"]["construction_every_unit"], name
+
+
+# --- review of #58: internally valid records in the wrong place, and certificate risk settings ------------------
+def _rewrite_sessions(path, transform):
+    lines = [json.loads(x) for x in gzip.open(path, "rt").read().splitlines()]
+    transform(lines)
+    with gzip.open(path, "wt") as f:
+        f.write("".join(json.dumps(x) + "\n" for x in lines))
+
+
+@pytest.mark.parametrize("condition", ["supplied", "interpreted"])
+def test_a_valid_session_from_another_case_is_rejected(runs, tmp_path, condition):
+    """The review's counterexample: keep an episode's header, substitute an internally valid session (same policy,
+    pause index and branch) from another question. Each record still verifies on its own."""
+    bad = tmp_path / "run"
+    shutil.copytree(runs["ceiling"], bad)
+
+    def swap(lines):
+        pins = [x for x in lines if x["policy"] == "pin" and x["condition"] == condition and x["k"] == 0]
+        first = pins[0]
+        other = next(x for x in pins if x["query"] != first["query"] and x["branch"] == first["branch"])
+        first["record"] = other["record"]  # a valid pin session for another question
+        if condition == "interpreted":
+            first["release"] = other["release"]
+    _rewrite_sessions(bad / "units" / "w100_i100" / "sessions.jsonl.gz", swap)
+    with pytest.raises(VF.VerificationError, match="another question|proposed query"):
+        _with_small_constants(lambda: VF.verify(bad, development=True))
+
+
+def test_a_restart_session_from_another_pause_index_is_rejected(runs, tmp_path):
+    bad = tmp_path / "run"
+    shutil.copytree(runs["ceiling"], bad)
+
+    def swap(lines):
+        restarts = [x for x in lines if x["policy"] == "restart" and x["condition"] == "supplied"]
+        first = next(x for x in restarts if any(y["query"] == x["query"] and y["branch"] == x["branch"]
+                                                and y["k"] != x["k"] for y in restarts))
+        other = next(y for y in restarts if y["query"] == first["query"] and y["branch"] == first["branch"]
+                     and y["k"] != first["k"])
+        first["record"] = other["record"]  # the same question restarted, but from another pause index
+    _rewrite_sessions(bad / "units" / "w100_i100" / "sessions.jsonl.gz", swap)
+    with pytest.raises(VF.VerificationError, match="pause index"):
+        _with_small_constants(lambda: VF.verify(bad, development=True))
+
+
+def test_a_certificate_for_another_risk_level_is_rejected(runs):
+    """The review's counterexample: alpha changed from 0.01 to 0.10 with every statistical field recomputed
+    consistently. The fixed-sequence result re-derives, but the risk level is not the one expected."""
+    import interpreter_robustness_verify as RV
+    unit = runs["ceiling"] / "units" / "w100_i100"
+    certs = json.loads(gzip.open(unit / "certificates.json.gz", "rt").read())
+    expected = json.loads((unit / "unit.json").read_text())["expectation"]
+    cert = dict(next(iter(certs.values())))
+    records = [list(r) for r in cert["records"]]
+    again = RV.certificate([r[1] for r in records], [r[2] for r in records], tuple(cert["grid"]), 0.10, cert["delta"])
+    forged = {**cert, "alpha": 0.10, "steps": [list(s) for s in again["steps"]], "threshold": again["threshold"],
+              "certified": again["certified"], "stop_reason": again["stop_reason"]}
+    assert VF.certificate_problems(cert, records, expected, cert["snapshot_digest"]) == []
+    assert any("alpha" in p for p in VF.certificate_problems(forged, records, expected, cert["snapshot_digest"]))

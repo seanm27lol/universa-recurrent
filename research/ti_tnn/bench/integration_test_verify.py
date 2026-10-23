@@ -25,6 +25,17 @@ verification").
 | **Differences and contexts** | the actual difference of every branch, and its classes; context and certificate bindings |
 | **Witness** | rebuilt from the world's facts |
 
+**What it requires before and around the re-derivation** (added after the review of #58):
+- **The experiment.** In frozen mode, the run must be the frozen design: worlds 800–802 × inits 0–4, budgets
+  1–16, the recipe and the study constants. This is checked before anything is verified. No mode accepts an
+  empty, repeated or incomplete inventory.
+- **Session binding.** Every embedded session must belong to its declared episode: question, budget,
+  relations, policy, snapshots and contexts, and the pause index wherever the record carries one. An
+  interpreted session must also belong to its item's proposed query and release decision.
+- **Certificates and identities.** Every certificate carries the expected alpha and delta (in frozen mode,
+  0.01 and 0.05). Expectation and context identities are recomputed from their parts, and draw metadata
+  matches the regenerated draws.
+
 **What it cannot re-derive** from weight-free records, and reports as the producer's own record:
 - the update gates;
 - the activation and rollback mechanics (C4); their recorded identities are checked for consistency;
@@ -71,6 +82,46 @@ FROZEN_SOURCES = {
 
 class VerificationError(AssertionError):
     pass
+
+
+# The frozen design (protocols/integration_test_v1.md, revision 4). Frozen mode requires the run to be exactly
+# this experiment: the declared worlds, inits and configuration, and the generator's study constants.
+FROZEN_DESIGN = {"worlds": [800, 801, 802], "inits": [0, 1, 2, 3, 4], "countries": 48, "interpreter_updates": 1500,
+                 "d": 32, "hidden": 64, "steps": 1500, "lr": 1e-2, "update_steps": 300, "update_lr": 3e-3,
+                 "exhaustive_budgets": list(range(1, 17))}
+FROZEN_STUDY = {"SIZES": {"calibration": 1000, "test": 1000, "default_diagnostic": 300},
+                "BRANCH_KINDS": {"operator": 4, "route": 4, "two_fact": 4}, "EPISODE_UNAFFECTED": 200,
+                "INTERPRETED_UNAFFECTED": 50,
+                "GRID": (0.999, 0.995, 0.99, 0.98, 0.95, 0.9, 0.8, 0.6, 0.4, 0.2, 0.0),
+                "POLICY_VERSION": "ti_tnn_query_policy_v1", "EVENT_VERSION": "ti_tnn_integration_event_v1"}
+FROZEN_RISK = {"alpha": 0.01, "delta": 0.05}
+
+
+def inventory_problems(run: dict, development: bool) -> list[str]:
+    """The run must be the declared experiment, checked before any unit is verified. Frozen mode requires the
+    frozen design exactly; development mode requires a non-empty, complete, duplicate-free worlds x inits
+    inventory as the run declares it."""
+    problems, cfg = [], run["config"]
+    pairs = [(u["world"], u["init"]) for u in run["units"]]
+    if not run["worlds"] or not pairs:
+        problems.append("the run has no worlds or no units")
+    if len(set(pairs)) != len(pairs):
+        problems.append("the run repeats a unit")
+    if sorted(pairs) != sorted((int(w), i) for w in run["worlds"] for i in cfg["inits"]):
+        problems.append("the unit inventory is not the declared worlds x inits")
+    if sorted(int(w) for w in run["worlds"]) != sorted(cfg["worlds"]):
+        problems.append("the worlds run are not the declared worlds")
+    if not development:
+        for key, value in FROZEN_DESIGN.items():
+            if cfg.get(key) != value:
+                problems.append(f"config {key} is {cfg.get(key)!r}, frozen {value!r}")
+        if sorted(int(w) for w in run["worlds"]) != FROZEN_DESIGN["worlds"] or sorted(pairs) != sorted(
+                (w, i) for w in FROZEN_DESIGN["worlds"] for i in FROZEN_DESIGN["inits"]):
+            problems.append("the run is not the frozen inventory: worlds 800-802 x inits 0-4, 15 units")
+        for name, value in FROZEN_STUDY.items():
+            if getattr(IT, name) != value:
+                problems.append(f"the generator's {name} differs from the frozen design")
+    return problems
 
 
 def _load(path: Path):
@@ -137,6 +188,52 @@ def release_rule(admitting: dict, releasing: dict, same: bool) -> tuple:
     return (t, step) if step is not None else (None, None)
 
 
+def session_binding_problems(line: dict, rec: dict, c0: str, s0: str, branch: dict, row: dict | None,
+                             certs: dict) -> list[str]:
+    """The embedded session must be the declared episode's own: its question, budget, relations and policy; its
+    snapshots and contexts (C0, then this branch's C1); and its pause index, wherever the record carries one (a
+    pin record finishes the uninterrupted C0 run whatever the pause index, so its content does not depend on it).
+    For an interpreted episode, the question must be that item's proposed query, and the release decision must
+    name the admitting and releasing contexts and certificates it was made under."""
+    out = []
+    s, t, budget = line["query"]
+    q = rec.get("state", {}).get("query", {})
+    if (q.get("start", {}).get("value"), q.get("target", {}).get("value"), q.get("step_relation"),
+            q.get("test_relation"), rec.get("budget")) != (s, t, "connects_to", "operator_of", budget):
+        out.append("the embedded session asks another question")
+    if rec.get("policy") != line["policy"]:
+        out.append("the embedded session ran another policy")
+    c1, s1, k = branch["context"], branch["snapshot"], line["k"]
+    seg = [(x.get("snapshot"), x.get("context"), x.get("how")) for x in rec.get("segments", [])]
+    rf = rec.get("restarted_from")
+    fresh_on_c1 = seg == [(s1, c1, "start")] and isinstance(rf, dict) and (rf.get("snapshot"), rf.get("context"),
+                                                                          rf.get("calls")) == (s0, c0, k)
+    switched = (len(seg) == 2 and seg[0] == (s0, c0, "start") and seg[1][:2] == (s1, c1)
+                and rec["segments"][1].get("from_call") == k)
+    m = rec.get("migration") or {}
+    expected = {"pin": seg == [(s0, c0, "start")] and rf is None,
+                "restart": fresh_on_c1,
+                "migrate": (switched and seg[1][2] == "migrate") if m.get("migrated") else fresh_on_c1,
+                "naive": switched and seg[1][2] == "unchecked"}.get(line["policy"], False)
+    if not expected:
+        out.append("the embedded session's snapshots, contexts or pause index are not this episode's")
+    if row is not None:
+        if row["decision"].get("query") != [s, t, budget]:
+            out.append("the session is not this item's proposed query")
+        rel = line.get("release")
+        if line["policy"] == "naive":
+            if rel is not None:
+                out.append("naive continuation carries a release decision")
+        elif rel is None or (rel.get("admitting_context"), rel.get("admitting_certificate"), rel.get("releasing_context"),
+                             rel.get("releasing_certificate"), rel.get("score")) != (
+                c0, content_identity(certs[c0]), seg[-1][1] if seg else None,
+                content_identity(certs[seg[-1][1]]) if seg and seg[-1][1] in certs else None, row["score"]):
+            out.append("the release decision does not name this item's score, contexts and certificates")
+    elif line.get("item") is not None or line.get("release") is not None:
+        out.append("a supplied episode carries an item or a release decision")
+    return out
+
+
 def certificate_problems(cert: dict, records: list, expected: dict, snapshot: str) -> list[str]:
     """A certificate re-derived independently from its re-labelled records, and bound to its context."""
     problems = []
@@ -148,7 +245,7 @@ def certificate_problems(cert: dict, records: list, expected: dict, snapshot: st
             (again["threshold"], again["certified"], again["stop_reason"]) != (cert["threshold"], cert["certified"],
                                                                                cert["stop_reason"]):
         problems.append("its fixed-sequence result does not re-derive")
-    for k in ("interpreter_identity", "policy_version", "event_version", "distribution_identity"):
+    for k in ("interpreter_identity", "policy_version", "event_version", "distribution_identity", "alpha", "delta"):
         if cert[k] != expected[k]:
             problems.append(f"bound to another {k}")
     if list(cert["grid"]) != list(expected["grid"]) or cert["snapshot_digest"] != snapshot:
@@ -157,7 +254,8 @@ def certificate_problems(cert: dict, records: list, expected: dict, snapshot: st
 
 
 # --- one unit ------------------------------------------------------------------------------------------------------
-def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: list, budgets) -> dict:
+def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: list, budgets,
+                development: bool = False) -> dict:
     d = run_dir / info["path"]
     unit = json.loads((d / "unit.json").read_text())
     tag = f"w{info['world']} i{info['init']}"
@@ -174,6 +272,21 @@ def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: lis
 
     if [r["id"] for r in rows] != [x["id"] for x in draws]:
         fail("the interpreter records are not exactly the study's draws")
+    elif any((r["split"], r["category"]) != (items[r["id"]]["split"], items[r["id"]]["category"]) for r in rows):
+        fail("an interpreter record's split or category is not its regenerated draw's")
+    if (unit["world"], unit["init"]) != (info["world"], info["init"]):
+        fail("unit.json is not the unit the run lists")
+    if len(unit["branches"]) != sum(IT.BRANCH_KINDS.values()):
+        fail("the unit does not hold every declared branch")
+    exp_fields = ("interpreter_identity", "policy_version", "event_version", "distribution_identity", "alpha", "delta")
+    if content_identity({**{k: expected[k] for k in exp_fields}, "grid": list(expected["grid"])}) != expected["identity"]:
+        fail("the expectation's identity does not re-derive")
+    if expected["distribution_identity"] != study["distribution_identity"] or \
+            (expected["policy_version"], expected["event_version"], tuple(expected["grid"])) != (
+            IT.POLICY_VERSION, IT.EVENT_VERSION, tuple(IT.GRID)):
+        fail("the expectation is not the study's distribution, policy, event and grid")
+    if not development and (expected["alpha"], expected["delta"]) != (FROZEN_RISK["alpha"], FROZEN_RISK["delta"]):
+        fail("the expectation's risk settings are not the frozen alpha and delta")
     for ctx_id, ctx in contexts.items():
         cert = certs.get(ctx_id) and certs[ctx_id]
         if cert is None or content_identity(cert) != ctx["certificate"] or ctx["snapshot"] not in tables:
@@ -182,6 +295,16 @@ def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: lis
     worlds = {c0: world}
     for b in unit["branches"]:
         worlds[b["context"]] = IT.edited(world, f"branch{b['index']}", b["changes"])
+    for ctx_id, ctx in contexts.items():
+        if content_identity({"snapshot": ctx["snapshot"], "certificate": ctx["certificate"],
+                             "expectation": ctx["expectation"], "world": ctx["world"]}) != ctx_id:
+            fail(f"context {ctx_id[:12]}: its identity does not re-derive from its parts")
+        if ctx["expectation"] != expected["identity"] or ctx_id not in worlds or \
+                ctx["world"] != worlds[ctx_id].identity:
+            fail(f"context {ctx_id[:12]}: not bound to this unit's expectation and its world")
+    if contexts.get(c0, {}).get("snapshot") != unit["c0"]["s0_digest"] or any(
+            contexts.get(b["context"], {}).get("snapshot") != b["snapshot"] for b in unit["branches"]):
+        fail("a context does not hold the snapshot its unit record names")
     exported = {k: {"snapshot": v["snapshot"]} for k, v in contexts.items()}
     # interpreter records: decisions, results, labels, certificates, releases
     parse_exact = Counter()
@@ -322,6 +445,11 @@ def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: lis
             continue
         b, condition = slot
         policy, rec, c = line["policy"], line["record"], totals[condition]
+        binding = session_binding_problems(line, rec, c0, contexts[c0]["snapshot"], b,
+                                           rows_by_id.get(line["item"]) if condition == "interpreted" else None, certs)
+        if binding:
+            fail(f"branch {b['index']} {condition} {key[3]} k={key[4]} {policy}: {binding[0]}")
+            continue
         check = SV.check_session(rec, tables, worlds[c0] if policy == "pin" else worlds[b["context"]],
                                  contexts=exported)
         c["records"] += 1
@@ -385,6 +513,9 @@ def verify(run_dir: Path, development: bool = False) -> dict:
         prov = run["provenance"]
         if prov["sha256"] != FROZEN_SOURCES or prov["research_tree_dirty"] is not False:
             problems.append("the run is not bound to the frozen source (producer-file hashes or a modified tree)")
+    problems += inventory_problems(run, development)
+    if problems:  # nothing is verified for a run that is not the declared experiment
+        raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
     cfg = run["config"]
     units, worlds_out = [], {}
     for wseed, winfo in run["worlds"].items():
@@ -410,11 +541,9 @@ def verify(run_dir: Path, development: bool = False) -> dict:
                              and exported_witness.get("naive_execution_valid") is True
                              and exported_witness.get("policies_ok") is True}
         for info in [u for u in run["units"] if str(u["world"]) == wseed]:
-            units.append(verify_unit(run_dir, info, world, study, branches, problems, cfg["exhaustive_budgets"]))
+            units.append(verify_unit(run_dir, info, world, study, branches, problems, cfg["exhaustive_budgets"],
+                                     development))
     inits = sorted({u["init"] for u in run["units"]})
-    if sorted((u["world"], u["init"]) for u in run["units"]) != sorted(
-            (int(w), i) for w in run["worlds"] for i in cfg["inits"]):
-        problems.append("the unit inventory is not the declared worlds x inits")
     by_world = {w: [u for u in units if u["unit"].startswith(f"w{w} ")] for w in run["worlds"]}
     learned = {p: {w: sum(u[p] for u in us) for w, us in by_world.items()} for p in ("L1", "L2", "L3", "L4")}
     need = 4 if len(inits) == 5 else len(inits)
