@@ -53,7 +53,20 @@ from integrated.contracts import content_identity  # noqa: E402
 
 RESULT_REASONS = ("found", "dead end", "cycle", "budget exhausted")
 COVERAGE, ERROR_BOUND, REFUSAL = 0.90, 0.01, 0.95
-FROZEN = {"commit": None, "sha256": None}  # set in the freezing commit
+# The producer files as hashed into every run (integration_test.SOURCES), fixed in the freezing commit of
+# protocols/integration_test_v1.md revision 4. The run records its commit; a commit cannot name itself.
+FROZEN_SOURCES = {
+    "integration_test.py": "b9482de81ff982db89bc3a074cbd5bfb87b11d898c1c380a09be6d4d36cdc138",
+    "../integrated/sessions.py": "c355f59abd5a250d362e45c0540af5d0c097c06cae7c0d0855ba5e74d9c413b8",
+    "../integrated/session_verification.py": "9cbb118601a17231e2504d7926da1da86db7eae1298ad00fd88bd68fcfb3fc96",
+    "../integrated/serving.py": "c31ef561c55d7d31c163a522ba3bd456054f804bfc420cacac374a736e2248a5",
+    "../integrated/certificates.py": "a5f2abe037f4c9808633764d3e4df5c8a492a8d437bd01ef22c2980a39e32513",
+    "../integrated/update_checks.py": "3f26b74e352b9c9fd0005893d610fbfa961825c1a863c7bfdd27c11204361592",
+    "../integrated/query_interpreter.py": "18f759b207bad575fc2d924c5861553ccbf1d01a562c84157db56d36ae360194",
+    "../integrated/recurrence.py": "a9f4809e822b5b3a79aebdd0c5dfb8e85189571c67b07fbb707de99fb8cf2fdc",
+    "../integrated/modules.py": "fe89f275281579b666f12c5d452d5911c6448b68ae4bf6cc74c19e38647622c7",
+    "../integrated/release.py": "18ae8669793a7569a303805e688022fd84eba62661cd598544ef619837fd9a11",
+}
 
 
 class VerificationError(AssertionError):
@@ -370,9 +383,8 @@ def verify(run_dir: Path, development: bool = False) -> dict:
     problems = []
     if not development:
         prov = run["provenance"]
-        if FROZEN["commit"] is None or prov["commit"] != FROZEN["commit"] or prov["sha256"] != FROZEN["sha256"] \
-                or prov["research_tree_dirty"]:
-            problems.append("the run is not bound to the frozen source")
+        if prov["sha256"] != FROZEN_SOURCES or prov["research_tree_dirty"] is not False:
+            problems.append("the run is not bound to the frozen source (producer-file hashes or a modified tree)")
     cfg = run["config"]
     units, worlds_out = [], {}
     for wseed, winfo in run["worlds"].items():
@@ -416,7 +428,8 @@ def verify(run_dir: Path, development: bool = False) -> dict:
     }
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
-    return {"verified": True, "verdict": verdict, "worlds": worlds_out, "units": units}
+    return {"verified": True, "commit": run["provenance"]["commit"], "verdict": verdict, "worlds": worlds_out,
+            "units": units}
 
 
 def main(argv=None):

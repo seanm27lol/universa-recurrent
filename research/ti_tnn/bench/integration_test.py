@@ -35,7 +35,11 @@ Once per world, it runs **the deterministic two-fact witness** (with table modul
 - `episodes.jsonl.gz` (compact rows) and `sessions.jsonl.gz` (every full session record, with its release
   decision).
 
-**Worlds 800–802 are refused** until the protocol is frozen, and this check is removed in the freezing commit.
+**The confirmation** (protocols/integration_test_v1.md, frozen revision 4) runs worlds 800–802 × inits 0–4 from
+the freezing commit:
+
+    CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 .venv-phase2/bin/python research/ti_tnn/bench/integration_test.py \
+        --worlds 800 801 802 --inits 0 1 2 3 4 --out runs/titnn_integration_confirmation
 """
 from __future__ import annotations
 
@@ -72,7 +76,6 @@ from integrated import update_checks as U  # noqa: E402
 from integrated import updates as D  # noqa: E402
 from integrated.contracts import content_identity  # noqa: E402
 
-RESERVED_WORLDS = (800, 801, 802)
 GENERATOR_VERSION = "ti_tnn_integration_study_v1"
 POLICY_VERSION = "ti_tnn_query_policy_v1"
 EVENT_VERSION = "ti_tnn_integration_event_v1"
@@ -837,8 +840,6 @@ def run(args, out: Path) -> dict:
 
 def main(argv=None):
     args = parse_args(argv)
-    if set(args.worlds) & set(RESERVED_WORLDS):
-        raise SystemExit("worlds 800-802 are reserved until the protocol is frozen")
     torch.set_num_threads(args.threads)
     out = args.out / time.strftime("%Y%m%dT%H%M%S")
     out.mkdir(parents=True, exist_ok=False)
