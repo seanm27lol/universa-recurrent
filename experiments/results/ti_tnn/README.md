@@ -48,6 +48,7 @@ records the declared source version and command.
 | `interpreter_robustness/` | 18 (aggregate summaries, `verdict.json`, 15 per-unit decision-record files as gzip-compressed JSON, the verifier's output; about 16 MB) | [brief](../../../research/ti_tnn/protocols/interpreter_robustness_v1.md) | [report](../../../research/ti_tnn/reports/interpreter_robustness_v1.md) | `69b7fd7` (frozen; committed immediately before the run) |
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 | `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
+| `integration_test/` | 108: the run summary; the 15 units' export (unit summaries, interpreter draws, atomic tables, certificates, contexts, exhaustive digests, episode rows); `verification.json`; `session_release.json` | [protocol](../../../research/ti_tnn/protocols/integration_test_v1.md) | [report](../../../research/ti_tnn/reports/integration_test_v1.md) | `e03075a` (frozen; recorded in the run) |
 | `s2_diagnosis/` (historical, development) | 36 (the classification of the robustness records; 24 development fits' summaries and decision records; arm A's six trace files; the development analysis; `local_traces.json`; `trace_release.json`) | [brief](../../../research/ti_tnn/protocols/s2_diagnosis_brief.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `6435719` (analysis); `ece0f86` (arm A); `d991d12` (B, C, D); recorded in each run |
 | `s2_diagnosis/confirmation*` | 47 (45 fits' decision records, the run summary and the analysis with the frozen verdict) | [protocol](../../../research/ti_tnn/protocols/s2_context_confirmation_v1.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `07bb97e` (frozen; recorded in the run) |
 
@@ -95,6 +96,14 @@ refers to, and `make_tables.py` uses it there.
   The second command refuses any file whose sha256 differs from the committed one, and checks every trace
   against its decision records.
 - **Checkpoints** were written locally and are weights, so they are excluded.
+
+**Integration test.**
+- **Sessions as release assets.** The 15 full session-record files (70.9 MB) are assets of the release
+  `ti-tnn-integration-test-sessions-v1`, and `integration_test/session_release.json` gives their sha256.
+- **Rebuilding.** Download them, then run `make_tables.py --integration-sessions <dir>`. That checks each
+  file, stages it next to the bundled export, and re-runs the frozen independent verifier, which must
+  reproduce `verification.json`.
+- **Without the assets,** `make_tables.py` reports the bundled verification.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

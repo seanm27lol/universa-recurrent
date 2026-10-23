@@ -1,0 +1,115 @@
+{
+ "description": "Every full session record of the integration-test confirmation (one gzip-compressed JSON-lines file per unit), published as GitHub release assets because of their size. Each asset is a byte-identical copy of the run's file; make_tables.py --integration-sessions checks it against the sha256 here before staging it next to the bundled export.",
+ "repository": "seanm27lol/universa-recurrent",
+ "tag": "ti-tnn-integration-test-sessions-v1",
+ "run": "20261022T205617",
+ "download": "gh release download ti-tnn-integration-test-sessions-v1 --repo seanm27lol/universa-recurrent --dir integration_sessions",
+ "reconstruct": "python experiments/results/ti_tnn/make_tables.py --integration-sessions integration_sessions",
+ "assets": [
+  {
+   "name": "20261022T205617.w800_i0.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/sessions.jsonl.gz",
+   "unit": "w800_i0",
+   "sha256": "8136c77b34186ffaff042bb5226db24a75ed4046b8918d981253a2319236428c",
+   "bytes": 3027092
+  },
+  {
+   "name": "20261022T205617.w800_i1.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/sessions.jsonl.gz",
+   "unit": "w800_i1",
+   "sha256": "1e5b0f5010ffbfd44cb723eac5a15788540ebb43e7b4da4db039d3dce5707639",
+   "bytes": 3026754
+  },
+  {
+   "name": "20261022T205617.w800_i2.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/sessions.jsonl.gz",
+   "unit": "w800_i2",
+   "sha256": "dd4b69da72c4c4341f1dde1cd0a27adac2068852dc3dfa5bdfabf924c10af34c",
+   "bytes": 3026931
+  },
+  {
+   "name": "20261022T205617.w800_i3.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/sessions.jsonl.gz",
+   "unit": "w800_i3",
+   "sha256": "fe56d7e47758b26b90ce0b958d664610227d6bcfb92faef5a2459fff031c6b6c",
+   "bytes": 3027206
+  },
+  {
+   "name": "20261022T205617.w800_i4.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/sessions.jsonl.gz",
+   "unit": "w800_i4",
+   "sha256": "20f81f227897a5729e70c9e17fe33ff745926618d4c68a19eb6df21972659a68",
+   "bytes": 3027806
+  },
+  {
+   "name": "20261022T205617.w801_i0.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/sessions.jsonl.gz",
+   "unit": "w801_i0",
+   "sha256": "00d638dc68bc1835d6c63efa18727a70a671c5036f66db3afd163a9237d5042a",
+   "bytes": 5339835
+  },
+  {
+   "name": "20261022T205617.w801_i1.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/sessions.jsonl.gz",
+   "unit": "w801_i1",
+   "sha256": "96beb6384986b347107e928add534cbc62cf395611eace96d5054de462c9f3bb",
+   "bytes": 5334828
+  },
+  {
+   "name": "20261022T205617.w801_i2.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/sessions.jsonl.gz",
+   "unit": "w801_i2",
+   "sha256": "be594298fcc7e0a6855c654c45b99307af928ade51a1d6a62d0f2a609e5f29bf",
+   "bytes": 5337024
+  },
+  {
+   "name": "20261022T205617.w801_i3.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/sessions.jsonl.gz",
+   "unit": "w801_i3",
+   "sha256": "a6b05ad353132cfba290d6c7df7ff3bc3ae1a2aad8b67835a8eef422cc017f66",
+   "bytes": 5337684
+  },
+  {
+   "name": "20261022T205617.w801_i4.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/sessions.jsonl.gz",
+   "unit": "w801_i4",
+   "sha256": "943cf37489d5a913b5e45a88a9b9117daaa3cc5e3e8afc4973b6625d977430b5",
+   "bytes": 5338269
+  },
+  {
+   "name": "20261022T205617.w802_i0.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/sessions.jsonl.gz",
+   "unit": "w802_i0",
+   "sha256": "48045bec10743ae71686b5c6738df8b46f0bbc4075da2ac016f787f9690853bc",
+   "bytes": 5817555
+  },
+  {
+   "name": "20261022T205617.w802_i1.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/sessions.jsonl.gz",
+   "unit": "w802_i1",
+   "sha256": "71b43ee867848d38602017160181c4b5059b9998258306b57bbc2f13f056f26b",
+   "bytes": 5819632
+  },
+  {
+   "name": "20261022T205617.w802_i2.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/sessions.jsonl.gz",
+   "unit": "w802_i2",
+   "sha256": "aad614f156d650fb3daf8f717144be8504a5135a59c1af3f4e25d01942fe2b80",
+   "bytes": 5815708
+  },
+  {
+   "name": "20261022T205617.w802_i3.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/sessions.jsonl.gz",
+   "unit": "w802_i3",
+   "sha256": "425ee852d6f0047854f90afd7af96e4e472a2155d56f81d32b29d93fa6829774",
+   "bytes": 5817408
+  },
+  {
+   "name": "20261022T205617.w802_i4.sessions.jsonl.gz",
+   "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/sessions.jsonl.gz",
+   "unit": "w802_i4",
+   "sha256": "73c2882dece148ff22f039663ce7ea4bf9e666fe9da81e076b694519b6adb5ae",
+   "bytes": 5819353
+  }
+ ]
+}

@@ -148,6 +148,13 @@
       "report": "research/ti_tnn/reports/s2_diagnosis_v1.md",
       "source": "07bb97e (frozen; committed immediately before the run; recorded in the run)",
       "command": "python research/ti_tnn/bench/s2_development.py --arms A B C --worlds 710 711 712 --inits 200 201 202 203 204 --out runs/titnn_s2_diagnosis/confirmation; python research/ti_tnn/bench/s2_development_analysis.py <run> --out <dir>"
+    },
+    "integration_test": {
+      "what": "Integration test confirmation: route worlds 800-802 x inits 0-4 (15 units), each with S0 and twelve update branches; the complete export (interpreter draws with parses, scores and release decisions; atomic tables, certificates, serving contexts, exhaustive digests, branch records, compact episode rows) and the independent verifier's output. Full session records are release assets (session_release.json)",
+      "protocol": "research/ti_tnn/protocols/integration_test_v1.md",
+      "report": "research/ti_tnn/reports/integration_test_v1.md",
+      "source": "e03075a (frozen revision 4; committed immediately before the run; recorded in the run)",
+      "command": "python research/ti_tnn/bench/integration_test.py --worlds 800 801 802 --inits 0 1 2 3 4 --out runs/titnn_integration_confirmation; python research/ti_tnn/bench/integration_test_verify.py <run>"
     }
   },
   "files": [
@@ -3278,6 +3285,762 @@
       "original_path": null,
       "sha256": "c01a57aad3865332cfc765bce8914cde45456448f9f3c388968c53c2aeebc2cb",
       "bytes": 17980
+    },
+    {
+      "path": "integration_test/20261022T205617/run.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/run.json",
+      "sha256": "9ad09da533162d1d7e7c538669e55ef0248b5b8aebbd61d4d21538d61c2c4dd8",
+      "bytes": 11322
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/certificates.json.gz",
+      "sha256": "cd48ecb240a05c289949abab94606a36d5082d9a2a75bbe38fd20338268dd6c1",
+      "bytes": 111657
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/contexts.json.gz",
+      "sha256": "964b34db7d47322e73036dd85386c9228ecfda5e74bffbfafbe5a7e7a93b1e2f",
+      "bytes": 2204
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/episodes.jsonl.gz",
+      "sha256": "f08e207c05c61b946ebd9a20bd789ea777890e5659549b202f6294b8d94f82b0",
+      "bytes": 207813
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/exhaustive.json.gz",
+      "sha256": "5e060fb755cc457308925e94dfff189bcbd52aba9e237e6db4e6a6eab6f81d34",
+      "bytes": 87099
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/interpreter.json.gz",
+      "sha256": "e4a07bc555136f819c2144f5fc990232c1d54de8659723ed6830e52b73497ca0",
+      "bytes": 336708
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/tables.json.gz",
+      "sha256": "88129bf99514a270a885c49099b54bf709444f246172cf6250f491350ace415d",
+      "bytes": 37395
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i0/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i0/unit.json",
+      "sha256": "c70a65c3c54086e8d57c816754297af89ce5fb7a66c50e59d28bf5b485de2bc8",
+      "bytes": 45863
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/certificates.json.gz",
+      "sha256": "ee11b29fbd9fdfe3823315dceaabbdd00b85facb4b1fa9f1a948fec7a0369004",
+      "bytes": 115274
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/contexts.json.gz",
+      "sha256": "04b643b76272d7e75680f07ef9399510e85cb0e5025aa53bac4291b747c4dcd4",
+      "bytes": 2203
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/episodes.jsonl.gz",
+      "sha256": "c06ce09e2ecb52738ed0045eae40058fa2ca3f2108020e8f7944ffa80e807c68",
+      "bytes": 207813
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/exhaustive.json.gz",
+      "sha256": "d4b94dcd50b6f6eb38545089ff92386b0aa9828e405a1129ec3f8c0a103e49f9",
+      "bytes": 87091
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/interpreter.json.gz",
+      "sha256": "7b186c1a67123d25b805ca4e32cf6dd63b919956fba6181317d259b51a062779",
+      "bytes": 341244
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/tables.json.gz",
+      "sha256": "4f9d472dd1963a3ac355c50fea9fb0b575ffaa91db3f2d69474c99e4c1f0e82f",
+      "bytes": 37396
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i1/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i1/unit.json",
+      "sha256": "26d6aaf39d2f8f31712499faf48ecae0c96f97c622decb6a900084b370fec2a9",
+      "bytes": 45864
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/certificates.json.gz",
+      "sha256": "80e299d7d3ff60efd6c740f147a158d47741ad7bce7db572c46deae01abe8dcc",
+      "bytes": 112159
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/contexts.json.gz",
+      "sha256": "c9ebc4871e1c662db97de5dff4ae070ae9f94d1320efccdf3b3ca8efd042f26b",
+      "bytes": 2203
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/episodes.jsonl.gz",
+      "sha256": "bd5d360e72d36dc3204fc8ddb3c69d08f9fbc3902656a0c4d0b616ec069641e1",
+      "bytes": 207813
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/exhaustive.json.gz",
+      "sha256": "6a07a9d0b6688b76a2bc1f51da8cfa1d32e852369b484a5ce0b62c86d72592e7",
+      "bytes": 87102
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/interpreter.json.gz",
+      "sha256": "5530588443886b629114afc4dc94fca9c6112088218aa5045a1343e728147970",
+      "bytes": 339663
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/tables.json.gz",
+      "sha256": "b9b1f1fdbc153f75258b4d0c4469cd30e87264f7c1834aa744fbc67379918ea9",
+      "bytes": 37399
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i2/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i2/unit.json",
+      "sha256": "3c7fb532ed779d767dd5a8c7bc228806a057a9f39a1f8a2ee650cfe85ead3098",
+      "bytes": 45863
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/certificates.json.gz",
+      "sha256": "4bbf9934c3536fbf100d11a5a0af985e7eae0a1839d038096bbb5b48c7505b79",
+      "bytes": 112460
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/contexts.json.gz",
+      "sha256": "0790e778077fd1328dc4f66f18f947179ec3dc5b1c4c98506bcbd7d92a583538",
+      "bytes": 2210
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/episodes.jsonl.gz",
+      "sha256": "ff94da846b8070132c38141890b0e5228c347b94acf95aa770bb0560123d7d16",
+      "bytes": 207813
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/exhaustive.json.gz",
+      "sha256": "c46a1fb93940567d2b3195fdb53454a7e6c2bbedcd6b4bce73f8c08405bd2ee9",
+      "bytes": 87086
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/interpreter.json.gz",
+      "sha256": "764bfd7a9970dfee53929dd8fa22060bd186e1b3f77fee3aab38c6d8830b68ad",
+      "bytes": 336873
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/tables.json.gz",
+      "sha256": "b4440916a7622577037d88cf5185b4e6b81a5659f5c2bbf8f17c1d3c7cf547eb",
+      "bytes": 37392
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i3/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i3/unit.json",
+      "sha256": "9a63af50c489a30ca8f472cc946c28a44239c4febb2a0b5e6943c93d6e3f35a2",
+      "bytes": 45863
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/certificates.json.gz",
+      "sha256": "c5b0dd6e6ad42827d52a870f3b457c230634b82aa5542da9e4cffb915715f6b4",
+      "bytes": 118344
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/contexts.json.gz",
+      "sha256": "c86ad5add6de7d442da09f3fedd9955e7f049fcb4426a01d8761e29e79fe0709",
+      "bytes": 2202
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/episodes.jsonl.gz",
+      "sha256": "716a4e20d72084c763cbf3132626db731deb7f8be6de3db0404de3619eb795d9",
+      "bytes": 207813
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/exhaustive.json.gz",
+      "sha256": "17d92e18caf41961729dd96081c5669bc12e4a2f9089923f57d2d25b56095750",
+      "bytes": 87088
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/interpreter.json.gz",
+      "sha256": "35aaeb2adb6c1166883d6a827a3a56de04c7bfeeda1d14baf810fb3bea30c3f7",
+      "bytes": 345126
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/tables.json.gz",
+      "sha256": "7106c4f4de787ee54fb3dbe32226760eb2d1449bd7ef5065d6e496986ac8b75a",
+      "bytes": 37393
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w800_i4/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w800_i4/unit.json",
+      "sha256": "bdb80ce405c790689ae997d4584febc2196ee1fbbbab6f1f144dab70d7e0bc4a",
+      "bytes": 45867
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/certificates.json.gz",
+      "sha256": "23c61cfdbe7f916b26822c954871498a6765e583bb28f6c8b55b755a09c95fdb",
+      "bytes": 113257
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/contexts.json.gz",
+      "sha256": "b8b13e7e72b9352efccad18f13830bd57bf83c4ed059efed4127fd12d2b9c05d",
+      "bytes": 2213
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/episodes.jsonl.gz",
+      "sha256": "399b657be194c700164b334d17451b5a32b7b6eb59fcbc3a10f0ea0c9f993840",
+      "bytes": 247817
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/exhaustive.json.gz",
+      "sha256": "069ffbbb38f516a614125a754dc00e5fd8edc668e25ecb63fe9fd8093672b21d",
+      "bytes": 96422
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/interpreter.json.gz",
+      "sha256": "e7808064e8d2ed5630ba4da112448e5c9a6ecd66cf96634c32a3fddc72cb0a8e",
+      "bytes": 347185
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/tables.json.gz",
+      "sha256": "0c00880f66bc597cc31145fc68da2f3a0d91f9ce7fa8725fedcd5eddd900ea61",
+      "bytes": 7081
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i0/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i0/unit.json",
+      "sha256": "d951dedfe442ed416399c076193ad8a6aa73d91adc50925005fd8c1a49c56a20",
+      "bytes": 45890
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/certificates.json.gz",
+      "sha256": "be3a0a25bfc02313917a1517dda3bec2bdd27a693b06ddaf62da2454cad09935",
+      "bytes": 114912
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/contexts.json.gz",
+      "sha256": "c36fb6d669380b2005079be68fe74d0711e8497b63bb37108c3b3095a7241b36",
+      "bytes": 2204
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/episodes.jsonl.gz",
+      "sha256": "6708fd36d29a5f2408d1b1aad15b5e58d66e906805f1e54f75b39194faa45600",
+      "bytes": 247817
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/exhaustive.json.gz",
+      "sha256": "75726a31fb8db8e305d238d0a761c24345dbf43215ca99d7aa213ad1f864183b",
+      "bytes": 96419
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/interpreter.json.gz",
+      "sha256": "ffe1bde9bd8cb88a1909deaf615040e198cc194f663c800833c809888252fd6e",
+      "bytes": 355083
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/tables.json.gz",
+      "sha256": "28443d9976ab31357a493bbefb2506f3466d79e53e3e0ff95feae256ab6c0db1",
+      "bytes": 7080
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i1/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i1/unit.json",
+      "sha256": "a1033a7eb93089df62492a8798cbe8900421be2481a92821972dc9394e284f85",
+      "bytes": 45893
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/certificates.json.gz",
+      "sha256": "a024495a712a8c570874000bca837b65ea35cbab9cabaf8c78893da4f35b6d01",
+      "bytes": 114010
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/contexts.json.gz",
+      "sha256": "ab02e38d9c89e5b1fce50e139e7a8dfd3f7bbdeb0b27a11d3fc954a87834379c",
+      "bytes": 2202
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/episodes.jsonl.gz",
+      "sha256": "63bfed79a09206563c362ec53e9396e7e3df3bcbc14d484b2c8eed659ec0831b",
+      "bytes": 247817
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/exhaustive.json.gz",
+      "sha256": "c5f5e18cc3849034f39a169636037e481db97cdd9a3edb24d2f5c850a81e5d86",
+      "bytes": 96414
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/interpreter.json.gz",
+      "sha256": "31debb568427707b860ee5a0f9c5451b86eacbf472449b0d3d0ad723c718a0ba",
+      "bytes": 345937
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/tables.json.gz",
+      "sha256": "137c2db2cf6a224226fcd5ef4c6df5d06ccf0656757b9027c592f7b9e78b98d3",
+      "bytes": 7091
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i2/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i2/unit.json",
+      "sha256": "cf60c52cd82764a65aee493fe311deb67404da658566a320d7466e166fd86a4c",
+      "bytes": 45892
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/certificates.json.gz",
+      "sha256": "65e92f378c9f429f39c185e728c839e8e13d459415412aa4195b52c5d05737e8",
+      "bytes": 118793
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/contexts.json.gz",
+      "sha256": "4052239bf8ffee729ffc0c2082ab3b22ccc01a66745c27c13b22647cf2cfa62f",
+      "bytes": 2203
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/episodes.jsonl.gz",
+      "sha256": "14ee1e31923f497698ef3e7375ba10226b5072f2519fae05396d34710418238c",
+      "bytes": 247817
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/exhaustive.json.gz",
+      "sha256": "0910ee0e685c9a33046bebfd3333ebb167276cbb1887970c84ff405b8290767c",
+      "bytes": 96418
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/interpreter.json.gz",
+      "sha256": "17d0861e95c61b150c0d45fc32155c264a1af6da484413484f5dab78ca69c7f7",
+      "bytes": 357189
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/tables.json.gz",
+      "sha256": "37c86b6eab455ba15f719771b5e05c35a3d742ac5b3a4f9864a6f79db2422f56",
+      "bytes": 7091
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i3/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i3/unit.json",
+      "sha256": "5f1c3f6b5dcfd7f0e5ff3404d85d4ba6dd779d03b4935e61bf9a1a5c3e6f65a9",
+      "bytes": 45894
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/certificates.json.gz",
+      "sha256": "416581b304f3f6e75161618f3a6a742c2abe7b3e428a75ed4ee71b0019efcb39",
+      "bytes": 115699
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/contexts.json.gz",
+      "sha256": "c00ffff821a957f84f361a31ec459d3b7797f1706ce09b52aa4053ae7c17ef6a",
+      "bytes": 2207
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/episodes.jsonl.gz",
+      "sha256": "a1fc569c031c963f1a239ea075f05002743d4d463583e06976c556c179df4cac",
+      "bytes": 247817
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/exhaustive.json.gz",
+      "sha256": "f22d2f1906d018ace0f18e9b769e94addebdeb9633c9c48bf1c9ed741f23a6f8",
+      "bytes": 96414
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/interpreter.json.gz",
+      "sha256": "d9bae8619446ddaec3233bb853c7e66d6b18e633395619417f306f8285ab03c3",
+      "bytes": 353697
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/tables.json.gz",
+      "sha256": "e7d790e9bbf8d5a72d899abe1d0c05b556bd5e1d56d2e45d4d9126db1b897c2a",
+      "bytes": 7087
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w801_i4/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w801_i4/unit.json",
+      "sha256": "e56fcc36f4bc9ccb8f2c5ace3617edc78decab8fd872073ebf55b05f49fff4cb",
+      "bytes": 45891
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/certificates.json.gz",
+      "sha256": "93cea7b69f55d66859a533be0247a2fc9a0daafd2d981c4b2d42dc75aeeb35e3",
+      "bytes": 112521
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/contexts.json.gz",
+      "sha256": "cd1ea1e3be2e308417168ef0a7629ceed1c132b2256677e9e8a7394cb0aca539",
+      "bytes": 2206
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/episodes.jsonl.gz",
+      "sha256": "8b76b91372c0bb05eecb7e12dadccfdffe972975e961759e44a23976be3f8193",
+      "bytes": 250623
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/exhaustive.json.gz",
+      "sha256": "b87b284910cfcbf31e7796ade2eef6874ef34a8c151d99e1bd0685afd81575ac",
+      "bytes": 113639
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/interpreter.json.gz",
+      "sha256": "43fb25303f96585eaa273dab194ff727143daa129db9d98877a30b1d5339443f",
+      "bytes": 348648
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/tables.json.gz",
+      "sha256": "c2f47d06b5a279a2a7721b507e9800e39f43bf49cd1f7e2b99058816a5489e6c",
+      "bytes": 40594
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i0/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i0/unit.json",
+      "sha256": "41a9362a6e8da0397a3530275856eb6a9d9b4f8b1ef22852569dd1f5e4b55a90",
+      "bytes": 45926
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/certificates.json.gz",
+      "sha256": "1e031969f326170a882b39443f12f02af4206a1f1292c4be266ccd87e90826e1",
+      "bytes": 113859
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/contexts.json.gz",
+      "sha256": "451ce2a04f728a4d76270629438e016e37ab0757378a43a1cb133188e2e8da53",
+      "bytes": 2206
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/episodes.jsonl.gz",
+      "sha256": "e248c14fc360dbf730e1b30b49e1962ee7172a1be0852d64be5b38ae2a15c890",
+      "bytes": 250623
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/exhaustive.json.gz",
+      "sha256": "8ef9d758665961b5f7856daa711901e1a2bba964c97684f170b265946e9b9024",
+      "bytes": 113630
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/interpreter.json.gz",
+      "sha256": "78ab328150408f7e93e1d259a6e2e5cab2f83e80fed4a80baa9dc76f9caed688",
+      "bytes": 353644
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/tables.json.gz",
+      "sha256": "40265d5df82517ee389a47548a861b3eab91e8eff88fa2f0fc8d1bb1616b234a",
+      "bytes": 40595
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i1/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i1/unit.json",
+      "sha256": "3fb156681e52ad0820c041aefd0b0b423694045ec30cc23559e0892aa7d3f514",
+      "bytes": 45930
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/certificates.json.gz",
+      "sha256": "b2b4b044d8bbeb013d0bf9de71862d437189195e2031a5470a9f2c982265785b",
+      "bytes": 117815
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/contexts.json.gz",
+      "sha256": "cf1c13fef5b11178b277a418ce3bdae8fc5668809c05ef339c728911c91b9c1c",
+      "bytes": 2204
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/episodes.jsonl.gz",
+      "sha256": "54638b2d0fa4fa4592027917f1588cdb088894a0e006908377b4a40f063ee568",
+      "bytes": 250623
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/exhaustive.json.gz",
+      "sha256": "1fd1647af486e12db9b2197ddf94fc39018dd5d36b3eea7b72ac847e0cfc4084",
+      "bytes": 113634
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/interpreter.json.gz",
+      "sha256": "f4bd200aeb9dc3f5b606c604a5c621479141e86775994009abd06aba74d5ff07",
+      "bytes": 355535
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/tables.json.gz",
+      "sha256": "69986d736c92d7cc5534e8a7d91f1a308fa7db4ad6068449ff52cfaf0197cc9d",
+      "bytes": 40576
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i2/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i2/unit.json",
+      "sha256": "086441b47dccc66e553c3bc661a55fc8694d4a162c7912d1a3cbcdb9b11a7dd1",
+      "bytes": 45931
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/certificates.json.gz",
+      "sha256": "ad8b4266cc7773030b50bfdfb32f3f88fbcfababa6474da9d6f3b95141ce8321",
+      "bytes": 115045
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/contexts.json.gz",
+      "sha256": "c643c28064dd10cec71f324768b5c0198439ba600e9e073bf84b39cddf557e7a",
+      "bytes": 2197
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/episodes.jsonl.gz",
+      "sha256": "57434c52c3c7564aafa459f47020b80469515de406130d85610bb3a4f2d96e91",
+      "bytes": 250623
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/exhaustive.json.gz",
+      "sha256": "003bb5eaa29f3b2f61d6f462211d3292d2f86a7c546658a1790de83d719ca76b",
+      "bytes": 113640
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/interpreter.json.gz",
+      "sha256": "f7c5347cbb163e56a2e27e363efe267d88d2f397319e5cf6ca55322c08930587",
+      "bytes": 355202
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/tables.json.gz",
+      "sha256": "f1faaee8b4316a4cb9c957af014ea0a2452e55d9ec0c271964cc1d4f9cac182d",
+      "bytes": 40586
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i3/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i3/unit.json",
+      "sha256": "d33df624fae60f088ccb178977b58ea3a74d9e355a37b3cacedb7c523dcca1ee",
+      "bytes": 45929
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/certificates.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/certificates.json.gz",
+      "sha256": "a6e715ab2614ca0013c5377b7c3351550f7445243b723336c17dd8751ba68811",
+      "bytes": 113193
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/contexts.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/contexts.json.gz",
+      "sha256": "c5432601530049dbb22018eb2d44474b7e7fdb445e3f2491b05fb370a9d6fe6e",
+      "bytes": 2215
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/episodes.jsonl.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/episodes.jsonl.gz",
+      "sha256": "b078069072b7aabab395533e62a980ab4e912afd4ad66c717c0a8f6fca01df98",
+      "bytes": 250623
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/exhaustive.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/exhaustive.json.gz",
+      "sha256": "3bbc3db5907d38e8b875d88eb45af6f9b2eeb8de47a546405303c87d796f5396",
+      "bytes": 113630
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/interpreter.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/interpreter.json.gz",
+      "sha256": "9f9113d3485f80e1e01abc32a813eab863a35d155710f3886390ab389ca95d1a",
+      "bytes": 348572
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/tables.json.gz",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/tables.json.gz",
+      "sha256": "b41eecd09c35e864b2344d7dd8445e9077dd731a0ef41195b601e1958bf71731",
+      "bytes": 40592
+    },
+    {
+      "path": "integration_test/20261022T205617/units/w802_i4/unit.json",
+      "experiment": "integration_test",
+      "original_path": "runs/titnn_integration_confirmation/20261022T205617/units/w802_i4/unit.json",
+      "sha256": "7f664bc9b7efd5c45cfc1870c17574a42f0bd2a7c64b6060e75839dba0e5e238",
+      "bytes": 45927
+    },
+    {
+      "path": "integration_test/session_release.json",
+      "experiment": "integration_test",
+      "original_path": null,
+      "sha256": "a220c362112436ae9aab4043d1d5e7e22cab672387bfcf93ce426b9eca536c5d",
+      "bytes": 5175
+    },
+    {
+      "path": "integration_test/verification.json",
+      "experiment": "integration_test",
+      "original_path": null,
+      "sha256": "f30c8b9b126039bc96bb9fd715c5b9739b59531a3228a56280bfd6b73717c88a",
+      "bytes": 270889
     }
   ]
 }

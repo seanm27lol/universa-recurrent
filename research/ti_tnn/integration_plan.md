@@ -497,6 +497,11 @@ its contracts state. Every gap below is repaired, with a regression test that fa
        confirmation. Other ways of changing length or context were not tested.
      - Training on taught two-step questions removed the failure in development. That is extra supervision, not
        transfer.
-3. **The full integration test:** not started.
+3. **The full integration test:** confirmed against its frozen protocol
+   ([report](reports/integration_test_v1.md)). On worlds 800–802 × 5 inits, each with 12 checked updates,
+   every construction contract held: complete serving contexts, pin, restart and proof-carrying migration,
+   and release under the right certificate (0 failures in 973,760 session records). An independent verifier
+   rebuilt everything. The learned parts were at their ceiling, so this is evidence about the seams, not
+   about learned robustness.
 4. **Evolutionary proposals (PR 9):** still deferred. The novelty result gives them no objective.
 
