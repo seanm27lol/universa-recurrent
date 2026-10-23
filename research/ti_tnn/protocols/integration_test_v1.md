@@ -406,3 +406,24 @@ It now additionally requires:
 **The result.** On the published evidence the corrected verifier reproduces the bundled `verification.json`
 exactly. No verdict changed.
 
+
+## Verifier corrections (appended 2026-10-23, after the review of #59)
+
+**The omission.** "Export and independent verification" requires every release decision to be re-derived. The
+verifier merged in #59 compared only part of each release record:
+- **interpreter draws:** admission, release, and the threshold of a released record. It did not compare the
+  reason, the supporting step, or the threshold of a refused record, and it did not require the declared set
+  of records, so a missing record counted as "not released";
+- **interpreted sessions:** whether the result was released, plus (from session binding) the score, contexts
+  and certificates. It did not compare the released answer against the session's own outcome, or the outcome
+  reason, effective threshold, supporting step and reason.
+
+**It now requires,** without calling `release.py` or `certificates.py`:
+- every field of every release record, re-derived from the certificates and the run's own outcome;
+- exactly the declared records: C0's new requests, and each activated update's new and resumed requests.
+
+The three findings of the #58 review (session binding, the frozen inventory, certificate risk settings) were
+confirmed resolved by the review of #59. The producer files and the run are unchanged.
+
+**The result.** On the published evidence the corrected verifier reproduces the bundled `verification.json`
+exactly: every release record re-derives, field by field. No verdict changed.
