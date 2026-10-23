@@ -1,6 +1,17 @@
-# Integration test: one question through recurrence, a checked update mid-run, and resume (revision 4)
+# Integration test: one question through recurrence, a checked update mid-run, and resume (frozen, revision 4)
 
-**Status: revision 4, 2026-10-22.**
+**Status: FROZEN 2026-10-23 (UTC), revision 4, before any run on confirmation worlds 800–802.**
+- **The freezing commit** is the commit that adds this status line. It also:
+  - removes the harness's refusal of worlds 800–802;
+  - fixes the producer-file hashes in `bench/integration_test_verify.py` (`FROZEN_SOURCES`).
+- **The confirmation command:**
+
+      CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 .venv-phase2/bin/python research/ti_tnn/bench/integration_test.py \
+          --worlds 800 801 802 --inits 0 1 2 3 4 --out runs/titnn_integration_confirmation
+      .venv-phase2/bin/python research/ti_tnn/bench/integration_test_verify.py runs/titnn_integration_confirmation/<run>
+
+- **Resources:** CPU only, four threads, low priority. One unit takes about 30 minutes; 15 units take about
+  7.5 hours.
 - **What is authoritative.** The specification immediately below. "History" keeps revisions 1–3, the reviews'
   findings and the development pilot.
 - **The code it specifies:**
@@ -265,10 +276,11 @@ construction verdict.
   deterministic fixtures.
 
 **Source binding.** The verifier requires:
-- the run's producer-file hashes to equal the hashes fixed in the freezing commit;
-- a clean research tree.
+- the run's producer-file hashes to equal `FROZEN_SOURCES`, fixed in the freezing commit;
+- a research tree that was unmodified when the run started.
 
-The run records its commit; the execution record names it, since a commit cannot name itself.
+The run records its commit, and the execution record names it, since a commit cannot name itself. The verifier
+reports that commit.
 
 ## Interpretation limits
 
@@ -343,3 +355,14 @@ two-fact branches.
 - costs count only work after the pause.
 
 **Cost:** about 16 minutes per unit at four threads, before the complete export was added.
+
+**Scale check before the freeze.** One full-size development unit (100/100) ran with the final harness at
+`76c37f8`, to measure the complete export before committing to the 15-unit run:
+- **cost:** 29.3 minutes, with peak memory of 733 MB;
+- **export:** about 0.8 MB of bundle files, and a 4.6 MB session file;
+- **verification:** the verifier rebuilt it in 11 seconds;
+- **results:** every construction check and L1–L4 held;
+- **episodes:** 12,881 supplied and 4,551 interpreted;
+- **naive continuation:** 436 contract violations and 9 no-version outcomes among the supplied episodes.
+
+It is a development diagnostic, like the pilot.
