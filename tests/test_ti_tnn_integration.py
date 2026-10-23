@@ -16,7 +16,8 @@ Two small runs on a 6-country development world, with three branches (one of eac
 `integration_test_verify.verify` must rebuild both runs. Each corruption of the ceiling run's export must
 then be rejected: an interpreter record, a label, a certificate, a table, a context, a session record (naive
 or migrated), a release decision, an exhaustive digest, a missing or extra episode, a difference identity,
-or the witness.
+or the witness. After the reviews of #58 and #59, so must an internally valid record in the wrong place, and a
+release record that differs from its re-derivation in any one field, or is missing.
 """
 from __future__ import annotations
 
@@ -281,3 +282,96 @@ def test_a_certificate_for_another_risk_level_is_rejected(runs):
               "certified": again["certified"], "stop_reason": again["stop_reason"]}
     assert VF.certificate_problems(cert, records, expected, cert["snapshot_digest"]) == []
     assert any("alpha" in p for p in VF.certificate_problems(forged, records, expected, cert["snapshot_digest"]))
+
+
+# --- review of #59: release records compared field by field --------------------------------------------------------
+def _released_line(line):
+    return line["condition"] == "interpreted" and line["release"] is not None and line["release"]["released"]
+
+
+SESSION_RELEASE_EDITS = {  # each keeps "released", which is all the verifier merged in #59 compared
+    "answer": lambda rel: rel.__setitem__("answer", "country_0_city_0_airport" if rel["answer"] !=
+                                          "country_0_city_0_airport" else "country_0_city_1_airport"),
+    "result_reason": lambda rel: rel.__setitem__("result_reason", "dead end"),
+    "effective_threshold": lambda rel: rel.__setitem__("effective_threshold", 0.9),
+    "supporting_step": lambda rel: rel.__setitem__("supporting_step", None),
+    "reason": lambda rel: rel.__setitem__("reason", "below the effective threshold"),
+}
+
+
+@pytest.mark.parametrize("field", sorted(SESSION_RELEASE_EDITS))
+def test_an_interpreted_release_decision_that_is_not_its_sessions_is_rejected(runs, tmp_path, field):
+    """A released interpreted episode whose release decision disagrees with its own session in one field. The
+    decision still says "released", under the right contexts, certificates and score; for "answer", it releases
+    an answer the run never produced."""
+    bad = tmp_path / "run"
+    shutil.copytree(runs["ceiling"], bad)
+    _edit_lines(bad / "units" / "w100_i100" / "sessions.jsonl.gz",
+                lambda line: SESSION_RELEASE_EDITS[field](line["release"]), _released_line)
+    try:
+        out = _with_small_constants(lambda: VF.verify(bad, development=True))
+    except VF.VerificationError:
+        return
+    assert not out["units"][0]["construction"]["release"] and not out["verdict"]["construction_every_unit"]
+
+
+def _release_record(rows, select):
+    """The first non-calibration release record that `select(row, field, record)` picks: (its parent, its field)."""
+    for r in rows:
+        if r["split"] == "calibration":
+            continue
+        for fields in r["release"].values():
+            for field, rel in fields.items():
+                if select(r, field, rel):
+                    return fields, field
+    raise AssertionError("nothing to corrupt")
+
+
+INTERPRETER_RELEASE_EDITS = {  # each keeps "admitted" and "released" of every remaining record
+    "reason of a pre-execution refusal": (lambda r, f, rel: not r["decision"]["execute"],
+                                          lambda fields, f: fields[f].__setitem__("reason", "not admitted")),
+    "threshold of a refusal": (lambda r, f, rel: not rel["released"],
+                               lambda fields, f: fields[f].__setitem__("threshold", 0.0)),
+    "supporting step of a release": (lambda r, f, rel: rel["released"],
+                                     lambda fields, f: fields[f].__setitem__("supporting_step", None)),
+    "a missing resumed record": (lambda r, f, rel: f == "resumed", lambda fields, f: fields.pop(f)),
+}
+
+
+@pytest.mark.parametrize("name", sorted(INTERPRETER_RELEASE_EDITS))
+def test_an_interpreter_release_record_that_does_not_re_derive_is_rejected(runs, tmp_path, name):
+    """The verifier merged in #59 compared only admission, release and (when released) the threshold, and only
+    the records present. A missing record counted as "not released"."""
+    bad = tmp_path / "run"
+    shutil.copytree(runs["ceiling"], bad)
+    select, edit = INTERPRETER_RELEASE_EDITS[name]
+    _edit_json_gz(bad / "units" / "w100_i100" / "interpreter.json.gz", lambda rows: edit(*_release_record(rows, select)))
+    with pytest.raises(VF.VerificationError, match="release record"):
+        _with_small_constants(lambda: VF.verify(bad, development=True))
+
+
+def test_the_verifiers_release_rule_is_the_adapters_on_every_path():
+    """The verifier re-derives the rule without calling `certificates`; on every path, including the ones the
+    confirmation never reached (no shared interpreter, an uncertified side), it must give the producer's rule."""
+    from integrated import certificates as Q
+    grid = (0.999, 0.99, 0.9, 0.0)
+
+    def expectation(**changes):
+        return Q.Expectation(**{**dict(interpreter_identity="i", policy_version="p", event_version="e",
+                                       distribution_identity="d", grid=grid), **changes})
+
+    def records(n=400, wrong=0, low=0):
+        return ([(f"q{i}", 0.9995, True) for i in range(n)] + [(f"w{i}", 0.95, False) for i in range(wrong)]
+                + [(f"l{i}", 0.5, True) for i in range(low)])
+    certs = {"strict": Q.certify(records(400, wrong=1, low=50), expectation(), "s0"),  # selects 0.99
+             "loose": Q.certify(records(400), expectation(), "s1"),  # selects 0.0
+             "other interpreter": Q.certify(records(), expectation(interpreter_identity="j"), "s1"),
+             "uncertified": Q.certify(records(100), expectation(), "s1")}
+    assert certs["strict"].threshold == 0.99 and not certs["uncertified"].certified
+    for a in certs.values():
+        for b in certs.values():
+            rule = Q.effective_release(a, b)
+            assert VF.release_rule(a.as_dict(), b.as_dict(), False) == (
+                rule["threshold"], rule["supporting_step"], rule["problems"])
+        t = a.threshold
+        assert VF.release_rule(a.as_dict(), a.as_dict(), True) == (t, list(a.supporting_step(t) or []) or None, [])

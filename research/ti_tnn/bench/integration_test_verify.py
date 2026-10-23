@@ -19,9 +19,9 @@ verification").
 
 | From | It re-derives |
 |---|---|
-| **Interpreter records** | every score, from its recorded components (the float32 product of the decoder-step probabilities, times both copy probabilities); the policy's pre-threshold decision (binding, types, budget contract, outcome); every per-context result, by its own traversal over that context's exported table; every correctness label, against the reference world; every certificate, recomputed from those labels; every admission and release decision, under the admitting threshold or max(t0, t1); every metric |
+| **Interpreter records** | every score, from its recorded components (the float32 product of the decoder-step probabilities, times both copy probabilities); the policy's pre-threshold decision (binding, types, budget contract, outcome); every per-context result, by its own traversal over that context's exported table; every correctness label, against the reference world; every certificate, recomputed from those labels; every release record, field by field (admission, release, reason, threshold, supporting step), under the admitting threshold or max(t0, t1), and exactly the declared set of them; every metric |
 | **Exhaustive sweep** | the producer's outcome digest, and its compact rows, by its own traversal over each context's table (construction); correctness against the reference world (learned) |
-| **Episodes** | the set of queries and pause indices, from the tables and the declared samplers; every session record, through `session_verification` (execution, policy and semantic judgments, only valid executions counted); every interpreted release decision |
+| **Episodes** | the set of queries and pause indices, from the tables and the declared samplers; every session record, through `session_verification` (execution, policy and semantic judgments, only valid executions counted); every field of every interpreted release decision, against the session's own outcome |
 | **Differences and contexts** | the actual difference of every branch, and its classes; context and certificate bindings |
 | **Witness** | rebuilt from the world's facts |
 
@@ -35,6 +35,10 @@ verification").
 - **Certificates and identities.** Every certificate carries the expected alpha and delta (in frozen mode,
   0.01 and 0.05). Expectation and context identities are recomputed from their parts, and draw metadata
   matches the regenerated draws.
+- **Complete release records** (added after the review of #59). Every field of every release record is
+  re-derived and compared: the released answer and outcome against the session's own, the reason, the
+  effective threshold and its supporting step. The set of records must be the declared one. Until then only
+  admission, release and a released record's threshold were compared.
 
 **What it cannot re-derive** from weight-free records, and reports as the producer's own record:
 - the update gates;
@@ -175,17 +179,47 @@ def result_of(table, query) -> list:
 
 
 def release_rule(admitting: dict, releasing: dict, same: bool) -> tuple:
-    """(threshold, supporting step) for release; (None, None) when there is no rule."""
+    """(threshold, supporting step, problems) for release; threshold None, with the problems, when there is no
+    rule. On the admitting context: its selected threshold. Otherwise: max(t0, t1), supported by a rejected step
+    of the releasing certificate, and only for two certificates that share every binding."""
+    def step_at(cert, t):
+        return next((list(s) for s in cert["steps"] if s[0] == t and s[4]), None)
     if same:
-        t = admitting["threshold"]
-        step = next((s for s in admitting["steps"] if s[0] == t and s[4]), None)
-        return t, step
+        return admitting["threshold"], step_at(admitting, admitting["threshold"]), []
     keys = ("interpreter_identity", "policy_version", "event_version", "distribution_identity", "grid", "alpha", "delta")
-    if any(admitting[k] != releasing[k] for k in keys) or not (admitting["certified"] and releasing["certified"]):
-        return None, None
+    problems = [f"the certificates differ in {k}" for k in keys if admitting[k] != releasing[k]]
+    if not (admitting["certified"] and releasing["certified"]):
+        problems.append("a certificate certified no rule")
+    if problems:
+        return None, None, problems
     t = max(admitting["threshold"], releasing["threshold"])
-    step = next((s for s in releasing["steps"] if s[0] == t and s[4]), None)
-    return (t, step) if step is not None else (None, None)
+    step = step_at(releasing, t)
+    if step is None:
+        return None, None, [f"the releasing certificate has no rejected step at {t}"]
+    return t, step, []
+
+
+def release_decision(admitting: dict, releasing: dict, same: bool, score: float, result: list | None,
+                     refused: str = "") -> dict:
+    """Every field of a release decision, re-derived: admission under the admitting certificate; then, for an
+    executed draw (`result` = [kind, answer, reason]), release under the rule for the context the run finished
+    on. A draw the policy refused before execution (`result` None) releases nothing and keeps the policy's
+    reason (`refused`); so does a run without a result, or without a rule."""
+    admitted = bool(admitting["certified"]) and score >= admitting["threshold"]
+    out = {"admitted": admitted, "released": False, "answer": None, "threshold": None, "supporting_step": None}
+    if result is None:
+        return {**out, "reason": refused}
+    if not admitted:
+        return {**out, "reason": "not admitted"}
+    if result[0] != "result":
+        return {**out, "reason": f"no result: {result[2]}"}
+    t, step, problems = release_rule(admitting, releasing, same)
+    out.update(threshold=t, supporting_step=step)
+    if t is None:
+        return {**out, "reason": f"no release rule: {problems}"}
+    if score < t:
+        return {**out, "reason": "below the effective threshold"}
+    return {**out, "released": True, "answer": result[1], "reason": "released"}
 
 
 def session_binding_problems(line: dict, rec: dict, c0: str, s0: str, branch: dict, row: dict | None,
@@ -336,18 +370,29 @@ def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: lis
                     if r["split"] == "calibration" and r["results"].get(ctx_id, [None])[0] == "result"]
         for msg in certificate_problems(cert, eligible, expected, contexts[ctx_id]["snapshot"]):
             fail(f"certificate {ctx_id[:12]}: {msg}")
+    # release records: exactly the declared set (C0's new requests; each activated update's new requests at t1
+    # and resumed requests at max(t0, t1)), and every field of each (added after the review of #59)
+    declared_releases = {c0: ["new"], **{b["context"]: ["new", "resumed"] for b in unit["branches"] if b["activated"]}}
+    release_fields = ("admitted", "released", "reason", "threshold", "supporting_step")
     for r in rows:
         if r["split"] == "calibration":
+            if r["release"]:
+                fail(f"{r['id']}: a calibration draw carries a release record")
+            continue
+        if {fin: sorted(fields) for fin, fields in r["release"].items()} != declared_releases:
+            fail(f"{r['id']}: its release records are not one per declared context and request kind")
             continue
         for fin, fields in r["release"].items():
             for field, rel in fields.items():
                 admitting = c0 if field == "resumed" else fin
-                admitted = certs[admitting]["certified"] and r["score"] >= certs[admitting]["threshold"]
-                t, step = release_rule(certs[admitting], certs[fin], admitting == fin)
                 res = r["results"].get(fin)
-                want = admitted and res is not None and res[0] == "result" and t is not None and r["score"] >= t
-                if (rel["admitted"], rel["released"]) != (admitted, want) or (want and rel["threshold"] != t):
-                    fail(f"{r['id']}: its {field} release under {fin[:12]} does not re-derive")
+                if r["decision"]["execute"] and res is None:
+                    fail(f"{r['id']}: an executed draw has no result under {fin[:12]} to release")
+                    continue
+                derived = release_decision(certs[admitting], certs[fin], admitting == fin, r["score"],
+                                           res if r["decision"]["execute"] else None, r["decision"]["reason"])
+                if rel != {k: derived[k] for k in release_fields}:
+                    fail(f"{r['id']}: its {field} release record under {fin[:12]} does not re-derive")
     # metrics
     def metrics(key, field):
         test = [r for r in rows if r["split"] == "test"]
@@ -466,15 +511,19 @@ def verify_unit(run_dir: Path, info: dict, world, study, branches, problems: lis
         c["c1_c2_policy_failures"] += not (check["ok"] and check["equivalent_to"] == want)
         if policy == "migrate":
             c["migrated"] += len(rec["segments"]) == 2
-        if condition == "interpreted":
+        if condition == "interpreted":  # the complete release decision, every field (after the review of #59)
             r = rows_by_id[line["item"]]
-            admitted_ = certs[c0]["certified"] and r["score"] >= certs[c0]["threshold"]
             fin = rec["segments"][-1]["context"]
-            t_, _ = release_rule(certs[c0], certs[fin], fin == c0)
             o = SV._record_outcome(rec)
-            want_rel = admitted_ and o["reason"] in RESULT_REASONS and t_ is not None and r["score"] >= t_
-            c["release_mismatch"] += (line["release"] or {}).get("released") != want_rel
-            c[f"released_{policy}"] += want_rel
+            derived = release_decision(certs[c0], certs[fin], fin == c0, r["score"],
+                                       ["result" if o["reason"] in RESULT_REASONS else "refused", o["answer"], o["reason"]])
+            want_rel = {"released": derived["released"], "answer": derived["answer"], "result_reason": o["reason"],
+                        "score": r["score"], "admitting_context": c0, "admitting_certificate": content_identity(certs[c0]),
+                        "releasing_context": fin, "releasing_certificate": content_identity(certs[fin]),
+                        "effective_threshold": derived["threshold"], "supporting_step": derived["supporting_step"],
+                        "reason": derived["reason"]}
+            c["release_mismatch"] += line["release"] != want_rel
+            c[f"released_{policy}"] += derived["released"]
     if expected_keys:
         fail(f"{len(expected_keys)} declared episode records are missing")
     if extra:
