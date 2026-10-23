@@ -1,605 +1,345 @@
-# Integration test: one question through recurrence, a checked update mid-run, and resume (DRAFT, revision 3)
+# Integration test: one question through recurrence, a checked update mid-run, and resume (revision 4)
 
-**Status: DRAFT, revision 3, 2026-10-22.**
-- **What revision 3 adds:** the development pilot's results, under "Development pilot", and the changes it
-  proposes for the freeze, which are pending review.
-- **No study world has been used.** Nothing has been fitted or run on worlds 800–802.
-- **Revision 2** (2026-10-19) is the specification below. It is unchanged except where this file says
-  otherwise.
-- **What revision 2 records.** It applies the review of revision 1 (`9fb811f`), including its decisions on
-  the open choices, collected under "Decisions".
-- **The code it specifies** is in three groups:
-  - **the prerequisite repairs:** the certificate and checker interface, and the complete serving context;
-  - **the deterministic table-module fixtures;**
-  - **the independent trace reconstruction.**
-
-  All three come before any learned fit.
-- **Before freezing:** a bounded development pilot (below) settles the sample sizes, the threshold
-  feasibility and the pause-sampling cost.
-- **Reserved:** worlds 800–802 stay untouched until then.
+**Status: revision 4, 2026-10-22.**
+- **What is authoritative.** The specification immediately below. "History" keeps revisions 1–3, the reviews'
+  findings and the development pilot.
+- **The code it specifies:**
+  - `integrated/certificates.py`, `serving.py`, `sessions.py`, `session_verification.py`, `release.py` and
+    `query_interpreter.py`;
+  - `bench/integration_test.py` and `bench/integration_test_verify.py`;
+  - `update_checks.py`, as repaired in #57.
+- **What it builds on:** the components of plan PRs 6–8, unchanged.
 
 This is item 3 of the [integration plan's section 12](../integration_plan.md#12-second-review-amendments-2026-10-18-after-prs-4150)
-order: "question, interpreted bounded query, recurrence, pause, a checked module update, then resume under
-the right version policy."
+order: "question, interpreted bounded query, recurrence, pause, a checked module update, then resume under the
+right version policy."
 
 ## A concrete example
 
-A route-network world has airports, each with one onward connection (`connects_to`), and an operator for
-each airport (`operator_of`). Someone asks:
+A route-network world has airports, each with one onward connection (`connects_to`), and an operator for each
+airport (`operator_of`). Someone asks:
 
 > which is the first airport within 6 connections of country_12_city_0_airport that operator_3 operates ?
 
-1. **Interpreting the question.** The interpreter turns it into a bounded query:
-   - start: `country_12_city_0_airport`;
-   - target: `operator_3`;
-   - step and test relations: `connects_to` and `operator_of`;
-   - budget: 6.
+1. **Interpreting the question.** The interpreter parses it into a bounded query:
+   - start `country_12_city_0_airport`;
+   - target `operator_3`;
+   - `connects_to`, then `operator_of`;
+   - budget 6.
 
-   The query is type-checked and its budget checked against the contract (1–16) before anything runs. The
-   serving context's certificate decides whether the system answers.
-2. **Recurrence.** The run starts on the active serving context C0 and pauses after two calls to `step`.
-3. **An update while the run is paused.** The update changes one fact: `country_40_city_2_airport`, the
-   second airport the run already tested under C0, is now operated by `operator_3`. The update passes its
-   gates and becomes the active context C1.
-4. **The resume question.** What should the resumed run answer?
+   The policy then binds the entities, checks the types and the budget contract (an integer from 1 to 16),
+   and admits the question if its score clears the active serving context's certificate.
+2. **Recurrence.** The run starts on context C0 and pauses after two calls to `step`.
+3. **An update while the run is paused.** It makes `operator_3` the operator of the second airport, which the
+   run already tested under C0. The update passes its gates, and the complete context C1 is activated.
+4. **The resume.**
 
 | On resume | Answer | Its record |
 |---|---|---|
-| **pin** (continue on C0) | the airport C0 leads to, four connections later | every application from C0: a valid C0 run |
-| **restart** (start again on C1) | `country_40_city_2_airport`, at the second connection | every application from C1: a valid C1 run |
-| **naive** (keep the state, continue on C1) | the same airport as pin; the second airport was tested under C0 and is never tested again | applications from C0, then C1, with no justification. It reports finishing on C1, but C1 gives a different answer |
+| **pin** (finish on C0) | the airport C0 leads to | every application from C0 |
+| **restart** (start again on C1) | the second airport | every application from C1 |
+| **naive** (a control: keep the state, continue on C1) | the same as pin; the second airport was tested under C0 and is never tested again | applications from C0 then C1, with no justification. It reports finishing on C1, but C1 gives a different answer |
 
-**What `recurrence.resume` does today.** It already refuses a registry other than the one a state was
-started with, and it can continue a paused run against a retained C0 registry. What is missing is the
-choice of which serving context a resumed run should use, and the verification that it used it.
+**What the test asks.** When connected, do the components keep their contracts through an update? Is every
+released result produced by one complete serving context, or justified as exactly equivalent to one, and
+released under the right certificate? Is that confirmed by a verifier that rebuilds everything from exported
+records?
 
-## Why this test, and what is new in it
-
-Each component passed its own frozen protocol:
-
-| Plan PR | Component | Protocol |
-|---|---|---|
-| 6 | learned interpretation with calibrated abstention | [typed_routing_v1](typed_routing_v1.md), [interpreter_robustness_v1](interpreter_robustness_v1.md) |
-| 7 | bounded recurrence with exact pause/resume | [typed_recurrence_v1](typed_recurrence_v1.md) |
-| 8 | checked updates with atomic activation and exact rollback | [local_updates_v1](local_updates_v1.md) |
-
-The review of revision 1 found that the seams between these components are incompletely versioned:
-
-1. **The calibration interface.**
-   - `fixed_sequence_certify` returns a plain dictionary, while the update checker expects a `Calibration`
-     with `binding_problems`.
-   - `Checker.check` calls the calibration gate without a policy version, so the gate compares against `""`.
-     A certificate honestly bound to a non-empty policy version would therefore fail.
-   - The gate passes the certificate's own interpreter identity back to it, so it never establishes which
-     interpreter will actually serve.
-   - Nothing establishes that a fixed-sequence certificate succeeded for the intended event and sampling
-     distribution.
-2. **Activation and rollback** swap only the registry snapshot. A certificate's identity is sealed inside the
-   check result, but the certificate is never installed, retained or restored with the snapshot.
-3. **The behaviour gates** compare the declared changes with the difference between the two *reference
-   worlds*. A candidate that also corrects a pre-existing model error outside those changes passes every gate.
-   Its actual atomic outputs then differ from S0's at an undeclared input. A migration rule built on the
-   declared changes is therefore unsound; see the counterexample under "Migration".
-4. **Continuation state** is bound to `registry.identity`, which hashes the modules' declared version
-   strings. A module changed in place after registration keeps its declared identity; the snapshot digest
-   would detect the change.
-5. **The bounded query.** `query_problems` does not enforce a budget contract. `pause_after` counts calls to
-   `step`, while `steps_used` counts connections, and the two differ at termination. `reference_until`
-   returns only an answer and a stopping reason, not the visited path or the applications.
-
-**The question.** When composed, do the components keep their declared behaviour through an update? Under a
-declared version policy, is every released result produced by one complete serving context, or justified as
-exactly equivalent to it? Is that confirmed by an independent checker?
+**What the test is about.** In these worlds the learned interpreter, modules and certificates are expected to
+be at their ceiling (see "History: development pilot"). The test's informative content is the **construction
+checks** at the seams. Its learned predictions (L1–L4) are reported, but they are **not** evidence of
+robustness.
 
 ## Definitions
 
-### The serving context
+**Serving context.** The unit that serves:
 
-A **serving context** is everything that determines what the system releases for a question:
+> snapshot (modules) + query certificate + expectation (interpreter, query policy, correctness event,
+> sampling distribution, grid) + world identity
 
-> snapshot (modules) + query certificate + interpreter identity + query-policy and correctness-event
-> versions + world identity
+- **Activation and rollback** install and restore complete contexts (`serving.ServingDeployment`).
+- **Sessions are bound to a complete context.** Continuation and pin require the *complete* recorded context,
+  not only its snapshot (`sessions.advance`, `sessions.resume_pin`).
 
-- **Identity:** its identity is a hash over all five.
-- **Verification:** `verify()` requires that:
-  - the snapshot still matches its digest;
-  - the certificate is bound to that digest and to the same interpreter, policy, event and distribution.
-- **Activation installs a complete context.** Rollback restores the previous complete context. Neither ever
-  swaps a snapshot alone.
-- **Pinned sessions** keep their own context. A pinned session holds its context even after a rollback
-  removes it from the deployment's history.
+**Query certificate** (`certificates.QueryCertificate`). It holds:
+- the complete fixed-sequence result (grid, every step, threshold, stop reason, alpha, delta);
+- its calibration records (occurrence id, raw score, correct);
+- its bindings (interpreter, snapshot digest, policy, event, distribution).
 
-### The query certificate
+The update checker judges a certificate against the *expected* serving context, never against the
+certificate's own fields. The certificate must be bound to the candidate's snapshot, re-derive from its
+records, and have certified a rule.
 
-A **query certificate** (`integrated/certificates.py`, versioned) holds:
-- **the complete fixed-sequence result:** the grid, every step's accepted count, error count, p-value and
-  decision, the selected threshold, the stop reason, alpha and delta;
-- **bindings:** the interpreter identity, the snapshot digest, the query-policy version, the
-  correctness-event version and the sampling-distribution identity;
-- **the calibration records** it was computed from: item, raw score and correctness.
+**Completed result:** an airport answer, or a negative terminal outcome (`dead end`, `cycle`,
+`budget exhausted`).
 
-The update checker receives the **expected** serving context from the deployment: the interpreter it will
-actually serve, and the policy, event, distribution and grid. It compares the certificate against that
-context, never against the certificate's own fields. It requires:
-- the certificate is bound to the candidate snapshot's digest;
-- it re-derives exactly from its own records;
-- it certified a rule.
-
-The older `Calibration` path is kept unchanged, so the PR 6 and PR 8 results rebuild exactly as before.
-
-### Completed results and refusals
-
-**Completed semantic result:** one of these, released by the system:
-- an airport answer;
-- a correct-or-incorrect **negative terminal outcome** of the bounded query (`dead end`, `cycle` or
-  `budget exhausted`).
-
-In recurrence these negative outcomes are represented as abstentions, but they are results, not refusals.
-
-**Policy refusal:** the system declines to release a result. The reasons are:
-- insufficient confidence (below the effective threshold);
+**Policy refusal.** The reasons are:
+- insufficient confidence;
 - no certificate;
-- unsupported question;
+- unsupported;
 - unknown entity;
-- invalid query (ill-typed, or a budget outside 1–16);
-- a module that produced no valid output.
+- invalid query (ill-typed, or the budget contract);
+- malformed;
+- a module with no valid output.
 
-**Measures:**
+**Correctness event:** a released result equals the reference outcome of the question's reference query
+under the context's world. A released result for a question that should be refused is an error.
 
-| Measure | Definition |
-|---|---|
-| Coverage | released results ÷ supported requests |
-| Accepted error | incorrect results ÷ released results |
-| Refusal performance | the abstention rate on each category of invalid or unsupported request, reported separately |
-| Exact parsed-query accuracy | the start, target, relations and budget all match the reference |
+**Admission and release** (`release.py`, recorded for every decision):
+- **admission:** under the active context's certificate (score ≥ its threshold);
+- **release on the admitting context** (no change, or pin): at that context's threshold;
+- **release on another context** (restart, migrate): at max(t0, t1), with the supporting step of the
+  releasing certificate. There is no release unless both certificates share the interpreter, policy, event,
+  distribution and grid.
 
-Exact parsed-query accuracy is reported because a wrong query can coincidentally produce the right negative
-outcome.
+Two C1 test results are kept apart:
+- **new requests**, admitted and released by C1 at t1;
+- **resumed requests**, admitted under C0 and released on C1 at max(t0, t1).
 
-**Correctness event** (versioned): a released result is correct when its answer, or its negative terminal
-outcome, equals the reference outcome of the reference query under the context's world.
+**Atomic table:** each relation's output on every valid input, for one snapshot. It has no weights.
 
-### Which certificate governs a released result
+**Actual difference:** every (relation, input) whose outputs differ between two snapshots' atomic tables. It is
+bound to both digests and both table digests. Its entries are classed:
+- **intended:** a declared change;
+- **correction:** outside the declared changes; the old output was wrong and the new one is right;
+- **regression:** anything else.
 
-| Policy | Certificate that governs release |
-|---|---|
-| pin | C0's |
-| restart, migrate | C1's |
+**Migration.** `migrate` continues on S1 only if no prefix application consumed a key of the actual difference.
+Each prefix application is revalidated on S1, and the proof is recorded (difference identity, snapshot pair,
+prefix inputs, revalidation count). Otherwise migration restarts, recording the blocking inputs. Its records
+keep the prefix's original provenance.
+- **Equivalence:** migration is an exact-equivalence check.
+- **No efficiency claim:** revalidation makes its module work equal restart's, and its lookups are extra.
+- **Default:** restart is the declared default policy. Pin is for replay.
 
-A question admitted under C0 and released under C1 has passed both gates. Two conditions hold:
-- the interpreter and its raw score are unchanged;
-- so are the eligible-question set and the threshold grid.
+**Pause index:** the number of calls to `step` before the pause, counting a terminating call. A paused run has
+k from 0 to n − 1, where n is the uninterrupted run's number of calls.
 
-Its effective threshold is then max(t0, t1). C1's fixed-sequence result covers it at a grid point no looser
-than t1. The record states the effective threshold and the C1 certificate step that supports it. This argument
-does not cover a selection based on old module outcomes; none is used.
+**Independent checking** (`session_verification.check_session`) makes three separate judgments:
+1. **Execution validity.** Replaying the record's segments from the exported tables, at their recorded call
+   indices, reproduces every application, visited airport, terminal result, call count and segment boundary.
+   Every segment's context resolves to an exported context on that snapshot.
+2. **Policy validity.**
+   - **pin:** one unchanged segment;
+   - **restart:** one fresh segment, with a verifiable discarded prefix;
+   - **migrate:** a proof, every field of which re-derives;
+   - **naive continuation:** never valid.
+3. **Semantic failures, on valid executions only** (outcome = answer or terminal reason, and visited path):
+   - **contract violation:** the outcome differs from the snapshot finished on;
+   - **no-version outcome:** the outcome differs from every snapshot that supplied an application.
 
-### Actual behavioural difference
+   An **unjustified switch** is a change of snapshot without a valid justification. **Mixing** also needs
+   applications from two snapshots; at pause index 0 there is a switch but no mixing.
 
-For every snapshot, the **atomic-output table** records each relation's output on every valid input. It is
-finite, contains no weights, and is recorded with the run.
+## Units, study and procedure
 
-The **actual difference** between S0 and S1 is every (relation, input) whose outputs differ. It is bound to
-both snapshot digests and both table digests, and the independent checker re-derives it from the recorded
-tables. Its entries are classified, and the classes are reported separately:
-- **intended:** a declared world change;
-- **correction:** outside the declared changes, the new output is right and the old output was wrong;
-- **regression:** anything else. A candidate with a regression fails `unaffected_behavior` and never
-  activates.
-
-**The counterexample behind this definition** was found in review and reproduced with table modules.
-- **The setup:**
-  - the route is S → a → b → c, and the target is T;
-  - S0's modules say a = U, b = U, c = T;
-  - the old reference world already says a = T, so S0 is wrong at a;
-  - the update declares only b → T;
-  - the candidate correctly gives a = T, b = T, c = T.
-- **The outcomes:** both behaviour gates pass, but the actual difference contains a and b.
-
-| Run | Answer |
-|---|---|
-| uninterrupted S0 | c |
-| fresh S1 | a |
-| continuing after S0 tested a | b |
-
-A migration rule using only the declared change would migrate here, and wrongly.
-
-**"One fact" means one actual atomic change.** "A single-fact update cannot produce a no-version outcome"
-holds for one *actual* atomic change, not merely one declared world change.
-
-### Migration: provenance and semantic equivalence
-
-Two properties are kept apart:
-1. **Execution provenance.** Each application records the snapshot that actually supplied it. Prefix calls
-   keep their original S0 identities; they are never relabelled as S1 calls.
-2. **Semantic equivalence.** The reused prefix and the final result are equivalent to executing the query on
-   S1.
-
-`migrate` continues on S1 only if no prefix application consumed a (relation, input) in the actual
-difference S0 → S1. It then records:
-- a **migration justification:** the difference's identity, the eligibility check and the
-  revalidation;
-- **the revalidation itself:** S1's table gives the recorded output for every prefix application.
-
-A valid migration can therefore have **mixed provenance with certified S1 equivalence**. The checker rejects
-**unjustified version mixing**: a record whose applications come from two snapshots without a valid
-justification. Naive continuation always produces such a record once it applies a module after the
-activation.
-
-**Migration's cost** counts:
-- verifying the snapshot;
-- looking up the prefix's inputs in the difference;
-- revalidating the prefix;
-- the suffix's module applications.
-
-Revision 2 called migration "potentially" cheaper than restart. The pilot measured that it is **not cheaper
-here**:
-- **Applications.** Revalidation re-applies S1's module to every prefix input, so the suffix's applications
-  plus the revalidations equal restart's applications exactly.
-- **Lookups** are extra.
-
-See "Development pilot".
-
-### Three failures of naive continuation
-
-- **Unjustified mixing:** applications from two snapshots with no valid migration justification.
-- **Contract violation:** the outcome differs from the uninterrupted run on the snapshot that the run reports
-  finishing on.
-- **No-version outcome:** the outcome differs from the uninterrupted run on every snapshot that supplied an
-  application. One actual atomic change cannot produce this; two can.
-
-**The deterministic witness**, in every world's fixture suite (with table modules):
-- **The setup:**
-  - the route S → a → b → c is found in the world;
-  - c's operator is the target T in both versions;
-  - S0 gives a = U and b = U; S1 gives a = T and b = T.
-- **The outcomes:**
-
-| Run | First target airport |
-|---|---|
-| S0 | c |
-| S1 | a |
-| naive continuation after testing a under S0 | b |
-
-  The witness guarantees that the instrument can detect a no-version outcome. Random draws then measure how
-  often one occurs.
-
-### Pause indices and the budget contract
-
-- **Pause index.** Index k means the run is paused after exactly k calls to `step`, counting the call that
-  terminates it. That call does not increase `steps_used`. If the uninterrupted run makes n calls, a paused
-  run has k from 0 to n − 1; at k = n the run has finished, and nothing is resumed.
-- **The budget contract** is an integer from 1 to 16. It is validated and bound into the query before
-  execution, separately from `query_problems` (which does not check it). A question asking for more than 16
-  connections is refused as an invalid query.
-
-## Design
-
-### Worlds and units
-
-- **Worlds:** `route_world` seeds 800, 801, 802, 48 countries (about 170 airports). They are unused and
-  reserved.
-- **Inits:** 0–4. A unit is one (world, init).
-- **Development:** worlds 100–101 × inits 100–101.
-
-### Questions
-
-- **Primary until-questions** state an explicit budget N from 1 to 16:
-  - "which is the first airport within N connections of S that T operates ?";
-  - "starting from S , name the first airport run by T within N connections .".
-- **A diagnostic, reported separately:** omitted-budget questions with the default budget 16.
-- **Refusal categories,** each reported separately:
-  - an ill-typed start (a city or a country);
-  - an unknown airport or operator;
-  - an unsupported condition;
-  - a budget over 16.
-- **Training:** a fixed share of (start, target, budget) instances.
-- **Calibration and test:** independent draws, with replacement, from declared distributions over held-out
-  instances.
-
-### Interpreter (learned)
-
-- **Architecture:** #48's word encoder and decoder, with two entity-copy heads (start and target) and budget
-  outputs 1–16 (or `default`).
-- **Training:** a fixed recipe, the robustness study's 1,500 Adam updates of 64 at a learning rate of 3e-3.
-  The pilot may change only the number of updates.
-- **Score:** the product of chosen-step and copy probabilities.
-- **Two conditions, reported separately:**
-  - **supplied query:** no interpreter;
-  - **interpreted query.**
-- **Table modules** remain a diagnostic system.
-
-### Modules
-
-- **Learned specialists:** PR 4/7's recipe (one network per relation, `connects_to` included), trained per
-  init on atomic facts.
-- **The S0 atomic-correctness record.** S0's atomic correctness against the reference world is checked
-  exhaustively and recorded per unit. Migration does not depend on it, because it uses the actual
-  difference.
-
-### Updates: twelve independent branches
-
-- **Branches.** For each unit, 12 updates, each an **independent branch S0 → S1ᵢ** from the same S0:
+- **Worlds and units:**
+  - **confirmation:** `route_world` seeds **800, 801, 802**, 48 countries; inits **0–4**; 15 units. These
+    worlds are unused, which was checked;
+  - **development:** worlds 100–101 only.
+- **Questions:**
+  - **primary:** until-questions with explicit budgets 1–16 (two templates);
+  - **diagnostic, reported separately:** omitted-budget questions, with the default budget 16;
+  - **refusal categories:** unsupported, budget over 16, ill-typed start, unknown entity.
+- **Sampling and sizes:**
+  - **training:** 30% of (start, target, budget) instances, plus 5% per refusal kind;
+  - **calibration and test:** 1,000 independent draws each, from one distribution: 20% refusals (5% per
+    category), otherwise held-out explicit-budget instances;
+  - **diagnostic:** 300 default-budget draws.
+- **Interpreter:** `query_interpreter.py`, with 1,500 Adam updates of 64 at a learning rate of 3e-3.
+- **Modules:** learned specialists (PR 4/7 recipe: d 32, hidden 64, 1,500 steps, lr 1e-2).
+- **Updates:** 12 independent branches from S0 per unit, fixed from the world seed:
   - 4 operator changes;
   - 4 route changes;
-  - 4 two-fact operator updates.
-- **The draws are fixed from the world seed** before any calibration or test outcome is inspected. They come
-  from facts that change at least one until-query outcome.
-- **For each branch:**
-  1. **Candidate:** fine-tune the affected specialist (PR 8's `finetune`).
-  2. **Certificate:** compute S1ᵢ's atomic table and its actual difference from S0, then build S1ᵢ's query
-     certificate. The certificate uses the same IID calibration questions with labels from the updated world,
-     and is bound to S1ᵢ's snapshot digest and the expected serving context.
-  3. **Check:** run the repaired `Checker`, all mandatory gates, with the expected context.
-  4. **Activate:** activate the complete context C1ᵢ through the serving deployment.
-  5. **Roll back to C0** before the next branch, and verify the rollback.
+  - 4 two-fact operator changes on consecutive airports that some route reaches.
 
-### Certificate scope
+  Each update is fine-tuned with PR 8's recipe (300 steps, lr 3e-3). Its certificate uses the same
+  calibration draws relabelled under S1. It is checked by the repaired `Checker` with the expected context,
+  then activated as a complete context. Then come the evaluations, then a rollback to C0.
+- **Certificate scope:** per snapshot. Each of a unit's 13 contexts is certified at risk 1% and level 0.05
+  on its own, with no simultaneous claim. The grid is the robustness study's, from 0.999 to 0.0.
 
-The guarantee is **per snapshot**:
-- **The claim.** Each of a unit's 13 serving contexts (C0 and the 12 C1ᵢ) is certified at risk 1% and
-  level 0.05 on its own.
-- **No simultaneous claim** is made across all 13. A simultaneous guarantee would split the error
-  probability 13 ways. That raises the minimum accepted calibration observations at zero errors from 299 to
-  554, and is not adopted.
-- **Every certificate counts.** Every C1ᵢ certificate is reported, including uncertified ones.
+**Episode scope:**
 
-### Evaluation populations, kept separate
+| Population | Queries | Budgets | Judged by |
+|---|---|---|---|
+| IID test draws | all 1,000 per unit | as drawn | coverage, accepted error, refusal rates per context (binomial bounds) |
+| Exhaustive sweep | every (start, target) | **every budget 1–16** | construction (C5) and learned correctness (L2, L3) |
+| Supplied episodes | every pair whose S0 and S1ᵢ runs differ, and 200 sampled unaffected pairs, per branch | **16** | C1, C2, descriptive naive rates |
+| Interpreted episodes | every admitted test question whose runs differ, and 50 sampled unaffected, per branch | **their parsed budgets** | C1, C2, release decisions |
 
-| Population | What it is for | How it is judged |
-|---|---|---|
-| **IID held-out test questions** (independent draws) | coverage, accepted error and refusal rates | binomial bounds, per serving context |
-| **Episodes** (affected queries, sampled unaffected queries, every pause index) | correctness audits of the version machinery, and descriptive rates of naive continuation's failures | counts and exact requirements. Never pooled into a binomial sample. The test certificate is never transferred to this cohort |
+Episodes run at every pause index under pin, restart and migrate, and under naive continuation. They are never
+pooled into a binomial sample.
 
-**Episodes for each branch:**
-- **The queries:**
-  - every query whose S0 and S1ᵢ outcomes, visited paths or applications differ;
-  - a fixed random sample of 200 that do not differ.
-- **The pause indices:** every index k from 0 to n − 1, for every policy and for naive continuation.
-- **Both conditions:**
-  - supplied queries;
-  - accepted interpreted test questions.
-- **The pilot** measures the cost. If the cost is too high, it fixes a pause-index sample before freezing.
+**Witness.** Per world, the first route S → a → b → c, in sorted order, whose a and b are not run by c's
+operator T. Setting a and b to T makes naive continuation after testing a give b, which neither version gives.
+It uses table modules.
 
-### Construction and integration checks across every budget
+**Injected faults.** With the unit's learned contexts, in the first activated branch:
+- resuming a C0 state on C1 through `recurrence.resume`;
+- an in-place parameter change under pin;
+- pin on another complete context with the same snapshot;
+- a certificate bound to S0;
+- a certificate for another interpreter;
+- a forged certificate;
+- a context with another certificate;
+- budgets 0, 17, `True` and 3.0.
 
-These check recurrence, budgets, records and version handling, not learned competence.
-- **The atomic gates establish atomic correctness.** PR 8's behaviour gates include every length-one path on
-  every valid input, so a passing candidate is atomically correct throughout this finite world. Given pure
-  deterministic modules and correct recurrence, every until-query then follows the correct atomic
-  transitions.
-- **The exhaustive check after each branch:** every (start, target) pair at **every budget from 1 to 16**.
-  Each must equal the reference outcome, and the independent traversal's visited path and applications. Each
-  budget is executed, not derived.
+The deterministic fixtures in `tests/test_ti_tnn_sessions.py` and `test_ti_tnn_serving.py` cover every fault
+and corruption case.
 
-## Predictions (one-sided)
+## Predictions and verdicts
 
-**Construction checks and injected faults:** 100% in every exercised case, in every unit. There is no
-allowance.
+**Construction checks: 100% in every exercised case, in every unit.** There is no allowance. The verifier
+re-derives each one.
 
-| # | Check | Requirement |
-|---|---|---|
-| C1 | **Policies.** At every pause index of every episode: pin equals the uninterrupted C0 run; restart equals the fresh C1ᵢ run; migrate equals the fresh C1ᵢ run whenever it migrates, and restarts otherwise | every case |
-| C2 | **Records.** Every policy record passes the independent checker. Every naive record that applied a module after the activation is flagged as unjustified mixing; no policy record is | every case |
-| C3 | **Non-vacuity.** The witness yields a no-version outcome under naive continuation, and a correct pin, restart and migrate, in every world. Every branch has both eligible and ineligible migration episodes where they exist | every world |
-| C4 | **Complete contexts.** Activation installs C1ᵢ complete; rollback restores C0 complete. A pinned session keeps C0 through any later rollback | every branch |
-| C5 | **The exhaustive check.** Every query outcome at every budget matches, under C0 and under every C1ᵢ | every branch |
-| F | **Every injected fault** (below) is handled as stated | every case |
-
-**Learned competence:** a world holds at ≥ 4 of 5 inits, and a prediction holds when every world does.
-Rejected candidates and uncertified units stay in the denominators.
-
-| # | Prediction |
+| # | Check |
 |---|---|
-| L1 | **Interpretation:** C0 is certified; on IID test questions coverage is ≥ 0.90 at a 95% accepted-error bound ≤ 1%; abstention is ≥ 0.95 on every refusal category |
-| L2 | **Modules:** S0 is atomically correct, and every supplied until-query outcome matches the reference at every budget |
-| L3 | **Updates:** all 12 branches pass every mandatory gate and activate; every C1ᵢ certificate certifies with coverage ≥ 0.90 at the same bound |
-| L4 | **End to end:** the same unit meets L1–L3, and its restart-policy results on the IID test questions meet L1's bounds under C0 and every C1ᵢ |
+| C1/C2 | Every pin, restart and migrate record is execution-valid and policy-valid, and equivalent to its expected snapshot (pin: S0; restart and migrate: S1ᵢ). Every naive record is execution-valid and flagged as an unjustified switch. No declared episode record is missing, and none is extra |
+| C3 | The witness, in every world: naive continuation gives a no-version outcome, and pin, restart and migrate are valid and correct |
+| C4 | Activation installs the complete C1ᵢ, and rollback restores the complete C0. This is the producer's record, with its identities checked |
+| C5 | Every exhaustive outcome, in every context, equals the traversal over that context's own table. This is execution, not correctness |
+| R | Every recorded admission and release decision re-derives |
+| F | Every injected fault is handled as required. Faults are "not exercised" in a unit where no branch activates, and are reported as such |
 
-**Also reported:**
+**Learned predictions.** For each, a unit holds or fails; a world holds at ≥ 4 of 5 inits; the prediction
+holds when all three worlds do. The inventory is all 15 units with 12 branches each. A missing unit, a
+rejected candidate or an uncertified context counts as a failure, never as missing data.
+
+| # | Holds in a unit when |
+|---|---|
+| L1 | C0 is certified. Its new-request test has coverage ≥ 0.90 and a 95% accepted-error bound ≤ 1%. Its observed abstention is ≥ 0.95 in each refusal category. This is an observed-rate benchmark over about 50 draws per category, reported with its denominators, and not a population lower bound |
+| L2 | S0's atomic table equals the world's facts, and every exhaustive outcome under S0 equals the reference |
+| L3 | All 12 branches activate. Each C1ᵢ is certified, and S1ᵢ is atomically correct. Every exhaustive outcome under C1ᵢ equals its world's reference. Each C1ᵢ new-request test (at t1ᵢ) meets L1's coverage and bound |
+| L4 | L1–L3 hold, and each C1ᵢ resumed-request test (at max(t0, t1ᵢ)) meets the same coverage and bound |
+
+**Also reported, judged by no prediction:**
 - exact parsed-query accuracy;
 - the omitted-budget diagnostic;
-- the actual-difference classes;
-- naive continuation's three failure rates, by update kind and pause index;
-- migration eligibility, and its counted costs against restart;
-- the continuation-state size.
+- the difference classes;
+- naive continuation's rates: switches, mixing, contract violations, no-version outcomes;
+- migration eligibility and its counted costs;
+- releases by policy.
 
-## Injected faults
+## Export and independent verification
 
-| Fault | Required handling |
+**The export.** Each unit writes `runs/.../units/w<world>_i<init>/`:
+
+| File | Contents |
 |---|---|
-| Resuming a C0 state on C1 through `recurrence.resume` | refused: different registry identity |
-| A module's parameters changed in place while paused, its declared identity unchanged | pin refuses: the snapshot digest does not match |
-| A certificate bound to S0 supplied for C1 | the calibration gate fails: wrong snapshot |
-| A certificate whose interpreter, policy, event or distribution differs from the expected context | the calibration gate fails |
-| A certificate whose stored result does not re-derive from its records, or which certified no rule | the calibration gate fails |
-| Activating with a check result whose sealed certificate differs from the context being installed | refused |
-| Migrating when the prefix consumed an input in the actual difference (including a correction outside the declared changes) | refused, and restarted |
-| A migration justification for a different snapshot pair or difference | refused by the checker |
-| A rollback while a run is paused | pin keeps C0; restart and migrate use the restored active context |
-| A rollback that removes C0 from the history while a pinned session holds it | the pinned session keeps C0, verified by digest |
-| A stale update record (its base is no longer active) | refused activation; paused runs are unaffected |
-| A query budget of 0, 17 or a non-integer | refused before execution |
+| `unit.json` | summary, branch records, gates, differences, C4, faults |
+| `interpreter.json.gz` | every calibration, test and diagnostic draw: occurrence id, parse, full-precision score and its components, pre-threshold decision, per-context result and label, and admission and release decisions with context and certificate identities |
+| `tables.json.gz`, `certificates.json.gz`, `contexts.json.gz` | the atomic tables, certificates and serving contexts |
+| `exhaustive.json.gz` | compact rows and an outcome digest per context |
+| `episodes.jsonl.gz` | compact episode rows |
+| `sessions.jsonl.gz` | every full session record, with its release decision |
 
-## Analysis and independent verification
+**Where it is kept:**
+- **in the evidence bundle:** everything except `sessions.jsonl.gz`;
+- **as release assets:** the session files, with their sha256 committed before the release (as in #55).
 
-`bench/integration_test_verify.py` and `integrated/session_verification.py` share one rule: they never call
-`recurrence.py`, `sessions.py` or the producer's checker. They read:
-- the run's records;
-- every snapshot's atomic-output table;
-- the regenerated reference worlds and question sets.
+**The verifier.** `bench/integration_test_verify.py` rebuilds every number, construction check and learned
+verdict from the export. It never calls the producer's execution or decision code. It uses:
+- **the study generator and branch draw,** to regenerate what was asked;
+- **`session_verification`,** which has its own traversal;
+- **the robustness verifier's independent fixed-sequence certificate.**
 
-They check:
-- **Traversal:** their own traversal re-derives every outcome, visited path and application sequence, from a
-  snapshot's table and from the reference world.
-- **Records:**
-  - every application's provenance and outputs agree with the table of the snapshot it names;
-  - every migration justification is valid.
-- **Actual differences** are re-derived from the tables and compared with the recorded ones.
-- **Certificates:** each is re-derived in full from its records, and its bindings are checked against its
-  context.
-- **Source binding:** the frozen commit and the producer-file hashes.
-- **Inventory:** the declared worlds, inits, branches, episodes and pause indices.
+It re-derives:
+- every score, from its components;
+- the pre-threshold decisions;
+- every result, by traversal;
+- every label, every certificate and every release decision, and every metric;
+- the exhaustive digests;
+- the declared episode sets, and every session record;
+- the differences and their classes;
+- the witness.
 
-Anything too large for git becomes a release asset with its sha256 committed first, as in #55.
+It raises on any export that does not re-derive. A self-consistent record of a forbidden execution fails the
+construction verdict.
+
+**What it cannot re-derive** from weight-free records, and reports as the producer's record:
+- the update gates;
+- the activation and rollback mechanics (C4);
+- the injected faults (F);
+- that each table is its snapshot's behaviour. That is checked when the run is produced, and by the
+  deterministic fixtures.
+
+**Source binding.** The verifier requires:
+- the run's producer-file hashes to equal the hashes fixed in the freezing commit;
+- a clean research tree.
+
+The run records its commit; the execution record names it, since a commit cannot name itself.
 
 ## Interpretation limits
 
-- **The scope.** It tests whether specified components keep their declared behaviour through an update, in
-  a finite synthetic world with supplied types, relations and entities. It makes no claim about natural
-  language or update safety in general.
-- **Construction checks** verify this implementation; they are not findings.
-- **The "right" policy** is a declared contract. Restart is the default, because answers then reflect the
-  facts when they are given. Pin is for replay.
-- **Migration** is exact here because the atomic tables are finite and exhaustively known. That would not
-  hold where the actual difference cannot be computed.
-- **The guarantees are per snapshot,** not simultaneous across a unit's 13 contexts.
-- **Pause and resume** happen in one process, with fresh copies.
+- **The scope.** Specified components keeping declared contracts through updates, in a finite synthetic world
+  with supplied types, relations and entities. There is no claim about natural language, other models, or
+  update safety in general.
+- **Construction checks verify this implementation.** The learned predictions are expected at the ceiling and
+  are not robustness evidence.
+- **The "right" policy is a declared contract.** Restart is the default.
+- **Migration is exact here** only because atomic tables are finite and exhaustively known.
+- **Guarantees are per snapshot.** Refusal rates are observed rates. Pause and resume happen in one process.
 
-## Development pilot
+## History
 
-**Cap:** **four hours of wall time, with at most four CPU threads,** at low priority. This is not four
-CPU-hours.
+**Revision 1** (`9fb811f`) proposed the design. The review of revision 1 found that:
+- the calibration interface was not bound to the expected context;
+- activation swapped snapshots only;
+- the declared changes could differ from the actual module changes (the correction counterexample);
+- populations and construction criteria were unclear.
 
-**Units:** worlds 100–101 × inits 100–101 only, starting with **one learned unit** (world 100, init 100).
+**Revision 2** (`03f0d36`) applied the review's decisions:
+- **interpreter:** learned;
+- **budgets:** explicit, 1–16;
+- **default policy:** restart;
+- **updates:** 4 + 4 + 4 independent branches;
+- **bars:** 90% coverage at a 1% bound, 95% refusal, and 100% on construction checks;
+- **units:** worlds 800–802 × inits 0–4;
+- **certificates:** per snapshot.
 
-**What it settles:**
-- the question sizes;
-- the interpreter's update count;
-- whether the coverage threshold is feasible;
-- the episode sample size;
-- the pause-index sampling.
+The prerequisite repair merged as #57.
 
-**What it may not change:**
-- the definitions;
-- the check requirements;
-- the bars, without review;
-- the confirmation worlds.
+**Revision 3** (`7d5adbc`) disclosed the development pilot (below). The review of revision 3 found that:
+- the checker could count a corrupted naive trace as a genuine failure;
+- pin accepted another complete context on the same snapshot;
+- the verifier ignored several migration-proof fields;
+- the resumed-question path did not exercise the release gate.
 
-### Pilot runs (all disclosed)
+It also asked for the wording now in this revision:
+- C5 is construction only;
+- the episode budget scope is explicit;
+- switches and mixing are counted separately;
+- the refusal bar is an observed rate.
 
-| Run | Commit | Units | Wall time | Status |
-|---|---|---|---:|---|
-| `runs/titnn_integration_pilot/20261019T145308` | `f83e7a4` | 100/100 | 985 s | superseded, see below |
-| three smoke runs | uncommitted harness edits, scratch output | 6-country world, 100/100 | about 4 min in all | code checks only, not results |
-| `runs/titnn_integration_pilot/20261022T121659` | `67a2f04`, clean tree | 100/100, 100/101, 101/100, 101/101 | 3,830 s | **the pilot result** |
+**Revision 4** (this text) follows the repairs at:
+- `bb9816e`: three judgments, complete-context binding and the release adapter;
+- `433b208`: the complete export, the independent verifier, and export → rebuild → corruption tests on a
+  ceiling run and a non-ceiling run.
 
-About 1.5 of the 4 hours were used. Two corrections were made between the first and last runs; both are
-disclosed here.
+The non-ceiling run had imperfect S0 operators, learned corrections, a rejected candidate, non-zero thresholds
+and refused releases. Every one of 17 deliberate corruptions was rejected.
 
-1. **Naive continuation's failures.** The independent checker judged contract violations and no-version
-   outcomes on the full record, including which version produced each application. This file defines them
-   on the outcome: the answer or terminal reason, and the visited path. The stricter test made contract
-   violations equal ineligible migrations by construction (1,639 of 1,639 in the first run). The checker now
-   follows this file, and a fixture covers the difference. That fixture is an ineligible run whose outcome is
-   still S1's.
-2. **Resume costs.** The first run's migrate cost included the applications made before the pause, which are
-   sunk. Costs now count only work after the pause.
+### Development pilot (worlds 100–101 × inits 100–101; development diagnostics checked online)
 
-The first run's construction checks and learned results are identical to the final run's unit 100/100.
+The pilot ran at `f83e7a4` (one unit, superseded) and at `67a2f04` (four units, clean tree). Its checks ran
+online, inside the harness. Its harness kept aggregates and a small sample of records, not the complete export
+specified above. **Its numbers cannot be rebuilt retrospectively, and they are development diagnostics, not
+evidence.**
 
-### Pilot results (`67a2f04`, four units)
+**Construction checks:** in 46,638 supplied and 15,960 interpreted episodes, the pilot found no pin, restart
+or migrate mismatch and no rejected policy record. In each of the 13 contexts per unit, the exhaustive sweep
+found no construction mismatch.
 
-**Construction checks, required at 100%:**
+**Learned predictions:** at the ceiling, with every certificate at threshold 0.0.
 
-| Check | Count | Mismatches |
-|---|---:|---:|
-| C1/C2 supplied episodes: pin, restart and migrate against uninterrupted runs, with every record independently verified | 46,638 | 0 |
-| C1/C2 interpreted episodes | 15,960 | 0 |
-| C2: every naive switch flagged; no policy record flagged | 62,598 | 0 |
-| C4: complete-context activation and rollback | 48 branches | 0 |
-| C5: exhaustive sweep at every budget, against the independent traversal | 13 contexts per unit, 15,360–15,552 queries each | 0 |
-| F: injected faults with learned contexts (10 per unit) | 40 | 0 |
-| C3: the witness (two worlds) | 2 | 0. Naive continuation gives a no-version outcome; pin, restart and migrate are correct |
+**Naive continuation (supplied episodes):** 3.4% contract violations. The 34 no-version outcomes all came from
+two-fact branches.
 
-**Learned competence.** L1–L4 hold in all four units, **at the ceiling**:
-- **Parses** are 100% exact on calibration, test and the default-budget diagnostic.
-- **The certificates:** every one (C0 and all 48 C1ᵢ) selects threshold 0.0, with zero errors among 780–789
-  calibration results.
-- **Test:** coverage is 1.000, errors 0, and the accepted-error bound is 0.0038, under C0 and every C1ᵢ.
-- **Refusals:** abstention is 1.000 in every category.
-- **Modules:** S0 and every S1ᵢ are atomically correct.
-- **Differences:** every actual difference is intended only. There are no corrections and no regressions.
+**Migration** did exactly restart's module work, plus lookups.
 
-**Naive continuation (supplied episodes):**
+**Mid-pilot corrections** (disclosed in revision 3):
+- naive failures are judged on outcomes;
+- costs count only work after the pause.
 
-| Failure | Episodes | Share |
-|---|---:|---:|
-| unjustified switches | 46,638 | 100% |
-| unjustified mixing | 34,826 | 75% |
-| contract violations | 1,566 | 3.4% |
-| no-version outcomes | 34 | all from two-fact branches; none from single-fact branches, as defined |
-
-**Migration** was eligible in 41,606 of 46,638 episodes (89%). Where it migrated:
-
-| Policy | Work after the pause |
-|---|---|
-| migrate | 296,642 suffix applications + 184,816 revalidations = 481,458 applications, plus 184,816 difference lookups |
-| restart | 481,458 applications |
-
-**Cost:** 911–1,000 s per unit. Fifteen confirmation units would take about 4 hours at four threads, with
-every pause index.
-
-**Records:**
-- full session records are about 250 MB of JSON per unit (supplied episodes);
-- gzip compresses them about 66 times (sample: 1.58 MB to 24 KB);
-- about 5 MB per unit with the interpreted episodes included, or about 75 MB for 15 units.
-
-### Proposed for the freeze (pending review)
-
-1. **State the ceiling.** In these worlds the learned interpreter, modules and certificates are at their
-   ceiling, so L1–L4 are expected to hold. The test's informative content is the construction checks at the
-   seams. The report must say so, and must not present L1–L4 as evidence of robustness.
-2. **Drop the efficiency claim for migration.** It does no less module work than restart; it is kept only as
-   an exact-equivalence check (C1, C2). Restart remains the default.
-3. **Keep every pause index, and the sizes as specified:**
-   - 1,000 calibration and 1,000 test draws;
-   - 200 unaffected supplied queries per branch;
-   - 50 unaffected interpreted questions per branch.
-   No sampling is needed.
-4. **Store records in two places:**
-   - **in the bundle:** summaries, atomic tables, certificates with their records, and compact per-episode
-     outcome rows;
-   - **as release assets:** the full gzipped session records, with their sha256 committed before the
-     release.
-5. **Write the independent verifier before the freeze.** `bench/integration_test_verify.py` must rebuild every
-   reported number from those files, never calling the producer, as the #55 review required.
-6. **Remove the reserved-world check** in the freezing commit.
-
-## Implementation order (before any learned fit)
-
-1. **Prerequisite repair, in its own PR,** with regression tests:
-   - **certificates:** `integrated/certificates.py` (the query certificate and the expected context);
-   - **checker:** the `update_checks.py` interface (the expected context passed to the gate, and
-     certificate-aware identity);
-   - **serving:** `integrated/serving.py` (the serving context, and a deployment that activates and rolls
-     back complete contexts).
-
-   The PR 6 and PR 8 results must rebuild unchanged.
-2. **The sessions layer:** `integrated/sessions.py`:
-   - the budget contract;
-   - pause indices by `step` calls;
-   - pin, restart and migrate, with provenance and justification;
-   - the actual-difference computation from atomic tables.
-3. **The independent reconstruction:** `integrated/session_verification.py`.
-4. **Deterministic table-module fixtures** for every construction check and injected fault, including the
-   review's correction counterexample and the two-fact witness.
-5. **The query interpreter and the experiment harness**, then the pilot.
-
-Status, 2026-10-22:
-- item 1 is merged (#57);
-- items 2–4 are at `62a630e` and `67a2f04`;
-- item 5 and the pilot are done (above);
-- the record export and the independent verifier are next, before the freeze.
-
-## Decisions (from the review of revision 1)
-
-| Choice | Decision |
-|---|---|
-| Interpreter | Learned. The supplied-query condition and the table modules are kept to isolate failures |
-| Budgets | Explicit budgets of 1–16 in the primary questions. The default-16 questions are a diagnostic, reported separately |
-| Default policy | Restart. Pin is kept for replay. Migrate is a secondary optimisation under an exact equivalence contract |
-| Updates | 4 operator, 4 route and 4 two-fact updates, as independent branches from the same S0 |
-| Bars | 90% coverage at a 1% accepted-error bound, and 95% refusal, with completed results defined as above. 100% on construction checks and injected faults |
-| Units | Worlds 800–802 × inits 0–4, reserved. Development on worlds 100–101 first |
-| Certificate scope | Per snapshot, not simultaneous |
+**Cost:** about 16 minutes per unit at four threads, before the complete export was added.
