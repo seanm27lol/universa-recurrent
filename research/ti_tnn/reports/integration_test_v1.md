@@ -52,7 +52,7 @@ results test the seams between components. They are not evidence that the learne
 | C3, the two-fact witness (one per world) | 3 | 0 |
 | C4, complete-context activation and rollback (the producer's record) | 180 branches | 0 |
 | C5, exhaustive outcomes against each context's own table, at every budget 1–16 | 13 contexts per unit × 15,072–17,664 queries | 0 |
-| R, admission and release decisions re-derived (interpreted episodes) | 170,010 policy records | 0 |
+| R, every field of every release decision re-derived (interpreted episodes) | 170,010 policy records | 0 |
 | F, injected faults with learned contexts (the producer's record) | 11 faults × 15 units | 0 |
 
 ### Learned predictions (a world holds at ≥ 4 of 5 inits)
@@ -104,7 +104,9 @@ per-world witness shows that the instrument detects them whenever the facts allo
 - **Cost:** as in the pilot, migration does restart's module work plus lookups. It is an equivalence check, not
   an optimisation. Restart remains the default.
 - **Releases:**
-  - interpreted pin, restart and migrate records were each released 56,670 times, all re-derived;
+  - interpreted pin, restart and migrate records were each released 56,670 times. Every field of every release
+    decision was re-derived: the released answer against the session's own outcome, the reason, the effective
+    threshold and its supporting step;
   - every threshold was 0.0, so no release was refused by a threshold in the confirmation.
 - **The release gate at non-zero thresholds** is covered elsewhere: by the deterministic fixture (a score of
   0.95 admitted at 0.90 and refused at a stricter C1), and by the non-ceiling development run in
@@ -120,7 +122,8 @@ per-world witness shows that the instrument detects them whenever the facts allo
   - the declared episode sets passed at every exercised pause index (supplied episodes at budget 16,
     interpreted episodes at their parsed budgets);
   - separate exhaustive traversals covered budgets 1–16;
-  - the independent verifier reconstructed execution, policy equivalence and release decisions;
+  - the independent verifier reconstructed execution, policy equivalence and every field of every release
+    decision;
   - activation mechanics and injected faults remain producer-record evidence.
 
 **It does not establish:**
@@ -202,10 +205,40 @@ It also bound every one of the 973,760 session records to its declared episode, 
 | **The scope sentence.** The sentence under "It establishes" now separates the scopes of the episode checks, the exhaustive traversals and the producer-record evidence | It had combined them |
 
 **The corrected verifier reproduced the bundled `verification.json` exactly** from the published evidence, with
-the session files staged as the release provides them. Each counterexample is a regression test, which the
-verifier merged in #58 accepted and the corrected verifier rejects:
-- a valid session from another case, both supplied and interpreted;
-- a restart from another pause index;
-- an empty run, a missing world, a missing init, a missing budget, a repeated unit and another configuration;
-- a re-derived certificate at another alpha.
+the session files staged as the release provides them. Each counterexample is a regression test that the
+corrected verifier rejects. Run against the verifier merged in #58 (corrected after the review of #59):
+- **accepted by it:**
+  - a valid session from another case, both supplied and interpreted;
+  - a restart from another pause index;
+  - an empty run, a missing world, and another configuration;
+- **rejected by it for other reasons:**
+  - a missing init and a repeated unit, because the units did not match the run's own declaration;
+  - a missing budget, a construction failure, because the exhaustive digests no longer re-derived;
+- **accepted only by its certificate check:** a re-derived certificate at another alpha. Placed in the export, it
+  was rejected, because the context's certificate identity no longer matched.
 
+
+## Corrections (2026-10-23, after an outside review of #59)
+
+No reported number changed. The review found the three findings of the #58 review resolved: session binding,
+the frozen inventory, and certificate risk settings. It also audited every published release record; that
+audit supports the published results. It found one remaining omission, in release verification.
+
+| What changed | Why |
+|---|---|
+| **Release records, field by field.** The verifier re-derives every field of every release record, and requires exactly the declared records (C0's new requests; each activated update's new and resumed requests). For interpreter draws: admission, release, reason, threshold and supporting step. For interpreted sessions, also the released answer and outcome reason, against the session's own outcome | The verifier merged in #59 compared admission and release, and a released record's threshold. A release decision that released an answer its session never produced passed, and a missing record counted as "not released" |
+| **Release wording.** The R row, "Releases" and the scope list above now say "every field of every release decision" | They said release decisions were re-derived. The verifier merged in #59 did that only in part |
+| **The counterexample list** under the previous corrections now says what the verifier merged in #58 did with each, as run against it | It said that verifier accepted every counterexample. Some it rejected for other reasons, and the certificate counterexample was accepted only by its certificate check |
+
+**The corrected verifier reproduced the bundled `verification.json` exactly** from the published evidence. Each
+new counterexample is a regression test. Each was run against both verifiers: the one merged in #59 accepted it
+and the corrected one rejects it:
+- **an interpreted release decision that differs from its own session in one field**, while still saying
+  "released" under the right score, contexts and certificates: the answer, the outcome reason, the effective
+  threshold, the supporting step or the reason;
+- **an interpreter release record that does not re-derive:** another reason for a pre-execution refusal, a
+  threshold on a refused record, no supporting step on a released record, or a missing record.
+
+A further test requires the verifier's release rule, written without the producer's certificate code, to equal
+the adapter's on every path, including those the confirmation never reached: certificates without a shared
+interpreter, and an uncertified side.
