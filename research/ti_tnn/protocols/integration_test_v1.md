@@ -366,3 +366,26 @@ two-fact branches.
 - **naive continuation:** 436 contract violations and 9 no-version outcomes among the supplied episodes.
 
 It is a development diagnostic, like the pilot.
+
+## Execution record (appended 2026-10-23, after the run)
+
+- **The run:**
+  - `runs/titnn_integration_confirmation/20261022T205617`;
+  - ran from the freezing commit `e03075a`, with an unmodified research tree; its producer-file hashes equal
+    `FROZEN_SOURCES`;
+  - all 15 units completed (worlds 800–802 × inits 0–4), CPU, four threads, about 9.5 hours of wall time.
+- **Interference:** another session's CPU job on the machine slowed the later units. It was logged and not
+  acted on. Results are deterministic on CPU.
+- **Verification:** `bench/integration_test_verify.py` rebuilt every number from the export in frozen mode, and
+  verified every one. The rebuild through `make_tables.py --integration-sessions`, with the session files
+  staged, reproduced `verification.json` exactly.
+- **Construction checks:** every one held in every unit, and none went unexercised:
+  - 973,760 session records;
+  - 13 exhaustive contexts per unit;
+  - 180 branches;
+  - 3 witnesses;
+  - 165 injected faults.
+- **Learned predictions:** L1–L4 held in 5/5/5 inits, at the ceiling. Every module was exact and every
+  certificate selected threshold 0.0. The five inits of each world have identical atomic tables, so the
+  construction checks are replicated over three worlds, not 15 independent units.
+- **Deviations from this protocol:** none.
