@@ -23,6 +23,11 @@ Checks every file against manifest.json first (sha256), then prints:
   and checked against the bundled verdict.json.
 - the lookup task's shared-path control, recomputed with frontier.py --shared-control and checked
   against the recorded output.
+- the integration-test confirmation: its bundled verifier output, or, with the session release downloaded,
+  every number rebuilt by research/ti_tnn/bench/integration_test_verify.py (about five minutes):
+
+      gh release download ti-tnn-integration-test-sessions-v1 --repo seanm27lol/universa-recurrent --dir integration_sessions
+      python experiments/results/ti_tnn/make_tables.py --integration-sessions integration_sessions
 - the S2 diagnosis: the historical classification of every S2 question, the development fits and the fresh
   confirmation, re-derived from the bundled records with research/ti_tnn/bench/s2_diagnosis.py and
   s2_development_analysis.py and checked against the bundled analyses (about five minutes). Arm A's
@@ -413,6 +418,49 @@ def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False, traces_dir: Pa
             shutil.rmtree(staging)
     return out
 
+def integration_test_tables(bundle: Path = HERE, sessions_dir: Path | None = None) -> dict:
+    """The integration-test confirmation (protocols/integration_test_v1.md, frozen revision 4).
+
+    Without `sessions_dir`, it returns the bundled verifier output; the manifest check has already covered it.
+    With `sessions_dir` (the downloaded release `ti-tnn-integration-test-sessions-v1`), it proceeds in four steps:
+    - every session file is checked against the sha256 in `integration_test/session_release.json`;
+    - each file is staged next to the bundled export;
+    - the frozen independent verifier (`research/ti_tnn/bench/integration_test_verify.py`) rebuilds every number,
+      construction check and learned verdict, enforcing the frozen source binding;
+    - the result must equal the bundled `verification.json`. This takes about five minutes."""
+    import shutil
+    import tempfile
+    root = bundle / "integration_test"
+    recorded = json.loads((root / "verification.json").read_text())
+    if sessions_dir is None:
+        return {"rebuilt": False, **recorded}
+    sys.path.insert(0, str(BENCH))
+    import integration_test_verify as VF  # research/ti_tnn/bench/integration_test_verify.py
+    release = json.loads((root / "session_release.json").read_text())
+    run = root / release["run"]
+    staging = Path(tempfile.mkdtemp(prefix="integration_"))
+    try:
+        target = staging / release["run"]
+        (target / "units").mkdir(parents=True)
+        (target / "run.json").symlink_to((run / "run.json").resolve())
+        for asset in release["assets"]:
+            source = (Path(sessions_dir) / asset["name"]).resolve()
+            data = source.read_bytes()
+            if hashlib.sha256(data).hexdigest() != asset["sha256"] or len(data) != asset["bytes"]:
+                raise ValueError(f"{asset['name']}: does not match the sha256 in session_release.json")
+            unit = target / "units" / asset["unit"]
+            unit.mkdir()
+            for f in (run / "units" / asset["unit"]).iterdir():
+                (unit / f.name).symlink_to(f.resolve())
+            (unit / "sessions.jsonl.gz").symlink_to(source)
+        rebuilt = json.loads(json.dumps(VF.verify(target), sort_keys=True))
+    finally:
+        shutil.rmtree(staging)
+    for key in ("verified", "commit", "verdict", "worlds", "units"):
+        if rebuilt[key] != recorded[key]:
+            raise ValueError(f"integration test: rebuilt {key} differs from the bundled verification.json")
+    return {"rebuilt": True, **rebuilt}
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -439,6 +487,8 @@ def main(argv=None):
     p.add_argument("--json", type=Path, help="also write every table as JSON")
     p.add_argument("--s2-traces", type=Path, help="the downloaded S2 trace release (s2_diagnosis/trace_release.json); "
                    "rebuilds every arm's trace-derived tables too")
+    p.add_argument("--integration-sessions", type=Path, help="the downloaded integration-test session release "
+                   "(integration_test/session_release.json); re-runs the frozen verifier on the full export")
     args = p.parse_args(argv)
     manifest = verify()
     print(f"{len(manifest['files'])} files match manifest.json\n")
@@ -559,6 +609,10 @@ def main(argv=None):
     conf = s2["confirmation"]["confirmation"]
     print(f"  confirmation: S2 and S3/S4 in the same unit {conf['successes_by_world']}; C holds {conf['prediction_C_holds']}; "
           f"C above B in every world {conf['secondary_C_above_B_every_world']}")
+    it = integration_test_tables(sessions_dir=args.integration_sessions)
+    v = it["verdict"]
+    print(f"\nIntegration test (worlds 800-802 x 5 inits) {'rebuilt by the frozen verifier' if it['rebuilt'] else 'as verified at bundling (pass --integration-sessions to rebuild)'}: "
+          f"construction every unit {v['construction_every_unit']}; learned successes by world {v['learned_successes_by_world']}")
     for part in ("development", "confirmation"):
         a = s2[part]
         print(f"  {part} trace tables rebuilt for arms {a['traced_arms']}"
