@@ -3,7 +3,7 @@
     CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 .venv-phase2/bin/python \\
         research/ti_tnn/bench/repeated_updates.py --worlds 100 101 --inits 100 101 --out runs/titnn_repeated_dev
 
-**Example.** World 100 has 276 facts. Its first scheduled request moves `country_7`'s capital. The arm
+**Example.** World 100 has 276 facts. Its first scheduled request moves `country_6`'s capital. The arm
 `shared/signature/1/8/fixed` fine-tunes the deployed shared network for 300 steps on that fact plus at most
 ⌊276/8⌋ = 34 unchanged facts, `capital_of` and `largest_city_of` first (both Country → City). The candidate is
 screened (every fact of the target world right) and, if it passes, fully checked by PR 8's gates. The first
