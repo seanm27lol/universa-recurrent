@@ -1,7 +1,7 @@
 # Repeated updates under a bounded replay allowance (draft, revision 2)
 
-**Status: DRAFT, revision 2 (2026-10-23), after the review of revision 1.** Nothing here is frozen, and no
-run has touched confirmation worlds 900–902.
+**Status: DRAFT, revision 2 (2026-10-23), after the review of revision 1, with the development pilot appended.**
+Nothing here is frozen, and no run has touched confirmation worlds 900–902.
 - **What is authoritative:** the specification below. "History" keeps revision 1, the review's decisions,
   the exploratory probes and the development pilot.
 - **The code it specifies:** `bench/repeated_updates.py` (the harness) and `bench/repeated_updates_verify.py`
@@ -361,3 +361,79 @@ is 7%, 14%, 27% and 54% of world 100's 276.
 - **Specialists,** with own-relation replay of 0, 2, 4 and 8 facts and of all of them: 9, 9, 11, 11 and 12.
 - **The probes' schedule** was drawn sequentially, not as revision 2's immutable schedule. Their proposals
   reseeded identical training sets, so some of their retries were duplicates.
+
+### Development pilot (2026-10-24 UTC, worlds 100–101 × inits 100–101; revision 2's harness at `e67126e`)
+
+    CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 python research/ti_tnn/bench/repeated_updates.py \
+        --worlds 100 101 --inits 100 101 --out <dir>
+
+The harness has changed since only in one docstring word.
+
+**Verification** (`repeated_updates_verify.verify(..., development=True, reproduce=True)`):
+- **Re-derivation:** every one of 7,504 attempts re-derived. Of them, 392 were duplicates and 7,112 were trained.
+- **Screen-passing attempts:** 1,212. Every one passed every mandatory gate and was activated.
+- **Screened-out attempts:** 540 of 5,900 were fully checked (9.2%: the 5% rule plus the per-kind minimum).
+  None disagreed with the screen.
+- **Sampled reproduction:** 76 of 76 chains identical, one per arm and world.
+- **Bases:** all shared and specialist bases were exact.
+
+**Accepted requests, both worlds (of 48), with fixed / early stopping:**
+
+| Policy | β = 1/16 | 1/8 | 1/4 | 1/2 |
+|---|---|---|---|---|
+| `random` | 3 / 20 | 7 / 20 | 15 / 27 | 25 / 35 |
+| `relation_first` | 15 / 25 | 20 / 24 | 23 / 34 | 32 / 39 |
+| `signature` | 11 / 28 | 24 / 38 | 43 / 36 | 47 / 43 |
+| `check_guided` | 38 / 39 | 47 / 45 | 48 / 44 | 48 / 41 |
+
+**References and contrast:**
+- no replay: 2;
+- full rehearsal: 48;
+- specialists at β = 0, 1/8, 1/4 and 1/2 of their relation: 38, 44, 48 and 48. Those β mean 0, 3–10, 6–20
+  and 12–40 replayed facts.
+
+**Predictions on development:**
+- **R1 holds:** full rehearsal 48 of 48.
+- **R2 holds:** no replay 2 of 48.
+- **H2 holds.** At 1/16, early stopping raised `random` from 1 to 11 of 24 in world 100 and from 2 to 9 in world
+  101, with 2% of fixed stopping's optimizer steps.
+- **H1 fails in world 100.** On capital moves at 1/8, fixed stopping, `signature` against `relation_first` was
+  0 v 0 of 12 in world 100 and 3 v 0 in world 101.
+
+**The decision on development:**
+- **β = 1/16: a prespecified gap.** The best ordinary arm accepted 21 of 24 (87.5%) in world 100 and 19 of 24
+  (79.2%) in world 101; both were `check_guided`.
+- **β ≥ 1/8: no prespecified target gap.** `check_guided` with fixed stopping accepted 23–24 of 24.
+
+**What the pilot shows:**
+1. **Fixed stopping drifts on capital moves unless the same-signature relation is rehearsed.** With fixed
+   stopping, `random` and `relation_first` accepted at most 2 of 24 capital moves at every β up to 1/4. At
+   1/2 they accepted 4 and 8 of 24.
+2. **`signature` works when its pool fits.** It went from 3 of 24 capital moves at 1/8 to 23 of 24 at 1/4.
+   That is where its pool fits the allowance:
+   - the pool is `capital_of` plus `largest_city_of` minus the edit, 47 facts in every world;
+   - B is 34–36 at 1/8 and 69–72 at 1/4.
+
+   **H1 failed because at 1/8 the pool is subsampled.** At 1/4, capital moves are 23 v 1 of 24 against
+   `relation_first`.
+3. **`check_guided` reaches the target from β = 1/8.** Its per-attempt allowance understates what it sees:
+   - **cumulative distinct replay:** at 1/8 about 79–105 facts per request, 29–38% of the facts;
+   - **exhaustive error lists:** it reads one after every attempt.
+4. **Early stopping helps the weak policies and costs the strong ones.** It helps `random` and `relation_first`
+   at every β. It lowers `signature` and `check_guided` at large β.
+
+**Cost.**
+- **Chains:** 337 s per unit for all 38 arms.
+- **Verification:** about 70 s for 4 units. Reproduction takes about 9 s per chain.
+- **Estimated confirmation:** 15 units about 85 min, verification with reproduction of 114 chains about 20 min.
+  About 1 h 45 min of CPU in all, at 4 threads.
+
+**Proposed for revision 3, for the reviewer to decide before freezing:**
+1. **Move H1 from β = 1/8 to β = 1/4.**
+   - **At 1/8,** the 47-fact signature pool exceeds B in every world, including 900–902: B = 31–37. That comes
+     from the generator's fact counts, with no training or run on those worlds.
+   - **At 1/4,** it fits: B = 63–75.
+   - **The other option** is to keep 1/8 as revision 2 states. H1 would then test subsampled pools, and the
+     pilot predicts it fails.
+2. **Report descriptively the best ordinary arm without `check_guided`,** beside the decision. The decision
+   itself is unchanged: `check_guided` stays an ordinary method, as decided.
