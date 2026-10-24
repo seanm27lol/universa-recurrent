@@ -1,242 +1,343 @@
-# Repeated updates under a bounded replay allowance (draft, revision 1)
+# Repeated updates under a bounded replay allowance (draft, revision 2)
 
-**Status: DRAFT for review, revision 1 (2026-10-23).** Nothing here is frozen, and no run has touched
-confirmation worlds 900–902. Two exploratory development probes on world 100 informed the draft; they are
-disclosed in "History".
+**Status: DRAFT, revision 2 (2026-10-23), after the review of revision 1.** Nothing here is frozen, and no
+run has touched confirmation worlds 900–902.
+- **What is authoritative:** the specification below. "History" keeps revision 1, the review's decisions,
+  the exploratory probes and the development pilot.
+- **The code it specifies:** `bench/repeated_updates.py` (the harness) and `bench/repeated_updates_verify.py`
+  (the independent verifier).
+- **What it builds on:** PR 8's gates and deployment, with the prerequisite repair in #62. That repair lets
+  the gates read a shared network's identity and cost.
 
 This is item 4 of the [integration plan's section 12](../integration_plan.md#12-second-review-amendments-2026-10-18-after-prs-4150)
 order. The plan defers evolutionary proposals (plan PR 9) until there is a measurable objective, and names one
 candidate: "repeated updates with a bounded replay allowance". Any proposal method would be compared with
-"ordinary fine-tuning, early stopping and matched random search, counting every proposed and rejected
-candidate and every check". **This study measures whether those ordinary methods leave a gap.** It does not
-test proposals.
+"ordinary fine-tuning, early stopping and matched random search".
+
+**This study is a small diagnostic of update and rehearsal failure.** It measures whether ordinary methods
+leave a gap, and it tests no proposal method. Every deployed model in it is exact by construction (only exact
+candidates are accepted). So it is not the imperfect-component serving experiment; that follows the
+interpreter work (see the plan).
 
 ## A concrete example
 
-A world has 24 countries and about 280 facts in five relations. One shared network answers all of them, and
-every answer is right. A sequence of twelve one-fact updates arrives, one at a time. The first moves
-`country_7`'s capital to another of its cities.
+World 100 has 276 facts in five relations. One shared network answers all of them, and every answer is right.
+Twelve one-fact requests arrive in a fixed order. The first moves `country_6`'s capital from
+`country_6_city_3` to `country_6_city_0`.
 
 **The candidate.** The deployed network is fine-tuned on two things:
 - the changed fact;
-- a **replay set**: at most B of the facts that did not change, here B = 38 (14% of world
-  100's 276 facts).
+- a **replay set** of at most B = ⌊276/8⌋ = 34 unchanged facts, for allowance β = 1/8.
 
-**The gates.** The candidate is checked against the updated world by PR 8's gates. Their exhaustive behaviour
-gates require every answer to be right: the changed fact, and all ~280 others.
-- **Accepted:** it is activated, and the next update starts from it.
-- **Rejected:** another proposal is made, with a fresh seed and a fresh replay draw, up to 8 in all. If none
-  passes, the update is refused, and the world keeps the old capital.
+**The policies.**
+- **`relation_first`:** replays other `capital_of` facts first.
+- **`signature`:** also gives priority to `largest_city_of`, which has the same declared type signature
+  (Country → City).
 
-**What the replay set changes,** in one development sequence on world 100 (disclosed in "History"; one world
-and one init, so noisy):
+**The gates.** The candidate is screened: every one of the 276 facts of the updated world must be answered
+right. It is then judged by every mandatory gate of PR 8's checker.
+- **Accepted:** it is activated, and the next request starts from it.
+- **Rejected:** another proposal is made with a fresh replay draw, up to 8 in all. If none is accepted, the
+  request is refused, and the deployed world keeps the old capital.
 
-| Replay chosen | Updates accepted of 12, within 8 proposals |
-|---|---:|
-| none | 1 |
-| 38 facts drawn uniformly | 2 |
-| 38 facts, the updated relation's signature first (`capital_of` and `largest_city_of` are both Country → City) | 11 |
-| all ~280 facts (full rehearsal) | 12, each on its first proposal |
-
-The question is whether that pattern holds on fresh worlds, and whether any ordinary method reaches full
-rehearsal's acceptance under a small allowance.
+In a development probe (one world, one init; "History"), replaying 38 facts gave 11 of 12 requests accepted
+with signature-first replay, and 2 of 12 with uniform replay. The study asks whether such differences hold on
+fresh worlds, what they are due to, and whether any ordinary method reaches full rehearsal's acceptance under
+a small allowance.
 
 ## The question
 
-**Under a bounded replay allowance, how many updates in a sequence can a shared network absorb while passing
-every gate? Which ordinary methods need the least replay, and do they reach full rehearsal's acceptance?**
+**Under a bounded per-proposal replay allowance, how many of twelve requests can a shared network absorb while
+passing every gate, and which ordinary methods need the least replay?**
 
-Three sub-questions:
-1. **Does the problem exist** on fresh worlds? Without replay, most updates should fail; with full
-   rehearsal, almost none (PR 8 showed this for single updates).
-2. **Do the declared relation signatures target replay?** PR 8 found that interference follows relation
-   identity: updating `capital_of` damaged `largest_city_of`, the relation with the same endpoints. If the
-   typed interface predicts where damage falls, replaying same-signature facts first should need less replay
-   than uniform draws.
-3. **Is there a gap for PR 9?** Does the best ordinary method fall short of full rehearsal at some allowance
-   well below full rehearsal? If not, PR 9 stays deferred with a stated reason.
+1. **Does the problem exist** on fresh worlds? Without replay most requests should fail; with full rehearsal
+   almost none should. PR 8 showed this for single updates.
+2. **What targets replay?**
+   - **The task being changed.** Does `relation_first` beat uniform replay?
+   - **Cross-relation type information.** Does `signature` beat `relation_first`? The two differ only on capital
+     moves: `operator_of` has no other relation with its signature, so for operator changes both policies
+     draw from the same pool. Operator changes are then a control.
+3. **Is there a gap for PR 9?** Across the whole replay frontier, does the best ordinary method fall short
+   of the declared target where the reference meets its bar?
 
 ## Definitions
 
-**Facts.** F(w) is every (relation, source, target) fact of world w, over the five relations of
-`generate_world`. Every relation is total on its source type.
+**Facts and keys.** F(w) is every fact (relation, source, target) of world w over the five relations of
+`generate_world`, and every relation is total on its source type. The **canonical key list** is every
+(relation, source), with relations and sources sorted; indices into it name facts. Its identity is exported.
 
-**An update** changes one fact, drawn as in PR 8: a capital moves to another city of the same country, or an
-airport changes operator.
+**The schedule** is immutable: the same for every arm and init of a world.
+- **Twelve requests:** six distinct countries' capitals and six distinct airports' operators. Each
+  destination is drawn once against the original world, and the twelve come in one shuffled order (`schedule`).
+- **Refusals change the history, not the schedule.** A refused request does not land, so later requests
+  start from a different deployed history. They are still the same requests.
+- **Every request is a real change.** Sources are distinct, so the deployed value at a request's turn is
+  always the original.
 
-**A sequence** is 12 updates, 6 of each kind in a drawn order. Each is drawn against the deployed world at
-its turn. Its target world is the deployed world plus that one change. A refused update does not land; the
-next update is drawn against the world as deployed.
+**A candidate** is trained from the deployed network:
+- **the training set:** the edit plus a replay set R of unchanged facts, in canonical order;
+- **the recipe:** full-batch Adam at learning rate 3e-3, PR 8's recipe;
+- **the allowance is per proposal:** |R| ≤ B = ⌊β·|F|⌋, with β ∈ {1/16, 1/8, 1/4, 1/2}.
 
-**A candidate** fine-tunes the deployed network with Adam at learning rate 3e-3 (PR 8's recipe) on:
-- the edit;
-- a replay set R of unchanged facts of the target world, with |R| ≤ B = ⌊β·|F|⌋.
+The shared network has no dropout. So a candidate is a deterministic function of three things: its parent,
+its training set and its stopping rule.
 
-**The allowance** β ∈ {1/16, 1/8, 1/4, 1/2}.
+**Proposals.** Each request gets up to N = 8 attempts.
+- **What varies between attempts is only the replay draw**, seeded from (world, init, arm, request,
+  attempt). This is **replay-resampling search**: a candidate is not randomized beyond its training set.
+- **Duplicates.** An attempt whose training set repeats an earlier one for the same request is not trained or
+  checked. It is recorded as a duplicate and still uses an attempt. For no replay and full rehearsal, attempts
+  2–8 are always duplicates.
+- **The first accepted attempt is activated.** If none is accepted, the request is refused.
+- **Recorded per attempt:** the replay size, the cumulative distinct replay facts of the request, the steps and
+  example-steps, and the screen and checker work.
 
-**Acceptance.** Every mandatory gate of `update_checks.Checker` passes against the target world.
-- **Declared scope:** the whole shared network. A shared network cannot be write-local (PR 8); its candidates
-  are judged on behaviour.
-- **The screen.** Every relation is total, and modules answer by argmax over the target type. So the
-  behavioural gates pass exactly when every fact of the target world is answered correctly, which is atomic
-  exactness. The harness screens each proposal by atomic exactness. It runs the full Checker on every
-  proposal that passes the screen, and on a declared sample of those that fail it.
-- **The equivalence** is tested: a screen and Checker disagreement on any checked proposal is a construction
-  failure.
+**Replay policies** (shared network):
 
-**Proposals.** Up to N = 8 per update. Each proposal draws a fresh seed and a fresh replay set. The first
-accepted proposal is activated. Acceptance within the first n proposals, for every n ≤ 8, comes from the same
-records, which gives the matched random-search curve.
-
-**Arms** (shared network):
-
-| Factor | Levels |
+| Policy | Priority pool (unchanged facts), then uniform fill up to B |
 |---|---|
-| **Replay policy** | `random`: uniform over the unchanged facts. `signature`: unchanged facts of relations with the updated relation's declared (source, target) signature first, the relation itself included, then uniform. `check_guided`: the first proposal is `random`; proposal n+1 replays the unchanged facts proposal n got wrong, then fills uniformly |
-| **Allowance β** | 1/16, 1/8, 1/4, 1/2 |
-| **Stopping** | `fixed`: 300 steps (PR 8). `early`: stop at the first multiple of 5 steps at which the edit is answered correctly, at most 300 |
+| `random` | none |
+| `relation_first` | the updated relation's own facts |
+| `signature` | facts of every relation with the updated relation's declared (source, target) signature, itself included |
+| `check_guided` | facts that any earlier attempt for this request got wrong; the first attempt is therefore `random` |
 
-That gives 3 × 4 × 2 = 24 arms. Two references are added, each with fixed stopping and N = 8:
-- **no replay** (β = 0);
-- **full rehearsal** (every unchanged fact).
+**How the pool is used.**
+- **A pool larger than B** is sampled uniformly; that is the seeded selection.
+- **A smaller pool** is taken whole and filled uniformly from the remaining unchanged facts.
+- **`check_guided` uses exhaustive error lists.** It is counted as an ordinary method, and its checking work is
+  part of its cost.
 
-**Specialists (contrast).** Only the updated relation's network is fine-tuned. Its replay set is drawn
-uniformly from that relation's own unchanged facts, with β ∈ {0, 1/8, 1/4, 1/2} of the relation's size.
-Cross-relation interference is impossible by construction; within-relation drift is not.
+**Stopping.**
+- **`fixed`:** 300 steps, as in PR 8.
+- **`early`:** stop at the first multiple of 5 steps at which the edit is answered right, at most 300.
 
-**Costs, per update:** proposals; screens and Checker runs; optimizer steps; example-steps (training examples
-× steps); wall time.
+**Arms.**
+- **Ordinary arms:** 4 policies × 4 allowances × 2 stopping rules = 32.
+- **References** (fixed stopping):
+  - **no replay** (β = 0);
+  - **full rehearsal:** every unchanged fact.
+- **Specialists** (a descriptive contrast):
+  - only the updated relation's network is trained;
+  - its replay is drawn uniformly from that relation's own unchanged facts, at β ∈ {0, 1/8, 1/4, 1/2} of the
+    relation's size;
+  - fixed stopping, N = 8, the same duplicate rule.
+
+  Its β is relative to one relation, the shared β to the whole world. So it is reported in absolute replay
+  counts, with parameter counts and training cost beside it, never compared by the value of β alone.
+
+**Acceptance requires three things:**
+- **the screen:** atomic exactness, every fact of the target world answered right;
+- **every mandatory gate** of `update_checks.Checker` passing against the deployed and target worlds:
+  record context, identity and scope, types and laws, intended and unaffected behaviour, trace and
+  continuation, and calibration and resources;
+- **activation** by the deployment.
+
+**The declared scope** of a shared candidate is the whole network. A shared network cannot be write-local
+(PR 8), so it is judged on behaviour. A specialist candidate's scope is its relation.
+
+**Checking work:**
+- **Every screen-passing attempt** gets the full check.
+- **A screened-out attempt** gets the full check when either holds:
+  - the frozen audit rule selects it: sha256 of (world, init, arm, request, attempt) ≡ 0 mod 20, about 5%;
+  - it is the first screened-out attempt of its update kind in its chain.
+- **Every gate's outcome is exported separately.**
+
+**The screen and the behavioural gates.** Every relation is total, and a module answers by argmax over its
+target type. So the screen agrees with the behavioural gates, intended and unaffected behaviour: both pass
+exactly when every fact is right. Any disagreement on an attempt that was fully checked is a construction
+failure. The audit tests the screening shortcut's implementation. It does not prove that a rare disagreement
+cannot occur.
+
+The screen does not stand in for the other gates. In the review, a candidate exact on every fact whose record
+named the wrong world failed the record-context gate.
+
+**Costs, per request and per arm:**
+- attempts, duplicates and trained attempts;
+- replay size per attempt, and cumulative distinct replay facts per request;
+- optimizer steps and example-steps (training-set size × steps);
+- screens, full checks and audits;
+- wall time.
 
 ## Units and procedure
 
 - **Worlds:** confirmation worlds **900, 901, 902**, used by no earlier run. Development uses worlds 100–101.
 - **Inits:** confirmation 0–4; development 100–101.
-- **Bases:** each unit trains a shared dense network and a specialist family as in PR 4 (1,500 steps,
-  lr 1e-2). A base must be exact on its world; an inexact base is reported and excluded, with its count.
-- **Sequences:** one per world, drawn from the world seed, so every init and arm sees the same intended
-  updates. The deployed sequences diverge after a refusal.
-- **Seeds:** every proposal's seed and replay draw derive from (world, init, arm, update, proposal), so the
-  verifier regenerates them.
-- **The arm-level unit:** per world, 5 inits × 12 updates = 60 updates per arm.
+- **Bases.** Each unit trains a shared dense network and a specialist family as in PR 4 (1,500 steps,
+  lr 1e-2).
+  - **Every init stays in the inventory.** A failed base is never replaced with another seed.
+  - **An inexact shared base:** that unit's shared arms do not run, and its world does not qualify for the
+    decision.
+  - **An inexact specialist base:** only that unit's specialist contrast is missing.
+- **Per world:** 5 inits × 12 requests = 60 requests per arm. The twelve requests of a chain are dependent, so
+  the 60 are not independent trials. The bars below are research-priority thresholds, not confidence
+  statements.
 
-## Predictions and the PR 9 decision (one-sided; bars to be confirmed by the development pilot)
+## Predictions and the PR 9 decision (one-sided; bars confirmed by the development pilot before freezing)
 
-A prediction **holds** when it holds in every world, on the per-world aggregate of 60 updates.
+**When a prediction holds.** It must hold in every world, on the per-world aggregate over the chains that
+ran.
 
 | # | Prediction | Kind |
 |---|---|---|
-| R1 | Full rehearsal accepts ≥ 95% of updates | Empirical; sanity, replicating PR 8 |
-| R2 | No replay accepts ≤ 50% of updates within 8 proposals | Empirical: the problem exists |
-| H1 | At β = 1/8 with fixed stopping, `signature` accepts at least 20 points more updates than `random` | Empirical: declared signatures target replay |
+| R1 | Full rehearsal accepts ≥ 95% of requests | Empirical; sanity, replicating PR 8 |
+| R2 | No replay accepts ≤ 50% of requests | Empirical: the problem exists |
+| H1 | On capital moves, at β = 1/8 with fixed stopping, `signature` accepts at least 20 points more requests than `relation_first` | Empirical: cross-relation type information targets replay |
 | H2 | At β = 1/16, early stopping raises `random`'s acceptance by at least 20 points, using at most 10% of fixed stopping's optimizer steps | Empirical: ordinary early stopping limits drift |
 
 **Reported without a prediction:**
-- the acceptance-by-proposal curves;
-- `check_guided` against the other policies;
+- `relation_first` against `random`;
+- operator changes as H1's control;
+- the whole frontier: every arm, every β, by update kind;
+- the attempt at which each request was accepted, within the N = 8 history. That is not a re-run with a
+  smaller N, because a different N changes the deployed history;
 - costs;
 - the specialist contrast.
 
-**The PR 9 decision, recorded before any confirmation run.** A **gap exists at allowance β** when both hold
-in at least 2 of 3 worlds:
-- full rehearsal accepts ≥ 95% of updates;
-- the best ordinary arm at β accepts < 90% of updates within N = 8 proposals. "Best" means the maximum over
-  policy (`random`, `signature`, `check_guided`) and stopping.
+**The PR 9 decision, recorded before any confirmation run.** It is evaluated for each β.
+- **Ordinary arms:** every policy (`random`, `relation_first`, `signature`, `check_guided`) with either stopping
+  rule. The best of them, per world, is the one with the highest acceptance.
+- **A world qualifies** when two things hold:
+  - all 5 of its shared bases are exact;
+  - full rehearsal accepts ≥ 95% of its requests, that is at least 57 of 60.
 
-| Outcome | What follows |
+| Outcome at β | Rule |
 |---|---|
-| A gap exists at some β ≤ 1/4 | PR 9's objective is fixed: at the smallest such β and N = 8, raise acceptance above the best ordinary arm, or match it with fewer proposals or example-steps. The baselines are this study's arms, run on fresh worlds |
-| No gap exists | PR 9 stays deferred. The reason is recorded: ordinary methods already reach full rehearsal's acceptance at that allowance |
+| **Prespecified gap** | In at least 2 qualifying worlds, the best ordinary arm accepts < 90% (at most 53 of 60) |
+| **No prespecified target gap** | In at least 2 qualifying worlds, the best ordinary arm accepts ≥ 90% |
+| **Inconclusive** | Neither: fewer than 2 qualifying worlds, or the qualifying worlds split |
+
+**What follows.**
+- **A prespecified gap at some β makes PR 9 eligible, not automatic.** Its target is chosen by reviewing the
+  whole frontier and costs. The smallest failing allowance is not automatically the most valuable target.
+  PR 9's random-search baseline must search the same recipe space PR 9 searches: if PR 9 varies learning
+  rates, loss weights or recipes, so does its baseline.
+- **No prespecified target gap at any β:** PR 9 stays deferred, with that reason recorded.
+- **Inconclusive results** are reported with their cause. PR 9 stays deferred.
 
 ## Export and independent verification
 
-**Export** (weight-free JSON, as in #58):
-- **per unit:** the base's exactness; the drawn sequence; for each arm, the deployment chain;
-- **per proposal:**
-  - unit, arm, update and proposal index;
-  - seed;
-  - replay set, as indices into the target world's sorted fact list;
-  - steps used;
-  - every wrong fact with its predicted target;
-  - a digest of the full atomic table;
-  - the screen result;
-  - Checker outcomes where run;
+**Export** (weight-free JSON).
+- **`run.json`:**
+  - the provenance: producer-file hashes, commit, tree state, and Python, PyTorch and thread count;
+  - the configuration and constants;
+  - the arms;
+  - each world's identity, schedule and key-list identity.
+- **`unit.json`:**
+  - for each base: its exactness, error list, table digest and snapshot digest;
+  - the key-list and schedule identities;
+  - each chain's status.
+- **`proposals.jsonl.gz`,** one line per attempt:
+  - arm, request and attempt;
+  - the parent snapshot digest;
+  - the deployed and target world identities;
+  - the training set as key indices, and the replay size;
+  - `duplicate_of`;
+  - steps;
+  - every wrong fact with its answer, and the table digest;
+  - the screen;
+  - whether it was audited, and every gate's outcome where checked;
+  - the candidate snapshot digest;
+  - the activation decision and the active snapshot after it;
   - wall time.
 
-**The verifier** (`bench/repeated_updates_verify.py`) does not call the producer's training or gate code. It:
-- regenerates worlds, sequences and every replay draw from the declared samplers;
-- re-derives each `check_guided` set from the previous proposal's exported errors;
-- re-derives each proposal's acceptance from its exported errors against its target world;
-- re-derives the deployment chain: each target is the deployed world plus the edit, each base is the last
-  accepted candidate, and a refused update does not land;
-- re-derives every rate, cost total, prediction and the PR 9 decision;
-- requires the Checker to agree with the screen wherever it ran.
+**The verifier** (`bench/repeated_updates_verify.py`) does not call the producer's training, selection or gate
+code. It regenerates worlds, schedules and key lists, and implements the replay draws and the audit rule from
+this text. For every attempt of every chain it re-derives:
+- **the worlds and the parent:**
+  - the deployed and target worlds: a refused request never lands;
+  - the parent: the last **accepted** candidate, never a rejected attempt;
+- **the training set:** the training set and its duplicate status. For `check_guided`, it is rebuilt from the
+  earlier attempts' exported errors;
+- **the table:**
+  - every error entry: in range, not repeated, actually wrong, inside its type;
+  - the candidate's table: the target world's facts with exactly those entries substituted, whose digest must
+    match;
+- **the checks:**
+  - the screen;
+  - consistency with the stopping rule: fixed attempts take 300 steps; an early stop is at a multiple of 5 with
+    the edit right;
+  - which attempts had to be fully checked;
+  - the screen's agreement with the behavioural gates;
+  - acceptance: screen, every mandatory gate and activation of that candidate;
+- **the summaries:** every count, cost, rate, prediction and the decision.
 
-**Re-execution sample.** An exported error list would otherwise be the producer's record of a network's
-behaviour. The verifier retrains a declared random sample of complete (unit, arm) chains from the base
-recipe, on CPU, and requires identical error lists, table digests and step counts. Determinism is checked in
-the pilot.
+It also enforces a frozen inventory: worlds, inits and arms, none missing or repeated. It binds the run to the
+frozen sources, and compares every record field by field.
 
-**What it carries over from #58–#60:**
-- frozen source binding;
-- a frozen inventory (every world, init and arm, none missing or repeated);
-- every record compared field by field;
-- deliberate-corruption tests, each rejected. They include:
-  - an altered replay set;
-  - a hidden error;
-  - a flipped acceptance;
-  - a candidate built on the wrong base;
-  - a refused update deployed;
-  - a missing or extra proposal;
-  - a `check_guided` set not drawn from the previous errors;
-  - an empty or incomplete frozen run.
+**Sampled reproduction.** `--reproduce` reruns a sample of complete chains with the producer's code:
+- **the sample:** one complete chain per arm and world. The init is chosen by sha256 of (world, arm), which is
+  fixed before the run and independent of any outcome;
+- **the environment:** pinned, with Python, PyTorch and the thread count recorded;
+- **the requirement:** identical records in every field but wall time. That covers error lists, table digests,
+  step counts, accepted attempts, and the deployment history with its snapshot digests.
+
+This is sampled reproduction, not independent reproduction of every trained model.
+
+**What the verification can and cannot catch:**
+- **Caught everywhere:** an error hidden without updating the digest; an altered replay set; a wrong parent; a
+  refused request treated as landed; a flipped acceptance; an unflagged duplicate; a missing full check; a
+  missing or extra attempt; a malformed error entry; an inconsistent step count; an incomplete inventory.
+- **Caught only in reproduced chains:** a coherently altered behaviour report, with the errors and digest
+  changed together. Elsewhere, an exported table remains the producer's record of the network's behaviour.
+
+The corruption tests demonstrate both.
 
 ## Interpretation limits
 
-- **A finite synthetic world:** about 280 facts in five relations, single-fact updates, one small shared
+- **A finite synthetic world:** about 280 facts in five relations, single-fact requests, one small shared
   network and one optimizer recipe.
 - **The allowance is a stand-in.** Full rehearsal is cheap here. β models the cost of rehearsal when facts
   are many; the study shows what each method needs at each fraction, not that the fractions carry over.
-- **`check_guided` relies on an exhaustive check.** A larger domain would have only sampled checks, so this
+- **`check_guided` relies on exhaustive error lists.** A larger domain would have only sampled checks, so this
   arm is an optimistic ordinary method.
-- **`signature` relies on declared signatures.** That is the typed interface this project supplies; a system
-  without it could not use the policy.
+- **`signature` relies on declared signatures,** which is the typed interface this project supplies.
 - **Acceptance is strict.** One wrong fact anywhere rejects a candidate. That is the gates' definition, not a
   tolerance chosen here.
-- **The PR 9 decision is a gate, not a result about proposals.** A gap shows that ordinary methods fall short;
-  it does not show that anything closes it.
+- **Exact deployed models.** Every accepted candidate is exact, so this diagnoses update failure. It does not
+  measure serving with imperfect components.
+- **The PR 9 decision is a research-priority gate, not a result about proposals.**
 
-## Decisions for the reviewer (revision 1)
+## Decisions (from the review of revision 1)
 
-| # | Decision | Recommendation |
+| # | Decision | As specified above |
 |---|---|---|
-| 1 | Include the specialist contrast | Yes: cheap, and it separates within-relation drift from cross-relation interference |
-| 2 | β grid {1/16, 1/8, 1/4, 1/2} and N = 8 | Yes, unless the pilot puts every arm at a ceiling or floor |
-| 3 | Gap thresholds: full ≥ 95%, best ordinary < 90%, in 2 of 3 worlds, at β ≤ 1/4 | Yes |
-| 4 | Keep `check_guided` as an ordinary method | Yes: it is the strongest simple baseline, and leaving it out could manufacture a gap |
-| 5 | Re-execution sample: one complete chain per arm per world (about 20% of compute) | Yes |
-| 6 | Update kinds: PR 8's capital moves and operator changes | Yes, for comparability |
-| 7 | Full Checker on a sample of screened-out proposals: 5% | Yes |
-
-**Before freezing:**
-1. Implement the harness, export, verifier and corruption tests.
-2. Run the development pilot on worlds 100–101 × inits 100–101. Report runtimes, re-execution determinism and
-   screen and Checker agreement.
-3. Confirm the bars and the β grid, or revise them, with the pilot's numbers.
-
-**Estimated cost.** The probes ran 30 arms × 12 updates × up to 8 proposals in about 2 minutes per unit with
-the screen alone. With Checker runs and the re-execution sample: about 5–8 minutes per unit, about 2 hours for
-15 units, CPU only.
+| 1 | Specialist contrast | Included, descriptive. It is reported in absolute replay counts with parameter counts and costs; fixed stopping; N = 8 |
+| 2 | β grid and N = 8 | Kept, with the allowance per proposal, cumulative distinct replay reported, and only the replay draw varying between attempts |
+| 3 | 95% / 90% / two of three worlds | Kept as research-priority thresholds, with an explicit inconclusive outcome and a base-validity rule |
+| 4 | `check_guided` | Kept as an ordinary method, with its checking counted. `relation_first` is added and counts among the ordinary methods |
+| 5 | Sampled reproduction | One complete chain per arm and world, chosen independently of outcomes, with exact agreement required |
+| 6 | Update kinds | PR 8's capital moves and operator changes, as one immutable schedule per world, reported by kind |
+| 7 | Audit of screened-out attempts | The frozen 5% rule plus a minimum of the first screened-out attempt per update kind per chain. Every screen-passing attempt is fully checked, and the audited denominator is reported. Tests audit every attempt |
 
 ## History
 
+### Revision 1 (2026-10-23, reviewed at `7b8c207`)
+
+Revision 1 had the same question and grid. The review kept the design and asked for six changes, all made
+above:
+- **A three-outcome decision,** with an inconclusive outcome. Revision 1's "no gap" did not follow from its
+  rule: a failed reference, or ordinary methods 10 points behind a perfect reference, both failed the gap
+  predicate.
+- **A denominator rule for inexact bases.**
+- **The `relation_first` control,** so that a benefit is not attributed to signatures when it may come from
+  rehearsing the task being changed. H1 now compares `signature` with `relation_first` on capital moves.
+- **The schedule and the allowance.** An immutable schedule, an allowance per proposal, and a duplicate rule:
+  with full-batch training and no dropout, a fresh seed alone does not change the candidate.
+- **Acceptance.** It is the screen and every mandatory gate, not the screen alone.
+- **An explicit verification boundary.** Every table is rebuilt from its errors. Reproduction is sampled and
+  chosen independently of outcomes.
+
+**The repair it led to.** Implementing revision 2 showed that the gates could not read a shared network's
+identity or cost: both gates reported insufficient evidence for every shared candidate. That is repaired in
+#62.
+
 ### Exploratory development probes (2026-10-23, world 100, init 100; disclosed)
 
-Both probes were run before this draft, to choose a regime that is neither at ceiling nor at floor. They used
-scratch code, not this protocol's harness, one sequence each, and absolute replay sizes (19, 38, 75 and 150
-facts: 7%, 14%, 27% and 54% of world 100's 276). The pilot replaces them. Development worlds only.
+Both probes ran before revision 1, to choose a regime that is neither at ceiling nor at floor. They used
+scratch code, not this harness, one sequence each, and absolute replay sizes: 19, 38, 75 and 150 facts, that
+is 7%, 14%, 27% and 54% of world 100's 276.
 
-**Probe 1: ungated, 12 updates, every candidate applied, two replay draws per arm.** Exact candidates, of
-12:
+**Probe 1: ungated, 12 updates, every candidate applied, two replay draws per arm.** Exact candidates, of 12:
 
 | Arm | Exact |
 |---|---:|
@@ -244,16 +345,19 @@ facts: 7%, 14%, 27% and 54% of world 100's 276). The pilot replaces them. Develo
 | no replay, early stopping | 1, with unaffected errors 2–27 instead of 29–71, at 3% of the optimizer steps |
 | `random`, 128 facts (46%) | 0–1 |
 | signature-first, 128 facts (46%) | 10–12 |
+| same-relation-first, 128 facts (46%) | 1–3 |
 | full rehearsal | 12 |
 
 **Probe 2: gated, with up to 8 proposals.** Accepted, of 12 (fixed / early stopping):
 
-| Replay facts (of 276) | `random` | `signature` | `check_guided` |
+| Replay facts (of 276) | `random` | `signature` | `check_guided` (previous attempt's errors) |
 |---|---|---|---|
 | 19 (7%) | 1 / 6 | 5 / 9 | 3 / 8 |
 | 38 (14%) | 2 / 7 | 11 / 9 | 4 / 9 |
 | 75 (27%) | 4 / 6 | 10 / 9 | 7 / 9 |
 | 150 (54%) | 8 / 9 | 12 / 10 | 12 / 10 |
 
-- **References:** no replay 1; full rehearsal 12, each on the first proposal.
-- **Specialists,** with own-relation replay of 0, 2, 4, 8 facts and all: 9, 9, 11, 11 and 12.
+- **References:** no replay 1; full rehearsal 12, each on its first proposal.
+- **Specialists,** with own-relation replay of 0, 2, 4 and 8 facts and of all of them: 9, 9, 11, 11 and 12.
+- **The probes' schedule** was drawn sequentially, not as revision 2's immutable schedule. Their proposals
+  reseeded identical training sets, so some of their retries were duplicates.
