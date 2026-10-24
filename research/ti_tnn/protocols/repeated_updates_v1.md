@@ -508,3 +508,21 @@ steps.
 | 1/4 | 101 | 24: `check_guided` fixed (181.6; 28,800) | 22: `signature` fixed (90.9; 16,800) |
 | 1/2 | 100 | 24: `check_guided` fixed (222.3; 21,600) | 23: `signature` early and fixed |
 | 1/2 | 101 | 24: `check_guided` fixed and `signature` fixed | 24: `signature` fixed (166.5; 10,500) |
+
+## Execution record (appended 2026-10-24, after the run; nothing above was changed)
+
+- **The run.** The confirmation command, from a clean clone of the freezing commit `e8c6f99`. It started
+  2026-10-24 03:53 UTC, and the chains finished at 05:19 UTC (85 minutes): 15 units, 570 chains, 27,580
+  attempts. CPU only, 4 threads, low priority. PyTorch 2.10.0, Python 3.11.14.
+- **Verification.** It ran in frozen mode (source binding and inventory) with `--reproduce`, in about 19
+  minutes:
+  - every attempt re-derived;
+  - 4,643 screen-passing attempts, all passing every mandatory gate;
+  - 2,032 of 21,491 screened-out attempts fully checked (9.5%), with no disagreement;
+  - 114 of 114 sampled chains reproduced identically.
+- **Bases:** all 30 were exact (15 shared, 15 specialist), so every world qualified.
+- **Predictions:** R1, R2, H1 (at β = 1/4) and H2 hold in every world.
+- **The PR 9 decision:** no prespecified target gap at every β. At β = 1/16 the best ordinary arm accepted 54
+  (exactly 90%), 56 and 50 of 60. PR 9 stays deferred.
+- **Evidence:** the [report](../reports/repeated_updates_v1.md), and the bundle at
+  `experiments/results/ti_tnn/repeated_updates/`. `make_tables.py --repeated-updates` rebuilds it.

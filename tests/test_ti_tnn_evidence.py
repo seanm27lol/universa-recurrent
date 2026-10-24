@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 516
+    assert len(manifest["files"]) == 548
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
                    if not f["path"].endswith(".gz"))  # no local paths
     import gzip
@@ -233,3 +233,15 @@ def test_frozen_verification_requires_the_complete_frozen_experiment(tmp_path):
         with pytest.raises(VF.VerificationError):
             VF.verify(d)
     assert VF.inventory_problems({**run, "worlds": {}, "units": []}, development=True)  # never accepted, in any mode
+
+
+def test_the_repeated_updates_bundle_rebuilds_with_the_frozen_verifier():
+    """protocols/repeated_updates_v1.md, frozen revision 3: the frozen verifier re-derives every attempt of the
+    bundled confirmation (worlds 900-902 x inits 0-4) and must reproduce verification.json exactly."""
+    pytest.importorskip("torch")  # the verifier imports the harness's generator, which imports torch
+    out = tables.repeated_updates_tables(rebuild=True)
+    assert out["rebuilt"] and out["verified"] and out["commit"].startswith("e8c6f99")
+    assert all(out["predictions"].values()), out["predictions"]
+    assert {b: d["outcome"] for b, d in out["decision"].items()} == {b: "no target gap" for b in ("1/16", "1/8", "1/4", "1/2")}
+    assert out["reproduction"]["chains"] == out["reproduction"]["identical"] == 114
+    assert out["construction"]["screen_checker_agreement"]

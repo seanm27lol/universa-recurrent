@@ -503,11 +503,19 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    and release under the right certificate (0 failures in 973,760 session records). An independent verifier
    rebuilt everything. The learned parts were at their ceiling, so this is evidence about the seams, not
    about learned robustness.
-4. **Evolutionary proposals (PR 9):** still deferred. The novelty result gives them no objective.
+4. **Evolutionary proposals (PR 9):** still deferred.
+   - The novelty result gives them no objective.
+   - **The bounded-replay study** ([report](reports/repeated_updates_v1.md), frozen protocol) found no
+     prespecified target gap at any replay allowance from 1/16 to 1/2. The best ordinary method reached 90% in at
+     least two of three fresh worlds at every allowance.
+   - **That method is `check_guided`,** which reads exhaustive error lists. At 1/16 one world met the target
+     exactly.
+   - **Without `check_guided`,** descriptively, the best stayed below 90% in at least two worlds up to 1/4.
 
 
 **Order after the integration milestone (decided 2026-10-23, after the review of #61):**
 1. **A bounded-replay diagnostic** ([protocol](protocols/repeated_updates_v1.md), #61, with the gate repair #62).
+   **Done** ([report](reports/repeated_updates_v1.md)). There was no prespecified gap, so PR 9 stays deferred.
    - **What it is:** a small study of update and rehearsal failure, with every deployed model exact.
    - **What it decides:** whether ordinary methods leave a prespecified gap, which keeps PR 9 conditional. A gap
      makes PR 9 eligible, with its target chosen from the whole frontier.
