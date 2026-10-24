@@ -69,8 +69,13 @@ def _gate(outcome: str, **details) -> dict:
 
 
 def _network(module):
+    """The parameterised network a module reads: its own forward network, or the shared network it views
+    (`modules.SharedForward.net`). None when there is none to read."""
     forward = getattr(module, "forward", None)
-    return forward if forward is not None and hasattr(forward, "parameters") else None
+    if forward is not None and hasattr(forward, "parameters"):
+        return forward
+    net = getattr(forward, "net", None)
+    return net if net is not None and hasattr(net, "parameters") else None
 
 
 def identity_and_scope(base, candidate, record) -> dict:
