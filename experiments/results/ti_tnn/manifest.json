@@ -155,6 +155,13 @@
       "report": "research/ti_tnn/reports/integration_test_v1.md",
       "source": "e03075a (frozen revision 4; committed immediately before the run; recorded in the run)",
       "command": "python research/ti_tnn/bench/integration_test.py --worlds 800 801 802 --inits 0 1 2 3 4 --out runs/titnn_integration_confirmation; python research/ti_tnn/bench/integration_test_verify.py <run>"
+    },
+    "repeated_updates": {
+      "what": "Repeated updates under a bounded replay allowance, confirmation: worlds 900-902 x inits 0-4 (15 units), 38 arms each (32 ordinary shared arms, two references, four specialist arms) over one immutable schedule of 12 one-fact requests per world, up to 8 attempts each; every attempt's weight-free record (training set, errors, table digest, screen, gate outcomes, activation) and the independent verifier's output, with sampled reproduction of 114 chains",
+      "protocol": "research/ti_tnn/protocols/repeated_updates_v1.md",
+      "report": "research/ti_tnn/reports/repeated_updates_v1.md",
+      "source": "e8c6f99 (frozen revision 3; the freezing commit; recorded in the run, with a clean tree)",
+      "command": "python research/ti_tnn/bench/repeated_updates.py --worlds 900 901 902 --inits 0 1 2 3 4 --confirmation --out runs/titnn_repeated_confirmation; python research/ti_tnn/bench/repeated_updates_verify.py <run> --reproduce --out verification.json"
     }
   },
   "files": [
@@ -4041,6 +4048,230 @@
       "original_path": null,
       "sha256": "f30c8b9b126039bc96bb9fd715c5b9739b59531a3228a56280bfd6b73717c88a",
       "bytes": 270889
+    },
+    {
+      "path": "repeated_updates/20261024T035329/run.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/run.json",
+      "sha256": "34ba806ac9542fdbb7aa5aa7d936f3d169e67bcb2f5f498442b6917379103982",
+      "bytes": 11489
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i0/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i0/proposals.jsonl.gz",
+      "sha256": "622867e44b1cc246ccf36f4f2493fca10e4616b1ece3b8d0947ed9d74671d23a",
+      "bytes": 219629
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i0/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i0/unit.json",
+      "sha256": "778bd0eb6454564b5b7b71926761282ca456fcea5203592d6c105691dd9c2d16",
+      "bytes": 4199
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i1/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i1/proposals.jsonl.gz",
+      "sha256": "c1ec3fe7f7da77d31a102fa2db7d43066ebd233ff206e1e8c2c9a86056168d16",
+      "bytes": 218205
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i1/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i1/unit.json",
+      "sha256": "93e3b80713d9d02c503210129d2d57677e23adfaa12cf4358b5542add199430d",
+      "bytes": 4200
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i2/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i2/proposals.jsonl.gz",
+      "sha256": "7a42fb6c7496221d0c1f28b3922b07995f84b6c7aae61bdd2ca833877d018148",
+      "bytes": 212536
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i2/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i2/unit.json",
+      "sha256": "54047c25af1006deb3554691dc6481fb74101a809c51efe768888582684079a7",
+      "bytes": 4199
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i3/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i3/proposals.jsonl.gz",
+      "sha256": "7d7d0532e86950a4d4edeffe57da91510cb96520de1304842e54cb4b8695e633",
+      "bytes": 214764
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i3/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i3/unit.json",
+      "sha256": "4325f37d2e7e244ea24f2ed8c52b8f665d25dc068a8e845148261cf4c351a014",
+      "bytes": 4204
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i4/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i4/proposals.jsonl.gz",
+      "sha256": "87893a7c51532d5594ea8a7bff64428fdc98c02e0f1dfd56b60ca9e18fc588fe",
+      "bytes": 215904
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w900_i4/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w900_i4/unit.json",
+      "sha256": "5a282608e2ef2f839d6752d6bd1805cbdf1aa43d1fd414af3ba5528850341849",
+      "bytes": 4200
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i0/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i0/proposals.jsonl.gz",
+      "sha256": "ecc7f03955f17abf5190644683b0b832807bfa8b7de80937a7c21d2d9c3db2ca",
+      "bytes": 245320
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i0/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i0/unit.json",
+      "sha256": "ffc9348325a4d05b12202e21d75c6872f6e68675f3cb46647bbd32e20a651f33",
+      "bytes": 4194
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i1/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i1/proposals.jsonl.gz",
+      "sha256": "b72476052b20bcf447eb5b9f53120fbd52d51b188ca926d0650c149f89415262",
+      "bytes": 214303
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i1/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i1/unit.json",
+      "sha256": "d92038fe396a68bcf57b1715c8930064a1ec27c3f97290379ddb16d57ab3ed85",
+      "bytes": 4204
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i2/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i2/proposals.jsonl.gz",
+      "sha256": "2a9670ec4fbbd692ae393afa11b7aded33276442585b1eeed46132b75618ce1e",
+      "bytes": 232049
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i2/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i2/unit.json",
+      "sha256": "131a408e0ba5a96e051eedc826d7cf958b47c96b5b30986327e146686a3f894f",
+      "bytes": 4205
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i3/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i3/proposals.jsonl.gz",
+      "sha256": "aa8732718cfb81802a10fdcc0b66b3a019a446b78468ff47d5b3da12734468cc",
+      "bytes": 229518
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i3/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i3/unit.json",
+      "sha256": "230c7f6238e466f348cce0385fed522a8a93fc4fafbb345f747c168d973e795d",
+      "bytes": 4201
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i4/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i4/proposals.jsonl.gz",
+      "sha256": "b28ddc048d608c5a9f3b42a3ddef52faf1b5e3f9a9945fa3201999aa4f481aaf",
+      "bytes": 220658
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w901_i4/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w901_i4/unit.json",
+      "sha256": "63e212a8c691ce3b17b29825c07f6f303809d6d14b917a336769a1f863ffe203",
+      "bytes": 4203
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i0/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i0/proposals.jsonl.gz",
+      "sha256": "0a507fbaee008ba326343d53edeb070a4f89bdcab5fc5af29f13b240b80a21a7",
+      "bytes": 256171
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i0/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i0/unit.json",
+      "sha256": "2f02fc65e37a2e8cd567a5fb07b905ea3f7f61fabf43b9925f837cb2e519bfb3",
+      "bytes": 4194
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i1/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i1/proposals.jsonl.gz",
+      "sha256": "78034ff9a997e66f738798e27208cf85906a92f629007c9da0cc8a8054ce5fd3",
+      "bytes": 251652
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i1/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i1/unit.json",
+      "sha256": "d1d5a4262e191ab76c7340ac681bfe4ec790b4867339ab0f50fb8a5a37301b85",
+      "bytes": 4198
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i2/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i2/proposals.jsonl.gz",
+      "sha256": "e9edd6b7643afa44fffb27bd13f1a84a4baa4975c8f47d5b4c4d99b22ddd4205",
+      "bytes": 238423
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i2/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i2/unit.json",
+      "sha256": "65dd2f8a79f974880e2e0560ef0549c7e8003adaf2498bc86b89a57a8a06fab7",
+      "bytes": 4195
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i3/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i3/proposals.jsonl.gz",
+      "sha256": "d51514552d46676b401c77f781f8f87cbcdb59a5127d80e4fa30211aec738f6d",
+      "bytes": 259651
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i3/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i3/unit.json",
+      "sha256": "90b0b1435d5c3fb02943bae3748a47df40363d6dbc6082392f2fd29abcc911d1",
+      "bytes": 4197
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i4/proposals.jsonl.gz",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i4/proposals.jsonl.gz",
+      "sha256": "b4d80f91b31673e5e0b62ac716e7fa04fc8a00221aeaca6e61209a590e650a16",
+      "bytes": 236709
+    },
+    {
+      "path": "repeated_updates/20261024T035329/units/w902_i4/unit.json",
+      "experiment": "repeated_updates",
+      "original_path": "runs/titnn_repeated_confirmation/20261024T035329/units/w902_i4/unit.json",
+      "sha256": "ae2c6776e215c9da86eceac220d7193affa6b50db15991b1aad7dc2b7b01fd8c",
+      "bytes": 4194
+    },
+    {
+      "path": "repeated_updates/verification.json",
+      "experiment": "repeated_updates",
+      "original_path": null,
+      "sha256": "5d298acfd3aba1d16a2ba28f602ae122481eb67ab671b43bfd6417961da3f927",
+      "bytes": 85005
     }
   ]
 }

@@ -1,0 +1,213 @@
+{
+ "world": 900,
+ "init": 3,
+ "keys_identity": "a067509575f5f85135965b93f65db0cd3343467468214106af4a52410f13a4b6",
+ "n_facts": 255,
+ "schedule_identity": "28f9fc048300a76446704322d1e250ddf9c0a1f2dc8228a3af1247eb717deedc",
+ "bases": {
+  "shared": {
+   "exact": true,
+   "errors": [],
+   "table_digest": "c133e13509253fe0d6b49e33adafa0981efe52eca6d7ccae7ea568d126c49aeb",
+   "snapshot": "4c4c372e2e1fdec4792339049215d3474662514070b438151557ed538327fce3"
+  },
+  "specialists": {
+   "exact": true,
+   "errors": [],
+   "table_digest": "c133e13509253fe0d6b49e33adafa0981efe52eca6d7ccae7ea568d126c49aeb",
+   "snapshot": "5ea1781d5e1e1d70b766a94fbbf1640b30f539ff32a07738d6cd1e3cd7d4883a"
+  }
+ },
+ "chains": {
+  "shared/random/1/16/fixed": {
+   "ran": true,
+   "accepted": 2,
+   "seconds": 10.96
+  },
+  "shared/random/1/16/early": {
+   "ran": true,
+   "accepted": 6,
+   "seconds": 5.09
+  },
+  "shared/random/1/8/fixed": {
+   "ran": true,
+   "accepted": 2,
+   "seconds": 13.18
+  },
+  "shared/random/1/8/early": {
+   "ran": true,
+   "accepted": 6,
+   "seconds": 5.51
+  },
+  "shared/random/1/4/fixed": {
+   "ran": true,
+   "accepted": 3,
+   "seconds": 14.56
+  },
+  "shared/random/1/4/early": {
+   "ran": true,
+   "accepted": 7,
+   "seconds": 6.29
+  },
+  "shared/random/1/2/fixed": {
+   "ran": true,
+   "accepted": 8,
+   "seconds": 12.31
+  },
+  "shared/random/1/2/early": {
+   "ran": true,
+   "accepted": 7,
+   "seconds": 5.71
+  },
+  "shared/relation_first/1/16/fixed": {
+   "ran": true,
+   "accepted": 4,
+   "seconds": 12.95
+  },
+  "shared/relation_first/1/16/early": {
+   "ran": true,
+   "accepted": 8,
+   "seconds": 6.03
+  },
+  "shared/relation_first/1/8/fixed": {
+   "ran": true,
+   "accepted": 4,
+   "seconds": 11.61
+  },
+  "shared/relation_first/1/8/early": {
+   "ran": true,
+   "accepted": 9,
+   "seconds": 5.96
+  },
+  "shared/relation_first/1/4/fixed": {
+   "ran": true,
+   "accepted": 6,
+   "seconds": 11.72
+  },
+  "shared/relation_first/1/4/early": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 5.99
+  },
+  "shared/relation_first/1/2/fixed": {
+   "ran": true,
+   "accepted": 11,
+   "seconds": 10.23
+  },
+  "shared/relation_first/1/2/early": {
+   "ran": true,
+   "accepted": 8,
+   "seconds": 5.31
+  },
+  "shared/signature/1/16/fixed": {
+   "ran": true,
+   "accepted": 3,
+   "seconds": 11.89
+  },
+  "shared/signature/1/16/early": {
+   "ran": true,
+   "accepted": 9,
+   "seconds": 5.36
+  },
+  "shared/signature/1/8/fixed": {
+   "ran": true,
+   "accepted": 11,
+   "seconds": 10.54
+  },
+  "shared/signature/1/8/early": {
+   "ran": true,
+   "accepted": 9,
+   "seconds": 5.5
+  },
+  "shared/signature/1/4/fixed": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 9.44
+  },
+  "shared/signature/1/4/early": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 8.41
+  },
+  "shared/signature/1/2/fixed": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 8.03
+  },
+  "shared/signature/1/2/early": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 6.35
+  },
+  "shared/check_guided/1/16/fixed": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 11.22
+  },
+  "shared/check_guided/1/16/early": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 6.56
+  },
+  "shared/check_guided/1/8/fixed": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 12.25
+  },
+  "shared/check_guided/1/8/early": {
+   "ran": true,
+   "accepted": 9,
+   "seconds": 6.26
+  },
+  "shared/check_guided/1/4/fixed": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 12.86
+  },
+  "shared/check_guided/1/4/early": {
+   "ran": true,
+   "accepted": 11,
+   "seconds": 7.19
+  },
+  "shared/check_guided/1/2/fixed": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 11.59
+  },
+  "shared/check_guided/1/2/early": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 6.73
+  },
+  "shared/none": {
+   "ran": true,
+   "accepted": 2,
+   "seconds": 3.04
+  },
+  "shared/full": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 7.51
+  },
+  "specialists/0": {
+   "ran": true,
+   "accepted": 10,
+   "seconds": 5.32
+  },
+  "specialists/1/8": {
+   "ran": true,
+   "accepted": 11,
+   "seconds": 6.35
+  },
+  "specialists/1/4": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 6.84
+  },
+  "specialists/1/2": {
+   "ran": true,
+   "accepted": 12,
+   "seconds": 6.16
+  }
+ }
+}
