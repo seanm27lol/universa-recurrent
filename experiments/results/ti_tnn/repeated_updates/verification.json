@@ -1,0 +1,5090 @@
+{
+ "best_observed": {
+  "1/16": {
+   "900": {
+    "all_ordinary": {
+     "accepted": 54,
+     "rate": 0.9,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/16/early": {
+       "checker_runs": 66,
+       "distinct_replay_per_request": 36.53,
+       "example_steps": 22400,
+       "steps": 1400,
+       "trained": 177
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 38,
+     "rate": 0.6333333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/relation_first/1/16/early": {
+       "checker_runs": 58,
+       "distinct_replay_per_request": 30.47,
+       "example_steps": 34480,
+       "steps": 2155,
+       "trained": 238
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "901": {
+    "all_ordinary": {
+     "accepted": 56,
+     "rate": 0.9333333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/16/early": {
+       "checker_runs": 69,
+       "distinct_replay_per_request": 39.05,
+       "example_steps": 25935,
+       "steps": 1365,
+       "trained": 154
+      },
+      "shared/check_guided/1/16/fixed": {
+       "checker_runs": 72,
+       "distinct_replay_per_request": 51.37,
+       "example_steps": 1493400,
+       "steps": 78600,
+       "trained": 262
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 40,
+     "rate": 0.6666666666666666,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/16/early": {
+       "checker_runs": 58,
+       "distinct_replay_per_request": 42.42,
+       "example_steps": 43890,
+       "steps": 2310,
+       "trained": 273
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "902": {
+    "all_ordinary": {
+     "accepted": 50,
+     "rate": 0.8333333333333334,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/16/early": {
+       "checker_runs": 73,
+       "distinct_replay_per_request": 47.75,
+       "example_steps": 37335,
+       "steps": 1965,
+       "trained": 210
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 27,
+     "rate": 0.45,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/16/early": {
+       "checker_runs": 49,
+       "distinct_replay_per_request": 46.92,
+       "example_steps": 60705,
+       "steps": 3195,
+       "trained": 335
+      }
+     }
+    },
+    "qualifies": true
+   }
+  },
+  "1/2": {
+   "900": {
+    "all_ordinary": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 65,
+       "distinct_replay_per_request": 133.43,
+       "example_steps": 2688000,
+       "steps": 21000,
+       "trained": 70
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 65,
+       "distinct_replay_per_request": 133.43,
+       "example_steps": 2688000,
+       "steps": 21000,
+       "trained": 70
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "901": {
+    "all_ordinary": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/2/fixed": {
+       "checker_runs": 73,
+       "distinct_replay_per_request": 227.7,
+       "example_steps": 7701000,
+       "steps": 51000,
+       "trained": 170
+      },
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 66,
+       "distinct_replay_per_request": 160.03,
+       "example_steps": 3306900,
+       "steps": 21900,
+       "trained": 73
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 66,
+       "distinct_replay_per_request": 160.03,
+       "example_steps": 3306900,
+       "steps": 21900,
+       "trained": 73
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "902": {
+    "all_ordinary": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 67,
+       "distinct_replay_per_request": 159.43,
+       "example_steps": 3263100,
+       "steps": 21900,
+       "trained": 73
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/2/fixed": {
+       "checker_runs": 67,
+       "distinct_replay_per_request": 159.43,
+       "example_steps": 3263100,
+       "steps": 21900,
+       "trained": 73
+      }
+     }
+    },
+    "qualifies": true
+   }
+  },
+  "1/4": {
+   "900": {
+    "all_ordinary": {
+     "accepted": 59,
+     "rate": 0.9833333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/4/fixed": {
+       "checker_runs": 72,
+       "distinct_replay_per_request": 147.8,
+       "example_steps": 4204800,
+       "steps": 65700,
+       "trained": 219
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 53,
+     "rate": 0.8833333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/4/fixed": {
+       "checker_runs": 66,
+       "distinct_replay_per_request": 69.05,
+       "example_steps": 2496000,
+       "steps": 39000,
+       "trained": 130
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "901": {
+    "all_ordinary": {
+     "accepted": 60,
+     "rate": 1.0,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/4/fixed": {
+       "checker_runs": 82,
+       "distinct_replay_per_request": 181.6,
+       "example_steps": 5061600,
+       "steps": 66600,
+       "trained": 222
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 54,
+     "rate": 0.9,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/4/fixed": {
+       "checker_runs": 65,
+       "distinct_replay_per_request": 83.28,
+       "example_steps": 2736000,
+       "steps": 36000,
+       "trained": 120
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "902": {
+    "all_ordinary": {
+     "accepted": 59,
+     "rate": 0.9833333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/4/fixed": {
+       "checker_runs": 82,
+       "distinct_replay_per_request": 191.5,
+       "example_steps": 5535000,
+       "steps": 73800,
+       "trained": 246
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 46,
+     "rate": 0.7666666666666667,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/4/fixed": {
+       "checker_runs": 65,
+       "distinct_replay_per_request": 100.8,
+       "example_steps": 4432500,
+       "steps": 59100,
+       "trained": 197
+      }
+     }
+    },
+    "qualifies": true
+   }
+  },
+  "1/8": {
+   "900": {
+    "all_ordinary": {
+     "accepted": 59,
+     "rate": 0.9833333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/8/fixed": {
+       "checker_runs": 81,
+       "distinct_replay_per_request": 94.87,
+       "example_steps": 2515200,
+       "steps": 78600,
+       "trained": 262
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 45,
+     "rate": 0.75,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/8/fixed": {
+       "checker_runs": 63,
+       "distinct_replay_per_request": 45.25,
+       "example_steps": 2332800,
+       "steps": 72900,
+       "trained": 243
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "901": {
+    "all_ordinary": {
+     "accepted": 59,
+     "rate": 0.9833333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/8/early": {
+       "checker_runs": 72,
+       "distinct_replay_per_request": 71.03,
+       "example_steps": 42180,
+       "steps": 1110,
+       "trained": 133
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 48,
+     "rate": 0.8,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/8/early": {
+       "checker_runs": 62,
+       "distinct_replay_per_request": 49.6,
+       "example_steps": 55860,
+       "steps": 1470,
+       "trained": 176
+      },
+      "shared/signature/1/8/fixed": {
+       "checker_runs": 67,
+       "distinct_replay_per_request": 52.13,
+       "example_steps": 2245800,
+       "steps": 59100,
+       "trained": 197
+      }
+     }
+    },
+    "qualifies": true
+   },
+   "902": {
+    "all_ordinary": {
+     "accepted": 56,
+     "rate": 0.9333333333333333,
+     "requests": 60,
+     "winners": {
+      "shared/check_guided/1/8/fixed": {
+       "checker_runs": 74,
+       "distinct_replay_per_request": 113.97,
+       "example_steps": 3078000,
+       "steps": 81000,
+       "trained": 270
+      }
+     }
+    },
+    "excluding_check_guided": {
+     "accepted": 43,
+     "rate": 0.7166666666666667,
+     "requests": 60,
+     "winners": {
+      "shared/signature/1/8/fixed": {
+       "checker_runs": 67,
+       "distinct_replay_per_request": 52.3,
+       "example_steps": 3180600,
+       "steps": 83700,
+       "trained": 279
+      }
+     }
+    },
+    "qualifies": true
+   }
+  }
+ },
+ "commit": "e8c6f99257b0eba1fe3fafee830c5f9807035b8d",
+ "construction": {
+  "screen_checker_agreement": true
+ },
+ "decision": {
+  "1/16": {
+   "outcome": "no target gap",
+   "worlds": {
+    "900": {
+     "below_target": false,
+     "best_ordinary": 0.9,
+     "qualifies": true
+    },
+    "901": {
+     "below_target": false,
+     "best_ordinary": 0.9333333333333333,
+     "qualifies": true
+    },
+    "902": {
+     "below_target": true,
+     "best_ordinary": 0.8333333333333334,
+     "qualifies": true
+    }
+   }
+  },
+  "1/2": {
+   "outcome": "no target gap",
+   "worlds": {
+    "900": {
+     "below_target": false,
+     "best_ordinary": 1.0,
+     "qualifies": true
+    },
+    "901": {
+     "below_target": false,
+     "best_ordinary": 1.0,
+     "qualifies": true
+    },
+    "902": {
+     "below_target": false,
+     "best_ordinary": 1.0,
+     "qualifies": true
+    }
+   }
+  },
+  "1/4": {
+   "outcome": "no target gap",
+   "worlds": {
+    "900": {
+     "below_target": false,
+     "best_ordinary": 0.9833333333333333,
+     "qualifies": true
+    },
+    "901": {
+     "below_target": false,
+     "best_ordinary": 1.0,
+     "qualifies": true
+    },
+    "902": {
+     "below_target": false,
+     "best_ordinary": 0.9833333333333333,
+     "qualifies": true
+    }
+   }
+  },
+  "1/8": {
+   "outcome": "no target gap",
+   "worlds": {
+    "900": {
+     "below_target": false,
+     "best_ordinary": 0.9833333333333333,
+     "qualifies": true
+    },
+    "901": {
+     "below_target": false,
+     "best_ordinary": 0.9833333333333333,
+     "qualifies": true
+    },
+    "902": {
+     "below_target": false,
+     "best_ordinary": 0.9333333333333333,
+     "qualifies": true
+    }
+   }
+  }
+ },
+ "predictions": {
+  "H1_signature_over_relation_first_on_capital_moves": true,
+  "H2_early_stopping": true,
+  "R1_full_rehearsal": true,
+  "R2_no_replay": true
+ },
+ "reproduction": {
+  "all_identical": true,
+  "chains": 114,
+  "identical": 114,
+  "results": [
+   {
+    "arm": "shared/random/1/16/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/16/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/8/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/8/early",
+    "identical": true,
+    "init": 4,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/4/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/4/early",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/2/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/2/early",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/16/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/8/fixed",
+    "identical": true,
+    "init": 4,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/8/early",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/4/fixed",
+    "identical": true,
+    "init": 4,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/4/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/2/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/relation_first/1/2/early",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/16/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/8/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/8/early",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/4/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/4/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/2/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/signature/1/2/early",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/8/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/8/early",
+    "identical": true,
+    "init": 4,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/4/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/4/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/2/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/check_guided/1/2/early",
+    "identical": true,
+    "init": 3,
+    "world": "900"
+   },
+   {
+    "arm": "shared/none",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "shared/full",
+    "identical": true,
+    "init": 2,
+    "world": "900"
+   },
+   {
+    "arm": "specialists/0",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "specialists/1/8",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "specialists/1/4",
+    "identical": true,
+    "init": 0,
+    "world": "900"
+   },
+   {
+    "arm": "specialists/1/2",
+    "identical": true,
+    "init": 4,
+    "world": "900"
+   },
+   {
+    "arm": "shared/random/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/16/early",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/8/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/8/early",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/4/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/4/early",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/2/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/2/early",
+    "identical": true,
+    "init": 3,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/8/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/8/early",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/4/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/4/early",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/2/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/relation_first/1/2/early",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/16/early",
+    "identical": true,
+    "init": 3,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/8/fixed",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/8/early",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/4/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/4/early",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/2/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/signature/1/2/early",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/16/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/8/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/8/early",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/4/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/4/early",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/2/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "901"
+   },
+   {
+    "arm": "shared/check_guided/1/2/early",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/none",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "shared/full",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "specialists/0",
+    "identical": true,
+    "init": 4,
+    "world": "901"
+   },
+   {
+    "arm": "specialists/1/8",
+    "identical": true,
+    "init": 3,
+    "world": "901"
+   },
+   {
+    "arm": "specialists/1/4",
+    "identical": true,
+    "init": 2,
+    "world": "901"
+   },
+   {
+    "arm": "specialists/1/2",
+    "identical": true,
+    "init": 1,
+    "world": "901"
+   },
+   {
+    "arm": "shared/random/1/16/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/16/early",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/8/fixed",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/8/early",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/4/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/4/early",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/2/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "shared/random/1/2/early",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/16/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/8/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/8/early",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/4/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/4/early",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/2/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/relation_first/1/2/early",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/16/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/16/early",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/8/fixed",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/8/early",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/4/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/4/early",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/2/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "shared/signature/1/2/early",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/16/fixed",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/16/early",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/8/fixed",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/8/early",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/4/fixed",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/4/early",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/2/fixed",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   },
+   {
+    "arm": "shared/check_guided/1/2/early",
+    "identical": true,
+    "init": 2,
+    "world": "902"
+   },
+   {
+    "arm": "shared/none",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "shared/full",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "specialists/0",
+    "identical": true,
+    "init": 3,
+    "world": "902"
+   },
+   {
+    "arm": "specialists/1/8",
+    "identical": true,
+    "init": 1,
+    "world": "902"
+   },
+   {
+    "arm": "specialists/1/4",
+    "identical": true,
+    "init": 0,
+    "world": "902"
+   },
+   {
+    "arm": "specialists/1/2",
+    "identical": true,
+    "init": 4,
+    "world": "902"
+   }
+  ]
+ },
+ "verified": true,
+ "worlds": {
+  "900": {
+   "arms": {
+    "shared/check_guided/1/16/early": {
+     "accepted": 54,
+     "accepted_at": [
+      12,
+      21,
+      12,
+      6,
+      3,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 177,
+      "audits": 12,
+      "checker_runs": 66,
+      "distinct_replay": 2192,
+      "example_steps": 22400,
+      "steps": 1400,
+      "trained": 177
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/16/fixed": {
+     "accepted": 51,
+     "accepted_at": [
+      0,
+      13,
+      14,
+      11,
+      6,
+      3,
+      4,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 260,
+      "audits": 19,
+      "checker_runs": 70,
+      "distinct_replay": 2320,
+      "duplicates": 2,
+      "example_steps": 1238400,
+      "steps": 77400,
+      "trained": 258
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/early": {
+     "accepted": 54,
+     "accepted_at": [
+      30,
+      15,
+      4,
+      2,
+      1,
+      2,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 145,
+      "audits": 14,
+      "checker_runs": 68,
+      "distinct_replay": 10316,
+      "example_steps": 167040,
+      "steps": 1305,
+      "trained": 145
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/fixed": {
+     "accepted": 59,
+     "accepted_at": [
+      15,
+      15,
+      8,
+      9,
+      4,
+      4,
+      2,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 187,
+      "audits": 16,
+      "checker_runs": 75,
+      "distinct_replay": 11925,
+      "example_steps": 7180800,
+      "steps": 56100,
+      "trained": 187
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/early": {
+     "accepted": 53,
+     "accepted_at": [
+      19,
+      17,
+      9,
+      5,
+      1,
+      2,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 173,
+      "audits": 17,
+      "checker_runs": 70,
+      "distinct_replay": 7446,
+      "example_steps": 93120,
+      "steps": 1455,
+      "trained": 173
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/fixed": {
+     "accepted": 59,
+     "accepted_at": [
+      5,
+      18,
+      12,
+      5,
+      9,
+      4,
+      3,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 219,
+      "audits": 13,
+      "checker_runs": 72,
+      "distinct_replay": 8868,
+      "example_steps": 4204800,
+      "steps": 65700,
+      "trained": 219
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/early": {
+     "accepted": 49,
+     "accepted_at": [
+      22,
+      9,
+      12,
+      4,
+      1,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       19,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 191,
+      "audits": 19,
+      "checker_runs": 68,
+      "distinct_replay": 4490,
+      "example_steps": 48480,
+      "steps": 1515,
+      "trained": 191
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/fixed": {
+     "accepted": 59,
+     "accepted_at": [
+      1,
+      6,
+      14,
+      13,
+      12,
+      5,
+      7,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 262,
+      "audits": 22,
+      "checker_runs": 81,
+      "distinct_replay": 5692,
+      "example_steps": 2515200,
+      "steps": 78600,
+      "trained": 262
+     },
+     "requests": 60
+    },
+    "shared/full": {
+     "accepted": 60,
+     "accepted_at": [
+      60,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 60,
+      "checker_runs": 60,
+      "distinct_replay": 15240,
+      "example_steps": 4590000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/none": {
+     "accepted": 7,
+     "accepted_at": [
+      7,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       7,
+       30
+      ],
+      "operator_changes": [
+       0,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 431,
+      "audits": 10,
+      "checker_runs": 17,
+      "duplicates": 371,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/early": {
+     "accepted": 25,
+     "accepted_at": [
+      16,
+      2,
+      3,
+      2,
+      0,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       9,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 330,
+      "audits": 25,
+      "checker_runs": 50,
+      "distinct_replay": 4107,
+      "example_steps": 40720,
+      "steps": 2545,
+      "trained": 330
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/fixed": {
+     "accepted": 7,
+     "accepted_at": [
+      4,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       4,
+       30
+      ],
+      "operator_changes": [
+       3,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 447,
+      "audits": 30,
+      "checker_runs": 37,
+      "distinct_replay": 5535,
+      "example_steps": 2145600,
+      "steps": 134100,
+      "trained": 447
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/early": {
+     "accepted": 38,
+     "accepted_at": [
+      24,
+      6,
+      5,
+      0,
+      0,
+      2,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       23,
+       30
+      ],
+      "operator_changes": [
+       15,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 246,
+      "audits": 19,
+      "checker_runs": 57,
+      "distinct_replay": 11620,
+      "example_steps": 298880,
+      "steps": 2335,
+      "trained": 246
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/fixed": {
+     "accepted": 38,
+     "accepted_at": [
+      18,
+      4,
+      5,
+      1,
+      5,
+      5,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       12,
+       30
+      ],
+      "operator_changes": [
+       26,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 276,
+      "audits": 19,
+      "checker_runs": 57,
+      "distinct_replay": 12434,
+      "example_steps": 10598400,
+      "steps": 82800,
+      "trained": 276
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/early": {
+     "accepted": 38,
+     "accepted_at": [
+      23,
+      2,
+      3,
+      2,
+      2,
+      1,
+      4,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       14,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 272,
+      "audits": 22,
+      "checker_runs": 60,
+      "distinct_replay": 9194,
+      "example_steps": 144000,
+      "steps": 2250,
+      "trained": 272
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/fixed": {
+     "accepted": 16,
+     "accepted_at": [
+      3,
+      2,
+      1,
+      2,
+      2,
+      1,
+      3,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       2,
+       30
+      ],
+      "operator_changes": [
+       14,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 423,
+      "audits": 26,
+      "checker_runs": 42,
+      "distinct_replay": 12630,
+      "example_steps": 8121600,
+      "steps": 126900,
+      "trained": 423
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/early": {
+     "accepted": 24,
+     "accepted_at": [
+      16,
+      3,
+      1,
+      2,
+      1,
+      0,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       8,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 334,
+      "audits": 22,
+      "checker_runs": 46,
+      "distinct_replay": 7192,
+      "example_steps": 80800,
+      "steps": 2525,
+      "trained": 334
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/fixed": {
+     "accepted": 13,
+     "accepted_at": [
+      5,
+      3,
+      2,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       5,
+       30
+      ],
+      "operator_changes": [
+       8,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 414,
+      "audits": 31,
+      "checker_runs": 44,
+      "distinct_replay": 8663,
+      "example_steps": 3974400,
+      "steps": 124200,
+      "trained": 414
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/early": {
+     "accepted": 38,
+     "accepted_at": [
+      27,
+      5,
+      3,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       26,
+       30
+      ],
+      "operator_changes": [
+       12,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 238,
+      "audits": 20,
+      "checker_runs": 58,
+      "distinct_replay": 1828,
+      "example_steps": 34480,
+      "steps": 2155,
+      "trained": 238
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/fixed": {
+     "accepted": 16,
+     "accepted_at": [
+      3,
+      3,
+      6,
+      0,
+      2,
+      1,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       2,
+       30
+      ],
+      "operator_changes": [
+       14,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 403,
+      "audits": 33,
+      "checker_runs": 49,
+      "distinct_replay": 2128,
+      "example_steps": 1934400,
+      "steps": 120900,
+      "trained": 403
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/early": {
+     "accepted": 49,
+     "accepted_at": [
+      38,
+      5,
+      3,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       28,
+       30
+      ],
+      "operator_changes": [
+       21,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 161,
+      "audits": 13,
+      "checker_runs": 62,
+      "distinct_replay": 9813,
+      "example_steps": 185600,
+      "steps": 1450,
+      "trained": 161
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/fixed": {
+     "accepted": 46,
+     "accepted_at": [
+      31,
+      6,
+      3,
+      1,
+      3,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 196,
+      "audits": 12,
+      "checker_runs": 58,
+      "distinct_replay": 10675,
+      "example_steps": 7526400,
+      "steps": 58800,
+      "trained": 196
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/early": {
+     "accepted": 43,
+     "accepted_at": [
+      31,
+      8,
+      1,
+      3,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       22,
+       30
+      ],
+      "operator_changes": [
+       21,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 198,
+      "audits": 21,
+      "checker_runs": 64,
+      "distinct_replay": 5425,
+      "example_steps": 112640,
+      "steps": 1760,
+      "trained": 198
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/fixed": {
+     "accepted": 29,
+     "accepted_at": [
+      23,
+      2,
+      2,
+      1,
+      1,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       6,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 290,
+      "audits": 22,
+      "checker_runs": 51,
+      "distinct_replay": 7465,
+      "example_steps": 5568000,
+      "steps": 87000,
+      "trained": 290
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/early": {
+     "accepted": 33,
+     "accepted_at": [
+      21,
+      4,
+      2,
+      2,
+      1,
+      1,
+      2,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       17,
+       30
+      ],
+      "operator_changes": [
+       16,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 284,
+      "audits": 27,
+      "checker_runs": 60,
+      "distinct_replay": 3285,
+      "example_steps": 82720,
+      "steps": 2585,
+      "trained": 284
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/fixed": {
+     "accepted": 26,
+     "accepted_at": [
+      9,
+      5,
+      6,
+      2,
+      1,
+      3,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       3,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 340,
+      "audits": 18,
+      "checker_runs": 44,
+      "distinct_replay": 3866,
+      "example_steps": 3264000,
+      "steps": 102000,
+      "trained": 340
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/early": {
+     "accepted": 37,
+     "accepted_at": [
+      17,
+      6,
+      8,
+      1,
+      2,
+      0,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       13,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 274,
+      "audits": 26,
+      "checker_runs": 63,
+      "distinct_replay": 2209,
+      "example_steps": 37920,
+      "steps": 2370,
+      "trained": 274
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/fixed": {
+     "accepted": 19,
+     "accepted_at": [
+      3,
+      2,
+      1,
+      0,
+      2,
+      3,
+      5,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       3,
+       30
+      ],
+      "operator_changes": [
+       16,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 425,
+      "audits": 28,
+      "checker_runs": 47,
+      "distinct_replay": 2851,
+      "example_steps": 2040000,
+      "steps": 127500,
+      "trained": 425
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/early": {
+     "accepted": 52,
+     "accepted_at": [
+      42,
+      5,
+      2,
+      2,
+      1,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       27,
+       30
+      ],
+      "operator_changes": [
+       25,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 135,
+      "audits": 12,
+      "checker_runs": 64,
+      "distinct_replay": 9249,
+      "example_steps": 157440,
+      "steps": 1230,
+      "trained": 135
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/fixed": {
+     "accepted": 60,
+     "accepted_at": [
+      53,
+      6,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 70,
+      "audits": 5,
+      "checker_runs": 65,
+      "distinct_replay": 8006,
+      "example_steps": 2688000,
+      "steps": 21000,
+      "trained": 70
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/early": {
+     "accepted": 51,
+     "accepted_at": [
+      39,
+      7,
+      0,
+      3,
+      2,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       27,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 147,
+      "audits": 19,
+      "checker_runs": 70,
+      "distinct_replay": 4358,
+      "example_steps": 89280,
+      "steps": 1395,
+      "trained": 147
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/fixed": {
+     "accepted": 53,
+     "accepted_at": [
+      40,
+      9,
+      2,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 130,
+      "audits": 13,
+      "checker_runs": 66,
+      "distinct_replay": 4143,
+      "example_steps": 2496000,
+      "steps": 39000,
+      "trained": 130
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/early": {
+     "accepted": 44,
+     "accepted_at": [
+      34,
+      3,
+      3,
+      1,
+      3,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       25,
+       30
+      ],
+      "operator_changes": [
+       19,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 196,
+      "audits": 20,
+      "checker_runs": 64,
+      "distinct_replay": 2564,
+      "example_steps": 53760,
+      "steps": 1680,
+      "trained": 196
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/fixed": {
+     "accepted": 45,
+     "accepted_at": [
+      19,
+      12,
+      1,
+      3,
+      3,
+      1,
+      4,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       19,
+       30
+      ],
+      "operator_changes": [
+       26,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 243,
+      "audits": 18,
+      "checker_runs": 63,
+      "distinct_replay": 2715,
+      "example_steps": 2332800,
+      "steps": 72900,
+      "trained": 243
+     },
+     "requests": 60
+    },
+    "specialists/0": {
+     "accepted": 46,
+     "accepted_at": [
+      46,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       17,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 158,
+      "audits": 6,
+      "checker_runs": 52,
+      "duplicates": 98,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "specialists/1/2": {
+     "accepted": 59,
+     "accepted_at": [
+      54,
+      3,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 74,
+      "audits": 5,
+      "checker_runs": 64,
+      "distinct_replay": 1513,
+      "example_steps": 579000,
+      "steps": 22200,
+      "trained": 74
+     },
+     "requests": 60
+    },
+    "specialists/1/4": {
+     "accepted": 59,
+     "accepted_at": [
+      49,
+      3,
+      2,
+      0,
+      2,
+      3,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 97,
+      "audits": 7,
+      "checker_runs": 66,
+      "distinct_replay": 995,
+      "example_steps": 421500,
+      "steps": 29100,
+      "trained": 97
+     },
+     "requests": 60
+    },
+    "specialists/1/8": {
+     "accepted": 55,
+     "accepted_at": [
+      47,
+      4,
+      2,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       25,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 112,
+      "audits": 7,
+      "checker_runs": 62,
+      "distinct_replay": 597,
+      "example_steps": 252900,
+      "steps": 33600,
+      "trained": 112
+     },
+     "requests": 60
+    }
+   },
+   "shared_bases_exact": 5,
+   "specialist_bases_exact": 5,
+   "units": 5
+  },
+  "901": {
+   "arms": {
+    "shared/check_guided/1/16/early": {
+     "accepted": 56,
+     "accepted_at": [
+      18,
+      18,
+      13,
+      5,
+      2,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       26,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 155,
+      "audits": 13,
+      "checker_runs": 69,
+      "distinct_replay": 2343,
+      "duplicates": 1,
+      "example_steps": 25935,
+      "steps": 1365,
+      "trained": 154
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/16/fixed": {
+     "accepted": 56,
+     "accepted_at": [
+      0,
+      9,
+      13,
+      12,
+      13,
+      4,
+      4,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       27,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 262,
+      "audits": 16,
+      "checker_runs": 72,
+      "distinct_replay": 3082,
+      "example_steps": 1493400,
+      "steps": 78600,
+      "trained": 262
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/early": {
+     "accepted": 58,
+     "accepted_at": [
+      34,
+      11,
+      11,
+      2,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       28,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 113,
+      "audits": 14,
+      "checker_runs": 72,
+      "distinct_replay": 11613,
+      "example_steps": 152510,
+      "steps": 1010,
+      "trained": 113
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/fixed": {
+     "accepted": 60,
+     "accepted_at": [
+      17,
+      16,
+      9,
+      7,
+      4,
+      4,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 170,
+      "audits": 13,
+      "checker_runs": 73,
+      "distinct_replay": 13662,
+      "example_steps": 7701000,
+      "steps": 51000,
+      "trained": 170
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/early": {
+     "accepted": 57,
+     "accepted_at": [
+      18,
+      23,
+      12,
+      3,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 143,
+      "audits": 13,
+      "checker_runs": 70,
+      "distinct_replay": 8136,
+      "example_steps": 94240,
+      "steps": 1240,
+      "trained": 143
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/fixed": {
+     "accepted": 60,
+     "accepted_at": [
+      4,
+      13,
+      14,
+      11,
+      9,
+      5,
+      1,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 222,
+      "audits": 22,
+      "checker_runs": 82,
+      "distinct_replay": 10896,
+      "example_steps": 5061600,
+      "steps": 66600,
+      "trained": 222
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/early": {
+     "accepted": 59,
+     "accepted_at": [
+      22,
+      17,
+      11,
+      9,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 133,
+      "audits": 13,
+      "checker_runs": 72,
+      "distinct_replay": 4262,
+      "example_steps": 42180,
+      "steps": 1110,
+      "trained": 133
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/fixed": {
+     "accepted": 57,
+     "accepted_at": [
+      0,
+      11,
+      10,
+      10,
+      11,
+      7,
+      5,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       27,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 272,
+      "audits": 21,
+      "checker_runs": 78,
+      "distinct_replay": 6959,
+      "example_steps": 3100800,
+      "steps": 81600,
+      "trained": 272
+     },
+     "requests": 60
+    },
+    "shared/full": {
+     "accepted": 58,
+     "accepted_at": [
+      58,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       28,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 74,
+      "audits": 1,
+      "checker_runs": 59,
+      "distinct_replay": 17940,
+      "duplicates": 14,
+      "example_steps": 5400000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/none": {
+     "accepted": 5,
+     "accepted_at": [
+      5,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       5,
+       30
+      ],
+      "operator_changes": [
+       0,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 445,
+      "audits": 12,
+      "checker_runs": 17,
+      "duplicates": 385,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/early": {
+     "accepted": 22,
+     "accepted_at": [
+      12,
+      2,
+      0,
+      2,
+      2,
+      1,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       15,
+       30
+      ],
+      "operator_changes": [
+       7,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 366,
+      "audits": 27,
+      "checker_runs": 49,
+      "distinct_replay": 5461,
+      "example_steps": 57000,
+      "steps": 3000,
+      "trained": 366
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/fixed": {
+     "accepted": 8,
+     "accepted_at": [
+      2,
+      4,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       7,
+       30
+      ],
+      "operator_changes": [
+       1,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 439,
+      "audits": 26,
+      "checker_runs": 34,
+      "distinct_replay": 6436,
+      "example_steps": 2502300,
+      "steps": 131700,
+      "trained": 439
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/early": {
+     "accepted": 52,
+     "accepted_at": [
+      30,
+      14,
+      4,
+      0,
+      2,
+      0,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       28,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 159,
+      "audits": 13,
+      "checker_runs": 65,
+      "distinct_replay": 12274,
+      "example_steps": 206870,
+      "steps": 1370,
+      "trained": 159
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/fixed": {
+     "accepted": 35,
+     "accepted_at": [
+      13,
+      10,
+      4,
+      4,
+      1,
+      1,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       8,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 287,
+      "audits": 22,
+      "checker_runs": 57,
+      "distinct_replay": 14989,
+      "example_steps": 13001100,
+      "steps": 86100,
+      "trained": 287
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/early": {
+     "accepted": 36,
+     "accepted_at": [
+      16,
+      5,
+      3,
+      5,
+      3,
+      3,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       19,
+       30
+      ],
+      "operator_changes": [
+       17,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 287,
+      "audits": 24,
+      "checker_runs": 60,
+      "distinct_replay": 11533,
+      "example_steps": 204060,
+      "steps": 2685,
+      "trained": 287
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/fixed": {
+     "accepted": 17,
+     "accepted_at": [
+      3,
+      5,
+      4,
+      1,
+      1,
+      1,
+      2,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       3,
+       30
+      ],
+      "operator_changes": [
+       14,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 398,
+      "audits": 24,
+      "checker_runs": 41,
+      "distinct_replay": 14385,
+      "example_steps": 9074400,
+      "steps": 119400,
+      "trained": 398
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/early": {
+     "accepted": 29,
+     "accepted_at": [
+      15,
+      4,
+      5,
+      0,
+      2,
+      0,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       14,
+       30
+      ],
+      "operator_changes": [
+       15,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 318,
+      "audits": 23,
+      "checker_runs": 52,
+      "distinct_replay": 8180,
+      "example_steps": 107920,
+      "steps": 2840,
+      "trained": 318
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/fixed": {
+     "accepted": 11,
+     "accepted_at": [
+      2,
+      0,
+      3,
+      0,
+      0,
+      3,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       5,
+       30
+      ],
+      "operator_changes": [
+       6,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 444,
+      "audits": 31,
+      "checker_runs": 42,
+      "distinct_replay": 10979,
+      "example_steps": 5061600,
+      "steps": 133200,
+      "trained": 444
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/early": {
+     "accepted": 34,
+     "accepted_at": [
+      23,
+      2,
+      3,
+      2,
+      1,
+      0,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       19,
+       30
+      ],
+      "operator_changes": [
+       15,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 280,
+      "audits": 32,
+      "checker_runs": 66,
+      "distinct_replay": 2074,
+      "example_steps": 41800,
+      "steps": 2200,
+      "trained": 280
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/fixed": {
+     "accepted": 13,
+     "accepted_at": [
+      5,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       1,
+       30
+      ],
+      "operator_changes": [
+       12,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 415,
+      "audits": 40,
+      "checker_runs": 53,
+      "distinct_replay": 2387,
+      "example_steps": 2365500,
+      "steps": 124500,
+      "trained": 415
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/early": {
+     "accepted": 49,
+     "accepted_at": [
+      30,
+      8,
+      5,
+      4,
+      1,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       25,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 176,
+      "audits": 11,
+      "checker_runs": 60,
+      "distinct_replay": 12213,
+      "example_steps": 234050,
+      "steps": 1550,
+      "trained": 176
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/fixed": {
+     "accepted": 38,
+     "accepted_at": [
+      25,
+      6,
+      1,
+      2,
+      1,
+      0,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       8,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 251,
+      "audits": 16,
+      "checker_runs": 54,
+      "distinct_replay": 13409,
+      "example_steps": 11370300,
+      "steps": 75300,
+      "trained": 251
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/early": {
+     "accepted": 47,
+     "accepted_at": [
+      37,
+      5,
+      2,
+      0,
+      0,
+      2,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       18,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 176,
+      "audits": 12,
+      "checker_runs": 59,
+      "distinct_replay": 7284,
+      "example_steps": 139080,
+      "steps": 1830,
+      "trained": 176
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/fixed": {
+     "accepted": 29,
+     "accepted_at": [
+      21,
+      2,
+      0,
+      1,
+      2,
+      1,
+      0,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       4,
+       30
+      ],
+      "operator_changes": [
+       25,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 309,
+      "audits": 17,
+      "checker_runs": 46,
+      "distinct_replay": 9673,
+      "example_steps": 7045200,
+      "steps": 92700,
+      "trained": 309
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/early": {
+     "accepted": 34,
+     "accepted_at": [
+      15,
+      5,
+      5,
+      1,
+      4,
+      2,
+      2,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       14,
+       30
+      ],
+      "operator_changes": [
+       20,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 298,
+      "audits": 16,
+      "checker_runs": 50,
+      "distinct_replay": 4612,
+      "example_steps": 98800,
+      "steps": 2600,
+      "trained": 298
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/fixed": {
+     "accepted": 27,
+     "accepted_at": [
+      6,
+      13,
+      2,
+      2,
+      1,
+      0,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       3,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 338,
+      "audits": 29,
+      "checker_runs": 56,
+      "distinct_replay": 5241,
+      "example_steps": 3853200,
+      "steps": 101400,
+      "trained": 338
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/early": {
+     "accepted": 40,
+     "accepted_at": [
+      21,
+      4,
+      4,
+      1,
+      1,
+      3,
+      3,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       16,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 273,
+      "audits": 18,
+      "checker_runs": 58,
+      "distinct_replay": 2545,
+      "example_steps": 43890,
+      "steps": 2310,
+      "trained": 273
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/fixed": {
+     "accepted": 19,
+     "accepted_at": [
+      7,
+      2,
+      2,
+      3,
+      2,
+      0,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       4,
+       30
+      ],
+      "operator_changes": [
+       15,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 389,
+      "audits": 22,
+      "checker_runs": 41,
+      "distinct_replay": 3002,
+      "example_steps": 2217300,
+      "steps": 116700,
+      "trained": 389
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/early": {
+     "accepted": 59,
+     "accepted_at": [
+      46,
+      6,
+      5,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       29,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 93,
+      "audits": 12,
+      "checker_runs": 71,
+      "distinct_replay": 10086,
+      "example_steps": 141940,
+      "steps": 940,
+      "trained": 93
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/fixed": {
+     "accepted": 60,
+     "accepted_at": [
+      51,
+      7,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 73,
+      "audits": 6,
+      "checker_runs": 66,
+      "distinct_replay": 9602,
+      "example_steps": 3306900,
+      "steps": 21900,
+      "trained": 73
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/early": {
+     "accepted": 48,
+     "accepted_at": [
+      34,
+      6,
+      1,
+      2,
+      3,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 181,
+      "audits": 18,
+      "checker_runs": 66,
+      "distinct_replay": 5983,
+      "example_steps": 147820,
+      "steps": 1945,
+      "trained": 181
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/fixed": {
+     "accepted": 54,
+     "accepted_at": [
+      42,
+      6,
+      6,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       25,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 120,
+      "audits": 11,
+      "checker_runs": 65,
+      "distinct_replay": 4997,
+      "example_steps": 2736000,
+      "steps": 36000,
+      "trained": 120
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/early": {
+     "accepted": 48,
+     "accepted_at": [
+      38,
+      3,
+      3,
+      1,
+      0,
+      0,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       28,
+       30
+      ],
+      "operator_changes": [
+       20,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 176,
+      "audits": 14,
+      "checker_runs": 62,
+      "distinct_replay": 2976,
+      "example_steps": 55860,
+      "steps": 1470,
+      "trained": 176
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/fixed": {
+     "accepted": 48,
+     "accepted_at": [
+      23,
+      10,
+      7,
+      5,
+      2,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 197,
+      "audits": 19,
+      "checker_runs": 67,
+      "distinct_replay": 3128,
+      "example_steps": 2245800,
+      "steps": 59100,
+      "trained": 197
+     },
+     "requests": 60
+    },
+    "specialists/0": {
+     "accepted": 49,
+     "accepted_at": [
+      49,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       19,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 137,
+      "audits": 4,
+      "checker_runs": 53,
+      "duplicates": 77,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "specialists/1/2": {
+     "accepted": 60,
+     "accepted_at": [
+      56,
+      3,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 66,
+      "audits": 4,
+      "checker_runs": 64,
+      "distinct_replay": 1701,
+      "example_steps": 572400,
+      "steps": 19800,
+      "trained": 66
+     },
+     "requests": 60
+    },
+    "specialists/1/4": {
+     "accepted": 57,
+     "accepted_at": [
+      53,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 97,
+      "audits": 8,
+      "checker_runs": 65,
+      "distinct_replay": 1136,
+      "example_steps": 505200,
+      "steps": 29100,
+      "trained": 97
+     },
+     "requests": 60
+    },
+    "specialists/1/8": {
+     "accepted": 56,
+     "accepted_at": [
+      49,
+      4,
+      0,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       26,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 109,
+      "audits": 5,
+      "checker_runs": 61,
+      "distinct_replay": 705,
+      "example_steps": 296700,
+      "steps": 32700,
+      "trained": 109
+     },
+     "requests": 60
+    }
+   },
+   "shared_bases_exact": 5,
+   "specialist_bases_exact": 5,
+   "units": 5
+  },
+  "902": {
+   "arms": {
+    "shared/check_guided/1/16/early": {
+     "accepted": 50,
+     "accepted_at": [
+      12,
+      10,
+      18,
+      6,
+      4,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       20,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 210,
+      "audits": 23,
+      "checker_runs": 73,
+      "distinct_replay": 2865,
+      "example_steps": 37335,
+      "steps": 1965,
+      "trained": 210
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/16/fixed": {
+     "accepted": 47,
+     "accepted_at": [
+      0,
+      4,
+      15,
+      14,
+      10,
+      2,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       19,
+       30
+      ],
+      "operator_changes": [
+       28,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 290,
+      "audits": 16,
+      "checker_runs": 63,
+      "distinct_replay": 2802,
+      "duplicates": 1,
+      "example_steps": 1647300,
+      "steps": 86700,
+      "trained": 289
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/early": {
+     "accepted": 53,
+     "accepted_at": [
+      21,
+      19,
+      10,
+      3,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 157,
+      "audits": 14,
+      "checker_runs": 67,
+      "distinct_replay": 12812,
+      "example_steps": 254790,
+      "steps": 1710,
+      "trained": 157
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/2/fixed": {
+     "accepted": 59,
+     "accepted_at": [
+      17,
+      12,
+      11,
+      8,
+      7,
+      3,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 174,
+      "audits": 15,
+      "checker_runs": 74,
+      "distinct_replay": 13686,
+      "example_steps": 7777800,
+      "steps": 52200,
+      "trained": 174
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/early": {
+     "accepted": 52,
+     "accepted_at": [
+      12,
+      14,
+      9,
+      9,
+      5,
+      3,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       22,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 210,
+      "audits": 15,
+      "checker_runs": 67,
+      "distinct_replay": 9970,
+      "example_steps": 167250,
+      "steps": 2230,
+      "trained": 210
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/4/fixed": {
+     "accepted": 59,
+     "accepted_at": [
+      1,
+      8,
+      14,
+      18,
+      9,
+      4,
+      2,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       29,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 246,
+      "audits": 23,
+      "checker_runs": 82,
+      "distinct_replay": 11490,
+      "example_steps": 5535000,
+      "steps": 73800,
+      "trained": 246
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/early": {
+     "accepted": 51,
+     "accepted_at": [
+      13,
+      10,
+      13,
+      7,
+      3,
+      2,
+      3,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       21,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 220,
+      "audits": 21,
+      "checker_runs": 72,
+      "distinct_replay": 6105,
+      "example_steps": 84930,
+      "steps": 2235,
+      "trained": 220
+     },
+     "requests": 60
+    },
+    "shared/check_guided/1/8/fixed": {
+     "accepted": 56,
+     "accepted_at": [
+      1,
+      6,
+      16,
+      13,
+      7,
+      4,
+      6,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       26,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 270,
+      "audits": 18,
+      "checker_runs": 74,
+      "distinct_replay": 6838,
+      "example_steps": 3078000,
+      "steps": 81000,
+      "trained": 270
+     },
+     "requests": 60
+    },
+    "shared/full": {
+     "accepted": 60,
+     "accepted_at": [
+      60,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 60,
+      "checker_runs": 60,
+      "distinct_replay": 17760,
+      "example_steps": 5346000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/none": {
+     "accepted": 1,
+     "accepted_at": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       1,
+       30
+      ],
+      "operator_changes": [
+       0,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 473,
+      "audits": 11,
+      "checker_runs": 12,
+      "duplicates": 413,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/early": {
+     "accepted": 20,
+     "accepted_at": [
+      10,
+      5,
+      1,
+      3,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       13,
+       30
+      ],
+      "operator_changes": [
+       7,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 362,
+      "audits": 26,
+      "checker_runs": 46,
+      "distinct_replay": 5380,
+      "example_steps": 67640,
+      "steps": 3560,
+      "trained": 362
+     },
+     "requests": 60
+    },
+    "shared/random/1/16/fixed": {
+     "accepted": 5,
+     "accepted_at": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0,
+      3
+     ],
+     "by_kind": {
+      "capital_moves": [
+       0,
+       30
+      ],
+      "operator_changes": [
+       5,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 476,
+      "audits": 40,
+      "checker_runs": 45,
+      "distinct_replay": 6992,
+      "example_steps": 2713200,
+      "steps": 142800,
+      "trained": 476
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/early": {
+     "accepted": 39,
+     "accepted_at": [
+      19,
+      7,
+      3,
+      6,
+      2,
+      1,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       20,
+       30
+      ],
+      "operator_changes": [
+       19,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 258,
+      "audits": 20,
+      "checker_runs": 59,
+      "distinct_replay": 14191,
+      "example_steps": 415710,
+      "steps": 2790,
+      "trained": 258
+     },
+     "requests": 60
+    },
+    "shared/random/1/2/fixed": {
+     "accepted": 35,
+     "accepted_at": [
+      15,
+      6,
+      3,
+      3,
+      1,
+      1,
+      5,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       7,
+       30
+      ],
+      "operator_changes": [
+       28,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 302,
+      "audits": 29,
+      "checker_runs": 64,
+      "distinct_replay": 14896,
+      "example_steps": 13499400,
+      "steps": 90600,
+      "trained": 302
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/early": {
+     "accepted": 27,
+     "accepted_at": [
+      14,
+      5,
+      3,
+      1,
+      1,
+      0,
+      3,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       12,
+       30
+      ],
+      "operator_changes": [
+       15,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 327,
+      "audits": 18,
+      "checker_runs": 45,
+      "distinct_replay": 12236,
+      "example_steps": 244125,
+      "steps": 3255,
+      "trained": 327
+     },
+     "requests": 60
+    },
+    "shared/random/1/4/fixed": {
+     "accepted": 20,
+     "accepted_at": [
+      7,
+      3,
+      2,
+      3,
+      2,
+      1,
+      2,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       1,
+       30
+      ],
+      "operator_changes": [
+       19,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 381,
+      "audits": 26,
+      "checker_runs": 46,
+      "distinct_replay": 13737,
+      "example_steps": 8572500,
+      "steps": 114300,
+      "trained": 381
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/early": {
+     "accepted": 23,
+     "accepted_at": [
+      13,
+      3,
+      0,
+      1,
+      3,
+      0,
+      1,
+      2
+     ],
+     "by_kind": {
+      "capital_moves": [
+       11,
+       30
+      ],
+      "operator_changes": [
+       12,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 357,
+      "audits": 30,
+      "checker_runs": 53,
+      "distinct_replay": 8979,
+      "example_steps": 129960,
+      "steps": 3420,
+      "trained": 357
+     },
+     "requests": 60
+    },
+    "shared/random/1/8/fixed": {
+     "accepted": 12,
+     "accepted_at": [
+      5,
+      2,
+      2,
+      2,
+      1,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       1,
+       30
+      ],
+      "operator_changes": [
+       11,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 412,
+      "audits": 26,
+      "checker_runs": 38,
+      "distinct_replay": 10255,
+      "example_steps": 4696800,
+      "steps": 123600,
+      "trained": 412
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/early": {
+     "accepted": 26,
+     "accepted_at": [
+      17,
+      7,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       17,
+       30
+      ],
+      "operator_changes": [
+       9,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 313,
+      "audits": 29,
+      "checker_runs": 55,
+      "distinct_replay": 2334,
+      "example_steps": 60705,
+      "steps": 3195,
+      "trained": 313
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/16/fixed": {
+     "accepted": 20,
+     "accepted_at": [
+      10,
+      2,
+      1,
+      2,
+      1,
+      2,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       2,
+       30
+      ],
+      "operator_changes": [
+       18,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 377,
+      "audits": 24,
+      "checker_runs": 44,
+      "distinct_replay": 2167,
+      "example_steps": 2148900,
+      "steps": 113100,
+      "trained": 377
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/early": {
+     "accepted": 46,
+     "accepted_at": [
+      25,
+      11,
+      4,
+      5,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       24,
+       30
+      ],
+      "operator_changes": [
+       22,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 198,
+      "audits": 17,
+      "checker_runs": 63,
+      "distinct_replay": 12563,
+      "example_steps": 351640,
+      "steps": 2360,
+      "trained": 198
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/2/fixed": {
+     "accepted": 39,
+     "accepted_at": [
+      32,
+      3,
+      2,
+      1,
+      1,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       9,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 221,
+      "audits": 16,
+      "checker_runs": 55,
+      "distinct_replay": 12580,
+      "example_steps": 9878700,
+      "steps": 66300,
+      "trained": 221
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/early": {
+     "accepted": 34,
+     "accepted_at": [
+      22,
+      5,
+      4,
+      3,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       18,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 264,
+      "audits": 21,
+      "checker_runs": 55,
+      "distinct_replay": 7614,
+      "example_steps": 237375,
+      "steps": 3165,
+      "trained": 264
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/4/fixed": {
+     "accepted": 30,
+     "accepted_at": [
+      25,
+      4,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       4,
+       30
+      ],
+      "operator_changes": [
+       26,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 276,
+      "audits": 21,
+      "checker_runs": 51,
+      "distinct_replay": 9038,
+      "example_steps": 6210000,
+      "steps": 82800,
+      "trained": 276
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/early": {
+     "accepted": 34,
+     "accepted_at": [
+      16,
+      8,
+      4,
+      1,
+      2,
+      1,
+      2,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       18,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 286,
+      "audits": 22,
+      "checker_runs": 56,
+      "distinct_replay": 4381,
+      "example_steps": 124260,
+      "steps": 3270,
+      "trained": 286
+     },
+     "requests": 60
+    },
+    "shared/relation_first/1/8/fixed": {
+     "accepted": 25,
+     "accepted_at": [
+      14,
+      8,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       3,
+       30
+      ],
+      "operator_changes": [
+       22,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 324,
+      "audits": 26,
+      "checker_runs": 51,
+      "distinct_replay": 4997,
+      "example_steps": 3693600,
+      "steps": 97200,
+      "trained": 324
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/early": {
+     "accepted": 27,
+     "accepted_at": [
+      14,
+      4,
+      0,
+      3,
+      2,
+      1,
+      3,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       17,
+       30
+      ],
+      "operator_changes": [
+       10,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 335,
+      "audits": 22,
+      "checker_runs": 49,
+      "distinct_replay": 2815,
+      "example_steps": 60705,
+      "steps": 3195,
+      "trained": 335
+     },
+     "requests": 60
+    },
+    "shared/signature/1/16/fixed": {
+     "accepted": 17,
+     "accepted_at": [
+      1,
+      4,
+      6,
+      2,
+      1,
+      1,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       4,
+       30
+      ],
+      "operator_changes": [
+       13,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 405,
+      "audits": 30,
+      "checker_runs": 47,
+      "distinct_replay": 3140,
+      "example_steps": 2308500,
+      "steps": 121500,
+      "trained": 405
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/early": {
+     "accepted": 54,
+     "accepted_at": [
+      40,
+      6,
+      4,
+      3,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       24,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 131,
+      "audits": 12,
+      "checker_runs": 66,
+      "distinct_replay": 10850,
+      "example_steps": 205620,
+      "steps": 1380,
+      "trained": 131
+     },
+     "requests": 60
+    },
+    "shared/signature/1/2/fixed": {
+     "accepted": 60,
+     "accepted_at": [
+      49,
+      9,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 73,
+      "audits": 7,
+      "checker_runs": 67,
+      "distinct_replay": 9566,
+      "example_steps": 3263100,
+      "steps": 21900,
+      "trained": 73
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/early": {
+     "accepted": 44,
+     "accepted_at": [
+      28,
+      7,
+      3,
+      3,
+      0,
+      0,
+      2,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       21,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 213,
+      "audits": 12,
+      "checker_runs": 56,
+      "distinct_replay": 6297,
+      "example_steps": 193500,
+      "steps": 2580,
+      "trained": 213
+     },
+     "requests": 60
+    },
+    "shared/signature/1/4/fixed": {
+     "accepted": 46,
+     "accepted_at": [
+      31,
+      7,
+      1,
+      3,
+      2,
+      0,
+      1,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       23,
+       30
+      ],
+      "operator_changes": [
+       23,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 197,
+      "audits": 19,
+      "checker_runs": 65,
+      "distinct_replay": 6048,
+      "example_steps": 4432500,
+      "steps": 59100,
+      "trained": 197
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/early": {
+     "accepted": 35,
+     "accepted_at": [
+      27,
+      2,
+      2,
+      2,
+      1,
+      0,
+      0,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       21,
+       30
+      ],
+      "operator_changes": [
+       14,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 258,
+      "audits": 23,
+      "checker_runs": 58,
+      "distinct_replay": 3187,
+      "example_steps": 103170,
+      "steps": 2715,
+      "trained": 258
+     },
+     "requests": 60
+    },
+    "shared/signature/1/8/fixed": {
+     "accepted": 43,
+     "accepted_at": [
+      13,
+      8,
+      4,
+      4,
+      4,
+      5,
+      4,
+      1
+     ],
+     "by_kind": {
+      "capital_moves": [
+       16,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 279,
+      "audits": 24,
+      "checker_runs": 67,
+      "distinct_replay": 3138,
+      "example_steps": 3180600,
+      "steps": 83700,
+      "trained": 279
+     },
+     "requests": 60
+    },
+    "specialists/0": {
+     "accepted": 48,
+     "accepted_at": [
+      48,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       18,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 144,
+      "audits": 5,
+      "checker_runs": 53,
+      "duplicates": 84,
+      "example_steps": 18000,
+      "steps": 18000,
+      "trained": 60
+     },
+     "requests": 60
+    },
+    "specialists/1/2": {
+     "accepted": 60,
+     "accepted_at": [
+      55,
+      3,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 68,
+      "audits": 5,
+      "checker_runs": 65,
+      "distinct_replay": 1717,
+      "example_steps": 595800,
+      "steps": 20400,
+      "trained": 68
+     },
+     "requests": 60
+    },
+    "specialists/1/4": {
+     "accepted": 60,
+     "accepted_at": [
+      53,
+      1,
+      5,
+      0,
+      0,
+      0,
+      1,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       30,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 77,
+      "audits": 6,
+      "checker_runs": 66,
+      "distinct_replay": 979,
+      "example_steps": 359100,
+      "steps": 23100,
+      "trained": 77
+     },
+     "requests": 60
+    },
+    "specialists/1/8": {
+     "accepted": 57,
+     "accepted_at": [
+      50,
+      2,
+      3,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "by_kind": {
+      "capital_moves": [
+       30,
+       30
+      ],
+      "operator_changes": [
+       27,
+       30
+      ]
+     },
+     "chains": 5,
+     "costs": {
+      "attempts": 97,
+      "audits": 10,
+      "checker_runs": 67,
+      "distinct_replay": 621,
+      "example_steps": 250800,
+      "steps": 29100,
+      "trained": 97
+     },
+     "requests": 60
+    }
+   },
+   "shared_bases_exact": 5,
+   "specialist_bases_exact": 5,
+   "units": 5
+  }
+ }
+}

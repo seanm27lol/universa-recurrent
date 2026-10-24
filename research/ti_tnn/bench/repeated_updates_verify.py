@@ -29,7 +29,8 @@ trained on 35 facts and got 3 facts wrong. The verifier:
 - the agreement of the screen with the behavioural gates;
 - acceptance: screen, every mandatory gate, activation.
 
-From these it rebuilds every rate, cost, prediction and the PR 9 decision.
+From these it rebuilds every rate, cost, prediction and the PR 9 decision, and the descriptive best observed
+ordinary arms, with and without `check_guided`, which do not enter the decision.
 
 **What remains the producer's record:**
 - **that an exported table is the trained network's behaviour.** `--reproduce` retrains a frozen,
@@ -62,14 +63,27 @@ from integrated.contracts import content_identity  # noqa: E402
 MANDATORY = ("record_context", "identity_and_scope", "types_and_laws", "intended_behavior", "unaffected_behavior",
              "trace_and_continuation", "calibration_and_resources")
 BEHAVIOURAL = ("intended_behavior", "unaffected_behavior")
-FROZEN_SOURCES = None  # set by the freezing commit
+# The producer files as hashed into every run (repeated_updates.SOURCES), fixed in the freezing commit of
+# protocols/repeated_updates_v1.md revision 3. The run records its commit; a commit cannot name itself.
+FROZEN_SOURCES = {
+    "repeated_updates.py": "3676fae7958aa8f71ee019e894109a43c0b5d541debd12d2924f8c13f3fdde57",
+    "../integrated/modules.py": "fe89f275281579b666f12c5d452d5911c6448b68ae4bf6cc74c19e38647622c7",
+    "../integrated/update_checks.py": "1ea1e5fd77ea0662187c8fe192e00668aa37ea9f525b286b6f54cccf951a116b",
+    "../integrated/costs.py": "1a7f4aa8649412e94a015cc9e79eb7105281037e976f888e1ca0ca5d58e2e442",
+    "../integrated/updates.py": "bda75f302fd09a1066e416a9f085507cd4276dac93b58a8ea776c0e0db50a14e",
+    "../integrated/snapshots.py": "30b6eed36651eabded80363cd437d889c6e69b30936b13ccee98f5646cd0323f",
+    "../integrated/registry.py": "85350d0284bae12a55c5b748c5ca5d61acde8623d91ceeed29108525702674e1",
+    "../integrated/relations.py": "742331d263587da665b743584f9afda402286219fec9b947838ca3900d296b5a",
+    "../integrated/contracts.py": "7ccf766d3885157f5e53ee419544c1f0f5d49a70f575b22875404b6b452dfdaa",
+}
 FROZEN_DESIGN = {"worlds": [900, 901, 902], "inits": [0, 1, 2, 3, 4], "countries": 24, "d": 32, "hidden": 64,
-                 "steps": 1500, "lr": 1e-2}
+                 "steps": 1500, "lr": 1e-2, "threads": 4, "confirmation": True}
 LINE_FIELDS = ("arm", "update", "proposal", "parent", "deployed_world", "target_world", "train", "replay_size",
                "duplicate_of", "steps", "errors", "table_digest", "screen", "audited", "gates", "candidate",
                "accepted", "activation", "seconds")
-# decision constants (protocol revision 2)
+# decision constants (protocol revision 2, unchanged in revision 3)
 REFERENCE_MIN, TARGET, WORLDS_NEEDED = Fraction(95, 100), Fraction(90, 100), 2
+H1_BETA = "1/4"  # revision 3 (pilot-informed): where the 47-fact signature pool fits; revision 2 had 1/8
 
 
 class VerificationError(AssertionError):
@@ -354,9 +368,41 @@ def decision(agg: dict, inits: list) -> dict:
     return out
 
 
+def best_observed(agg: dict, inits: list) -> dict:
+    """Descriptive only (protocol revision 3): for each beta and world, the best observed ordinary arm, over all four
+    policies and over the three that do not use earlier attempts' error lists to choose replay (excluding
+    `check_guided`), with tied winners and each winner's cumulative replay exposure and compute. The same chains,
+    attempt limit and denominators as the decision; `qualifies` is the decision's own world rule. It does not
+    enter the PR 9 decision, which is `decision`'s, over the complete baseline set."""
+    subsets = {"all_ordinary": RU.POLICIES, "excluding_check_guided": tuple(p for p in RU.POLICIES if p != "check_guided")}
+    out = {}
+    for beta in RU.BETAS:
+        per_world = {}
+        for w, wa in agg.items():
+            full = wa["arms"].get("shared/full", {"requests": 0})
+            row = {"qualifies": bool(wa["shared_bases_exact"] == len(inits) and full["requests"] > 0
+                                     and rate(full) >= REFERENCE_MIN)}
+            for label, policies in subsets.items():
+                arms = {a["name"]: wa["arms"][a["name"]] for a in RU.arms()
+                        if a["family"] == "shared" and a["policy"] in policies and a["beta"] == beta
+                        and a["name"] in wa["arms"] and wa["arms"][a["name"]]["requests"]}
+                best = max((rate(a) for a in arms.values()), default=None)
+                winners = sorted(n for n, a in arms.items() if rate(a) == best)
+                row[label] = {"rate": None if best is None else float(best),
+                              "accepted": None if best is None else arms[winners[0]]["accepted"],
+                              "requests": None if best is None else arms[winners[0]]["requests"],
+                              "winners": {n: {"distinct_replay_per_request": round(
+                                  arms[n]["costs"].get("distinct_replay", 0) / arms[n]["requests"], 2),
+                                  **{k: arms[n]["costs"].get(k, 0) for k in ("trained", "steps", "example_steps",
+                                                                            "checker_runs")}} for n in winners}}
+            per_world[w] = row
+        out[beta] = per_world
+    return out
+
+
 def predictions(agg: dict) -> dict:
-    """R1, R2, H1 and H2 (protocol revision 2), each over every world's per-world aggregate. None when an arm the
-    prediction reads has no requests (it is not evaluable)."""
+    """R1, R2, H1 and H2 (protocol revision 3), each over every world's per-world aggregate. None when an arm the
+    prediction reads has no requests (it is not evaluable). H1 is evaluated at `H1_BETA`."""
     def acc(w, name, kind=None):
         a = agg[w]["arms"].get(name)
         if a is None or not a["requests"]:
@@ -379,8 +425,8 @@ def predictions(agg: dict) -> dict:
         "R2_no_replay": every(lambda w: None if acc(w, "shared/none") is None
                               else acc(w, "shared/none") <= Fraction(1, 2)),
         "H1_signature_over_relation_first_on_capital_moves": every(lambda w: diff(
-            acc(w, "shared/signature/1/8/fixed", "capital_moves"),
-            acc(w, "shared/relation_first/1/8/fixed", "capital_moves"), Fraction(1, 5))),
+            acc(w, f"shared/signature/{H1_BETA}/fixed", "capital_moves"),
+            acc(w, f"shared/relation_first/{H1_BETA}/fixed", "capital_moves"), Fraction(1, 5))),
         "H2_early_stopping": every(lambda w: None if None in (acc(w, "shared/random/1/16/early"),
                                                                acc(w, "shared/random/1/16/fixed")) else
                                    diff(acc(w, "shared/random/1/16/early"), acc(w, "shared/random/1/16/fixed"),
@@ -420,7 +466,8 @@ def verify(run_dir: Path, development: bool = False, reproduce: bool = False) ->
     construction = {"screen_checker_agreement": all(
         ch is None or ch["costs"].get("screen_checker_disagreements", 0) == 0 for u in units for ch in u["chains"].values())}
     out = {"verified": True, "commit": run["provenance"]["commit"], "worlds": agg, "construction": construction,
-           "predictions": predictions(agg), "decision": decision(agg, cfg["inits"])}
+           "predictions": predictions(agg), "decision": decision(agg, cfg["inits"]),
+           "best_observed": best_observed(agg, cfg["inits"])}
     if reproduce:
         out["reproduction"] = reproduce_sample(run_dir, run, worlds)
     return out
@@ -464,9 +511,14 @@ def main(argv=None):
     p.add_argument("run_dir", type=Path)
     p.add_argument("--development", action="store_true")
     p.add_argument("--reproduce", action="store_true")
+    p.add_argument("--out", type=Path, help="write the complete output here as JSON")
     a = p.parse_args(argv)
     out = verify(a.run_dir, a.development, a.reproduce)
-    print(json.dumps({k: out[k] for k in ("verified", "commit", "construction", "predictions", "decision")}, indent=1))
+    if a.out:
+        a.out.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
+    keys = ("verified", "commit", "construction", "predictions", "decision", "best_observed")
+    print(json.dumps({k: out[k] for k in keys} | ({"reproduction": {k: out["reproduction"][k] for k in (
+        "chains", "identical", "all_identical")}} if "reproduction" in out else {}), indent=1))
 
 
 if __name__ == "__main__":

@@ -461,6 +461,31 @@ def integration_test_tables(bundle: Path = HERE, sessions_dir: Path | None = Non
             raise ValueError(f"integration test: rebuilt {key} differs from the bundled verification.json")
     return {"rebuilt": True, **rebuilt}
 
+def repeated_updates_tables(bundle: Path = HERE, rebuild: bool = False, reproduce: bool = False) -> dict:
+    """Repeated updates under a bounded replay allowance (protocols/repeated_updates_v1.md, frozen revision 3).
+
+    The whole weight-free export is bundled: run.json, and per unit unit.json and proposals.jsonl.gz. Without
+    `rebuild` it returns the bundled verifier output; the manifest check has already covered it. With `rebuild`
+    the frozen independent verifier (`research/ti_tnn/bench/repeated_updates_verify.py`) re-derives every attempt
+    of every chain, enforcing the frozen source binding and inventory, and the result must equal the bundled
+    `verification.json`: every aggregate, prediction, the PR 9 decision and the descriptive maxima. With
+    `reproduce` it also retrains the frozen sample of 114 chains (about 20 minutes) and requires identical records."""
+    root = bundle / "repeated_updates"
+    recorded = json.loads((root / "verification.json").read_text())
+    if not rebuild:
+        return {"rebuilt": False, **recorded}
+    sys.path.insert(0, str(BENCH))
+    import repeated_updates_verify as VF  # research/ti_tnn/bench/repeated_updates_verify.py
+    run = next(d for d in sorted(root.iterdir()) if d.is_dir())
+    rebuilt = json.loads(json.dumps(VF.verify(run, reproduce=reproduce), sort_keys=True))
+    keys = ("verified", "commit", "worlds", "construction", "predictions", "decision", "best_observed") + (
+        ("reproduction",) if reproduce else ())
+    for key in keys:
+        if rebuilt[key] != recorded[key]:
+            raise ValueError(f"repeated updates: rebuilt {key} differs from the bundled verification.json")
+    return {"rebuilt": True, **recorded}
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -489,6 +514,10 @@ def main(argv=None):
                    "rebuilds every arm's trace-derived tables too")
     p.add_argument("--integration-sessions", type=Path, help="the downloaded integration-test session release "
                    "(integration_test/session_release.json); re-runs the frozen verifier on the full export")
+    p.add_argument("--repeated-updates", action="store_true", help="re-run the frozen repeated-updates verifier on the "
+                   "bundled export (a few minutes)")
+    p.add_argument("--repeated-reproduce", action="store_true", help="with --repeated-updates, also retrain the frozen "
+                   "sample of 114 chains (about 20 minutes)")
     args = p.parse_args(argv)
     manifest = verify()
     print(f"{len(manifest['files'])} files match manifest.json\n")
@@ -613,6 +642,11 @@ def main(argv=None):
     v = it["verdict"]
     print(f"\nIntegration test (worlds 800-802 x 5 inits) {'rebuilt by the frozen verifier' if it['rebuilt'] else 'as verified at bundling (pass --integration-sessions to rebuild)'}: "
           f"construction every unit {v['construction_every_unit']}; learned successes by world {v['learned_successes_by_world']}")
+    ru = repeated_updates_tables(rebuild=args.repeated_updates, reproduce=args.repeated_reproduce)
+    print(f"\nRepeated updates (worlds 900-902 x 5 inits) "
+          f"{'rebuilt by the frozen verifier' if ru['rebuilt'] else 'as verified at bundling (pass --repeated-updates to rebuild)'}: "
+          f"predictions {ru['predictions']}; PR 9 decision {({b: d['outcome'] for b, d in ru['decision'].items()})}; "
+          f"sampled reproduction {ru['reproduction']['identical']}/{ru['reproduction']['chains']} identical")
     for part in ("development", "confirmation"):
         a = s2[part]
         print(f"  {part} trace tables rebuilt for arms {a['traced_arms']}"
