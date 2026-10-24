@@ -76,9 +76,19 @@ def test_the_run_re_derives_and_its_sampled_chains_reproduce(run):
     assert arms["shared/full"]["accepted"] == 12 and arms["shared/none"]["accepted"] < 12
 
 
-def test_frozen_verification_refuses_a_protocol_that_is_not_frozen(run):
-    with pytest.raises(VF.VerificationError, match="not frozen"):
+def test_frozen_verification_requires_the_frozen_sources_and_design(run, tmp_path):
+    """Frozen mode accepts only a run of the frozen sources (revision 3) and the frozen design: worlds 900-902 x
+    inits 0-4 and the frozen configuration. The development fixture is neither."""
+    with pytest.raises(VF.VerificationError, match="frozen"):
         _small(lambda: VF.verify(run))
+    assert VF.FROZEN_SOURCES is not None and set(VF.FROZEN_SOURCES) == set(RU.SOURCES)
+    bad = tmp_path / "run"
+    shutil.copytree(run, bad)
+    meta = json.loads((bad / "run.json").read_text())
+    meta["provenance"]["sha256"] = {**VF.FROZEN_SOURCES, "repeated_updates.py": "0" * 64}
+    (bad / "run.json").write_text(json.dumps(meta))
+    with pytest.raises(VF.VerificationError, match="frozen source"):
+        _small(lambda: VF.verify(bad))
     meta = json.loads((run / "run.json").read_text())
     assert VF.inventory_problems({**meta, "worlds": {}, "units": []}, development=True)
     assert _small(lambda: VF.inventory_problems({**meta, "arms": meta["arms"][:-1]}, development=True))
@@ -232,3 +242,60 @@ def _agg(full: int, best: int, exact: int = 2, n: int = 24):
 def test_the_decision_has_three_outcomes(full, best, exact, outcome):
     agg = {w: _agg(full, best, exact) for w in ("100", "101", "102")}
     assert VF.decision(agg, [100, 101])["1/8"]["outcome"] == outcome
+
+
+# --- revision 3: H1 at beta = 1/4, and the descriptive maxima ------------------------------------------------------
+def _world_agg(accepted: dict, n: int = 24, exact: int = 2) -> dict:
+    """Every arm with `n` requests (half capital moves), accepting `accepted.get(name, 0)` of them, spread evenly
+    over the two kinds (capital moves get the odd one)."""
+    arms = {}
+    for a in RU.arms():
+        k = accepted.get(a["name"], 0)
+        cap = accepted.get((a["name"], "capital_moves"), (k + 1) // 2)
+        arms[a["name"]] = {"accepted": k, "requests": n,
+                           "by_kind": {"capital_moves": [cap, n // 2], "operator_changes": [k - cap, n // 2]},
+                           "costs": {"steps": 1000, "distinct_replay": 3 * n, "trained": n, "example_steps": 10 * n,
+                                     "checker_runs": n}}
+    return {"shared_bases_exact": exact, "arms": arms}
+
+
+@pytest.mark.parametrize("gap_at, holds", [("1/4", True), ("1/8", False)])
+def test_h1_is_evaluated_at_one_quarter_not_one_eighth(gap_at, holds):
+    """Revision 3 moved H1 from 1/8 to 1/4. A 20-point capital-move difference at the other allowance must not
+    count."""
+    accepted = {"shared/full": 24}
+    for beta in ("1/8", "1/4"):
+        sig, rel = (12, 1) if beta == gap_at else (6, 6)
+        accepted[(f"shared/signature/{beta}/fixed", "capital_moves")] = sig
+        accepted[(f"shared/relation_first/{beta}/fixed", "capital_moves")] = rel
+        accepted[f"shared/signature/{beta}/fixed"] = sig
+        accepted[f"shared/relation_first/{beta}/fixed"] = rel
+    agg = {w: _world_agg(accepted) for w in ("100", "101")}
+    assert VF.predictions(agg)["H1_signature_over_relation_first_on_capital_moves"] is holds
+
+
+def test_the_descriptive_maxima_leave_the_primary_decision_unchanged():
+    """`check_guided` closes the target (23 of 24) while the other policies reach only 18: the decision is 'no
+    target gap', and the summary excluding `check_guided`, below target, must not turn it into a gap."""
+    import copy
+    accepted = {"shared/full": 24, "shared/check_guided/1/8/fixed": 23}
+    for p in ("random", "relation_first", "signature"):
+        for s in ("fixed", "early"):
+            accepted[f"shared/{p}/1/8/{s}"] = 18 if (p, s) in (("signature", "fixed"), ("random", "early")) else 10
+    agg = {w: _world_agg(accepted) for w in ("100", "101", "102")}
+    before, frozen = VF.decision(agg, [100, 101]), copy.deepcopy(agg)
+    summary = VF.best_observed(agg, [100, 101])
+    assert VF.decision(agg, [100, 101]) == before and agg == frozen
+    assert before["1/8"]["outcome"] == "no target gap"
+    row = summary["1/8"]["100"]
+    assert row["qualifies"] and row["all_ordinary"]["rate"] == 23 / 24
+    assert list(row["all_ordinary"]["winners"]) == ["shared/check_guided/1/8/fixed"]
+    assert row["excluding_check_guided"]["rate"] == 18 / 24 < 0.9
+    assert sorted(row["excluding_check_guided"]["winners"]) == ["shared/random/1/8/early", "shared/signature/1/8/fixed"]
+    assert row["excluding_check_guided"]["winners"]["shared/signature/1/8/fixed"]["distinct_replay_per_request"] == 3
+
+
+def test_the_verifier_reports_the_decision_and_the_summary_from_the_same_aggregates(run):
+    out = _small(lambda: VF.verify(run, development=True))
+    assert out["decision"] == VF.decision(out["worlds"], [100])
+    assert out["best_observed"] == VF.best_observed(out["worlds"], [100])
