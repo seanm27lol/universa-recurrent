@@ -505,3 +505,53 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    about learned robustness.
 4. **Evolutionary proposals (PR 9):** still deferred. The novelty result gives them no objective.
 
+
+**Order after the integration milestone (decided 2026-10-23, after the review of #61):**
+1. **A bounded-replay diagnostic** ([protocol](protocols/repeated_updates_v1.md), #61, with the gate repair #62).
+   - **What it is:** a small study of update and rehearsal failure, with every deployed model exact.
+   - **What it decides:** whether ordinary methods leave a prespecified gap, which keeps PR 9 conditional. A gap
+     makes PR 9 eligible, with its target chosen from the whole frontier.
+2. **The next main learning study: a factored interpreter.** It responds to the robustness and S2 failures:
+   - taught phrases did not transfer into two-step questions;
+   - non-cancelling three-step composition failed;
+   - the diagnosis found premature stopping and dropped relations.
+
+   **The comparison,** with fixed table modules:
+   - the current greedy interpreter;
+   - learned grounding with a supplied typed grammar;
+   - the same factored system with bounded alternatives.
+
+   **Controls:**
+   - the grammar and known-lexicon control stays. It already solves these structure tests when given the
+     lexicon and the rule, so the study measures what the *learned grounding* contributes;
+   - if the claim is that factoring helps, the current model with constrained decoding is a further control.
+     Otherwise the comparison is of complete replacement systems.
+
+   **What it measures:**
+   - S2 exact-program transfer;
+   - non-cancelling composition;
+   - whether `word_aug`'s novelty behaviour is preserved;
+   - risk and coverage by stratum;
+   - total cost, including rejected alternatives.
+
+   Every system gets the same maximum program length and execution contract.
+
+   **Cautions:**
+   - the exact ordered program is measured, not only the answer, because different programs can agree by
+     accident;
+   - alternatives cannot supply a meaning that was never grounded. In that case the system preserves the
+     ambiguity or abstains;
+   - the whole selection policy (top-k, type pruning, execution and selection) needs its own calibration. A
+     certificate for greedy decoding does not carry over;
+   - an admission detector is evaluated for false admissions and refusals;
+   - alternatives to the probability-product score are tested, not assumed;
+   - a non-zero threshold is not itself a goal. The question is whether the release policy lowers accepted
+     error while keeping coverage, against the same model without thresholding.
+3. **Then an imperfect integrated setting.**
+   - **Development:** declared capacity, data and training-budget regimes that produce realistic errors.
+   - **Confirmation:** fresh worlds with imperfect modules, corrective and regressive candidates, and real
+     admission and release trade-offs.
+   - **Guarantees across a sequence of contexts are addressed explicitly.** Separate per-context certificates
+     are not simultaneous, especially under adaptive updates and data reuse.
+   - **Follow-ons:** full snapshot replay and cross-process pause/resume.
+   - **Separate engineering tests:** concurrent updates, crash recovery and multiple intervening updates.
