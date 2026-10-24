@@ -1,9 +1,19 @@
-# Repeated updates under a bounded replay allowance (draft, revision 2)
+# Repeated updates under a bounded replay allowance (frozen, revision 3)
 
-**Status: DRAFT, revision 2 (2026-10-23), after the review of revision 1, with the development pilot appended.**
-Nothing here is frozen, and no run has touched confirmation worlds 900–902.
-- **What is authoritative:** the specification below. "History" keeps revision 1, the review's decisions,
-  the exploratory probes and the development pilot.
+**Status: FROZEN 2026-10-24 (UTC), revision 3, before any run on confirmation worlds 900–902.**
+- **The freezing commit** is the commit that adds this status line. It also fixes the producer-file hashes
+  (`FROZEN_SOURCES`) and the frozen design (`FROZEN_DESIGN`) in `bench/repeated_updates_verify.py`.
+- **The confirmation command:**
+
+      CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 .venv-phase2/bin/python research/ti_tnn/bench/repeated_updates.py \
+          --worlds 900 901 902 --inits 0 1 2 3 4 --confirmation --out runs/titnn_repeated_confirmation
+      .venv-phase2/bin/python research/ti_tnn/bench/repeated_updates_verify.py runs/titnn_repeated_confirmation/<run> \
+          --reproduce --out <verification.json>
+
+- **Resources:** CPU only, four threads, low priority. About 85 minutes for the 15 units, and about 20 for
+  verification with sampled reproduction.
+- **What is authoritative:** the specification below. "History" keeps revisions 1 and 2, the reviews'
+  decisions, the exploratory probes and the development pilot.
 - **The code it specifies:** `bench/repeated_updates.py` (the harness) and `bench/repeated_updates_verify.py`
   (the independent verifier).
 - **What it builds on:** PR 8's gates and deployment, with the prerequisite repair in #62. That repair lets
@@ -40,10 +50,10 @@ right. It is then judged by every mandatory gate of PR 8's checker.
 - **Rejected:** another proposal is made with a fresh replay draw, up to 8 in all. If none is accepted, the
   request is refused, and the deployed world keeps the old capital.
 
-In a development probe (one world, one init; "History"), replaying 38 facts gave 11 of 12 requests accepted
-with signature-first replay, and 2 of 12 with uniform replay. The study asks whether such differences hold on
-fresh worlds, what they are due to, and whether any ordinary method reaches full rehearsal's acceptance under
-a small allowance.
+In the development pilot (two worlds × two inits, 48 requests per arm; "History"), with fixed stopping at
+β = 1/4, signature-first replay accepted 43 requests and uniform replay 15. The study asks whether such
+differences hold on fresh worlds, and whether any ordinary method reaches full rehearsal's acceptance under a
+small allowance.
 
 ## The question
 
@@ -181,17 +191,40 @@ ran.
 |---|---|---|
 | R1 | Full rehearsal accepts ≥ 95% of requests | Empirical; sanity, replicating PR 8 |
 | R2 | No replay accepts ≤ 50% of requests | Empirical: the problem exists |
-| H1 | On capital moves, at β = 1/8 with fixed stopping, `signature` accepts at least 20 points more requests than `relation_first` | Empirical: cross-relation type information targets replay |
+| H1 | On capital moves, at β = 1/4 with fixed stopping, `signature` accepts at least 20 points more requests than `relation_first` | Empirical: prioritizing the complete same-signature pool helps (revision 3, pilot-informed) |
 | H2 | At β = 1/16, early stopping raises `random`'s acceptance by at least 20 points, using at most 10% of fixed stopping's optimizer steps | Empirical: ordinary early stopping limits drift |
+
+**H1 is a pilot-informed revision.**
+- **Revision 2's H1** was at β = 1/8, and it failed on development ("History").
+- **Revision 3 moved it to β = 1/4.** There the 47-fact signature pool fits the allowance in every world: in
+  worlds 900–902, B is 63–75 at 1/4 and 31–37 at 1/8, from the generator's fact counts.
+- **What the confirmation tests:** the revised hypothesis, on fresh worlds. It does not retroactively rescue the
+  original one, whose development failure stays in "History".
+- **The smaller allowances,** 1/8 included, stay in the descriptive frontier. They show what happens when the
+  pool must be subsampled.
 
 **Reported without a prediction:**
 - `relation_first` against `random`;
+- `signature` against `relation_first` on capital moves at every other β, 1/8 included;
 - operator changes as H1's control;
 - the whole frontier: every arm, every β, by update kind;
 - the attempt at which each request was accepted, within the N = 8 history. That is not a re-run with a
   smaller N, because a different N changes the deployed history;
 - costs;
-- the specialist contrast.
+- the specialist contrast;
+- **the best observed ordinary arm, in two versions** (descriptive; added in revision 3), at each β and
+  separately for each world:
+
+  | Reported quantity | Methods included |
+  |---|---|
+  | Best observed ordinary arm | `random`, `relation_first`, `signature`, `check_guided`, each with fixed or early stopping |
+  | Best observed ordinary arm excluding `check_guided` | `random`, `relation_first`, `signature`, each with fixed or early stopping |
+
+  - **How they are computed:** with the decision's attempt limit, denominators and world-eligibility rule.
+  - **What each reports:** its tied winners, and each winner's cumulative distinct replay per request, trained
+    attempts, optimizer steps, example-steps and full checks.
+  - **What the second shows:** what the other policies achieve without using earlier attempts' error lists to
+    choose training examples. They still undergo every check.
 
 **The PR 9 decision, recorded before any confirmation run.** It is evaluated for each β.
 - **Ordinary arms:** every policy (`random`, `relation_first`, `signature`, `check_guided`) with either stopping
@@ -205,6 +238,9 @@ ran.
 | **Prespecified gap** | In at least 2 qualifying worlds, the best ordinary arm accepts < 90% (at most 53 of 60) |
 | **No prespecified target gap** | In at least 2 qualifying worlds, the best ordinary arm accepts ≥ 90% |
 | **Inconclusive** | Neither: fewer than 2 qualifying worlds, or the qualifying worlds split |
+
+**The decision uses the complete baseline set,** `check_guided` included. The descriptive summary without
+`check_guided` does not enter it. A weaker result there cannot create a gap that `check_guided` closes.
 
 **What follows.**
 - **A prespecified gap at some β makes PR 9 eligible, not automatic.** Its target is chosen by reviewing the
@@ -309,7 +345,20 @@ The corruption tests demonstrate both.
 | 6 | Update kinds | PR 8's capital moves and operator changes, as one immutable schedule per world, reported by kind |
 | 7 | Audit of screened-out attempts | The frozen 5% rule plus a minimum of the first screened-out attempt per update kind per chain. Every screen-passing attempt is fully checked, and the audited denominator is reported. Tests audit every attempt |
 
+## Decisions (from the review of revision 2)
+
+| # | Decision | As specified above |
+|---|---|---|
+| 1 | H1's allowance | β = 1/4, everything else in H1 unchanged. It is a pilot-informed revision: 1/8 stays in the descriptive frontier, and its failed development prediction stays in "History" |
+| 2 | The best ordinary arm without `check_guided` | Reported descriptively at each β and world, beside the best over all four policies, with winners, replay exposure and compute. The PR 9 decision is unchanged and uses the complete set |
+
 ## History
+
+### Revision 2 (2026-10-23, merged in #63, reviewed after merging)
+
+The review accepted both proposals the development pilot had raised. Their definitions are above. No new fits
+and no second pilot were needed: 1/4 was already in the grid, and the summary uses existing records. Revision 3
+froze the protocol with them.
 
 ### Revision 1 (2026-10-23, reviewed at `7b8c207`)
 
@@ -409,13 +458,17 @@ The harness has changed since only in one docstring word.
 1. **Fixed stopping drifts on capital moves unless the same-signature relation is rehearsed.** With fixed
    stopping, `random` and `relation_first` accepted at most 2 of 24 capital moves at every β up to 1/4. At
    1/2 they accepted 4 and 8 of 24.
-2. **`signature` works when its pool fits.** It went from 3 of 24 capital moves at 1/8 to 23 of 24 at 1/4.
-   That is where its pool fits the allowance:
+2. **`signature` did much better at 1/4 than at 1/8.** It went from 3 of 24 capital moves at 1/8 to 23 of 24 at
+   1/4, where its pool fits the allowance:
    - the pool is `capital_of` plus `largest_city_of` minus the edit, 47 facts in every world;
    - B is 34–36 at 1/8 and 69–72 at 1/4.
 
-   **H1 failed because at 1/8 the pool is subsampled.** At 1/4, capital moves are 23 v 1 of 24 against
-   `relation_first`.
+   **The pilot's failure at 1/8 is consistent with incomplete coverage of the signature pool.** At 1/4 the
+   complete pool fits, and signature-first replay substantially outperformed relation-first replay: 23 v 1 of 24
+   capital moves.
+
+   **What this does not show.** Raising β also changes total replay and the training mixture, so the pilot does
+   not isolate pool coverage as the cause.
 3. **`check_guided` reaches the target from β = 1/8.** Its per-attempt allowance understates what it sees:
    - **cumulative distinct replay:** at 1/8 about 79–105 facts per request, 29–38% of the facts;
    - **exhaustive error lists:** it reads one after every attempt.
@@ -428,12 +481,30 @@ The harness has changed since only in one docstring word.
 - **Estimated confirmation:** 15 units about 85 min, verification with reproduction of 114 chains about 20 min.
   About 1 h 45 min of CPU in all, at 4 threads.
 
-**Proposed for revision 3, for the reviewer to decide before freezing:**
-1. **Move H1 from β = 1/8 to β = 1/4.**
-   - **At 1/8,** the 47-fact signature pool exceeds B in every world, including 900–902: B = 31–37. That comes
-     from the generator's fact counts, with no training or run on those worlds.
-   - **At 1/4,** it fits: B = 63–75.
-   - **The other option** is to keep 1/8 as revision 2 states. H1 would then test subsampled pools, and the
-     pilot predicts it fails.
-2. **Report descriptively the best ordinary arm without `check_guided`,** beside the decision. The decision
-   itself is unchanged: `check_guided` stays an ordinary method, as decided.
+**Proposed after the pilot, and decided in the review of revision 2 (both accepted):**
+1. **Move H1 from β = 1/8 to β = 1/4.** At 1/8 the 47-fact signature pool exceeds B in every world, including
+   900–902 (B = 31–37). At 1/4 it fits (B = 63–75). Those sizes come from the generator's fact counts, with no
+   training or run on worlds 900–902.
+2. **Report descriptively the best ordinary arm without `check_guided`,** beside the decision. The decision is
+   unchanged.
+
+**The pilot's summaries under revision 3.** They were regenerated from the same records by the revision-3
+verifier, with no new fits.
+- **Unchanged:** the aggregates and the decision.
+- **H1 at 1/4 holds on development.** On capital moves, `signature` against `relation_first` was 12 v 1 of 12 in
+  world 100 and 11 v 0 in world 101.
+
+**The descriptive maxima.** Each cell gives the accepted requests of 24, then the winning arm or arms. Where
+there is a single winner, it also gives the cumulative distinct replay facts per request and the optimizer
+steps.
+
+| β | World | Best ordinary arm | Best excluding `check_guided` |
+|---|---|---|---|
+| 1/16 | 100 | 21: `check_guided` early (37.5; 505) | 17: `signature` early (35.6; 685) |
+| 1/16 | 101 | 19: `check_guided` fixed (49.0; 33,900) | 12: `relation_first` early (35.2; 1,320) |
+| 1/8 | 100 | 24: `check_guided` early (66.7; 395) | 21: `signature` early (47.8; 585) |
+| 1/8 | 101 | 24: `check_guided` fixed (110.5; 31,800) | 17: `signature` early (51.3; 910) |
+| 1/4 | 100 | 24: `check_guided` fixed (172.0; 28,200) | 21: `relation_first` early, `signature` early and fixed |
+| 1/4 | 101 | 24: `check_guided` fixed (181.6; 28,800) | 22: `signature` fixed (90.9; 16,800) |
+| 1/2 | 100 | 24: `check_guided` fixed (222.3; 21,600) | 23: `signature` early and fixed |
+| 1/2 | 101 | 24: `check_guided` fixed and `signature` fixed | 24: `signature` fixed (166.5; 10,500) |
