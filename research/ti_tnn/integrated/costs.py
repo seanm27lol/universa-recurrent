@@ -35,6 +35,11 @@ def module_macs(module) -> int | None:
     forward = getattr(module, "forward", None)
     if forward is not None and hasattr(forward, "modules"):
         return linear_macs(forward)
+    net = getattr(forward, "net", None)  # one relation's view of a shared network (`modules.SharedForward`)
+    if net is not None and hasattr(net, "modules"):
+        if any(type(m).__name__ == "TopOneMoE" for m in net.modules()):
+            return None  # which expert runs depends on the input
+        return linear_macs(net)
     return None
 
 
