@@ -49,6 +49,7 @@ records the declared source version and command.
 | `typed_composition/` | 2 (75 CPU runs in one file, `verdict.json`) | [brief](../../../research/ti_tnn/protocols/typed_composition_v1.md) | [report](../../../research/ti_tnn/reports/typed_composition_v1.md) | `ef604a1` (committed immediately before the run) |
 | `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
 | `integration_test/` | 108: the run summary; the 15 units' export (unit summaries, interpreter draws, atomic tables, certificates, contexts, exhaustive digests, episode rows); `verification.json`; `session_release.json` | [protocol](../../../research/ti_tnn/protocols/integration_test_v1.md) | [report](../../../research/ti_tnn/reports/integration_test_v1.md) | `e03075a` (frozen; recorded in the run) |
+| `repeated_updates/` | 32: the run summary; the 15 units' `unit.json` and `proposals.jsonl.gz` (every attempt's weight-free record); `verification.json`, with the sampled reproduction | [protocol](../../../research/ti_tnn/protocols/repeated_updates_v1.md) | [report](../../../research/ti_tnn/reports/repeated_updates_v1.md) | `e8c6f99` (frozen; recorded in the run, with a clean tree) |
 | `s2_diagnosis/` (historical, development) | 36 (the classification of the robustness records; 24 development fits' summaries and decision records; arm A's six trace files; the development analysis; `local_traces.json`; `trace_release.json`) | [brief](../../../research/ti_tnn/protocols/s2_diagnosis_brief.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `6435719` (analysis); `ece0f86` (arm A); `d991d12` (B, C, D); recorded in each run |
 | `s2_diagnosis/confirmation*` | 47 (45 fits' decision records, the run summary and the analysis with the frozen verdict) | [protocol](../../../research/ti_tnn/protocols/s2_context_confirmation_v1.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `07bb97e` (frozen; recorded in the run) |
 
@@ -104,6 +105,12 @@ refers to, and `make_tables.py` uses it there.
   file, stages it next to the bundled export, and re-runs the frozen independent verifier, which must
   reproduce `verification.json`.
 - **Without the assets,** `make_tables.py` reports the bundled verification.
+
+**Repeated updates.** The whole export is bundled.
+- **Re-deriving.** `make_tables.py --repeated-updates` re-runs the frozen independent verifier on it, in
+  seconds, and requires `verification.json` exactly.
+- **Retraining.** `--repeated-reproduce` also retrains the 114 sampled chains, in about 20 minutes, and requires
+  identical records.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

@@ -1,0 +1,522 @@
+{
+ "generator": "ti_tnn_repeated_updates_v1",
+ "config": {
+  "worlds": [
+   900,
+   901,
+   902
+  ],
+  "inits": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "countries": 24,
+  "d": 32,
+  "hidden": 64,
+  "steps": 1500,
+  "lr": 0.01,
+  "threads": 4,
+  "confirmation": true
+ },
+ "provenance": {
+  "commit": "e8c6f99257b0eba1fe3fafee830c5f9807035b8d",
+  "research_tree_dirty": false,
+  "sha256": {
+   "repeated_updates.py": "3676fae7958aa8f71ee019e894109a43c0b5d541debd12d2924f8c13f3fdde57",
+   "../integrated/modules.py": "fe89f275281579b666f12c5d452d5911c6448b68ae4bf6cc74c19e38647622c7",
+   "../integrated/update_checks.py": "1ea1e5fd77ea0662187c8fe192e00668aa37ea9f525b286b6f54cccf951a116b",
+   "../integrated/costs.py": "1a7f4aa8649412e94a015cc9e79eb7105281037e976f888e1ca0ca5d58e2e442",
+   "../integrated/updates.py": "bda75f302fd09a1066e416a9f085507cd4276dac93b58a8ea776c0e0db50a14e",
+   "../integrated/snapshots.py": "30b6eed36651eabded80363cd437d889c6e69b30936b13ccee98f5646cd0323f",
+   "../integrated/registry.py": "85350d0284bae12a55c5b748c5ca5d61acde8623d91ceeed29108525702674e1",
+   "../integrated/relations.py": "742331d263587da665b743584f9afda402286219fec9b947838ca3900d296b5a",
+   "../integrated/contracts.py": "7ccf766d3885157f5e53ee419544c1f0f5d49a70f575b22875404b6b452dfdaa"
+  },
+  "torch": "2.10.0+cu130",
+  "python": "3.11.14",
+  "threads": 4
+ },
+ "constants": {
+  "PER_KIND": 6,
+  "N_PROPOSALS": 8,
+  "LR": 0.003,
+  "FIXED_STEPS": 300,
+  "EARLY_EVERY": 5,
+  "BETAS": [
+   "1/16",
+   "1/8",
+   "1/4",
+   "1/2"
+  ],
+  "POLICIES": [
+   "random",
+   "relation_first",
+   "signature",
+   "check_guided"
+  ],
+  "STOPPING": [
+   "fixed",
+   "early"
+  ],
+  "SPECIALIST_BETAS": [
+   "0",
+   "1/8",
+   "1/4",
+   "1/2"
+  ],
+  "AUDIT_MODULUS": 20
+ },
+ "arms": [
+  "shared/random/1/16/fixed",
+  "shared/random/1/16/early",
+  "shared/random/1/8/fixed",
+  "shared/random/1/8/early",
+  "shared/random/1/4/fixed",
+  "shared/random/1/4/early",
+  "shared/random/1/2/fixed",
+  "shared/random/1/2/early",
+  "shared/relation_first/1/16/fixed",
+  "shared/relation_first/1/16/early",
+  "shared/relation_first/1/8/fixed",
+  "shared/relation_first/1/8/early",
+  "shared/relation_first/1/4/fixed",
+  "shared/relation_first/1/4/early",
+  "shared/relation_first/1/2/fixed",
+  "shared/relation_first/1/2/early",
+  "shared/signature/1/16/fixed",
+  "shared/signature/1/16/early",
+  "shared/signature/1/8/fixed",
+  "shared/signature/1/8/early",
+  "shared/signature/1/4/fixed",
+  "shared/signature/1/4/early",
+  "shared/signature/1/2/fixed",
+  "shared/signature/1/2/early",
+  "shared/check_guided/1/16/fixed",
+  "shared/check_guided/1/16/early",
+  "shared/check_guided/1/8/fixed",
+  "shared/check_guided/1/8/early",
+  "shared/check_guided/1/4/fixed",
+  "shared/check_guided/1/4/early",
+  "shared/check_guided/1/2/fixed",
+  "shared/check_guided/1/2/early",
+  "shared/none",
+  "shared/full",
+  "specialists/0",
+  "specialists/1/8",
+  "specialists/1/4",
+  "specialists/1/2"
+ ],
+ "worlds": {
+  "900": {
+   "identity": "02be218e3c0475d850b2b61223e4faa1ef3612968e308e794fda073e06dbb5b4",
+   "schedule": [
+    {
+     "index": 0,
+     "relation": "operator_of",
+     "source": "country_9_city_1_airport",
+     "target": "operator_0",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 1,
+     "relation": "capital_of",
+     "source": "country_15",
+     "target": "country_15_city_1",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 2,
+     "relation": "capital_of",
+     "source": "country_2",
+     "target": "country_2_city_2",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 3,
+     "relation": "capital_of",
+     "source": "country_9",
+     "target": "country_9_city_1",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 4,
+     "relation": "operator_of",
+     "source": "country_9_city_0_airport",
+     "target": "operator_3",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 5,
+     "relation": "operator_of",
+     "source": "country_3_city_2_airport",
+     "target": "operator_5",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 6,
+     "relation": "operator_of",
+     "source": "country_6_city_1_airport",
+     "target": "operator_1",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 7,
+     "relation": "capital_of",
+     "source": "country_16",
+     "target": "country_16_city_0",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 8,
+     "relation": "operator_of",
+     "source": "country_22_city_3_airport",
+     "target": "operator_4",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 9,
+     "relation": "operator_of",
+     "source": "country_18_city_0_airport",
+     "target": "operator_3",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 10,
+     "relation": "capital_of",
+     "source": "country_3",
+     "target": "country_3_city_4",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 11,
+     "relation": "capital_of",
+     "source": "country_1",
+     "target": "country_1_city_1",
+     "kind": "capital_moves"
+    }
+   ],
+   "keys_identity": "a067509575f5f85135965b93f65db0cd3343467468214106af4a52410f13a4b6"
+  },
+  "901": {
+   "identity": "3cc478bdb0e1fa22124a3a154c2948ff74a10eb4593b2daa8e0eb0356fd7b209",
+   "schedule": [
+    {
+     "index": 0,
+     "relation": "operator_of",
+     "source": "country_15_city_0_airport",
+     "target": "operator_0",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 1,
+     "relation": "capital_of",
+     "source": "country_11",
+     "target": "country_11_city_3",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 2,
+     "relation": "capital_of",
+     "source": "country_16",
+     "target": "country_16_city_2",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 3,
+     "relation": "capital_of",
+     "source": "country_2",
+     "target": "country_2_city_1",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 4,
+     "relation": "capital_of",
+     "source": "country_20",
+     "target": "country_20_city_1",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 5,
+     "relation": "operator_of",
+     "source": "country_11_city_2_airport",
+     "target": "operator_1",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 6,
+     "relation": "capital_of",
+     "source": "country_17",
+     "target": "country_17_city_0",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 7,
+     "relation": "capital_of",
+     "source": "country_12",
+     "target": "country_12_city_2",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 8,
+     "relation": "operator_of",
+     "source": "country_16_city_1_airport",
+     "target": "operator_4",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 9,
+     "relation": "operator_of",
+     "source": "country_9_city_2_airport",
+     "target": "operator_2",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 10,
+     "relation": "operator_of",
+     "source": "country_1_city_1_airport",
+     "target": "operator_5",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 11,
+     "relation": "operator_of",
+     "source": "country_21_city_1_airport",
+     "target": "operator_1",
+     "kind": "operator_changes"
+    }
+   ],
+   "keys_identity": "0bdb7ba078e740eb30ce2373ee6c6b38fb6fb8a77a03ecf702d46ca96e40ef57"
+  },
+  "902": {
+   "identity": "6f555976adbc420d77ce87069bc1ad50fc7a68ed132649fe1452a494ccfc4f52",
+   "schedule": [
+    {
+     "index": 0,
+     "relation": "operator_of",
+     "source": "country_3_city_4_airport",
+     "target": "operator_2",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 1,
+     "relation": "capital_of",
+     "source": "country_23",
+     "target": "country_23_city_4",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 2,
+     "relation": "operator_of",
+     "source": "country_5_city_0_airport",
+     "target": "operator_3",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 3,
+     "relation": "capital_of",
+     "source": "country_12",
+     "target": "country_12_city_2",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 4,
+     "relation": "capital_of",
+     "source": "country_8",
+     "target": "country_8_city_3",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 5,
+     "relation": "operator_of",
+     "source": "country_2_city_1_airport",
+     "target": "operator_1",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 6,
+     "relation": "capital_of",
+     "source": "country_21",
+     "target": "country_21_city_1",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 7,
+     "relation": "operator_of",
+     "source": "country_23_city_2_airport",
+     "target": "operator_4",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 8,
+     "relation": "operator_of",
+     "source": "country_6_city_1_airport",
+     "target": "operator_4",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 9,
+     "relation": "capital_of",
+     "source": "country_1",
+     "target": "country_1_city_0",
+     "kind": "capital_moves"
+    },
+    {
+     "index": 10,
+     "relation": "operator_of",
+     "source": "country_12_city_2_airport",
+     "target": "operator_1",
+     "kind": "operator_changes"
+    },
+    {
+     "index": 11,
+     "relation": "capital_of",
+     "source": "country_14",
+     "target": "country_14_city_0",
+     "kind": "capital_moves"
+    }
+   ],
+   "keys_identity": "36bf45323e158e85c3913b92556fc38166719d6b0015dd6a2763b0ec48ff2201"
+  }
+ },
+ "units": [
+  {
+   "world": 900,
+   "init": 0,
+   "path": "units/w900_i0",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 900,
+   "init": 1,
+   "path": "units/w900_i1",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 900,
+   "init": 2,
+   "path": "units/w900_i2",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 900,
+   "init": 3,
+   "path": "units/w900_i3",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 900,
+   "init": 4,
+   "path": "units/w900_i4",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 901,
+   "init": 0,
+   "path": "units/w901_i0",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 901,
+   "init": 1,
+   "path": "units/w901_i1",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 901,
+   "init": 2,
+   "path": "units/w901_i2",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 901,
+   "init": 3,
+   "path": "units/w901_i3",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 901,
+   "init": 4,
+   "path": "units/w901_i4",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 902,
+   "init": 0,
+   "path": "units/w902_i0",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 902,
+   "init": 1,
+   "path": "units/w902_i1",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 902,
+   "init": 2,
+   "path": "units/w902_i2",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 902,
+   "init": 3,
+   "path": "units/w902_i3",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  },
+  {
+   "world": 902,
+   "init": 4,
+   "path": "units/w902_i4",
+   "bases_exact": {
+    "shared": true,
+    "specialists": true
+   }
+  }
+ ],
+ "finished": "2026-10-24T05:19:11.550417+00:00"
+}
