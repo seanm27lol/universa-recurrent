@@ -115,12 +115,13 @@ def test_l_refuses_unseen_conflicting_and_refusal_labelled_segments_and_runtime_
 @pytest.fixture(scope="module")
 def dev_run(tmp_path_factory):
     out = tmp_path_factory.mktemp("factored")
-    return FI.run([100], out)
+    return FI.run([100, 101], out)
 
 
-def test_l_and_g_make_no_wrong_decision_on_development_world_100(dev_run):
+@pytest.mark.parametrize("world", [100, 101])
+def test_l_and_g_make_no_wrong_decision_on_the_development_worlds(dev_run, world):
     for regime in FI.REGIMES:
-        unit = json.loads((dev_run / "units" / f"w100_{regime}" / "unit.json").read_text())
+        unit = json.loads((dev_run / "units" / f"w{world}_{regime}" / "unit.json").read_text())
         assert unit["n_evaluated"] == 17900
         assert unit["totals"] == {s: {"wrong_decisions": 0, "errors": 0, "accidental_agreement": 0}
                                   for s in ("L_raw", "L_vocab", "G")}
@@ -128,7 +129,14 @@ def test_l_and_g_make_no_wrong_decision_on_development_world_100(dev_run):
         for cat in ("ID", "T1", "S2", "S1", "S3"):  # every supported evaluation segment was seen in training
             cov = unit["support"]["evaluation_coverage"]["raw"][cat]
             assert cov["in_dictionary"] == cov["segments"]
-    assert FV.verify(dev_run)["verified"]
+        for name, risk in unit["calibration_risk"].items():  # one risk test, same items and endpoint as the neural ones
+            assert risk["calibration_items"] == 1000 and risk["errors"] == 0 and risk["accepted"] >= 299, name
+            assert risk["certified"] and risk["p_value"] <= FI.RISK_DELTA, name
+
+
+def test_the_independent_verifier_re_derives_the_development_run(dev_run):
+    out = FV.verify(dev_run)
+    assert out["verified"] and len(out["units"]) == 4
 
 
 def _gz(path, edit):
@@ -154,6 +162,12 @@ CORRUPTIONS = {
                                  .__setitem__("reason", "unseen segment")),
     "missing record": ("records.json.gz", lambda r: r["L_raw"].pop()),
     "changed correctness counts": ("unit.json", lambda u: u["systems"]["L_raw"]["S2"].__setitem__("errors", 1)),
+    "altered phrase exposure": ("unit.json", lambda u: u["support"]["label_multiplicities"]["airport_of"].__setitem__(
+        "prefix: the airfield of", 3)),
+    "altered dictionary coverage": ("unit.json", lambda u: u["support"]["evaluation_coverage"]["vocab"]["S4a_primary"]
+                                    .__setitem__("refusal_labelled", 0)),
+    "altered calibration risk": ("unit.json", lambda u: u["calibration_risk"]["G"].__setitem__("errors", 3)),
+    "altered study identity": ("unit.json", lambda u: u.__setitem__("study_identity", "0" * 64)),
 }
 
 
@@ -173,12 +187,30 @@ def test_every_corruption_of_the_no_fit_export_is_rejected(dev_run, tmp_path, na
         FV.verify(bad)
 
 
-def test_an_incomplete_inventory_or_a_confirmation_world_is_rejected(dev_run, tmp_path):
+RUN_CORRUPTIONS = {
+    "one regime missing": (lambda m: m.__setitem__("units", m["units"][1:]), "inventory"),
+    "both regimes of a requested world removed": (
+        lambda m: m.__setitem__("units", [u for u in m["units"] if u["world"] != 101]), "inventory"),
+    "a source mismatch": (lambda m: m["provenance"]["sha256"].__setitem__("factored_interpreter.py", "0" * 64), "sources"),
+    "a configuration mismatch": (lambda m: m["config"].__setitem__("reduced_per_phrase", 2), "configuration"),
+    "altered run-level totals": (lambda m: m["totals"]["L_raw"].__setitem__("errors", 1), "run-level totals"),
+    "altered unit totals in run.json": (lambda m: m["units"][0]["totals"]["G"].__setitem__("wrong_decisions", 1),
+                                        "unit totals"),
+}
+
+
+@pytest.mark.parametrize("name", sorted(RUN_CORRUPTIONS))
+def test_every_run_level_corruption_is_rejected(dev_run, tmp_path, name):
     bad = tmp_path / "run"
     shutil.copytree(dev_run, bad)
+    edit, match = RUN_CORRUPTIONS[name]
     meta = json.loads((bad / "run.json").read_text())
-    (bad / "run.json").write_text(json.dumps({**meta, "units": meta["units"][:1]}))  # one regime missing
-    with pytest.raises(FV.VerificationError, match="inventory"):
+    edit(meta)
+    (bad / "run.json").write_text(json.dumps(meta))
+    with pytest.raises(FV.VerificationError, match=match):
         FV.verify(bad)
+
+
+def test_the_harness_refuses_a_confirmation_world(tmp_path):
     with pytest.raises(SystemExit, match="reserved"):
         FI.run([1000], tmp_path)

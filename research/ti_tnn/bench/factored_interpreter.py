@@ -58,6 +58,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import interpreter_robustness as IR  # noqa: E402  (the study generator, augmentation and phrase tables)
+import lexical_condition as LC  # noqa: E402  (the lexical condition's inventory and sampler)
+from integrated import calibration as K  # noqa: E402  (the binomial tail and bounds)
 from integrated import registry as G  # noqa: E402
 from integrated import relations as W  # noqa: E402
 from integrated import routing as J  # noqa: E402
@@ -74,8 +76,9 @@ REFUSAL_LABELS = (J.UNSUPPORTED, J.AMBIGUOUS)
 CONFLICT = "<conflict>"
 COUNTRIES = 96
 CONFIRMATION_WORLDS = (1000, 1001, 1002)
+RISK_ALPHA, RISK_DELTA = 0.01, 0.05  # the certificate's accepted-error level and confidence, shared by every system
 DEVELOPMENT_WORLDS = (100, 101)
-SOURCES = ("factored_interpreter.py", "interpreter_robustness.py", "typed_questions.py",
+SOURCES = ("factored_interpreter.py", "lexical_condition.py", "interpreter_robustness.py", "typed_questions.py",
            "../integrated/segment_grammar.py", "../integrated/routing.py", "../integrated/runtime.py",
            "../integrated/registry.py", "../integrated/relations.py", "../integrated/contracts.py",
            "../integrated/reference.py")
@@ -174,6 +177,30 @@ def reference_lexicon() -> dict:
     return lex
 
 
+def word_label_sets(contributions: list[dict]) -> dict:
+    """W's associations: (style, word) -> the set of labels of the aligned training segments containing that word."""
+    sets = defaultdict(set)
+    for c in contributions:
+        for w in c["tokens"]:
+            sets[(c["style"], w)].add(c["label"])
+    return dict(sets)
+
+
+def w_label(tokens, style: str, sets: dict) -> tuple[str | None, str]:
+    """W's grounding of one segment: the unique label common to every word's set, or a refusal reason."""
+    common = None
+    for w in tokens:
+        labels = sets.get((style, w))
+        if labels is None:
+            return None, "unseen word"
+        common = set(labels) if common is None else common & labels
+    if not common:
+        return None, "no common label"
+    if len(common) > 1:
+        return None, "several common labels"
+    return next(iter(common)), ""
+
+
 # --- the no-fit controls ------------------------------------------------------------------------------------
 def decide(text: str, world, registry, lookup, representation: str = "raw", vocab: set[str] | None = None,
            entities: set[str] | None = None) -> dict:
@@ -186,11 +213,16 @@ def decide(text: str, world, registry, lookup, representation: str = "raw", voca
         return {**out, "reason": seg.status}
     program = []
     for tokens in seg.segments:
-        label = lookup.get(key_of(tokens, seg.style, representation, vocab))
-        if label is None:
-            return {**out, "reason": "unseen segment"}
-        if label == CONFLICT:
-            return {**out, "reason": "conflicting labels"}
+        if representation == "words":  # W: lookup holds the (style, word) label sets
+            label, why = w_label(tokens, seg.style, lookup)
+            if label is None:
+                return {**out, "reason": why}
+        else:
+            label = lookup.get(key_of(tokens, seg.style, representation, vocab))
+            if label is None:
+                return {**out, "reason": "unseen segment"}
+            if label == CONFLICT:
+                return {**out, "reason": "conflicting labels"}
         if label in REFUSAL_LABELS:
             return {**out, "reason": label}
         program.append(label)
@@ -230,6 +262,19 @@ def summarize(items: list[dict], rows: list[dict]) -> dict:
         if not j["answered"]:
             reasons[it["category"]][row["reason"]] += 1
     return {k: {**dict(v), "abstention_reasons": dict(sorted(reasons[k].items()))} for k, v in sorted(cats.items())}
+
+
+def calibration_risk(items: list[dict], rows: list[dict]) -> dict:
+    """The single calibration risk test of a deterministic policy (L, G, W): on the calibration split, the null
+    "accepted error >= RISK_ALPHA" is rejected when P(Binomial(n, RISK_ALPHA) <= e) <= RISK_DELTA, where n is the
+    number of calibration items it answers and e the answers that are not exact-program correct. The same items
+    and the same correctness endpoint as the neural policies' fixed-sequence certificates."""
+    cal = [(x, r) for x, r in zip(items, rows) if x["split"] == "calibration"]
+    acc = [(x, r) for x, r in cal if r["decision"] == "answer"]
+    errors = sum(judge(x, r)["error"] for x, r in acc)
+    p = K.binomial_p_value(errors, len(acc), RISK_ALPHA) if acc else 1.0
+    return {"calibration_items": len(cal), "accepted": len(acc), "errors": errors, "p_value": p,
+            "certified": bool(acc) and p <= RISK_DELTA, "error_upper_95": K.clopper_pearson_upper(errors, len(acc))}
 
 
 def alignment_audit(items: list[dict], world) -> dict:
@@ -300,16 +345,40 @@ def run_controls(world, seed: int, regime: str, out_dir: Path | None = None) -> 
     registry, entities = G.table_registry(world), entity_names(world)
     systems = {f"L_{rep}": (dictionaries[rep], rep) for rep in REPRESENTATIONS}
     systems["G"] = (reference_lexicon(), "raw")
-    results, records = {}, {}
+    systems["W"] = (word_label_sets(labels["contributions"]), "words")
+    results, records, risks = {}, {}, {}
     for name, (lookup, rep) in systems.items():
         rows = [decide(x["text"], world, registry, lookup, rep, vocab, entities) for x in evals]
         results[name] = summarize(evals, rows)
+        risks[name] = calibration_risk(evals, rows)
         records[name] = [{"id": x["id"], **{k: r[k] for k in ("decision", "reason", "program", "entity", "answer")}}
                          for x, r in zip(evals, rows)]
+    lexical = LC.lexical_items(world, study, seed)
+    lexical_results, lexical_records = {}, {}
+    for name, (lookup, rep) in systems.items():
+        rows = [decide(x["text"], world, registry, lookup, rep, vocab, entities) for x in lexical]
+        lexical_results[name] = summarize(lexical, rows)
+        lexical_records[name] = [{"id": x["id"], **{k: r[k] for k in ("decision", "reason", "program", "entity", "answer")}}
+                                 for x, r in zip(lexical, rows)]
+    wsets = systems["W"][0]
+    identifiability = {}
+    for r, templates in sorted(LC.inventory().items()):
+        for t in templates:
+            words = LC.phrase_words(t)
+            label, why = w_label(words, SG.PREFIX, wsets)
+            identifiability[" ".join(words)] = {"relation": r, "w_label": label, "reason": why,
+                                                "seen_as_segment": ("prefix", words) in dictionaries["raw"],
+                                                "words_seen": all(("prefix", w) in wsets for w in words)}
     unit = {"world": world.seed, "regime": regime, "study_identity": content_identity([x["id"] + x["text"] for x in study["items"]]),
             "n_evaluated": len(evals), "dropped_taught": len(dropped), "vocabulary_size": len(vocab),
             "alignment_audit": alignment_audit([x for x in study["items"]] + aug, world),
             "support": support_report(labels, dictionaries, evals, world, vocab), "systems": results,
+            "calibration_risk": risks,
+            "lexical": {"identity": content_identity([x["id"] + x["text"] for x in lexical]), "n": len(lexical),
+                        "distinct_forms": len({x["lg_form"] for x in lexical}),
+                        "questions_per_form": dict(sorted(Counter(x["lg_form"] for x in lexical if x["category"] in
+                                                                  ("LG1", "LG2")).items())),
+                        "identifiability": identifiability, "systems": lexical_results},
             "totals": {name: {"wrong_decisions": sum(v["wrong_decision"] for v in res.values()),
                               "errors": sum(v["errors"] for v in res.values()),
                               "accidental_agreement": sum(v["accidental_agreement"] for v in res.values())}
@@ -323,6 +392,8 @@ def run_controls(world, seed: int, regime: str, out_dir: Path | None = None) -> 
                                         for rep, d in dictionaries.items()}}, f)
         with gzip.open(out_dir / "records.json.gz", "wt") as f:
             json.dump(records, f)
+        with gzip.open(out_dir / "lexical_records.json.gz", "wt") as f:
+            json.dump(lexical_records, f)
     return unit
 
 
@@ -338,13 +409,19 @@ def provenance() -> dict:
     return {"commit": commit, "research_tree_dirty": dirty, "sha256": sha, "python": sys.version.split()[0]}
 
 
+def config(countries: int = COUNTRIES) -> dict:
+    """Everything a run's results depend on besides the sources: the verifier requires it unchanged."""
+    return {"generator": GENERATOR_VERSION, "countries": countries, "regimes": list(REGIMES),
+            "reduced_per_phrase": REDUCED_PER_PHRASE, "representations": list(REPRESENTATIONS),
+            "risk_alpha": RISK_ALPHA, "risk_delta": RISK_DELTA}
+
+
 def run(worlds, out: Path, countries: int = COUNTRIES) -> Path:
     if any(w in CONFIRMATION_WORLDS for w in worlds):
         raise SystemExit("worlds 1000-1002 are reserved for the confirmation; this protocol is not frozen")
     run_dir = out / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
-    meta = {"generator": GENERATOR_VERSION, "provenance": provenance(), "countries": countries,
-            "regimes": list(REGIMES), "reduced_per_phrase": REDUCED_PER_PHRASE, "representations": list(REPRESENTATIONS),
-            "units": []}
+    meta = {"generator": GENERATOR_VERSION, "provenance": provenance(), "config": config(countries),
+            "requested": {"worlds": list(worlds), "regimes": list(REGIMES)}, "countries": countries, "units": []}
     for w in worlds:
         world = W.generate_world(w, n_countries=countries)
         for regime in REGIMES:
@@ -353,6 +430,8 @@ def run(worlds, out: Path, countries: int = COUNTRIES) -> Path:
             meta["units"].append({"world": w, "regime": regime, "path": path, "totals": unit["totals"]})
             print(f"w{w} {regime:8s} " + "  ".join(f"{n}: wrong decisions {t['wrong_decisions']}, errors {t['errors']}"
                                                    for n, t in unit["totals"].items()), flush=True)
+    meta["totals"] = {name: {k: sum(u["totals"][name][k] for u in meta["units"]) for k in
+                             ("wrong_decisions", "errors", "accidental_agreement")} for name in meta["units"][0]["totals"]}
     meta["finished"] = datetime.now(timezone.utc).isoformat()
     (run_dir / "run.json").write_text(json.dumps(meta, indent=1))
     return run_dir

@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import random
 import sys
@@ -44,14 +45,26 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import interpreter_robustness as IR  # noqa: E402  (the generator only: make_study, augment, phrase tables)
+import lexical_condition as LC  # noqa: E402  (the lexical condition's generator only: inventory, sampler)
+from integrated import calibration as K  # noqa: E402  (numeric binomial tail and bounds only)
 from integrated import relations as W  # noqa: E402
+from integrated.contracts import content_identity  # noqa: E402  (the canonical hash only)
 
 GENERATOR_VERSION = "ti_tnn_factored_interpreter_v1"
 REDUCED_PER_PHRASE = 3
 UNK, END, UNSUPPORTED, AMBIGUOUS, CONFLICT = "<unk>", "<end>", "<unsupported>", "<ambiguous>", "<conflict>"
 REFUSALS = (UNSUPPORTED, AMBIGUOUS)
-SYSTEMS = ("L_raw", "L_vocab", "G")
+SYSTEMS = ("L_raw", "L_vocab", "G", "W")
 MAX_SEGMENTS = 3
+# The development design the no-fit controls must have been run with, and the producer files whose hashes a run
+# must record (the producer's SOURCES, relative to the bench directory; listed here, not imported).
+DESIGN = {"generator": GENERATOR_VERSION, "countries": 96, "regimes": ["full", "reduced"], "reduced_per_phrase": 3,
+          "representations": ["raw", "vocab"], "risk_alpha": 0.01, "risk_delta": 0.05}
+DEVELOPMENT_WORLDS = (100, 101)
+SOURCES = ("factored_interpreter.py", "lexical_condition.py", "interpreter_robustness.py", "typed_questions.py",
+           "../integrated/segment_grammar.py", "../integrated/routing.py", "../integrated/runtime.py",
+           "../integrated/registry.py", "../integrated/relations.py", "../integrated/contracts.py",
+           "../integrated/reference.py")
 
 
 class VerificationError(AssertionError):
@@ -158,6 +171,24 @@ def dictionary(contributions, rep, vocab):
     return {k: (min(v) if len(v) == 1 else CONFLICT) for k, v in seen.items()}
 
 
+def word_sets(contributions):
+    sets = defaultdict(set)
+    for c in contributions:
+        for w in c["tokens"]:
+            sets[(c["style"], w)].add(c["label"])
+    return sets
+
+
+def ground_words(seg, style, sets):
+    """W, from the protocol: the unique label common to every word's training label set, or a refusal reason."""
+    common = None
+    for w in seg:
+        if (style, w) not in sets:
+            return None, "unseen word"
+        common = set(sets[(style, w)]) if common is None else common & sets[(style, w)]
+    return (next(iter(common)), "") if len(common) == 1 else (None, "no common label" if not common else "several common labels")
+
+
 def reference():
     lex = {}
     for r in IR.BASE_PREFIX:
@@ -175,6 +206,12 @@ def decide(text, world, entities, lookup, rep, vocab):
         return {**out, "reason": g["status"]}
     prog = []
     for seg in g["segments"]:
+        if rep == "words":
+            lab, why = ground_words(seg, g["style"], lookup)
+            if lab is None or lab in REFUSALS:
+                return {**out, "reason": why or lab}
+            prog.append(lab)
+            continue
         lab = lookup.get(key(seg, g["style"], rep, vocab))
         if lab is None or lab == CONFLICT or lab in REFUSALS:
             return {**out, "reason": {None: "unseen segment", CONFLICT: "conflicting labels"}.get(lab, lab)}
@@ -204,6 +241,48 @@ def summary(evals, rows):
         if not ans:
             reasons[x["category"]][r["reason"]] += 1
     return {k: {**dict(v), "abstention_reasons": dict(sorted(reasons[k].items()))} for k, v in sorted(cats.items())}
+
+
+def support(contributions, excluded, dicts, evals, entities, vocab) -> dict:
+    """The whole support report, re-derived."""
+    tuples = Counter((c["style"], " ".join(c["tokens"]), c["label"]) for c in contributions)
+    mult = defaultdict(dict)
+    for (style, text, lab), n in tuples.items():
+        mult[lab][f"{style}: {text}"] = n
+    coverage = {}
+    for rep, dd in dicts.items():
+        cov = defaultdict(Counter)
+        for x in evals:
+            g = read(x["text"], entities)
+            for seg in g["segments"] if g["status"] == "ok" else ():
+                k = key(seg, g["style"], rep, vocab)
+                c = cov[x["category"]]
+                c["segments"] += 1
+                c["in_dictionary"] += k in dd
+                c["refusal_labelled"] += dd.get(k) in REFUSALS
+        coverage[rep] = {c: dict(v) for c, v in cov.items()}
+    return {"presentations": len(contributions), "by_source": dict(Counter(c["source"] for c in contributions)),
+            "unique_tuples": len(tuples), "unique_keys": {rep: len(dd) for rep, dd in dicts.items()},
+            "conflicts": {rep: sorted(" ".join(k[1]) for k, v in dd.items() if v == CONFLICT) for rep, dd in dicts.items()},
+            "excluded": dict(Counter(f"{e['source']} | {e['reason']}" for e in excluded)),
+            "excluded_total": len(excluded), "contributing_questions": len({c["id"] for c in contributions}),
+            "label_multiplicities": dict(mult), "evaluation_coverage": coverage}
+
+
+def risk(evals, rows) -> dict:
+    """The single calibration risk test of a deterministic policy, on the calibration split and the primary
+    correctness endpoint."""
+    acc = [(x, r) for x, r in zip(evals, rows) if x["split"] == "calibration" and r["decision"] == "answer"]
+    errors = sum(not (x["expected"] == "answer" and (r["program"], r["entity"], r["answer"]) ==
+                      (x["program"], x["entity"], x["answer"])) for x, r in acc)
+    p = K.binomial_p_value(errors, len(acc), DESIGN["risk_alpha"]) if acc else 1.0
+    return {"calibration_items": sum(x["split"] == "calibration" for x in evals), "accepted": len(acc),
+            "errors": errors, "p_value": p, "certified": bool(acc) and p <= DESIGN["risk_delta"],
+            "error_upper_95": K.clopper_pearson_upper(errors, len(acc))}
+
+
+def norm(x):
+    return json.loads(json.dumps(x, sort_keys=True))
 
 
 def audit(items, entities):
@@ -259,7 +338,8 @@ def verify_unit(run_dir: Path, info: dict, countries: int, problems: list) -> di
     for rep, dd in dicts.items():
         if lab["dictionaries"].get(rep) != [[k[0], list(k[1]), v] for k, v in sorted(dd.items())]:
             fail(f"L's {rep} dictionary does not re-derive")
-    lookups = {"L_raw": (dicts["raw"], "raw"), "L_vocab": (dicts["vocab"], "vocab"), "G": (reference(), "raw")}
+    lookups = {"L_raw": (dicts["raw"], "raw"), "L_vocab": (dicts["vocab"], "vocab"), "G": (reference(), "raw"),
+               "W": (word_sets(contributions), "words")}
     if set(recs) != set(SYSTEMS):
         fail("the records are not exactly the three no-fit systems")
     summaries = {}
@@ -285,27 +365,85 @@ def verify_unit(run_dir: Path, info: dict, countries: int, problems: list) -> di
         fail("the ordered alignment audit does not re-derive")
     if unit["n_evaluated"] != len(evals):
         fail("the evaluated count does not re-derive")
-    sup = unit["support"]
-    if (sup["presentations"], sup["contributing_questions"], sup["excluded_total"]) != (
-            len(contributions), len({c["id"] for c in contributions}), len(excluded)) or \
-            sup["unique_keys"] != {rep: len(dd) for rep, dd in dicts.items()}:
-        fail("the support report does not re-derive")
-    return {"unit": tag, "totals": totals, "evaluated": len(evals)}
+    if unit.get("study_identity") != content_identity([x["id"] + x["text"] for x in study["items"]]):
+        fail("the study identity does not re-derive")
+    if unit.get("vocabulary_size") != len(vocab):
+        fail("the vocabulary size does not re-derive")
+    if norm(unit.get("support")) != norm(support(contributions, excluded, dicts, evals, entities, vocab)):
+        fail("the support report (exposure, keys, exclusions or coverage) does not re-derive")
+    risks = {}
+    for name in SYSTEMS:
+        lookup, rep = lookups[name]
+        rows = [decide(x["text"], world, entities, lookup, rep, vocab) for x in evals]
+        risks[name] = risk(evals, rows)
+    if norm(unit.get("calibration_risk")) != norm(risks):
+        fail("a deterministic policy's calibration risk test does not re-derive")
+    # the lexical condition: its items, every no-fit decision on them, and the identifiability audit
+    lexical = LC.lexical_items(world, study, info["world"])
+    with gzip.open(d / "lexical_records.json.gz", "rt") as f:
+        lex_recs = json.load(f)
+    lx = unit.get("lexical", {})
+    if lx.get("identity") != content_identity([x["id"] + x["text"] for x in lexical]) or lx.get("n") != len(lexical) \
+            or lx.get("distinct_forms") != len({x["lg_form"] for x in lexical}) \
+            or lx.get("questions_per_form") != dict(Counter(x["lg_form"] for x in lexical if x["category"] in ("LG1", "LG2"))):
+        fail("the lexical condition's items do not regenerate")
+    lex_summaries = {}
+    for name in SYSTEMS:
+        lookup, rep = lookups[name]
+        rows = [decide(x["text"], world, entities, lookup, rep, vocab) for x in lexical]
+        if lex_recs.get(name) != [{"id": x["id"], **r} for x, r in zip(lexical, rows)]:
+            fail(f"{name}: the lexical-condition records do not re-derive")
+        lex_summaries[name] = summary(lexical, rows)
+    if norm(lx.get("systems")) != norm(lex_summaries):
+        fail("the lexical-condition summaries do not re-derive")
+    ws = lookups["W"][0]
+    ident = {}
+    for r, templates in LC.inventory().items():
+        for t in templates:
+            words = LC.phrase_words(t)
+            lab, why = ground_words(words, "prefix", ws)
+            ident[" ".join(words)] = {"relation": r, "w_label": lab, "reason": why,
+                                      "seen_as_segment": ("prefix", tuple(words)) in dicts["raw"],
+                                      "words_seen": all(("prefix", w) in ws for w in words)}
+    if norm(lx.get("identifiability")) != norm(ident):
+        fail("the lexical condition's identifiability audit does not re-derive")
+    return {"unit": tag, "totals": totals, "evaluated": len(evals), "calibration_risk": risks,
+            "lexical": {n: {c: (v["answered"], v["exact_correct_answers"], v["errors"]) for c, v in res.items()}
+                        for n, res in lex_summaries.items()}}
+
+
+def source_hashes() -> dict:
+    here = Path(__file__).resolve().parent
+    return {s: hashlib.sha256((here / s).read_bytes()).hexdigest() for s in SOURCES}
 
 
 def verify(run_dir: Path) -> dict:
     run_dir = Path(run_dir)
     run = json.loads((run_dir / "run.json").read_text())
     problems = []
+    if run.get("config") != DESIGN or run.get("countries") != DESIGN["countries"] or run.get("generator") != GENERATOR_VERSION:
+        problems.append("the run's configuration is not the declared development design")
+    if run.get("provenance", {}).get("sha256") != source_hashes():
+        problems.append("the run's recorded producer sources are not the sources being verified")
+    requested = run.get("requested", {})
+    want = sorted((w, r) for w in requested.get("worlds", []) for r in requested.get("regimes", []))
     pairs = [(u["world"], u["regime"]) for u in run["units"]]
-    if not pairs or len(set(pairs)) != len(pairs) or sorted(pairs) != sorted(
-            (w, r) for w in sorted({u["world"] for u in run["units"]}) for r in ("full", "reduced")):
-        problems.append("the unit inventory is not every declared world in both regimes, once each")
-    if any(w in (1000, 1001, 1002) for w, _ in pairs):
-        problems.append("a confirmation world was run before the protocol was frozen")
+    if not want or requested.get("regimes") != DESIGN["regimes"] or len(set(pairs)) != len(pairs) or sorted(pairs) != want:
+        problems.append("the unit inventory is not exactly the requested worlds x regimes, once each")
+    if any(w not in DEVELOPMENT_WORLDS for w in requested.get("worlds", [])) or any(w not in DEVELOPMENT_WORLDS for w, _ in pairs):
+        problems.append("a world outside development was run before the protocol was frozen")
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
     units = [verify_unit(run_dir, info, run["countries"], problems) for info in run["units"]]
+    if problems:  # a unit that does not re-derive has no trustworthy totals to sum
+        raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
+    for info, u in zip(run["units"], units):
+        if info.get("totals") != u["totals"]:
+            problems.append(f"w{info['world']} {info['regime']}: run.json's unit totals do not re-derive")
+    sums = {n: {k: sum(u["totals"][n][k] for u in units) for k in ("wrong_decisions", "errors", "accidental_agreement")}
+            for n in SYSTEMS}
+    if run.get("totals") != sums:
+        problems.append("the run-level totals do not re-derive")
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
     return {"verified": True, "commit": run["provenance"]["commit"], "units": units}
