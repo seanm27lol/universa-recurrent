@@ -8,7 +8,9 @@ and still rejects:
 - materially changed statistics, including a change just beyond the tolerance;
 - altered certificate settings: threshold, alpha and delta;
 - changed acceptance decisions;
-- any difference, however small, outside the statistical keys.
+- any difference, however small, outside the statistical keys;
+- a statistic that is not a finite probability on either side: ±Infinity, NaN, a value outside [0, 1], or a bool.
+  This holds even when both sides hold the same one; `close` itself refuses them too.
 
 Only the pilot verifier's own certificate check needs torch. The rest runs wherever the core suite runs. The last
 test recomputes every bound and p-value stored in that unit, on whichever runtime runs it, so each CI interpreter
@@ -18,6 +20,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -121,6 +124,68 @@ def test_altered_certificate_settings_and_decisions_still_fail(change):
     assert ST.Agreement().compare(stored, elsewhere)
     CERTIFICATE_CHANGES[change](elsewhere)
     assert not ST.Agreement().compare(stored, elsewhere)
+
+
+INF, NAN = math.inf, math.nan
+# (stored, recomputed) for one statistic: each pair must be rejected, whichever side holds the invalid value
+INVALID = {
+    "+Infinity recomputed": (0.02308779216470323, INF),
+    "+Infinity stored": (INF, 0.02308779216470245),
+    "-Infinity recomputed": (0.02308779216470323, -INF),
+    "-Infinity stored": (-INF, 0.02308779216470245),
+    "NaN recomputed": (0.02308779216470323, NAN),
+    "NaN stored": (NAN, 0.02308779216470245),
+    "equal +Infinity": (INF, INF),
+    "equal -Infinity": (-INF, -INF),
+    "equal NaN": (NAN, NAN),
+    "above 1 on both sides": (1.5, 1.5),
+    "below 0 on both sides": (-0.1, -0.1),
+    "just above 1, within the tolerance of 1": (1.0, 1.0 + 1e-12),
+    "a boolean equal to 1.0": (1.0, True),
+    "a boolean equal to 0.0": (False, 0.0),
+    "equal booleans": (True, True),
+}
+
+
+@pytest.mark.parametrize("case", sorted(INVALID))
+def test_non_finite_out_of_range_and_boolean_statistics_are_rejected(s2_table, case):
+    stored_value, recomputed_value = INVALID[case]
+    stored = {**s2_table, "error_upper_95": stored_value}
+    elsewhere = {**s2_table, **ELSEWHERE_S2_TABLE, "error_upper_95": recomputed_value}
+    agreement = ST.Agreement()
+    assert not agreement.compare(stored, elsewhere)
+    assert "not a finite probability in [0, 1]" in agreement.mismatches[0]
+    assert not ST.close(stored_value, recomputed_value)  # the guard holds even if called directly
+    with pytest.raises(ValueError, match="not a finite probability"):
+        ST.require(stored, elsewhere, "the historical S2 table")
+    # inside a list (an interval end) as well
+    interval = {**s2_table, "abstention_interval_95": [stored_value, s2_table["abstention_interval_95"][1]]}
+    other = {**s2_table, "abstention_interval_95": [recomputed_value, s2_table["abstention_interval_95"][1]]}
+    assert not ST.Agreement().compare(interval, other)
+
+
+@pytest.mark.parametrize("case", sorted(INVALID))
+def test_a_certificate_with_an_invalid_p_value_is_rejected(case):
+    stored_value, recomputed_value = INVALID[case]
+    stored, elsewhere = _certificate(), _certificate()
+    stored["steps"][10]["p_value"], elsewhere["steps"][10]["p_value"] = stored_value, recomputed_value
+    assert not ST.Agreement().compare(stored, elsewhere)
+
+
+def test_the_pilot_verifier_rejects_invalid_p_values_in_the_actual_certificate_comparison():
+    """`factored_pilot_verify.same_certificate`, on the stored certificate of unit w101_i101_full: the real roundoff
+    still passes, and every invalid p-value fails, on either side or on both."""
+    pytest.importorskip("torch")
+    import factored_pilot_verify as PV
+    produced = _unit("w101_i101_full")["systems"]["AK"]["certificate"]
+    mine = {k: produced[k] for k in SETTINGS}
+    mine["steps"] = [[s[k] for k in PV.STEP_FIELDS] for s in produced["steps"]]
+    mine["steps"][10][3] = ELSEWHERE_AK_STEP_10_P
+    assert PV.same_certificate(produced, mine)
+    for case, (stored_value, recomputed_value) in INVALID.items():
+        bad_produced, bad_mine = copy.deepcopy(produced), copy.deepcopy(mine)
+        bad_produced["steps"][10]["p_value"], bad_mine["steps"][10][3] = stored_value, recomputed_value
+        assert not PV.same_certificate(bad_produced, bad_mine), case
 
 
 def test_the_pilot_verifier_compares_certificates_within_the_tolerance():

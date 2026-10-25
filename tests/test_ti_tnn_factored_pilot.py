@@ -17,7 +17,8 @@
   - an incomplete inventory;
   - a configuration mismatch;
   - a stored bound just beyond the declared statistical tolerance, a materially changed p-value, a flipped
-    rejection, and a one-ulp change outside the statistical keys.
+    rejection, and a one-ulp change outside the statistical keys;
+  - a stored statistic replaced by ±Infinity, NaN or a bool.
 - **Authentic rounding is not a discrepancy.** Every stored bound and p-value moved as another runtime moves it
   (a few ulps; 9.6e-13 relative for p-values) still verifies, and the agreement reports the differences.
 """
@@ -231,6 +232,17 @@ CORRUPTIONS = {
                                             .__setitem__("rejected", not u["systems"]["F"]["certificate"]["steps"][0]["rejected"])),
     "an exact accuracy changed by one ulp": ("unit", None, lambda u: u["systems"]["A"]["none"]["S2"].__setitem__(
         "exact_accuracy", math.nextafter(u["systems"]["A"]["none"]["S2"]["exact_accuracy"], 2.0))),
+    # a statistic must be a finite probability: before the fix, `inf <= inf` let an infinity through the tolerance,
+    # and a bool equal to 1.0 passed as exact
+    "a stored p-value replaced by +Infinity": ("unit", None, lambda u: u["systems"]["F"]["certificate"]["steps"][0]
+                                               .__setitem__("p_value", math.inf)),
+    "a stored bound replaced by -Infinity": ("unit", None, lambda u: u["systems"]["A"]["none"]["S2"].__setitem__(
+        "error_upper_95", -math.inf)),
+    "a stored interval end replaced by NaN": ("unit", None, lambda u: u["systems"]["A"]["none"]["S2"][
+        "abstention_interval_95"].__setitem__(0, math.nan)),
+    "a stored bound of 1.0 replaced by True": ("unit", None, lambda u: (lambda table: table[next(
+        c for c, v in sorted(table.items()) if v["error_upper_95"] == 1.0)].__setitem__("error_upper_95", True))(
+        u["systems"]["F"]["certified"])),
 }
 
 

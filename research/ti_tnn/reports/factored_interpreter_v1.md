@@ -273,8 +273,9 @@ not replaced.
   choice, because no recorded step tied.
 - **Numerical portability.** Reconstruction is exact except for one declared tolerance
   ([`bench/statistical_tolerance.py`](../bench/statistical_tolerance.py)). A recomputed binomial bound or p-value may
-  differ from the stored one by |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15). Counts, model scores, thresholds, alpha
-  and delta, decisions, inventories and hashes stay exact.
+  differ from the stored one by |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15). Both values must first be finite
+  probabilities in [0, 1], and not bools: an infinity, a NaN, an out-of-range value or a bool fails, even when both
+  sides hold it. Counts, model scores, thresholds, alpha and delta, decisions, inventories and hashes stay exact.
   - **Why it is needed.** The bound is a root of a floating-point binomial tail, and other runtimes round that tail
     differently. CPython 3.12.3 recomputes 723 of the pilot's stored bounds and p-values differently, by up to
     8.5e-13, and exact equality rejected all of them. An x86 CI runner rejected the S2 rebuild the same way.
