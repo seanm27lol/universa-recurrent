@@ -57,15 +57,17 @@ It proposed `airport_of`, then stopped.
    - **L and G** refuse the new phrases by construction.
 5. **A's composition failure replicates in every development unit,** under the historical answer-based metric. It is
    counted only where A also passed its sanity checks and T1, so the failure is not a broken fit.
-6. **Constraining A's own decoding (A+K) repairs two of A's errors, but not the rest.** Where only A+K was exact, A
-   itself had stopped early or chosen a relation of the wrong source type. The saved-record diagnosis below shows
-   what remains:
-   - **Every remaining wrong program** chose between two relations with the same source type, which the
-     constraints cannot separate.
-   - **At all but 7 of those choices,** A itself preferred an output the constraint did not allow there: `<end>`, or a
-     relation of the wrong type. The choice between the two allowed relations was made among small probabilities.
-   - **On three-relation questions,** the same holds at the weakest step of most correct programs. So their scores
-     are low, and the certified threshold removes most answers, correct and wrong alike.
+6. **Constraining A's own decoding (A+K) repairs two of A's errors, but not the rest.** The saved-record diagnosis
+   below shows both:
+   - **What it repairs.** On unthresholded exact correctness, A+K never broke a question A had exact. Where only A+K
+     was exact, A's own program had first stopped early or chosen a relation of the wrong source type.
+   - **What remains.** A wrong A+K program first leaves the reference between two relations with the same source
+     type. That follows from the mask, since up to that point A+K's prefix is the reference prefix. At all but 7 of
+     those steps, the unmasked network, given A+K's prefix, ranked first an output the mask forbade there: `<end>`, or a
+     relation of the wrong type. So the choice between the two allowed relations was made among small probabilities.
+   - **The strongest negative.** On three-relation questions the same holds at the weakest step of most correct
+     programs, so their scores are low. In world 101, init 100, full exposure, A+K's certified policy released 14 S1
+     programs, all wrong under the exact-program criterion, and filtered all 489 correct programs it proposed.
 
 ## The engineering results (4 units per regime; certified policies; exact-program correctness)
 
@@ -121,7 +123,7 @@ No threshold was chosen from these results.
 
 **Where the wrong programs go wrong** (all 8 units, by first differing position):
 
-| | First difference | Reference → selected | Count | What A itself preferred there |
+| | First difference | Reference → selected | Count | Unmasked top output there, on A+K's prefix |
 |---|---|---|---:|---|
 | S2 (59) | position 1 | `airport_of` → `country_of` | 30 | `<end>` 29; the selected relation 1 |
 | | position 1 | `country_of` → `airport_of` | 25 | `<end>` 23; the selected relation 2 |
@@ -132,20 +134,26 @@ No threshold was chosen from these results.
 | | position 0 | `largest_city_of` → `capital_of` | 54 | a relation the constraint forbids |
 | | position 1 | `airport_of` → `country_of` | 8 | `<end>` |
 
-**Every remaining confusion is between two relations with the same source type,** which the type constraints cannot
-prune:
-- `airport_of` and `country_of` both start from a City;
-- `capital_of` and `largest_city_of` both start from a Country.
+**The same source type follows from the mask.** At the first divergence, A+K's prefix is the reference prefix and the
+entity is right. So the mask admits only relations whose source is the reference relation's source, and every first
+wrong relation shares that source type by construction. In these worlds only two such pairs exist:
+- `airport_of` and `country_of`, both from a City;
+- `capital_of` and `largest_city_of`, both from a Country.
 
-**"What A itself preferred"** is A's own top output at that step, read from the full distribution each record keeps.
-Where it is not the selected relation, the constraint did not allow it there.
+The empirical findings are which pairs occurred, at which positions, how often, and with what probabilities.
+
+**"Unmasked top output"** is the output the network ranks first in its full distribution before the mask. Each A+K
+record keeps that distribution. It is conditioned on **A+K's own selected prefix**, since each step feeds back A+K's
+previous choices. So it describes the network along A+K's path, not A's own trajectory; A's trajectory is analysed
+separately below, from A's records. Where the top output is not the selected relation, the mask did not allow it
+there.
 
 **The front end never failed.** No S2 or S1 question was refused by the grammar, and A's entity pointer was always
 right.
 
 **The probabilities.**
 - **Non-cancelling S1, wrong programs.** At the first difference, the selected and the reference relation both had
-  median probability near 0: from 0.000 to 0.022 by unit. A's own preference there held almost all the mass:
+  median probability near 0: from 0.000 to 0.022 by unit. The unmasked top output there held almost all the mass:
   - **`<end>`,** for all 805 `airport_of`/`country_of` confusions. Its unit medians were 1.000 in the four units
     holding 792 of them, and 0.693 for the other 13.
   - **A relation the constraint forbids,** for all 493 `capital_of`/`largest_city_of` confusions. Those relations'
@@ -153,21 +161,25 @@ right.
   - **The final `<end>`,** which completes the program, kept a median probability of 0.998–1.000, so it cost the
     score little.
   - **The context:** A was trained on programs of at most two relations, and these are three-relation questions.
-- **Correct S1 programs scored low in the same way.** At the weakest step of 3,633 of the 4,866 correct programs, A
-  itself preferred `<end>` (2,817) or a forbidden relation (816). The weakest step is the one whose chosen output had
-  the lowest probability.
+- **Correct S1 programs scored low in the same way.** At the weakest step of 3,633 of the 4,866 correct programs, the
+  unmasked top output was `<end>` (2,817) or a forbidden relation (816). The weakest step is the one whose chosen
+  output had the lowest probability.
 - **The consequence on S1:** wrong programs scored near 0 and were filtered, but so were many correct ones
-  (correct-program scores have medians of 0.000–0.845 by unit). Certified coverage was 0.018–0.510, and wrong programs
-  were released in one unit only (14).
+  (correct-program scores have medians of 0.000–0.845 by unit). Certified coverage was 0.018–0.510.
+- **The strongest S1 negative.** In world 101, init 100, full exposure, the certified policy released 14 programs.
+  All 14 were wrong under the exact-program criterion, and all 489 correct programs it proposed were filtered. This
+  is the only unit where wrong S1 programs were released.
 - **S2, wrong programs.**
-  - **In world 100 they were genuine confusions,** all 7 released. A itself preferred the selected relation, at
-    about 0.40, against 0.21–0.39 for the reference.
-  - **In world 101, A preferred `<end>`** (52; unit medians 0.966–0.987). The forced second relation was chosen among
-    small probabilities, the programs scored low (score medians 0.005–0.028 by unit), and all but one were filtered.
+  - **In world 100 they were genuine confusions,** all 7 released. The unmasked top output was the selected
+    relation, at about 0.40, against 0.21–0.39 for the reference.
+  - **In world 101, the unmasked top output was `<end>`** (52; unit medians 0.966–0.987). The forced second relation
+    was chosen among small probabilities, the programs scored low (score medians 0.005–0.028 by unit), and all but one
+    were filtered.
   - **Correct S2 programs** scored about 0.99.
 
-**A against A+K, question by question.**
-- **A+K never broke a question A had exact.**
+**A against A+K, question by question** (A's own trajectory, from A's records).
+- **On unthresholded exact correctness, A+K never broke a question A had exact.** Every proposed program counts here.
+  Separately, the certified threshold filtered none of those questions' A+K programs (0 in every unit).
 - **Where only A+K was exact,** A's own program had first left the reference by stopping early or by choosing a
   relation of the wrong source type:
 
@@ -259,6 +271,19 @@ not replaced.
 - **A+K's selection** now uses the allowed logits, with scores still from the original probabilities, plus an
   underflow fixture. The recorded pilot used the earlier, probability-based rule. On its records that changes no
   choice, because no recorded step tied.
+- **Numerical portability.** Reconstruction is exact except for one declared tolerance
+  ([`bench/statistical_tolerance.py`](../bench/statistical_tolerance.py)). A recomputed binomial bound or p-value may
+  differ from the stored one by |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15). Counts, model scores, thresholds, alpha
+  and delta, decisions, inventories and hashes stay exact.
+  - **Why it is needed.** The bound is a root of a floating-point binomial tail, and other runtimes round that tail
+    differently. CPython 3.12.3 recomputes 723 of the pilot's stored bounds and p-values differently, by up to
+    8.5e-13, and exact equality rejected all of them. An x86 CI runner rejected the S2 rebuild the same way.
+  - **How the size was set.** Against a 50-digit computation, every stored value lies within 5.2e-13 of the truth.
+  - **Where it applies:** the pilot verifier, the no-fit verifier's risk tests, and the rebuilt-against-bundled
+    comparisons for this study and the historical S2 rebuild. Tests use the real recomputed values and show that
+    altered counts, material changes, altered certificate settings and changed decisions still fail.
+- **Optional dependencies.** Table-only checks and the rejection of wrong release bytes no longer import torch. A
+  table module's identity check no longer imports the neural modules.
 
 ## Evidence
 
@@ -272,8 +297,21 @@ full and every JSON document parsed. Every per-item records file holds the 17,90
 - the current verifiers' outputs (`controls_verification.json`, `pilot_verification.json`);
 - the diagnosis (`ak_diagnosis.json`).
 
-**The eight A+K step-trace files** (27.1 MB) are bound by their sha256 in `pilot_trace_release.json`.
+**The eight A+K step-trace files** (27.1 MB) are the assets of the release `ti-tnn-factored-pilot-traces-v1`, with
+`SHA256SUMS`. Their sha256 are committed in `pilot_trace_release.json`, which also names the original run commit
+(`0e1a3c9`). The release notes name, separately, the commit holding the final verifier, diagnosis and report.
 
-**Rebuilding:** `python experiments/results/ti_tnn/make_tables.py --factored-traces <dir>`. It checks each trace
-against its hash, re-verifies the pilot, re-runs the diagnosis, and requires both to equal the bundled outputs.
+**Rebuilding:**
+
+```bash
+gh release download ti-tnn-factored-pilot-traces-v1 --repo seanm27lol/universa-recurrent --dir factored_traces
+python experiments/results/ti_tnn/make_tables.py --factored-traces factored_traces
+```
+
+The second command does four things:
+- checks each trace against its hash, before anything that needs torch is imported;
+- re-verifies the pilot;
+- re-runs the diagnosis;
+- requires both to agree with the bundled outputs (exactly, except as above).
+
 Without the traces, the controls are re-verified from the bundle alone.

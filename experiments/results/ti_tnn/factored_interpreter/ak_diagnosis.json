@@ -4,7 +4,12 @@
  "units": [
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 360,
+     "A stopped early": 281
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 147,
      "A not exact / A+K exact": 641,
      "A not exact / A+K not exact": 12
@@ -62,7 +67,7 @@
       "q1": 9.559452685548244e-08,
       "q3": 0.10321593900632517
      },
-     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+     "wrong, where the unmasked top output was a relation the constraint forbids: its probability at the first difference": {
       "max": 0.9587833054596899,
       "median": 0.9558410742616985,
       "min": 0.9516728134472601,
@@ -127,11 +132,7 @@
       "q3": 5.692490362712311e-08
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 1": 360,
-     "A stopped early": 281
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 627,
       "a relation the constraint forbids": 14,
@@ -144,12 +145,17 @@
     "wrong_programs_by_first_difference": {
      "position 1: largest_city_of -> capital_of": 12
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 12
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: largest_city_of -> capital_of; unmasked top output a relation the constraint forbids": 12
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 15,
+     "A stopped early": 9
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 771,
      "A not exact / A+K exact": 24,
      "A not exact / A+K not exact": 5
@@ -207,7 +213,7 @@
       "q1": 0.9975415704284736,
       "q3": 0.9996810801656416
      },
-     "wrong, where A preferred the chosen output: its probability at the first difference": {
+     "wrong, where the unmasked top output was the chosen output: its probability at the first difference": {
       "max": 0.4912136495113373,
       "median": 0.40053725242614746,
       "min": 0.40053725242614746,
@@ -272,11 +278,7 @@
       "q3": 0.441517606142687
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 1": 15,
-     "A stopped early": 9
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 9,
       "a relation the constraint forbids": 15,
@@ -290,9 +292,9 @@
      "position 1: airport_of -> country_of": 1,
      "position 1: capital_of -> largest_city_of": 4
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: airport_of -> country_of; A preferred the chosen output": 1,
-     "position 1: capital_of -> largest_city_of; A preferred the chosen output": 4
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: airport_of -> country_of; unmasked top output the chosen output": 1,
+     "position 1: capital_of -> largest_city_of; unmasked top output the chosen output": 4
     }
    },
    "accounting": {
@@ -324,7 +326,12 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 168,
+     "A stopped early": 30
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 178,
      "A not exact / A+K exact": 198,
      "A not exact / A+K not exact": 424
@@ -382,7 +389,7 @@
       "q1": 0.003408716370320419,
       "q3": 0.9574418522312045
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999958276748657,
       "median": 0.999988317489624,
       "min": 0.9998602867126465,
@@ -447,11 +454,7 @@
       "q3": 1.6247063281797522e-05
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 1": 168,
-     "A stopped early": 30
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 69,
       "a relation the constraint forbids": 129,
@@ -464,12 +467,17 @@
     "wrong_programs_by_first_difference": {
      "position 2: airport_of -> country_of": 424
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 2: airport_of -> country_of; A preferred <end>": 424
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 2: airport_of -> country_of; unmasked top output <end>": 424
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 93,
+     "A stopped early": 13
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 694,
      "A not exact / A+K exact": 106
     },
@@ -527,11 +535,7 @@
       "q3": 0.999239076471451
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 0": 93,
-     "A stopped early": 13
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 13,
       "a relation the constraint forbids": 93,
@@ -539,7 +543,7 @@
      }
     },
     "wrong_programs_by_first_difference": {},
-    "wrong_programs_by_first_difference_and_preference": {}
+    "wrong_programs_by_first_difference_and_unmasked_top": {}
    },
    "accounting": {
     "A": {
@@ -570,7 +574,11 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A stopped early": 566
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 89,
      "A not exact / A+K exact": 566,
      "A not exact / A+K not exact": 145
@@ -628,7 +636,7 @@
       "q1": 2.570632741971323e-06,
       "q3": 0.1906175903773422
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999964237213135,
       "median": 0.9999945163726807,
       "min": 0.9999799728393555,
@@ -693,10 +701,7 @@
       "q3": 5.125531502760399e-06
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A stopped early": 566
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 566,
       "the chosen output": 89
@@ -708,12 +713,16 @@
     "wrong_programs_by_first_difference": {
      "position 2: airport_of -> country_of": 145
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 2: airport_of -> country_of; A preferred <end>": 145
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 2: airport_of -> country_of; unmasked top output <end>": 145
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A stopped early": 20
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 780,
      "A not exact / A+K exact": 20
     },
@@ -771,17 +780,14 @@
       "q3": 0.9995768999343303
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A stopped early": 20
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 20,
       "the chosen output": 780
      }
     },
     "wrong_programs_by_first_difference": {},
-    "wrong_programs_by_first_difference_and_preference": {}
+    "wrong_programs_by_first_difference_and_unmasked_top": {}
    },
    "accounting": {
     "A": {
@@ -812,7 +818,12 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 5,
+     "A stopped early": 258
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 377,
      "A not exact / A+K exact": 263,
      "A not exact / A+K not exact": 160
@@ -871,11 +882,7 @@
       "q3": 0.9793491474197815
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 1": 5,
-     "A stopped early": 258
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 258,
       "a relation the constraint forbids": 5,
@@ -883,10 +890,15 @@
      }
     },
     "wrong_programs_by_first_difference": {},
-    "wrong_programs_by_first_difference_and_preference": {}
+    "wrong_programs_by_first_difference_and_unmasked_top": {}
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 9,
+     "A stopped early": 93
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 696,
      "A not exact / A+K exact": 102,
      "A not exact / A+K not exact": 2
@@ -944,7 +956,7 @@
       "q1": 0.943227643849003,
       "q3": 0.9975150122339644
      },
-     "wrong, where A preferred the chosen output: its probability at the first difference": {
+     "wrong, where the unmasked top output was the chosen output: its probability at the first difference": {
       "max": 0.40963688492774963,
       "median": 0.40963688492774963,
       "min": 0.40963688492774963,
@@ -1009,11 +1021,7 @@
       "q3": 0.4095677414053774
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 1": 9,
-     "A stopped early": 93
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 93,
       "a relation the constraint forbids": 9,
@@ -1026,8 +1034,8 @@
     "wrong_programs_by_first_difference": {
      "position 1: country_of -> airport_of": 2
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: country_of -> airport_of; A preferred the chosen output": 2
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: country_of -> airport_of; unmasked top output the chosen output": 2
     }
    },
    "accounting": {
@@ -1059,7 +1067,13 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 195,
+     "A first chose a relation of the wrong source type, at position 1": 204,
+     "A stopped early": 90
+    },
+    "a_vs_ak_unthresholded": {
      "A not exact / A+K exact": 489,
      "A not exact / A+K not exact": 311
     },
@@ -1116,7 +1130,7 @@
       "q1": 1.0487193789328628e-06,
       "q3": 0.00011662454242348948
      },
-     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+     "wrong, where the unmasked top output was a relation the constraint forbids: its probability at the first difference": {
       "max": 0.9999783196292142,
       "median": 0.9968279315171458,
       "min": 0.4866180811518461,
@@ -1181,12 +1195,7 @@
       "q3": 0.1736950955156563
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 0": 195,
-     "A first chose a relation of the wrong source type, at position 1": 204,
-     "A stopped early": 90
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 263,
       "a relation the constraint forbids": 226
@@ -1200,14 +1209,18 @@
      "position 1: capital_of -> largest_city_of": 109,
      "position 1: largest_city_of -> capital_of": 148
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 0: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 54,
-     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 109,
-     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 148
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 0: largest_city_of -> capital_of; unmasked top output a relation the constraint forbids": 54,
+     "position 1: capital_of -> largest_city_of; unmasked top output a relation the constraint forbids": 109,
+     "position 1: largest_city_of -> capital_of; unmasked top output a relation the constraint forbids": 148
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A stopped early": 14
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 775,
      "A not exact / A+K exact": 14,
      "A not exact / A+K not exact": 11
@@ -1266,17 +1279,14 @@
       "q3": 0.999493166553
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A stopped early": 14
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 14,
       "the chosen output": 775
      }
     },
     "wrong_programs_by_first_difference": {},
-    "wrong_programs_by_first_difference_and_preference": {}
+    "wrong_programs_by_first_difference_and_unmasked_top": {}
    },
    "accounting": {
     "A": {
@@ -1307,7 +1317,13 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 17,
+     "A first chose a relation of the wrong source type, at position 1": 437,
+     "A stopped early": 83
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 5,
      "A not exact / A+K exact": 537,
      "A not exact / A+K not exact": 258
@@ -1365,7 +1381,7 @@
       "q1": 0.0003578710429219073,
       "q3": 0.004981098719518559
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999964237213135,
       "median": 0.6930872797966003,
       "min": 0.4183363616466522,
@@ -1373,7 +1389,7 @@
       "q1": 0.5894151031970978,
       "q3": 0.9999951720237732
      },
-     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+     "wrong, where the unmasked top output was a relation the constraint forbids: its probability at the first difference": {
       "max": 0.9984212926869418,
       "median": 0.994446834718417,
       "min": 0.9892389239906265,
@@ -1438,12 +1454,7 @@
       "q3": 0.0007133355603553026
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 0": 17,
-     "A first chose a relation of the wrong source type, at position 1": 437,
-     "A stopped early": 83
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 102,
       "a relation the constraint forbids": 435,
@@ -1460,15 +1471,19 @@
      "position 1: largest_city_of -> capital_of": 148,
      "position 2: airport_of -> country_of": 5
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: airport_of -> country_of; A preferred <end>": 8,
-     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 21,
-     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 148,
-     "position 2: airport_of -> country_of; A preferred <end>": 5
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: airport_of -> country_of; unmasked top output <end>": 8,
+     "position 1: capital_of -> largest_city_of; unmasked top output a relation the constraint forbids": 21,
+     "position 1: largest_city_of -> capital_of; unmasked top output a relation the constraint forbids": 148,
+     "position 2: airport_of -> country_of; unmasked top output <end>": 5
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A stopped early": 8
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 763,
      "A not exact / A+K exact": 8,
      "A not exact / A+K not exact": 29
@@ -1526,7 +1541,7 @@
       "q1": 0.9911943876753389,
       "q3": 0.9984905599301219
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9874905943870544,
       "median": 0.9656011462211609,
       "min": 0.9009634852409363,
@@ -1591,10 +1606,7 @@
       "q3": 0.05342992827114557
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A stopped early": 8
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 8,
       "the chosen output": 763
@@ -1606,8 +1618,8 @@
     "wrong_programs_by_first_difference": {
      "position 1: airport_of -> country_of": 29
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: airport_of -> country_of; A preferred <end>": 29
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: airport_of -> country_of; unmasked top output <end>": 29
     }
    },
    "accounting": {
@@ -1639,7 +1651,12 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A malformed": 1,
+     "A stopped early": 531
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 186,
      "A not exact / A+K exact": 532,
      "A not exact / A+K not exact": 82
@@ -1697,7 +1714,7 @@
       "q1": 9.64589243427919e-06,
       "q3": 0.6814810540143008
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999855756759644,
       "median": 0.9999756813049316,
       "min": 0.999945878982544,
@@ -1705,7 +1722,7 @@
       "q1": 0.9999712109565735,
       "q3": 0.9999794960021973
      },
-     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+     "wrong, where the unmasked top output was a relation the constraint forbids: its probability at the first difference": {
       "max": 0.5265850351761969,
       "median": 0.5265850351761969,
       "min": 0.5265850351761969,
@@ -1770,11 +1787,7 @@
       "q3": 6.397955718508151e-06
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A malformed": 1,
-     "A stopped early": 531
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 531,
       "a relation the constraint forbids": 1,
@@ -1789,13 +1802,17 @@
      "position 1: capital_of -> largest_city_of": 1,
      "position 2: airport_of -> country_of": 81
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 1,
-     "position 2: airport_of -> country_of; A preferred <end>": 81
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: capital_of -> largest_city_of; unmasked top output a relation the constraint forbids": 1,
+     "position 2: airport_of -> country_of; unmasked top output <end>": 81
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A stopped early": 134
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 647,
      "A not exact / A+K exact": 134,
      "A not exact / A+K not exact": 19
@@ -1853,7 +1870,7 @@
       "q1": 0.9420554477271323,
       "q3": 0.9991851222915425
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999206066131592,
       "median": 0.9769485592842102,
       "min": 0.7703365087509155,
@@ -1918,10 +1935,7 @@
       "q3": 0.07968535970560817
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A stopped early": 134
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 134,
       "the chosen output": 647
@@ -1933,8 +1947,8 @@
     "wrong_programs_by_first_difference": {
      "position 1: country_of -> airport_of": 19
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: country_of -> airport_of; A preferred <end>": 19
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: country_of -> airport_of; unmasked top output <end>": 19
     }
    },
    "accounting": {
@@ -1966,7 +1980,12 @@
   },
   {
    "S1:length3": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A malformed": 6,
+     "A stopped early": 401
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 251,
      "A not exact / A+K exact": 407,
      "A not exact / A+K not exact": 142
@@ -2024,7 +2043,7 @@
       "q1": 6.359725162148722e-06,
       "q3": 0.9842914940926135
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9999874830245972,
       "median": 0.9999797344207764,
       "min": 0.9999682903289795,
@@ -2089,11 +2108,7 @@
       "q3": 4.426262717405645e-06
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A malformed": 6,
-     "A stopped early": 401
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 401,
       "a relation the constraint forbids": 6,
@@ -2106,12 +2121,17 @@
     "wrong_programs_by_first_difference": {
      "position 2: airport_of -> country_of": 142
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 2: airport_of -> country_of; A preferred <end>": 142
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 2: airport_of -> country_of; unmasked top output <end>": 142
     }
    },
    "S2": {
-    "a_vs_ak": {
+    "a_exact_with_the_ak_program_filtered_by_its_threshold": 0,
+    "a_own_trajectory_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 42,
+     "A stopped early": 135
+    },
+    "a_vs_ak_unthresholded": {
      "A exact / A+K exact": 617,
      "A not exact / A+K exact": 177,
      "A not exact / A+K not exact": 6
@@ -2169,7 +2189,7 @@
       "q1": 0.8309775827202044,
       "q3": 0.998231247179941
      },
-     "wrong, where A preferred <end>: its probability at the first difference": {
+     "wrong, where the unmasked top output was <end>: its probability at the first difference": {
       "max": 0.9887528419494629,
       "median": 0.986533135175705,
       "min": 0.9688065052032471,
@@ -2234,11 +2254,7 @@
       "q3": 0.010482293653062247
      }
     },
-    "what_a_did_where_only_ak_was_exact": {
-     "A first chose a relation of the wrong source type, at position 0": 42,
-     "A stopped early": 135
-    },
-    "what_a_preferred": {
+    "unmasked_top_output_on_the_ak_prefix": {
      "correct programs, at the weakest step": {
       "<end>": 165,
       "a relation the constraint forbids": 12,
@@ -2251,8 +2267,8 @@
     "wrong_programs_by_first_difference": {
      "position 1: country_of -> airport_of": 4
     },
-    "wrong_programs_by_first_difference_and_preference": {
-     "position 1: country_of -> airport_of; A preferred <end>": 4
+    "wrong_programs_by_first_difference_and_unmasked_top": {
+     "position 1: country_of -> airport_of; unmasked top output <end>": 4
     }
    },
    "accounting": {

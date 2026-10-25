@@ -845,5 +845,17 @@ JSON document parsed, and every records file holds 17,900 items. Their sha256 ar
 
 **The A+K diagnosis** was made from the saved records only, with no new fit. It is in the report and in `ak_diagnosis.json`.
 
+**The final repair pass** (review of the closing PR; no fit, no confirmation, worlds 1000–1002 untouched):
+- **Numerical portability.** Reconstruction compares recomputed binomial bounds and p-values within one declared
+  tolerance (`bench/statistical_tolerance.py`: |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15)). Everything else is
+  compared exactly, and the original evidence bytes are unchanged.
+- **Optional dependencies.** Table-only checks and the rejection of wrong release bytes run without torch.
+- **The diagnosis's wording.** The distribution in an A+K trace is the unmasked network conditioned on A+K's own
+  prefix, kept separate from A's own trajectory. The same-source-type property of A+K's wrong programs is stated
+  as a consequence of the mask. "Never broke an exact A program" is stated for unthresholded correctness. The
+  strongest S1 negative is stated plainly.
+- **The traces** are published as the release `ti-tnn-factored-pilot-traces-v1`, with `SHA256SUMS`. Its notes name the
+  original run commit (`0e1a3c9`) and, separately, the commit holding the final verifier and report.
+
 **For a later proposal.** A lexical task is not begun merely to defeat W. A later proposal must start from a useful
 missing capability, specify what makes its semantics learnable, and include the cheapest relevant baseline.

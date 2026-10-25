@@ -39,6 +39,14 @@ selection or metric code. It uses:
 - that A's parses and step traces, and F's distributions, are what the trained networks output (no weights are
   exported);
 - the wall times.
+
+**One declared tolerance** (`statistical_tolerance`). A recomputed binomial bound or p-value (`p_value`,
+`error_upper_95`, `abstention_interval_95`) may differ from the stored one by
+|a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15). This is rounding, not evidence: another runtime sums the binomial
+tail in a different order or rounds its `lgamma` differently. Everything else is compared exactly, including:
+- every count, threshold, alpha and delta;
+- every decision, including whether each p-value rejected;
+- every score read from the records.
 """
 from __future__ import annotations
 
@@ -59,6 +67,7 @@ import torch  # noqa: E402  (A's float32 score product, and A's sampling generat
 import factored_interpreter_verify as FV  # noqa: E402  (this repository's independent no-fit implementations)
 import interpreter_robustness as IR  # noqa: E402  (the generator only)
 import interpreter_robustness_verify as RV  # noqa: E402  (the independent fixed-sequence certificate)
+import statistical_tolerance as ST  # noqa: E402  (the one declared tolerance: recomputed bounds and p-values)
 from integrated import calibration as K  # noqa: E402  (numerics only)
 from integrated import relations as W  # noqa: E402
 
@@ -297,12 +306,22 @@ def cert(cal, rows, correct_fn):
     return c, [[x["id"], r["score"], correct_fn(x, r)] for x, r in keep]
 
 
-def same_certificate(produced: dict, mine: dict) -> bool:
-    """Every field of a fixed-sequence certificate, the risk settings included."""
-    steps = [[s["threshold"], s["accepted"], s["errors"], s["p_value"], s["rejected"]] for s in produced.get("steps", [])]
-    return (steps == [list(s) for s in mine["steps"]] and produced.get("threshold") == mine["threshold"]
-            and produced.get("certified") == mine["certified"] and produced.get("stop_reason") == mine["stop_reason"]
-            and produced.get("alpha") == mine["alpha"] == ALPHA and produced.get("delta") == mine["delta"] == DELTA)
+STEP_FIELDS = ("threshold", "accepted", "errors", "p_value", "rejected")
+CERTIFICATE_FIELDS = ("threshold", "certified", "stop_reason", "alpha", "delta")
+
+
+def same_certificate(produced: dict, mine: dict, agreement: ST.Agreement | None = None) -> bool:
+    """Every field of a fixed-sequence certificate, the risk settings included.
+
+    Each step's p-value may differ from its recomputation within the declared statistical tolerance
+    (`statistical_tolerance`): another runtime rounds the binomial tail differently. The thresholds, counts,
+    rejections, selection, stop reason, alpha and delta must be equal."""
+    if not (produced.get("alpha") == mine["alpha"] == ALPHA and produced.get("delta") == mine["delta"] == DELTA):
+        return False
+    stored = {"steps": [{k: s.get(k) for k in STEP_FIELDS} for s in produced.get("steps", [])],
+              **{k: produced.get(k) for k in CERTIFICATE_FIELDS}}
+    derived = {"steps": [dict(zip(STEP_FIELDS, s)) for s in mine["steps"]], **{k: mine[k] for k in CERTIFICATE_FIELDS}}
+    return (agreement if agreement is not None else ST.Agreement()).compare(stored, derived)
 
 
 def groups_of(items, rows):
@@ -424,9 +443,12 @@ def a_macs_padded(lengths, d=48, h=64, n_out=8, steps=MAX_STEPS + 1):
 
 
 # --- one unit -------------------------------------------------------------------------------------------------------
-def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN, rules: str = "v2") -> dict:
+def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN, rules: str = "v2",
+                agreement: ST.Agreement | None = None) -> dict:
     tag = f"w{info['world']} i{info['init']} {info['regime']}"
     fail = lambda m: problems.append(f"{tag}: {m}")  # noqa: E731
+    agreement = agreement if agreement is not None else ST.Agreement()
+    agrees = lambda stored, mine: agreement.compare(norm(stored), norm(mine))  # noqa: E731
     d = run_dir / info["path"]
     unit = json.loads((d / "unit.json").read_text())
     world = W.generate_world(info["world"], n_countries=design["countries"])
@@ -492,7 +514,7 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
         if name in NEURAL:
             c, records = cert(cal, cal_rows, exact)
             produced = systems.get(name, {}).get("certificate", {})
-            if not same_certificate(produced, c) or produced.get("records") != records:
+            if not same_certificate(produced, c, agreement) or produced.get("records") != records:
                 fail(f"{name}: its exact-program certificate (or its eligible calibration labels) does not re-derive")
             th = c["threshold"] if c["certified"] else None
             certified = bool(c["certified"])
@@ -503,12 +525,12 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
             p = K.binomial_p_value(errors, len(acc), ALPHA) if acc else 1.0
             mine_risk = {"calibration_items": n_cal, "accepted": len(acc), "errors": errors, "p_value": p,
                          "certified": bool(acc) and p <= DELTA, "error_upper_95": K.clopper_pearson_upper(errors, len(acc))}
-            if norm(systems.get(name, {}).get("certificate")) != norm(mine_risk):
+            if not agrees(systems.get(name, {}).get("certificate"), mine_risk):
                 fail(f"{name}: its calibration risk test does not re-derive")
             certified = mine_risk["certified"]
             cc = metrics(test, test_rows, lambda r, c_=certified: r["decision"] == "answer" and c_)
         nc = metrics(test, test_rows, lambda r: r["decision"] == "answer")
-        if norm(systems.get(name, {}).get("certified")) != norm(cc) or norm(systems.get(name, {}).get("none")) != norm(nc):
+        if not (agrees(systems.get(name, {}).get("certified"), cc) and agrees(systems.get(name, {}).get("none"), nc)):
             fail(f"{name}: its category metrics do not re-derive")
         if norm(systems.get(name, {}).get("criteria")) != norm(crit(certified, cc, nc)):
             fail(f"{name}: its criteria do not re-derive")
@@ -516,7 +538,7 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
     # A's historical answer-based certificate and criteria, for P1
     hc, hrec = cert(cal, rows["A"][:n_cal], answer_correct)
     hp = unit.get("historical_A", {})
-    if not same_certificate(hp.get("certificate", {"steps": []}), hc):
+    if not same_certificate(hp.get("certificate", {"steps": []}), hc, agreement):
         fail("A: the historical answer-based certificate does not re-derive")
     if hp.get("certificate", {}).get("records") != [{"id": i, "score": sc, "correct": c} for i, sc, c in hrec]:
         fail("A: the historical certificate's eligible calibration records do not re-derive")
@@ -524,7 +546,7 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
     a_test = [{**r, "exact": r["exact_parse"]} for r in rows["A"][n_cal:]]
     hcc = historical(test, a_test, hth, True)
     hnc = historical(test, a_test, None, False)
-    if norm(hp.get("certified")) != norm(hcc) or norm(hp.get("none")) != norm(hnc):
+    if not (agrees(hp.get("certified"), hcc) and agrees(hp.get("none"), hnc)):
         fail("A: a historical category table (certified or none) does not re-derive")
     hcrit = historical_criteria(bool(hc["certified"]), hcc, hnc)
     if norm(hp.get("criteria")) != norm(hcrit):
@@ -614,10 +636,14 @@ def source_hashes() -> dict:
     return {s: hashlib.sha256((here / s).read_bytes()).hexdigest() for s in SOURCES}
 
 
-def verify(run_dir: Path, design: dict | None = None) -> dict:
+def verify(run_dir: Path, design: dict | None = None, agreement: ST.Agreement | None = None) -> dict:
     """A run recorded at a bound commit (the development pilot, 0e1a3c9) is checked against that commit's source
     hashes and re-derived under its rules; any other run against the current files and the corrected rules.
-    `design` is the declared pilot design (tests pass a reduced one); the run's configuration must equal it."""
+    `design` is the declared pilot design (tests pass a reduced one); the run's configuration must equal it.
+
+    Recomputed bounds and p-values are compared within the declared statistical tolerance, everything else exactly.
+    `agreement`, when given, accumulates what was compared and the largest tolerated difference; the returned
+    verification itself does not depend on the runtime."""
     run_dir = Path(run_dir)
     run = json.loads((run_dir / "run.json").read_text())
     problems = []
@@ -641,7 +667,7 @@ def verify(run_dir: Path, design: dict | None = None) -> dict:
         problems.append("a world or init outside development was requested before the protocol was frozen")
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
-    units = [verify_unit(run_dir, info, problems, design, rules) for info in run["units"]]
+    units = [verify_unit(run_dir, info, problems, design, rules, agreement) for info in run["units"]]
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
     return {"verified": True, "commit": run["provenance"]["commit"], "rules": rules, "units": units}
@@ -650,7 +676,9 @@ def verify(run_dir: Path, design: dict | None = None) -> dict:
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     p.add_argument("run_dir", type=Path)
-    print(json.dumps(verify(p.parse_args(argv).run_dir), indent=1, default=str))
+    agreement = ST.Agreement()
+    print(json.dumps(verify(p.parse_args(argv).run_dir, agreement=agreement), indent=1, default=str))
+    print("statistical agreement:", json.dumps(agreement.summary()))
 
 
 if __name__ == "__main__":

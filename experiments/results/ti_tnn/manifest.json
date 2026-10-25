@@ -4648,8 +4648,8 @@
       "path": "factored_interpreter/ak_diagnosis.json",
       "experiment": "factored_interpreter",
       "original_path": null,
-      "sha256": "045fbf8e5e2aa8c4cff160f88146807a073ec645029d99bea33845c6feaf1bf4",
-      "bytes": 65017
+      "sha256": "88579b432d2729fa6f44aa6bc5d2d73dd78a3d7219ab46365fd63674eedfbd05",
+      "bytes": 67089
     },
     {
       "path": "factored_interpreter/export_integrity.json",
@@ -4662,8 +4662,8 @@
       "path": "factored_interpreter/pilot_trace_release.json",
       "experiment": "factored_interpreter",
       "original_path": null,
-      "sha256": "82d7019e7b5c77298d4003b31a3ed77bb7f5c243f21438d7b2b1aede36141d81",
-      "bytes": 2707
+      "sha256": "d6df63bd75578e5569605c0152a321290165bc5b560cac59f888c5e30b9af2c0",
+      "bytes": 2840
     }
   ]
 }
