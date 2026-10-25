@@ -50,6 +50,7 @@ records the declared source version and command.
 | `adaptive_compute_shared_path_control/` | 11 (10 lookup-task runs, seeds 200–204, and the evaluator's output) | [brief](../../../research/ti_tnn/protocols/adaptive_compute_shared_path_control.md) | [report](../../../research/ti_tnn/reports/adaptive_compute_shared_path_control.md) | `9da9c82` (recorded in each run) |
 | `integration_test/` | 108: the run summary; the 15 units' export (unit summaries, interpreter draws, atomic tables, certificates, contexts, exhaustive digests, episode rows); `verification.json`; `session_release.json` | [protocol](../../../research/ti_tnn/protocols/integration_test_v1.md) | [report](../../../research/ti_tnn/reports/integration_test_v1.md) | `e03075a` (frozen; recorded in the run) |
 | `repeated_updates/` | 32: the run summary; the 15 units' `unit.json` and `proposals.jsonl.gz` (every attempt's weight-free record); `verification.json`, with the sampled reproduction | [protocol](../../../research/ti_tnn/protocols/repeated_updates_v1.md) | [report](../../../research/ti_tnn/reports/repeated_updates_v1.md) | `e8c6f99` (frozen; recorded in the run, with a clean tree) |
+| `factored_interpreter/` | 55: the no-fit controls run, whole; the pilot's run summary, per-unit summaries and A, F and F+B records; `export_integrity.json` (all 58 original files); the verifiers' outputs; `ak_diagnosis.json`; `pilot_trace_release.json` (the eight A+K step-trace files, bound by sha256) | [protocol](../../../research/ti_tnn/protocols/factored_interpreter_v1.md) (draft, never frozen) | [report](../../../research/ti_tnn/reports/factored_interpreter_v1.md) (development) | `0e1a3c9` (both runs; recorded, clean tree) |
 | `s2_diagnosis/` (historical, development) | 36 (the classification of the robustness records; 24 development fits' summaries and decision records; arm A's six trace files; the development analysis; `local_traces.json`; `trace_release.json`) | [brief](../../../research/ti_tnn/protocols/s2_diagnosis_brief.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `6435719` (analysis); `ece0f86` (arm A); `d991d12` (B, C, D); recorded in each run |
 | `s2_diagnosis/confirmation*` | 47 (45 fits' decision records, the run summary and the analysis with the frozen verdict) | [protocol](../../../research/ti_tnn/protocols/s2_context_confirmation_v1.md) | [report](../../../research/ti_tnn/reports/s2_diagnosis_v1.md) | `07bb97e` (frozen; recorded in the run) |
 
@@ -111,6 +112,12 @@ refers to, and `make_tables.py` uses it there.
   seconds, and requires `verification.json` exactly.
 - **Retraining.** `--repeated-reproduce` also retrains the 114 sampled chains, in about 20 minutes, and requires
   identical records.
+
+**Factored interpreter.** A development engineering result, closed without a confirmation.
+- **What re-verifies from the bundle alone:** the no-fit controls, through `make_tables.py`.
+- **The pilot's A+K step traces** are bound by sha256 in `factored_interpreter/pilot_trace_release.json`. With
+  them, `make_tables.py --factored-traces <dir>` re-verifies the pilot and re-runs the A+K diagnosis, and requires
+  both to equal the bundled outputs.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

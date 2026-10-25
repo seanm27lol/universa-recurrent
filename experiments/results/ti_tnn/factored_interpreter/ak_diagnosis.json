@@ -1,0 +1,2286 @@
+{
+ "commit": "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3",
+ "run": "20261025T051637",
+ "units": [
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 147,
+     "A not exact / A+K exact": 641,
+     "A not exact / A+K not exact": 12
+    },
+    "classes": {
+     "correct program, filtered": 607,
+     "correct program, released": 181,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 12,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.22625,
+      "error_upper_95": 0.01641479165519247,
+      "errors": 0,
+      "exact_accuracy": 0.22625,
+      "n": 800,
+      "released": 181
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.024190125867335998,
+      "errors": 12,
+      "exact_accuracy": 0.985,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999996423721313,
+      "median": 0.9999927282333374,
+      "min": 0.9992176294326782,
+      "n": 788,
+      "q1": 0.9999790191650391,
+      "q3": 0.9999967515468597
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999946355819702,
+      "median": 0.9997622966766357,
+      "min": 0.9804036617279053,
+      "n": 788,
+      "q1": 0.9993544518947601,
+      "q3": 0.9999127984046936
+     },
+     "correct: score": {
+      "max": 0.9780555885315237,
+      "median": 1.72612716793012e-05,
+      "min": 3.219107296911182e-08,
+      "n": 788,
+      "q1": 9.559452685548244e-08,
+      "q3": 0.10321593900632517
+     },
+     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+      "max": 0.9587833054596899,
+      "median": 0.9558410742616985,
+      "min": 0.9516728134472601,
+      "n": 12,
+      "q1": 0.9545670695801292,
+      "q3": 0.9577090757689746
+     },
+     "wrong: entity probability": {
+      "max": 0.9999986886978149,
+      "median": 0.9999966025352478,
+      "min": 0.9998562335968018,
+      "n": 12,
+      "q1": 0.999993234872818,
+      "q3": 0.9999974370002747
+     },
+     "wrong: final <end> probability": {
+      "max": 0.999957799911499,
+      "median": 0.9998856782913208,
+      "min": 0.9995256662368774,
+      "n": 12,
+      "q1": 0.9998319298028946,
+      "q3": 0.9999175071716309
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.0016100890934467316,
+      "median": 0.0013938373886048794,
+      "min": 0.0011955301743000746,
+      "n": 12,
+      "q1": 0.0013030008412897587,
+      "q3": 0.001564156322274357
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.9587833054596899,
+      "median": 0.9558410742616985,
+      "min": 0.9516728134472601,
+      "n": 12,
+      "q1": 0.9545670695801292,
+      "q3": 0.9577090757689746
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.02354685217142105,
+      "median": 0.021138962358236313,
+      "min": 0.0188126340508461,
+      "n": 12,
+      "q1": 0.020165251567959785,
+      "q3": 0.021877605002373457
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.023584449663758278,
+      "median": 0.021680667996406555,
+      "min": 0.02016451582312584,
+      "n": 12,
+      "q1": 0.020741920918226242,
+      "q3": 0.02216709591448307
+     },
+     "wrong: score": {
+      "max": 5.882691133460093e-08,
+      "median": 4.8907546280853346e-08,
+      "min": 3.903612731359294e-08,
+      "n": 12,
+      "q1": 4.0625921357196825e-08,
+      "q3": 5.692490362712311e-08
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 360,
+     "A stopped early": 281
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 627,
+      "a relation the constraint forbids": 14,
+      "the chosen output": 147
+     },
+     "wrong programs, at the first difference": {
+      "a relation the constraint forbids": 12
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: largest_city_of -> capital_of": 12
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 12
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 771,
+     "A not exact / A+K exact": 24,
+     "A not exact / A+K not exact": 5
+    },
+    "classes": {
+     "correct program, filtered": 0,
+     "correct program, released": 795,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 5
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 1.0,
+      "error_upper_95": 0.013096055089993834,
+      "errors": 5,
+      "exact_accuracy": 0.99375,
+      "n": 800,
+      "released": 800
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.013096055089993834,
+      "errors": 5,
+      "exact_accuracy": 0.99375,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999929666519165,
+      "min": 0.9992399215698242,
+      "n": 795,
+      "q1": 0.9999793767929077,
+      "q3": 0.9999967813491821
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999969005584717,
+      "median": 0.9999892711639404,
+      "min": 0.9745686054229736,
+      "n": 795,
+      "q1": 0.9999815225601196,
+      "q3": 0.9999926090240479
+     },
+     "correct: score": {
+      "max": 0.9999320516807115,
+      "median": 0.999296161896126,
+      "min": 0.22092328799620112,
+      "n": 795,
+      "q1": 0.9975415704284736,
+      "q3": 0.9996810801656416
+     },
+     "wrong, where A preferred the chosen output: its probability at the first difference": {
+      "max": 0.4912136495113373,
+      "median": 0.40053725242614746,
+      "min": 0.40053725242614746,
+      "n": 5,
+      "q1": 0.40053725242614746,
+      "q3": 0.44587545096874237
+     },
+     "wrong: entity probability": {
+      "max": 0.9999982118606567,
+      "median": 0.9998914003372192,
+      "min": 0.9998914003372192,
+      "n": 5,
+      "q1": 0.9998914003372192,
+      "q3": 0.999944806098938
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999960660934448,
+      "median": 0.9999909400939941,
+      "min": 0.9999909400939941,
+      "n": 5,
+      "q1": 0.9999909400939941,
+      "q3": 0.9999935030937195
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.28004851937294006,
+      "median": 0.28004851937294006,
+      "min": 0.16303260624408722,
+      "n": 5,
+      "q1": 0.22154056280851364,
+      "q3": 0.28004851937294006
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.09871626601670869,
+      "median": 0.09871626601670869,
+      "min": 0.00395894659231999,
+      "n": 5,
+      "q1": 0.05133760630451434,
+      "q3": 0.09871626601670869
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.34126579761505127,
+      "median": 0.20595648884773254,
+      "min": 0.20595648884773254,
+      "n": 5,
+      "q1": 0.20595648884773254,
+      "q3": 0.2736111432313919
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.4912136495113373,
+      "median": 0.40053725242614746,
+      "min": 0.40053725242614746,
+      "n": 5,
+      "q1": 0.40053725242614746,
+      "q3": 0.44587545096874237
+     },
+     "wrong: score": {
+      "max": 0.4842231273605796,
+      "median": 0.3988120849247944,
+      "min": 0.3988120849247944,
+      "n": 5,
+      "q1": 0.3988120849247944,
+      "q3": 0.441517606142687
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 15,
+     "A stopped early": 9
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 9,
+      "a relation the constraint forbids": 15,
+      "the chosen output": 771
+     },
+     "wrong programs, at the first difference": {
+      "the chosen output": 5
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: airport_of -> country_of": 1,
+     "position 1: capital_of -> largest_city_of": 4
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: airport_of -> country_of; A preferred the chosen output": 1,
+     "position 1: capital_of -> largest_city_of; A preferred the chosen output": 4
+    }
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36804,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 86772639744,
+     "training_forward_macs_unpadded_recomputed": 86264277120,
+     "training_forward_macs_unpadded_recorded": 86264277120
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37837,
+     "evaluated_row_steps": 55004
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11925387264
+    },
+    "F_and_FB_seconds_combined": 0.67
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37837,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w100 i100 full"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 178,
+     "A not exact / A+K exact": 198,
+     "A not exact / A+K not exact": 424
+    },
+    "classes": {
+     "correct program, filtered": 195,
+     "correct program, released": 181,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 424,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.22625,
+      "error_upper_95": 0.01641479165519247,
+      "errors": 0,
+      "exact_accuracy": 0.22625,
+      "n": 800,
+      "released": 181
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.5595324070644779,
+      "errors": 424,
+      "exact_accuracy": 0.47,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999994039535522,
+      "median": 0.9999927282333374,
+      "min": 0.9996552467346191,
+      "n": 376,
+      "q1": 0.9999873638153076,
+      "q3": 0.9999967813491821
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999985694885254,
+      "median": 0.9994871020317078,
+      "min": 0.9900131225585938,
+      "n": 376,
+      "q1": 0.9982890188694,
+      "q3": 0.9999442100524902
+     },
+     "correct: score": {
+      "max": 0.9888672514805295,
+      "median": 0.046924938491299736,
+      "min": 3.422029408988109e-06,
+      "n": 376,
+      "q1": 0.003408716370320419,
+      "q3": 0.9574418522312045
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999958276748657,
+      "median": 0.999988317489624,
+      "min": 0.9998602867126465,
+      "n": 424,
+      "q1": 0.9999792575836182,
+      "q3": 0.9999926090240479
+     },
+     "wrong: entity probability": {
+      "max": 0.9999994039535522,
+      "median": 0.9999905228614807,
+      "min": 0.9994069337844849,
+      "n": 424,
+      "q1": 0.9999748766422272,
+      "q3": 0.9999949932098389
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999793767929077,
+      "median": 0.9998956322669983,
+      "min": 0.9995470643043518,
+      "n": 424,
+      "q1": 0.9998286366462708,
+      "q3": 0.99992835521698
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999958276748657,
+      "median": 0.999988317489624,
+      "min": 0.9998602867126465,
+      "n": 424,
+      "q1": 0.9999792575836182,
+      "q3": 0.9999926090240479
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 2.5127473691100022e-05,
+      "median": 4.563683475566904e-06,
+      "min": 9.103987821390547e-07,
+      "n": 424,
+      "q1": 1.4778033916584832e-06,
+      "q3": 5.744398968943187e-06
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 3.907571681338595e-06,
+      "median": 4.284732213477582e-08,
+      "min": 1.3244010332869038e-08,
+      "n": 424,
+      "q1": 2.4577385904223092e-08,
+      "q3": 7.756671571712559e-08
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.00013180858513806015,
+      "median": 6.983675348237739e-06,
+      "min": 4.74386666837745e-07,
+      "n": 424,
+      "q1": 2.5827615104390134e-06,
+      "q3": 1.6794080238469178e-05
+     },
+     "wrong: score": {
+      "max": 5.880150849549371e-05,
+      "median": 5.343644054720585e-06,
+      "min": 1.442176992965164e-08,
+      "n": 424,
+      "q1": 2.3574565532695624e-06,
+      "q3": 1.6247063281797522e-05
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 168,
+     "A stopped early": 30
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 69,
+      "a relation the constraint forbids": 129,
+      "the chosen output": 178
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 424
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 2: airport_of -> country_of": 424
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 2: airport_of -> country_of; A preferred <end>": 424
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 694,
+     "A not exact / A+K exact": 106
+    },
+    "classes": {
+     "correct program, filtered": 97,
+     "correct program, released": 703,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.87875,
+      "error_upper_95": 0.004252287897337023,
+      "errors": 0,
+      "exact_accuracy": 0.87875,
+      "n": 800,
+      "released": 703
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.003737662826100609,
+      "errors": 0,
+      "exact_accuracy": 1.0,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999938607215881,
+      "min": 0.9998637437820435,
+      "n": 800,
+      "q1": 0.9999893009662628,
+      "q3": 0.9999971389770508
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999988079071045,
+      "median": 0.9999772310256958,
+      "min": 0.998578667640686,
+      "n": 800,
+      "q1": 0.9998812675476074,
+      "q3": 0.9999933242797852
+     },
+     "correct: score": {
+      "max": 0.9999061846607433,
+      "median": 0.9970279163613862,
+      "min": 0.0002511181956702774,
+      "n": 800,
+      "q1": 0.9931812686659072,
+      "q3": 0.999239076471451
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 93,
+     "A stopped early": 13
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 13,
+      "a relation the constraint forbids": 93,
+      "the chosen output": 694
+     }
+    },
+    "wrong_programs_by_first_difference": {},
+    "wrong_programs_by_first_difference_and_preference": {}
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36624,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 87876845568,
+     "training_forward_macs_unpadded_recomputed": 87378301440,
+     "training_forward_macs_unpadded_recorded": 87378301440
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37822,
+     "evaluated_row_steps": 55004
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11606181888
+    },
+    "F_and_FB_seconds_combined": 0.72
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37822,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w100 i100 reduced"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 89,
+     "A not exact / A+K exact": 566,
+     "A not exact / A+K not exact": 145
+    },
+    "classes": {
+     "correct program, filtered": 494,
+     "correct program, released": 161,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 145,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.20125,
+      "error_upper_95": 0.018434990637976184,
+      "errors": 0,
+      "exact_accuracy": 0.20125,
+      "n": 800,
+      "released": 161
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.2051399640735028,
+      "errors": 145,
+      "exact_accuracy": 0.81875,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999995231628418,
+      "median": 0.999993085861206,
+      "min": 0.9988929629325867,
+      "n": 655,
+      "q1": 0.9999818801879883,
+      "q3": 0.9999961853027344
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999978542327881,
+      "median": 0.9999895095825195,
+      "min": 0.9996930360794067,
+      "n": 655,
+      "q1": 0.9999810457229614,
+      "q3": 0.9999934434890747
+     },
+     "correct: score": {
+      "max": 0.9894384894129961,
+      "median": 5.4409073954207396e-05,
+      "min": 1.1293716492924306e-06,
+      "n": 655,
+      "q1": 2.570632741971323e-06,
+      "q3": 0.1906175903773422
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999964237213135,
+      "median": 0.9999945163726807,
+      "min": 0.9999799728393555,
+      "n": 145,
+      "q1": 0.9999847412109375,
+      "q3": 0.9999957084655762
+     },
+     "wrong: entity probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999961853027344,
+      "min": 0.9999269247055054,
+      "n": 145,
+      "q1": 0.9999799132347107,
+      "q3": 0.9999980926513672
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999972581863403,
+      "median": 0.9999959468841553,
+      "min": 0.9999862909317017,
+      "n": 145,
+      "q1": 0.9999895691871643,
+      "q3": 0.9999967813491821
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999964237213135,
+      "median": 0.9999945163726807,
+      "min": 0.9999799728393555,
+      "n": 145,
+      "q1": 0.9999847412109375,
+      "q3": 0.9999957084655762
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 9.760157112737033e-06,
+      "median": 4.403741002079187e-06,
+      "min": 2.8421135311873513e-06,
+      "n": 145,
+      "q1": 3.355488672696083e-06,
+      "q3": 8.379485358034344e-06
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 2.848669055310893e-06,
+      "median": 3.34443342353552e-07,
+      "min": 2.3022954565021791e-07,
+      "n": 145,
+      "q1": 2.6610830161644117e-07,
+      "q3": 1.7887487047119066e-06
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 7.334944257308962e-06,
+      "median": 7.916622166703746e-07,
+      "min": 4.944876650370134e-07,
+      "n": 145,
+      "q1": 5.979514128284791e-07,
+      "q3": 5.126786845721654e-06
+     },
+     "wrong: score": {
+      "max": 7.333467464819059e-06,
+      "median": 7.913934989824014e-07,
+      "min": 4.936732777729474e-07,
+      "n": 145,
+      "q1": 5.974891365501123e-07,
+      "q3": 5.125531502760399e-06
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A stopped early": 566
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 566,
+      "the chosen output": 89
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 145
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 2: airport_of -> country_of": 145
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 2: airport_of -> country_of; A preferred <end>": 145
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 780,
+     "A not exact / A+K exact": 20
+    },
+    "classes": {
+     "correct program, filtered": 20,
+     "correct program, released": 780,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.975,
+      "error_upper_95": 0.0038333164144927385,
+      "errors": 0,
+      "exact_accuracy": 0.975,
+      "n": 800,
+      "released": 780
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.003737662826100609,
+      "errors": 0,
+      "exact_accuracy": 1.0,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999991655349731,
+      "median": 0.9999934434890747,
+      "min": 0.9996916055679321,
+      "n": 800,
+      "q1": 0.9999844133853912,
+      "q3": 0.9999961853027344
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999977350234985,
+      "min": 0.99980229139328,
+      "n": 800,
+      "q1": 0.999995231628418,
+      "q3": 0.9999985694885254
+     },
+     "correct: score": {
+      "max": 0.9999197741243213,
+      "median": 0.9991974771893086,
+      "min": 0.006328126676026841,
+      "n": 800,
+      "q1": 0.9985671202378306,
+      "q3": 0.9995768999343303
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A stopped early": 20
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 20,
+      "the chosen output": 780
+     }
+    },
+    "wrong_programs_by_first_difference": {},
+    "wrong_programs_by_first_difference_and_preference": {}
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36440,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 86770950144,
+     "training_forward_macs_unpadded_recomputed": 86265646080,
+     "training_forward_macs_unpadded_recorded": 86265646080
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37973,
+     "evaluated_row_steps": 55004
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11925258240
+    },
+    "F_and_FB_seconds_combined": 0.7
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37973,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w100 i101 full"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 377,
+     "A not exact / A+K exact": 263,
+     "A not exact / A+K not exact": 160
+    },
+    "classes": {
+     "correct program, filtered": 232,
+     "correct program, released": 408,
+     "decoder refusal": 160,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.51,
+      "error_upper_95": 0.007315590902302245,
+      "errors": 0,
+      "exact_accuracy": 0.51,
+      "n": 800,
+      "released": 408
+     },
+     "none": {
+      "coverage": 0.8,
+      "error_upper_95": 0.004669893657829757,
+      "errors": 0,
+      "exact_accuracy": 0.8,
+      "n": 800,
+      "released": 640
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999997615814209,
+      "median": 0.9999971389770508,
+      "min": 0.9998568296432495,
+      "n": 640,
+      "q1": 0.9999928772449493,
+      "q3": 0.9999985694885254
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999988079071045,
+      "median": 0.9999949932098389,
+      "min": 0.999968409538269,
+      "n": 640,
+      "q1": 0.9999905824661255,
+      "q3": 0.9999966621398926
+     },
+     "correct: score": {
+      "max": 0.997441855176982,
+      "median": 0.8448820144961244,
+      "min": 5.512786428457072e-06,
+      "n": 640,
+      "q1": 0.010042721191851385,
+      "q3": 0.9793491474197815
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 5,
+     "A stopped early": 258
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 258,
+      "a relation the constraint forbids": 5,
+      "the chosen output": 377
+     }
+    },
+    "wrong_programs_by_first_difference": {},
+    "wrong_programs_by_first_difference_and_preference": {}
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 696,
+     "A not exact / A+K exact": 102,
+     "A not exact / A+K not exact": 2
+    },
+    "classes": {
+     "correct program, filtered": 102,
+     "correct program, released": 696,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 2
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.8725,
+      "error_upper_95": 0.0089920459750069,
+      "errors": 2,
+      "exact_accuracy": 0.87,
+      "n": 800,
+      "released": 698
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.007848639419820766,
+      "errors": 2,
+      "exact_accuracy": 0.9975,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999997615814209,
+      "median": 0.9999950528144836,
+      "min": 0.9993088245391846,
+      "n": 798,
+      "q1": 0.9999884366989136,
+      "q3": 0.9999977350234985
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999890923500061,
+      "min": 0.9996670484542847,
+      "n": 798,
+      "q1": 0.9999783933162689,
+      "q3": 0.9999947547912598
+     },
+     "correct: score": {
+      "max": 0.9997022972424912,
+      "median": 0.9906878579920426,
+      "min": 0.001762455960439348,
+      "n": 798,
+      "q1": 0.943227643849003,
+      "q3": 0.9975150122339644
+     },
+     "wrong, where A preferred the chosen output: its probability at the first difference": {
+      "max": 0.40963688492774963,
+      "median": 0.40963688492774963,
+      "min": 0.40963688492774963,
+      "n": 2,
+      "q1": 0.40963688492774963,
+      "q3": 0.40963688492774963
+     },
+     "wrong: entity probability": {
+      "max": 0.9999849796295166,
+      "median": 0.9999849796295166,
+      "min": 0.9999849796295166,
+      "n": 2,
+      "q1": 0.9999849796295166,
+      "q3": 0.9999849796295166
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999328851699829,
+      "median": 0.9999328851699829,
+      "min": 0.9999328851699829,
+      "n": 2,
+      "q1": 0.9999328851699829,
+      "q3": 0.9999328851699829
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.03375871106982231,
+      "median": 0.03375871106982231,
+      "min": 0.03375871106982231,
+      "n": 2,
+      "q1": 0.03375871106982231,
+      "q3": 0.03375871106982231
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.1658104342786828,
+      "median": 0.1658104342786828,
+      "min": 0.1658104342786828,
+      "n": 2,
+      "q1": 0.1658104342786828,
+      "q3": 0.1658104342786828
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.3867431581020355,
+      "median": 0.3867431581020355,
+      "min": 0.3867431581020355,
+      "n": 2,
+      "q1": 0.3867431581020355,
+      "q3": 0.3867431581020355
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.40963688492774963,
+      "median": 0.40963688492774963,
+      "min": 0.40963688492774963,
+      "n": 2,
+      "q1": 0.40963688492774963,
+      "q3": 0.40963688492774963
+     },
+     "wrong: score": {
+      "max": 0.4095677414053774,
+      "median": 0.4095677414053774,
+      "min": 0.4095677414053774,
+      "n": 2,
+      "q1": 0.4095677414053774,
+      "q3": 0.4095677414053774
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 1": 9,
+     "A stopped early": 93
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 93,
+      "a relation the constraint forbids": 9,
+      "the chosen output": 696
+     },
+     "wrong programs, at the first difference": {
+      "the chosen output": 2
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: country_of -> airport_of": 2
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: country_of -> airport_of; A preferred the chosen output": 2
+    }
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 37129,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 87875174400,
+     "training_forward_macs_unpadded_recomputed": 87379537920,
+     "training_forward_macs_unpadded_recorded": 87379537920
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37634,
+     "evaluated_row_steps": 55004
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11608891392
+    },
+    "F_and_FB_seconds_combined": 0.67
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37634,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w100 i101 reduced"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A not exact / A+K exact": 489,
+     "A not exact / A+K not exact": 311
+    },
+    "classes": {
+     "correct program, filtered": 489,
+     "correct program, released": 0,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 297,
+     "wrong program, released": 14
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.0175,
+      "error_upper_95": 1.0,
+      "errors": 14,
+      "exact_accuracy": 0.0,
+      "n": 800,
+      "released": 14
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.41799476703340266,
+      "errors": 311,
+      "exact_accuracy": 0.61125,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999921321868896,
+      "min": 0.9990611672401428,
+      "n": 489,
+      "q1": 0.9999744296073914,
+      "q3": 0.9999962449073792
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999860525131226,
+      "min": 0.9964630007743835,
+      "n": 489,
+      "q1": 0.9999339580535889,
+      "q3": 0.9999934434890747
+     },
+     "correct: score": {
+      "max": 0.006411139157118681,
+      "median": 1.9604967586594947e-05,
+      "min": 3.9092859120145955e-11,
+      "n": 489,
+      "q1": 1.0487193789328628e-06,
+      "q3": 0.00011662454242348948
+     },
+     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+      "max": 0.9999783196292142,
+      "median": 0.9968279315171458,
+      "min": 0.4866180811518461,
+      "n": 311,
+      "q1": 0.6156440684413838,
+      "q3": 0.9990897864859107
+     },
+     "wrong: entity probability": {
+      "max": 0.9999991655349731,
+      "median": 0.9999845027923584,
+      "min": 0.9992727637290955,
+      "n": 311,
+      "q1": 0.9999533891677856,
+      "q3": 0.9999943971633911
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999866485595703,
+      "min": 0.9968395233154297,
+      "n": 311,
+      "q1": 0.999854564666748,
+      "q3": 0.9999939203262329
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.008892610669136047,
+      "median": 3.728887895704247e-05,
+      "min": 5.271138192597391e-09,
+      "n": 311,
+      "q1": 1.5578563761664554e-05,
+      "q3": 0.006204118020832539
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.9999783196292142,
+      "median": 0.9968279315171458,
+      "min": 0.4866180811518461,
+      "n": 311,
+      "q1": 0.6156440684413838,
+      "q3": 0.9990897864859107
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.11091185361146927,
+      "median": 0.0007090760627761483,
+      "min": 2.7724984192900592e-06,
+      "n": 311,
+      "q1": 0.0003404008748475462,
+      "q3": 0.06415300071239471
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.3955376148223877,
+      "median": 0.0023258151486516,
+      "min": 1.109513505070936e-05,
+      "n": 311,
+      "q1": 0.000503434450365603,
+      "q3": 0.3126869797706604
+     },
+     "wrong: score": {
+      "max": 0.2332087374814608,
+      "median": 0.0005067744966619586,
+      "min": 6.152544813881138e-10,
+      "n": 311,
+      "q1": 1.8048785916832738e-06,
+      "q3": 0.1736950955156563
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 195,
+     "A first chose a relation of the wrong source type, at position 1": 204,
+     "A stopped early": 90
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 263,
+      "a relation the constraint forbids": 226
+     },
+     "wrong programs, at the first difference": {
+      "a relation the constraint forbids": 311
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 0: largest_city_of -> capital_of": 54,
+     "position 1: capital_of -> largest_city_of": 109,
+     "position 1: largest_city_of -> capital_of": 148
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 0: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 54,
+     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 109,
+     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 148
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 775,
+     "A not exact / A+K exact": 14,
+     "A not exact / A+K not exact": 11
+    },
+    "classes": {
+     "correct program, filtered": 13,
+     "correct program, released": 776,
+     "decoder refusal": 11,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 0,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.97,
+      "error_upper_95": 0.0038530376618094867,
+      "errors": 0,
+      "exact_accuracy": 0.97,
+      "n": 800,
+      "released": 776
+     },
+     "none": {
+      "coverage": 0.98625,
+      "error_upper_95": 0.0037896733309174826,
+      "errors": 0,
+      "exact_accuracy": 0.98625,
+      "n": 800,
+      "released": 789
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999947547912598,
+      "min": 0.9998101592063904,
+      "n": 789,
+      "q1": 0.9999914169311523,
+      "q3": 0.9999966621398926
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999943971633911,
+      "min": 0.9999697208404541,
+      "n": 789,
+      "q1": 0.9999862909317017,
+      "q3": 0.9999986886978149
+     },
+     "correct: score": {
+      "max": 0.9998744773831183,
+      "median": 0.998440439739352,
+      "min": 0.0637169583814162,
+      "n": 789,
+      "q1": 0.9863768130498871,
+      "q3": 0.999493166553
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A stopped early": 14
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 14,
+      "the chosen output": 775
+     }
+    },
+    "wrong_programs_by_first_difference": {},
+    "wrong_programs_by_first_difference_and_preference": {}
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36215,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 86874894336,
+     "training_forward_macs_unpadded_recomputed": 86367832320,
+     "training_forward_macs_unpadded_recorded": 86367832320
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37791,
+     "evaluated_row_steps": 55040
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11812190208
+    },
+    "F_and_FB_seconds_combined": 0.66
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37791,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w101 i100 full"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 5,
+     "A not exact / A+K exact": 537,
+     "A not exact / A+K not exact": 258
+    },
+    "classes": {
+     "correct program, filtered": 522,
+     "correct program, released": 20,
+     "decoder refusal": 76,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 182,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.025,
+      "error_upper_95": 0.13910834066826522,
+      "errors": 0,
+      "exact_accuracy": 0.025,
+      "n": 800,
+      "released": 20
+     },
+     "none": {
+      "coverage": 0.905,
+      "error_upper_95": 0.2793176659130677,
+      "errors": 182,
+      "exact_accuracy": 0.6775,
+      "n": 800,
+      "released": 724
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999939203262329,
+      "min": 0.9996094107627869,
+      "n": 542,
+      "q1": 0.9999868869781494,
+      "q3": 0.9999969005584717
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999997615814209,
+      "median": 0.9995072484016418,
+      "min": 0.9124284386634827,
+      "n": 542,
+      "q1": 0.9986578077077866,
+      "q3": 0.9998885691165924
+     },
+     "correct: score": {
+      "max": 0.8517750626201649,
+      "median": 0.0020918246192360057,
+      "min": 1.8287501624449366e-07,
+      "n": 542,
+      "q1": 0.0003578710429219073,
+      "q3": 0.004981098719518559
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999964237213135,
+      "median": 0.6930872797966003,
+      "min": 0.4183363616466522,
+      "n": 13,
+      "q1": 0.5894151031970978,
+      "q3": 0.9999951720237732
+     },
+     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+      "max": 0.9984212926869418,
+      "median": 0.994446834718417,
+      "min": 0.9892389239906265,
+      "n": 169,
+      "q1": 0.9903678214591025,
+      "q3": 0.9947499676331972
+     },
+     "wrong: entity probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999914765357971,
+      "min": 0.9996230602264404,
+      "n": 182,
+      "q1": 0.9999793767929077,
+      "q3": 0.9999966621398926
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999998807907104,
+      "median": 0.999554455280304,
+      "min": 0.9967384934425354,
+      "n": 182,
+      "q1": 0.999173566699028,
+      "q3": 0.9997446238994598
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999964237213135,
+      "median": 8.673010597703978e-05,
+      "min": 1.3407458027359098e-05,
+      "n": 182,
+      "q1": 7.564299266960006e-05,
+      "q3": 9.742979091242887e-05
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.9984212926869418,
+      "median": 0.9943167548665031,
+      "min": 2.5391701097277064e-07,
+      "n": 182,
+      "q1": 0.9902747263966489,
+      "q3": 0.9947019144241409
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.15735001862049103,
+      "median": 0.0021648691035807133,
+      "min": 5.910115064011734e-08,
+      "n": 182,
+      "q1": 0.001947755110450089,
+      "q3": 0.00380140682682395
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.26144176721572876,
+      "median": 0.0034182665403932333,
+      "min": 2.6920567961497e-06,
+      "n": 182,
+      "q1": 0.0031374096870422363,
+      "q3": 0.005751348799094558
+     },
+     "wrong: score": {
+      "max": 0.0017909492078572336,
+      "median": 0.0003431016458995254,
+      "min": 2.1564674021962608e-08,
+      "n": 182,
+      "q1": 0.00016566897365057003,
+      "q3": 0.0007133355603553026
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 17,
+     "A first chose a relation of the wrong source type, at position 1": 437,
+     "A stopped early": 83
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 102,
+      "a relation the constraint forbids": 435,
+      "the chosen output": 5
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 13,
+      "a relation the constraint forbids": 169
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: airport_of -> country_of": 8,
+     "position 1: capital_of -> largest_city_of": 21,
+     "position 1: largest_city_of -> capital_of": 148,
+     "position 2: airport_of -> country_of": 5
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: airport_of -> country_of; A preferred <end>": 8,
+     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 21,
+     "position 1: largest_city_of -> capital_of; A preferred a relation the constraint forbids": 148,
+     "position 2: airport_of -> country_of; A preferred <end>": 5
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 763,
+     "A not exact / A+K exact": 8,
+     "A not exact / A+K not exact": 29
+    },
+    "classes": {
+     "correct program, filtered": 7,
+     "correct program, released": 764,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 29,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.955,
+      "error_upper_95": 0.003913438005869541,
+      "errors": 0,
+      "exact_accuracy": 0.955,
+      "n": 800,
+      "released": 764
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.049099223812627844,
+      "errors": 29,
+      "exact_accuracy": 0.96375,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999991655349731,
+      "median": 0.9999910593032837,
+      "min": 0.9997583031654358,
+      "n": 771,
+      "q1": 0.9999833106994629,
+      "q3": 0.9999951124191284
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999991655349731,
+      "median": 0.9999911785125732,
+      "min": 0.9957560896873474,
+      "n": 771,
+      "q1": 0.9999823570251465,
+      "q3": 0.9999949932098389
+     },
+     "correct: score": {
+      "max": 0.9997488952723365,
+      "median": 0.9964713050991247,
+      "min": 0.0690602259652448,
+      "n": 771,
+      "q1": 0.9911943876753389,
+      "q3": 0.9984905599301219
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9874905943870544,
+      "median": 0.9656011462211609,
+      "min": 0.9009634852409363,
+      "n": 29,
+      "q1": 0.937824934720993,
+      "q3": 0.9748802781105042
+     },
+     "wrong: entity probability": {
+      "max": 0.9999970197677612,
+      "median": 0.9999867677688599,
+      "min": 0.999910831451416,
+      "n": 29,
+      "q1": 0.9999680519104004,
+      "q3": 0.9999922513961792
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999982118606567,
+      "median": 0.9999978542327881,
+      "min": 0.999997615814209,
+      "n": 29,
+      "q1": 0.9999977350234985,
+      "q3": 0.9999980926513672
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9874905943870544,
+      "median": 0.9656011462211609,
+      "min": 0.9009634852409363,
+      "n": 29,
+      "q1": 0.937824934720993,
+      "q3": 0.9748802781105042
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.0033988332097578677,
+      "median": 0.001415281769595822,
+      "min": 0.0005961746221601061,
+      "n": 29,
+      "q1": 0.000800376592678731,
+      "q3": 0.001850708780352761
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.018269488587975502,
+      "median": 0.0020778211764991283,
+      "min": 0.0007870310801081359,
+      "n": 29,
+      "q1": 0.0014992759097367525,
+      "q3": 0.0031679749954491854
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.08828278630971909,
+      "median": 0.02848096564412117,
+      "min": 0.01007652934640646,
+      "n": 29,
+      "q1": 0.0205438993871212,
+      "q3": 0.054131101816892624
+     },
+     "wrong: score": {
+      "max": 0.08723097503502004,
+      "median": 0.028097723313069718,
+      "min": 0.010041057647675317,
+      "n": 29,
+      "q1": 0.020282884250691725,
+      "q3": 0.05342992827114557
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A stopped early": 8
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 8,
+      "the chosen output": 763
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 29
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: airport_of -> country_of": 29
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: airport_of -> country_of; A preferred <end>": 29
+    }
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36112,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 87907534848,
+     "training_forward_macs_unpadded_recomputed": 87407844480,
+     "training_forward_macs_unpadded_recorded": 87407844480
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37492,
+     "evaluated_row_steps": 55040
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11441074176
+    },
+    "F_and_FB_seconds_combined": 0.68
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37492,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w101 i100 reduced"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 186,
+     "A not exact / A+K exact": 532,
+     "A not exact / A+K not exact": 82
+    },
+    "classes": {
+     "correct program, filtered": 511,
+     "correct program, released": 207,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 82,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.25875,
+      "error_upper_95": 0.014367918576685028,
+      "errors": 0,
+      "exact_accuracy": 0.25875,
+      "n": 800,
+      "released": 207
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.12186850128221705,
+      "errors": 82,
+      "exact_accuracy": 0.8975,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.999998927116394,
+      "median": 0.9999898672103882,
+      "min": 0.9992901086807251,
+      "n": 718,
+      "q1": 0.9999776780605316,
+      "q3": 0.9999949932098389
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999915957450867,
+      "min": 0.14119629561901093,
+      "n": 718,
+      "q1": 0.9979177266359329,
+      "q3": 0.9999986886978149
+     },
+     "correct: score": {
+      "max": 0.9988249854005951,
+      "median": 2.371035807998615e-05,
+      "min": 5.974092320581789e-07,
+      "n": 718,
+      "q1": 9.64589243427919e-06,
+      "q3": 0.6814810540143008
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999855756759644,
+      "median": 0.9999756813049316,
+      "min": 0.999945878982544,
+      "n": 81,
+      "q1": 0.9999712109565735,
+      "q3": 0.9999794960021973
+     },
+     "wrong, where A preferred a relation the constraint forbids: its probability at the first difference": {
+      "max": 0.5265850351761969,
+      "median": 0.5265850351761969,
+      "min": 0.5265850351761969,
+      "n": 1,
+      "q1": 0.5265850351761969,
+      "q3": 0.5265850351761969
+     },
+     "wrong: entity probability": {
+      "max": 0.9999980926513672,
+      "median": 0.9999811053276062,
+      "min": 0.9998190999031067,
+      "n": 82,
+      "q1": 0.999956488609314,
+      "q3": 0.9999921917915344
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999986886978149,
+      "median": 0.9977548718452454,
+      "min": 0.9182060956954956,
+      "n": 82,
+      "q1": 0.9906492233276367,
+      "q3": 0.9999881982803345
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999855756759644,
+      "median": 0.9999756813049316,
+      "min": 0.45814913511276245,
+      "n": 82,
+      "q1": 0.9999707639217377,
+      "q3": 0.9999794960021973
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.5265850351761969,
+      "median": 1.6425256717411685e-05,
+      "min": 3.492373991775821e-06,
+      "n": 82,
+      "q1": 1.3797519557101623e-05,
+      "q3": 1.9253268760621722e-05
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.0061822677962481976,
+      "median": 3.4547554150776705e-06,
+      "min": 2.19507455767598e-06,
+      "n": 82,
+      "q1": 2.8930912776559126e-06,
+      "q3": 4.532469006335305e-06
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.009073217399418354,
+      "median": 4.8507872634218074e-06,
+      "min": 2.7956180019828025e-06,
+      "n": 82,
+      "q1": 3.839896976387536e-06,
+      "q3": 6.547635962306231e-06
+     },
+     "wrong: score": {
+      "max": 1.2349812726330369e-05,
+      "median": 4.727575820104842e-06,
+      "min": 2.958653974497508e-11,
+      "n": 82,
+      "q1": 3.7867589077803744e-06,
+      "q3": 6.397955718508151e-06
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A malformed": 1,
+     "A stopped early": 531
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 531,
+      "a relation the constraint forbids": 1,
+      "the chosen output": 186
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 81,
+      "a relation the constraint forbids": 1
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: capital_of -> largest_city_of": 1,
+     "position 2: airport_of -> country_of": 81
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: capital_of -> largest_city_of; A preferred a relation the constraint forbids": 1,
+     "position 2: airport_of -> country_of; A preferred <end>": 81
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 647,
+     "A not exact / A+K exact": 134,
+     "A not exact / A+K not exact": 19
+    },
+    "classes": {
+     "correct program, filtered": 131,
+     "correct program, released": 650,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 18,
+     "wrong program, released": 1
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.81375,
+      "error_upper_95": 0.007266122098870745,
+      "errors": 1,
+      "exact_accuracy": 0.8125,
+      "n": 800,
+      "released": 651
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.034655300151757495,
+      "errors": 19,
+      "exact_accuracy": 0.97625,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999897480010986,
+      "min": 0.9997578263282776,
+      "n": 781,
+      "q1": 0.9999825954437256,
+      "q3": 0.999995231628418
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999992847442627,
+      "median": 0.9999980926513672,
+      "min": 0.840495228767395,
+      "n": 781,
+      "q1": 0.9999966025352478,
+      "q3": 0.9999986886978149
+     },
+     "correct: score": {
+      "max": 0.999906661649742,
+      "median": 0.9966281327362383,
+      "min": 0.0005179925892578642,
+      "n": 781,
+      "q1": 0.9420554477271323,
+      "q3": 0.9991851222915425
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999206066131592,
+      "median": 0.9769485592842102,
+      "min": 0.7703365087509155,
+      "n": 19,
+      "q1": 0.9155969023704529,
+      "q3": 0.9998156428337097
+     },
+     "wrong: entity probability": {
+      "max": 0.9999986886978149,
+      "median": 0.9999938011169434,
+      "min": 0.999962329864502,
+      "n": 19,
+      "q1": 0.9999808073043823,
+      "q3": 0.9999964237213135
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999994039535522,
+      "median": 0.9999984502792358,
+      "min": 0.999997615814209,
+      "n": 19,
+      "q1": 0.9999983310699463,
+      "q3": 0.9999992847442627
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999206066131592,
+      "median": 0.9769485592842102,
+      "min": 0.7703365087509155,
+      "n": 19,
+      "q1": 0.9155969023704529,
+      "q3": 0.9998156428337097
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.0029221118484201725,
+      "median": 0.0007648646706002182,
+      "min": 6.844241227099701e-06,
+      "n": 19,
+      "q1": 1.3491406775756332e-05,
+      "q3": 0.001769792266713921
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.008518937975168228,
+      "median": 0.0023094643838703632,
+      "min": 2.1409661712823436e-05,
+      "n": 19,
+      "q1": 4.9656340706860647e-05,
+      "q3": 0.004471863619983196
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.22110390663146973,
+      "median": 0.018187178298830986,
+      "min": 5.101496208226308e-05,
+      "n": 19,
+      "q1": 0.00012111367686884478,
+      "q3": 0.07971389591693878
+     },
+     "wrong: score": {
+      "max": 0.22097967054406192,
+      "median": 0.01817827187003446,
+      "min": 5.098034056629701e-05,
+      "n": 19,
+      "q1": 0.00012099958228864078,
+      "q3": 0.07968535970560817
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A stopped early": 134
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 134,
+      "the chosen output": 647
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 19
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: country_of -> airport_of": 19
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: country_of -> airport_of; A preferred <end>": 19
+    }
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36393,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 86872750080,
+     "training_forward_macs_unpadded_recomputed": 86364343680,
+     "training_forward_macs_unpadded_recorded": 86364343680
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37832,
+     "evaluated_row_steps": 55040
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11783589888
+    },
+    "F_and_FB_seconds_combined": 0.69
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37832,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w101 i101 full"
+  },
+  {
+   "S1:length3": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 251,
+     "A not exact / A+K exact": 407,
+     "A not exact / A+K not exact": 142
+    },
+    "classes": {
+     "correct program, filtered": 404,
+     "correct program, released": 254,
+     "decoder refusal": 0,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 142,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.3175,
+      "error_upper_95": 0.011724942350669813,
+      "errors": 0,
+      "exact_accuracy": 0.3175,
+      "n": 800,
+      "released": 254
+     },
+     "none": {
+      "coverage": 1.0,
+      "error_upper_95": 0.20121884381377314,
+      "errors": 142,
+      "exact_accuracy": 0.8225,
+      "n": 800,
+      "released": 800
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999990463256836,
+      "median": 0.999992847442627,
+      "min": 0.9997852444648743,
+      "n": 658,
+      "q1": 0.9999812543392181,
+      "q3": 0.9999963045120239
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999996423721313,
+      "median": 0.9999942183494568,
+      "min": 0.15550358593463898,
+      "n": 658,
+      "q1": 0.9994329810142517,
+      "q3": 0.9999979734420776
+     },
+     "correct: score": {
+      "max": 0.9974093158213092,
+      "median": 0.0013254472846676896,
+      "min": 3.263240917588099e-06,
+      "n": 658,
+      "q1": 6.359725162148722e-06,
+      "q3": 0.9842914940926135
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9999874830245972,
+      "median": 0.9999797344207764,
+      "min": 0.9999682903289795,
+      "n": 142,
+      "q1": 0.9999770820140839,
+      "q3": 0.9999830722808838
+     },
+     "wrong: entity probability": {
+      "max": 0.9999978542327881,
+      "median": 0.999988317489624,
+      "min": 0.9999076128005981,
+      "n": 142,
+      "q1": 0.9999779164791107,
+      "q3": 0.9999938011169434
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9997910857200623,
+      "median": 0.9991907477378845,
+      "min": 0.9974580407142639,
+      "n": 142,
+      "q1": 0.9987946599721909,
+      "q3": 0.9994135797023773
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9999874830245972,
+      "median": 0.9999797344207764,
+      "min": 0.9999682903289795,
+      "n": 142,
+      "q1": 0.9999770820140839,
+      "q3": 0.9999830722808838
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 2.3402594820254308e-05,
+      "median": 1.3224457632077247e-05,
+      "min": 7.872683227105881e-06,
+      "n": 142,
+      "q1": 1.041725698769369e-05,
+      "q3": 1.701421304289852e-05
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 3.818730419880012e-06,
+      "median": 2.103790279761597e-06,
+      "min": 1.434169348613068e-06,
+      "n": 142,
+      "q1": 1.8527053384786996e-06,
+      "q3": 2.3013739678390266e-06
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 6.828885034337873e-06,
+      "median": 3.987463969679084e-06,
+      "min": 3.046885922231013e-06,
+      "n": 142,
+      "q1": 3.6650644688052125e-06,
+      "q3": 4.429433147379314e-06
+     },
+     "wrong: score": {
+      "max": 6.8127647751050855e-06,
+      "median": 3.984995907104121e-06,
+      "min": 3.0458296077031043e-06,
+      "n": 142,
+      "q1": 3.66133161991055e-06,
+      "q3": 4.426262717405645e-06
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A malformed": 6,
+     "A stopped early": 401
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 401,
+      "a relation the constraint forbids": 6,
+      "the chosen output": 251
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 142
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 2: airport_of -> country_of": 142
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 2: airport_of -> country_of; A preferred <end>": 142
+    }
+   },
+   "S2": {
+    "a_vs_ak": {
+     "A exact / A+K exact": 617,
+     "A not exact / A+K exact": 177,
+     "A not exact / A+K not exact": 6
+    },
+    "classes": {
+     "correct program, filtered": 140,
+     "correct program, released": 654,
+     "decoder refusal": 2,
+     "entity failure": 0,
+     "grammar refusal": 0,
+     "wrong program, filtered": 4,
+     "wrong program, released": 0
+    },
+    "n": 800,
+    "policies": {
+     "certified": {
+      "coverage": 0.8175,
+      "error_upper_95": 0.004570155300593736,
+      "errors": 0,
+      "exact_accuracy": 0.8175,
+      "n": 800,
+      "released": 654
+     },
+     "none": {
+      "coverage": 0.9975,
+      "error_upper_95": 0.011433575735615825,
+      "errors": 4,
+      "exact_accuracy": 0.9925,
+      "n": 800,
+      "released": 798
+     }
+    },
+    "probabilities": {
+     "correct: entity probability": {
+      "max": 0.9999991655349731,
+      "median": 0.9999932050704956,
+      "min": 0.9998506307601929,
+      "n": 794,
+      "q1": 0.999984472990036,
+      "q3": 0.9999964237213135
+     },
+     "correct: final <end> probability": {
+      "max": 0.9999997615814209,
+      "median": 0.9999969005584717,
+      "min": 0.9736713171005249,
+      "n": 794,
+      "q1": 0.9999932944774628,
+      "q3": 0.9999986886978149
+     },
+     "correct: score": {
+      "max": 0.9998428867465374,
+      "median": 0.9854770738395219,
+      "min": 1.7692027177500832e-08,
+      "n": 794,
+      "q1": 0.8309775827202044,
+      "q3": 0.998231247179941
+     },
+     "wrong, where A preferred <end>: its probability at the first difference": {
+      "max": 0.9887528419494629,
+      "median": 0.986533135175705,
+      "min": 0.9688065052032471,
+      "n": 4,
+      "q1": 0.9731485247612,
+      "q3": 0.988287553191185
+     },
+     "wrong: entity probability": {
+      "max": 0.9999977350234985,
+      "median": 0.999995768070221,
+      "min": 0.9999799728393555,
+      "n": 4,
+      "q1": 0.9999837279319763,
+      "q3": 0.9999974370002747
+     },
+     "wrong: final <end> probability": {
+      "max": 0.9999995231628418,
+      "median": 0.9999995231628418,
+      "min": 0.9999994039535522,
+      "n": 4,
+      "q1": 0.9999994337558746,
+      "q3": 0.9999995231628418
+     },
+     "wrong: p(<end>) at the first difference": {
+      "max": 0.9887528419494629,
+      "median": 0.986533135175705,
+      "min": 0.9688065052032471,
+      "n": 4,
+      "q1": 0.9731485247612,
+      "q3": 0.988287553191185
+     },
+     "wrong: p(forbidden relations) at the first difference": {
+      "max": 0.00038650742590107257,
+      "median": 0.00017831046920946392,
+      "min": 0.00014151168306852924,
+      "n": 4,
+      "q1": 0.00015043206951759203,
+      "q3": 0.0003347374968143413
+     },
+     "wrong: p(reference) at the first difference": {
+      "max": 0.014956136234104633,
+      "median": 0.0050953717436641455,
+      "min": 0.004520196467638016,
+      "n": 4,
+      "q1": 0.004588441108353436,
+      "q3": 0.012566494289785624
+     },
+     "wrong: p(selected) at the first difference": {
+      "max": 0.015802854672074318,
+      "median": 0.008167986292392015,
+      "min": 0.006567721255123615,
+      "n": 4,
+      "q1": 0.006953275995329022,
+      "q3": 0.013908649096265435
+     },
+     "wrong: score": {
+      "max": 0.01238775524435997,
+      "median": 0.0046318168655372395,
+      "min": 0.0040636580441090284,
+      "n": 4,
+      "q1": 0.0041721747460581205,
+      "q3": 0.010482293653062247
+     }
+    },
+    "what_a_did_where_only_ak_was_exact": {
+     "A first chose a relation of the wrong source type, at position 0": 42,
+     "A stopped early": 135
+    },
+    "what_a_preferred": {
+     "correct programs, at the weakest step": {
+      "<end>": 165,
+      "a relation the constraint forbids": 12,
+      "the chosen output": 617
+     },
+     "wrong programs, at the first difference": {
+      "<end>": 4
+     }
+    },
+    "wrong_programs_by_first_difference": {
+     "position 1: country_of -> airport_of": 4
+    },
+    "wrong_programs_by_first_difference_and_preference": {
+     "position 1: country_of -> airport_of; A preferred <end>": 4
+    }
+   },
+   "accounting": {
+    "A": {
+     "emitted_decisions": 36684,
+     "evaluated_row_steps": 71600,
+     "training_forward_macs_padded": 87908935680,
+     "training_forward_macs_unpadded_recomputed": 87409434240,
+     "training_forward_macs_unpadded_recorded": 87409434240
+    },
+    "AK": {
+     "emitted_decisions_recorded": 37795,
+     "evaluated_row_steps": 55040
+    },
+    "F": {
+     "note": "packed GRU and no attention: padding adds no counted MACs",
+     "training_forward_macs": 11435569152
+    },
+    "F_and_FB_seconds_combined": 0.67
+   },
+   "ak_certified_threshold": 0.2,
+   "selection_ties": {
+    "any allowed probability is 0.0": 0,
+    "maximum allowed probability is 0.0": 0,
+    "steps": 37795,
+    "tied maximum among allowed": 0
+   },
+   "unit": "w101 i101 reduced"
+  }
+ ]
+}

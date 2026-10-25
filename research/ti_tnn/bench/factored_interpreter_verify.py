@@ -65,6 +65,23 @@ SOURCES = ("factored_interpreter.py", "lexical_condition.py", "interpreter_robus
            "../integrated/segment_grammar.py", "../integrated/routing.py", "../integrated/runtime.py",
            "../integrated/registry.py", "../integrated/relations.py", "../integrated/contracts.py",
            "../integrated/reference.py")
+# The no-fit controls run recorded with the development pilot is bound to its commit: its producer sources are
+# checked against that commit's hashes (from `git show`), never silently replaced by the current files.
+BOUND = {
+    "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3": {
+        "factored_interpreter.py": "43751a21e3b8c14e568575ab5c5800111a1dc54b54d0a088e611f85684cf9435",
+        "lexical_condition.py": "10019afdc886c6ba80666504fcb38a941f6e8f28e6b748d9ef555485618e9cac",
+        "interpreter_robustness.py": "f1653d63a00bb4164a1b8055e05338bbe6b12390efce2e0a03c3e701789a8d46",
+        "typed_questions.py": "b1ecc40692700d09d790ed03820c559e86a5a0fbf34629495b4c487fe9a015c1",
+        "../integrated/segment_grammar.py": "0fa572f008118bc0419c065f8ee7d34d82b59c0b7938a62469dab1be816b08a7",
+        "../integrated/routing.py": "0997d1798adec59f8c56f931276ed393675927bbc978837c19927fe33f719db7",
+        "../integrated/runtime.py": "7e83b8674d3ce1f120c4b8529546cb5b29e3f1e6967f790ad0f0e1c461e6f35a",
+        "../integrated/registry.py": "85350d0284bae12a55c5b748c5ca5d61acde8623d91ceeed29108525702674e1",
+        "../integrated/relations.py": "742331d263587da665b743584f9afda402286219fec9b947838ca3900d296b5a",
+        "../integrated/contracts.py": "7ccf766d3885157f5e53ee419544c1f0f5d49a70f575b22875404b6b452dfdaa",
+        "../integrated/reference.py": "1a7889da2b2d67d3f4741101549acd075ce48f05b03473ce1a8509d382907b41",
+    },
+}
 
 
 class VerificationError(AssertionError):
@@ -423,7 +440,11 @@ def verify(run_dir: Path) -> dict:
     problems = []
     if run.get("config") != DESIGN or run.get("countries") != DESIGN["countries"] or run.get("generator") != GENERATOR_VERSION:
         problems.append("the run's configuration is not the declared development design")
-    if run.get("provenance", {}).get("sha256") != source_hashes():
+    prov = run.get("provenance", {})
+    if prov.get("commit") in BOUND:
+        if prov.get("sha256") != BOUND[prov["commit"]] or prov.get("research_tree_dirty") is not False:
+            problems.append("the run's recorded producer sources are not those of its bound commit")
+    elif prov.get("sha256") != source_hashes():
         problems.append("the run's recorded producer sources are not the sources being verified")
     requested = run.get("requested", {})
     want = sorted((w, r) for w in requested.get("worlds", []) for r in requested.get("regimes", []))

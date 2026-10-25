@@ -14,7 +14,7 @@ spec.loader.exec_module(tables)
 
 def test_every_file_matches_the_manifest_and_none_is_unlisted():
     manifest = tables.verify()
-    assert len(manifest["files"]) == 548
+    assert len(manifest["files"]) == 603
     assert not any("/home/" in (BUNDLE / f["path"]).read_text() for f in manifest["files"]
                    if not f["path"].endswith(".gz"))  # no local paths
     import gzip
@@ -245,3 +245,25 @@ def test_the_repeated_updates_bundle_rebuilds_with_the_frozen_verifier():
     assert {b: d["outcome"] for b, d in out["decision"].items()} == {b: "no target gap" for b in ("1/16", "1/8", "1/4", "1/2")}
     assert out["reproduction"]["chains"] == out["reproduction"]["identical"] == 114
     assert out["construction"]["screen_checker_agreement"]
+
+
+def test_the_factored_interpreter_bundle_is_bound_and_its_controls_re_verify(tmp_path):
+    """protocols/factored_interpreter_v1.md (development engineering result, recorded at 0e1a3c9): the bundled no-fit
+    controls re-verify exactly; the eight A+K trace files are bound to their committed sha256; every original export
+    passed the integrity check; and wrong bytes for a trace are refused."""
+    pytest.importorskip("torch")
+    import json
+    root = BUNDLE / "factored_interpreter"
+    out = tables.factored_interpreter_tables()
+    assert out["controls"]["verified"] and out["controls"]["commit"].startswith("0e1a3c9")
+    assert out["pilot"]["verified"] and out["pilot"]["rules"] == "v1" and len(out["pilot"]["units"]) == 8
+    release = json.loads((root / "pilot_trace_release.json").read_text())
+    assert len(release["assets"]) == 8 and len({a["sha256"] for a in release["assets"]}) == 8
+    integrity = json.loads((root / "export_integrity.json").read_text())
+    assert len(integrity["files"]) == 58 and all(f["json_parses"] for f in integrity["files"])
+    assert all(f["records"] == 17900 for f in integrity["files"] if f["path"].endswith(("records_A.json.gz",
+               "records_AK.json.gz", "records_F.json.gz", "records_FB.json.gz")))
+    for a in release["assets"]:
+        (tmp_path / a["name"]).write_bytes(b"not the traces")
+    with pytest.raises(ValueError, match="sha256"):
+        tables.factored_interpreter_tables(traces_dir=tmp_path)

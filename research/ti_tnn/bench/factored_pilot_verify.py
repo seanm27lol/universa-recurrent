@@ -46,6 +46,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import math
 import sys
 from collections import Counter, defaultdict
 from itertools import product
@@ -72,6 +73,34 @@ MAX_STEPS = 3
 DESIGN = {"pilot": PILOT_VERSION, **FV.DESIGN, "updates": 1500, "batch": 64, "grid": list(GRID),
           "fb": {"k": FB_K, "floor": FB_FLOOR, "ratio": FB_RATIO}}
 DEV_WORLDS, DEV_INITS = (100, 101), (100, 101)
+# The recorded development pilot is bound to the commit it ran from: its producer sources are checked against
+# that commit's hashes (from `git show`), never silently replaced by the current files, and its records are
+# re-derived under the rules that commit implemented. Runs from later code are checked against the current
+# files and the corrected rules (revision 4: A+K selects by allowed logits; accounting v2).
+BOUND = {
+    "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3": {
+        "rules": "v1",  # A+K chose the highest allowed probability; costs recorded emitted A+K steps only
+        "sources": {
+        "factored_pilot.py": "09b4b9edd96f788e5028c16afdfdf95cb8b1c017f37b4d5fe2b4e5424fd850bf",
+        "factored_interpreter.py": "43751a21e3b8c14e568575ab5c5800111a1dc54b54d0a088e611f85684cf9435",
+        "lexical_condition.py": "10019afdc886c6ba80666504fcb38a941f6e8f28e6b748d9ef555485618e9cac",
+        "interpreter_robustness.py": "f1653d63a00bb4164a1b8055e05338bbe6b12390efce2e0a03c3e701789a8d46",
+        "typed_questions.py": "b1ecc40692700d09d790ed03820c559e86a5a0fbf34629495b4c487fe9a015c1",
+        "../integrated/segment_grammar.py": "0fa572f008118bc0419c065f8ee7d34d82b59c0b7938a62469dab1be816b08a7",
+        "../integrated/segment_grounding.py": "d0873b2151086ecbd9f17995db8cd97b845b2831afea77b4393c7fd029382013",
+        "../integrated/constrained_decoding.py": "9108779e3e28b8ced87037000f7e135e5816944e56633b3496a75c8b06add410",
+        "../integrated/interpreters.py": "8e56388e6051e442309e804483ce915ecea0d0cc1c365e4e2be10bd8b88b6c43",
+        "../integrated/routing.py": "0997d1798adec59f8c56f931276ed393675927bbc978837c19927fe33f719db7",
+        "../integrated/runtime.py": "7e83b8674d3ce1f120c4b8529546cb5b29e3f1e6967f790ad0f0e1c461e6f35a",
+        "../integrated/registry.py": "85350d0284bae12a55c5b748c5ca5d61acde8623d91ceeed29108525702674e1",
+        "../integrated/relations.py": "742331d263587da665b743584f9afda402286219fec9b947838ca3900d296b5a",
+        "../integrated/contracts.py": "7ccf766d3885157f5e53ee419544c1f0f5d49a70f575b22875404b6b452dfdaa",
+        "../integrated/reference.py": "1a7889da2b2d67d3f4741101549acd075ce48f05b03473ce1a8509d382907b41",
+        "../integrated/calibration.py": "77c12c7413a7fd5853f0365d61938a4284621c81d0cdd332e26dac463a2acef3",
+        },
+    },
+}
+DESIGN_V2 = {**DESIGN, "ak_selection": "allowed_logits", "accounting": "v2"}
 SOURCES = ("factored_pilot.py", "factored_interpreter.py", "lexical_condition.py", "interpreter_robustness.py",
            "typed_questions.py", "../integrated/segment_grammar.py", "../integrated/segment_grounding.py",
            "../integrated/constrained_decoding.py", "../integrated/interpreters.py", "../integrated/routing.py",
@@ -111,17 +140,19 @@ def follow(world, program, e) -> tuple[str, str | None, str]:
 
 
 # --- A, A+K, F and F+B from their records ------------------------------------------------------------------------
-def a_row(rec, world) -> dict:
+def a_row(rec, world, item_program=None, item_entity=None) -> dict:
     score = float(torch.tensor(rec["step_probabilities"]).prod()) * rec["entity_probability"]
     if rec["outcome"] != "program":
         dec = ("abstain", None, rec["outcome"])
     else:
         dec = follow(world, rec["steps"], rec["entity"])
     return {"decision": dec[0], "answer": dec[1], "reason": dec[2], "score": score, "entity": rec["entity"],
-            "program": list(rec["steps"]) if rec["outcome"] == "program" else None}
+            "program": list(rec["steps"]) if rec["outcome"] == "program" else None,
+            "exact_parse": rec["outcome"] == "program" and list(rec["steps"]) == (item_program or [])
+            and rec["entity"] == item_entity}
 
 
-def ak_row(rec, item, world, entities, outputs, fail) -> dict:
+def ak_row(rec, item, world, entities, outputs, fail, rules: str = "v2") -> dict:
     g = FV.read(item["text"], entities)
     if g["status"] != "ok":
         if rec.get("grammar") != g["status"] or "steps" in rec:
@@ -149,7 +180,19 @@ def ak_row(rec, item, world, entities, outputs, fail) -> dict:
         disallowed = [i for i in range(len(outputs)) if i not in allowed]
         if disallowed and all(dist[i] == 0.0 for i in disallowed):
             fail("A+K: a step distribution is renormalized over its allowed set")
-        chosen = max(allowed, key=lambda i: (dist[i], -i))
+        if rules == "v1":  # the recorded pilot's code (0e1a3c9): the highest allowed probability
+            chosen = max(allowed, key=lambda i: (dist[i], -i))
+        else:  # corrected: the highest allowed logit; the probabilities must be the logits' softmax
+            logits = st.get("logits")
+            if not isinstance(logits, list) or len(logits) != len(outputs):
+                fail("A+K: a step does not record its logits")
+                logits = dist
+            else:
+                m = max(logits)
+                z = sum(math.exp(v - m) for v in logits)
+                if any(abs(math.exp(v - m) / z - q) > 1e-6 for v, q in zip(logits, dist)):
+                    fail("A+K: a step's probabilities are not the softmax of its logits")
+            chosen = max(allowed, key=lambda i: (logits[i], -i))
         if st["chosen"] != chosen:
             fail("A+K: a choice is not the highest-probability allowed output")
         o = outputs[chosen]
@@ -255,9 +298,11 @@ def cert(cal, rows, correct_fn):
 
 
 def same_certificate(produced: dict, mine: dict) -> bool:
-    steps = [[s["threshold"], s["accepted"], s["errors"], s["p_value"], s["rejected"]] for s in produced["steps"]]
-    return (steps == [list(s) for s in mine["steps"]] and produced["threshold"] == mine["threshold"]
-            and produced["certified"] == mine["certified"] and produced["stop_reason"] == mine["stop_reason"])
+    """Every field of a fixed-sequence certificate, the risk settings included."""
+    steps = [[s["threshold"], s["accepted"], s["errors"], s["p_value"], s["rejected"]] for s in produced.get("steps", [])]
+    return (steps == [list(s) for s in mine["steps"]] and produced.get("threshold") == mine["threshold"]
+            and produced.get("certified") == mine["certified"] and produced.get("stop_reason") == mine["stop_reason"]
+            and produced.get("alpha") == mine["alpha"] == ALPHA and produced.get("delta") == mine["delta"] == DELTA)
 
 
 def groups_of(items, rows):
@@ -300,14 +345,29 @@ def crit(certified, cc, nc):
             and cc["S4b_primary"]["abstention"] >= REFUSAL, "s2_exact_unthresholded": nc["S2"]["exact_accuracy"]}
 
 
-def historical(items, rows, released):
-    """The robustness study's answer-based category metrics (`measure`), re-implemented."""
+def historical(items, rows, threshold, certified_policy):
+    """The robustness study's answer-based category table (`interpreter_robustness.measure`), re-implemented in
+    full: every field, for the certified policy (answer only at or above the threshold) or for none."""
+    def accepts(r):
+        if r["decision"] != "answer":
+            return False, r["reason"]
+        if certified_policy and (threshold is None or r["score"] < threshold):
+            return False, "threshold"
+        return True, "answered"
     out = {}
     for cat, pairs in groups_of(items, rows).items():
-        acc = [(x, r) for x, r in pairs if released(r)]
-        errors = sum(not answer_correct(x, r) for x, r in acc)
-        out[cat] = {"n": len(pairs), "answered": len(acc), "errors": errors, "coverage": len(acc) / len(pairs),
-                    "abstention": 1 - len(acc) / len(pairs), "error_upper_95": K.clopper_pearson_upper(errors, len(acc))}
+        verdicts = [accepts(r) for _, r in pairs]
+        acc = [pr for pr, v in zip(pairs, verdicts) if v[0]]
+        wrong = [(x, r) for x, r in acc if not answer_correct(x, r)]
+        n = len(pairs)
+        out[cat] = {"n": n, "answered": len(acc), "errors": len(wrong), "coverage": len(acc) / n,
+                    "abstention": 1 - len(acc) / n, "error_upper_95": K.clopper_pearson_upper(len(wrong), len(acc)),
+                    "abstention_interval_95": K.exact_interval(n - len(acc), n),
+                    "exact_parse": sum(r["exact"] for _, r in pairs) / n,
+                    "right_answer_wrong_parse": sum(answer_correct(x, r) and not r["exact"] for x, r in acc),
+                    "reasons": dict(Counter(v[1] for v in verdicts)),
+                    "wrong_entity": sum(r.get("entity") != x["entity"] for x, r in wrong),
+                    "wrong_program": sum(r.get("entity") == x["entity"] for x, r in wrong)}
     return out
 
 
@@ -331,9 +391,10 @@ def f_macs(n, d=48, h=64, style_d=8, labels=7):
     return n * 2 * 3 * (d * h + h * h) + (2 * h + style_d) * labels
 
 
-def a_draws(n_examples, seed, updates, batch):
+def a_batches(n_examples, seed, updates, batch):
+    """The batches `interpreters.train` draws: the same generator calls in the same order."""
     gen = torch.Generator().manual_seed(seed)
-    order, k, draws = [], 0, [0] * n_examples
+    order, k, out = [], 0, []
     for _ in range(updates):
         if k + batch > len(order):
             order, k = torch.randperm(n_examples, generator=gen).tolist(), 0
@@ -341,13 +402,29 @@ def a_draws(n_examples, seed, updates, batch):
         k += batch
         for _ in idx:
             torch.rand(1, generator=gen)  # interpreters.train's entity-dropout draw, one per example drawn
+        out.append(idx)
+    return out
+
+
+def a_draws(n_examples, seed, updates, batch):
+    draws = [0] * n_examples
+    for idx in a_batches(n_examples, seed, updates, batch):
         for i in idx:
             draws[i] += 1
     return draws
 
 
+def a_macs_padded(lengths, d=48, h=64, n_out=8, steps=MAX_STEPS + 1):
+    """A batch's MACs with the padded width W = its longest question: the packed encoder sees each question's own
+    tokens; the entity head and the attention (scores and context) run over all W positions of every row."""
+    h2, B, W_ = 2 * h, len(lengths), max(lengths)
+    encoder = sum(n * 2 * 3 * (d * h + h * h) for n in lengths)
+    per_step = B * (h2 * h2 + 3 * ((d + h2) * h2 + h2 * h2) + 2 * h2 * n_out) + 2 * B * W_ * h2
+    return encoder + B * W_ * h2 + B * h2 * h2 + steps * per_step
+
+
 # --- one unit -------------------------------------------------------------------------------------------------------
-def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN) -> dict:
+def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN, rules: str = "v2") -> dict:
     tag = f"w{info['world']} i{info['init']} {info['regime']}"
     fail = lambda m: problems.append(f"{tag}: {m}")  # noqa: E731
     d = run_dir / info["path"]
@@ -372,12 +449,12 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
             return {}
     rows = {"A": [], "AK": [], "F": [], "FB": []}
     for x, rec in zip(items, recs["A"]):
-        r = a_row(rec, world)
+        r = a_row(rec, world, x["program"], x["entity"])
         if (r["decision"], r["answer"], r["reason"], r["score"]) != (rec["decision"], rec["answer"], rec["reason"], rec["score"]):
             fail(f"A: item {x['id']} does not re-derive from its parse")
         rows["A"].append(r)
     for x, rec in zip(items, recs["AK"]):
-        r = ak_row(rec, x, world, entities, outputs, fail)
+        r = ak_row(rec, x, world, entities, outputs, fail, rules)
         if (r["decision"], r["answer"], r["reason"]) != (rec["decision"], rec["answer"], rec["reason"]):
             fail(f"A+K: item {x['id']}'s decision does not re-derive")
         rows["AK"].append(r)
@@ -437,13 +514,18 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
             fail(f"{name}: its criteria do not re-derive")
         mine[name] = nc
     # A's historical answer-based certificate and criteria, for P1
-    hc, _ = cert(cal, rows["A"][:n_cal], answer_correct)
+    hc, hrec = cert(cal, rows["A"][:n_cal], answer_correct)
     hp = unit.get("historical_A", {})
     if not same_certificate(hp.get("certificate", {"steps": []}), hc):
         fail("A: the historical answer-based certificate does not re-derive")
+    if hp.get("certificate", {}).get("records") != [{"id": i, "score": sc, "correct": c} for i, sc, c in hrec]:
+        fail("A: the historical certificate's eligible calibration records do not re-derive")
     hth = hc["threshold"] if hc["certified"] else None
-    hcc = historical(test, rows["A"][n_cal:], lambda r: r["decision"] == "answer" and hth is not None and r["score"] >= hth)
-    hnc = historical(test, rows["A"][n_cal:], lambda r: r["decision"] == "answer")
+    a_test = [{**r, "exact": r["exact_parse"]} for r in rows["A"][n_cal:]]
+    hcc = historical(test, a_test, hth, True)
+    hnc = historical(test, a_test, None, False)
+    if norm(hp.get("certified")) != norm(hcc) or norm(hp.get("none")) != norm(hnc):
+        fail("A: a historical category table (certified or none) does not re-derive")
     hcrit = historical_criteria(bool(hc["certified"]), hcc, hnc)
     if norm(hp.get("criteria")) != norm(hcrit):
         fail("A: the historical criteria do not re-derive")
@@ -460,11 +542,20 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
     # realized training cost
     tr = unit.get("training", {})
     examples = train + aug
-    draws = a_draws(len(examples), info["init"], design["updates"], design["batch"])
+    batches = a_batches(len(examples), info["init"], design["updates"], design["batch"])
+    draws = [0] * len(examples)
+    for idx in batches:
+        for i in idx:
+            draws[i] += 1
     lengths = [len(x["text"].split()) for x in examples]
+    unpadded = sum(a * a_macs(b) for a, b in zip(draws, lengths))
     want_a = {"presentations": sum(draws), "examples": len(examples), "tokens": sum(a * b for a, b in zip(draws, lengths)),
-              "forward_macs": sum(a * a_macs(b) for a, b in zip(draws, lengths)),
               "draws_by_category": dict(Counter(x["category"] for x, dd in zip(examples, draws) for _ in range(dd)))}
+    if rules == "v1":
+        want_a["forward_macs"] = unpadded  # recorded at 0e1a3c9: each question's own tokens, no padded positions
+    else:
+        want_a["forward_macs_unpadded"] = unpadded
+        want_a["forward_macs_padded"] = sum(a_macs_padded([lengths[i] for i in idx]) for idx in batches)
     if {k: tr.get("A", {}).get(k) for k in want_a} != norm(want_a):
         fail("A: its realized training draws, tokens or MACs do not re-derive")
     f = tr.get("F", {})
@@ -480,10 +571,18 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
     admitted = [FV.read(x["text"], entities) for x in items]
     segments = sum(len(g["segments"]) for g in admitted if g["status"] == "ok")
     apps = lambda name: sum(len(r["program"]) for r in rows[name] if r["decision"] == "answer")  # noqa: E731
-    want = {"A": {"encoder_passes": len(items), "decoder_steps": len(items) * (MAX_STEPS + 1)},
-            "AK": {"encoder_passes": sum(g["status"] == "ok" for g in admitted),
-                   "decoder_steps": sum(len(r.get("steps", [])) for r in recs["AK"]),
-                   "grammar_refusals": sum(g["status"] != "ok" for g in admitted)},
+    emitted_ak = sum(len(r.get("steps", [])) for r in recs["AK"])
+    if rules == "v1":  # 0e1a3c9 recorded A+K's emitted steps under the name "decoder_steps"
+        a_cost = {"encoder_passes": len(items), "decoder_steps": len(items) * (MAX_STEPS + 1)}
+        ak_cost = {"encoder_passes": sum(g["status"] == "ok" for g in admitted), "decoder_steps": emitted_ak,
+                   "grammar_refusals": sum(g["status"] != "ok" for g in admitted)}
+    else:
+        a_cost = {"encoder_passes": len(items), "evaluated_row_steps": len(items) * (MAX_STEPS + 1),
+                  "emitted_decisions": sum(len(r["step_probabilities"]) for r in recs["A"])}
+        ak_cost = {"encoder_passes": sum(g["status"] == "ok" for g in admitted), "emitted_decisions": emitted_ak,
+                   "evaluated_row_steps": ak_row_steps(recs["AK"]),
+                   "grammar_refusals": sum(g["status"] != "ok" for g in admitted)}
+    want = {"A": a_cost, "AK": ak_cost,
             "F": {"segment_passes": segments, "module_applications": apps("F")},
             "FB": {"segment_passes": segments,
                    "candidates_proposed": sum(len(r.get("programs", [])) for r in recs["FB"]),
@@ -498,6 +597,14 @@ def verify_unit(run_dir: Path, info: dict, problems: list, design: dict = DESIGN
     return {"unit": tag, "criteria": {n: crit_summary(systems.get(n, {})) for n in NEURAL + CONTROLS}, "p1": p1, "p5": p5}
 
 
+def ak_row_steps(ak_records, batch: int = 256) -> int:
+    """The decoder row-steps A+K actually evaluated: admitted questions run in batches of `batch`, in item order;
+    a batch keeps stepping every row until all its rows are done, so it costs (rows) x (its longest emission)."""
+    admitted = [r for r in ak_records if "steps" in r]
+    return sum(len(chunk) * max((len(r["steps"]) for r in chunk), default=0)
+               for chunk in (admitted[i:i + batch] for i in range(0, len(admitted), batch)))
+
+
 def crit_summary(s: dict) -> dict:
     return s.get("criteria", {})
 
@@ -507,15 +614,23 @@ def source_hashes() -> dict:
     return {s: hashlib.sha256((here / s).read_bytes()).hexdigest() for s in SOURCES}
 
 
-def verify(run_dir: Path, design: dict = DESIGN) -> dict:
-    """`design` is the declared pilot design; tests pass a reduced one (fewer countries and updates), and the run's
-    recorded configuration must equal whichever design is given."""
+def verify(run_dir: Path, design: dict | None = None) -> dict:
+    """A run recorded at a bound commit (the development pilot, 0e1a3c9) is checked against that commit's source
+    hashes and re-derived under its rules; any other run against the current files and the corrected rules.
+    `design` is the declared pilot design (tests pass a reduced one); the run's configuration must equal it."""
     run_dir = Path(run_dir)
     run = json.loads((run_dir / "run.json").read_text())
     problems = []
+    prov = run.get("provenance", {})
+    bound = BOUND.get(prov.get("commit"))
+    rules = bound["rules"] if bound else "v2"
+    design = design or (DESIGN if bound else DESIGN_V2)
     if run.get("config") != design or run.get("pilot") != PILOT_VERSION:
         problems.append("the run's configuration is not the declared pilot design")
-    if run.get("provenance", {}).get("sha256") != source_hashes():
+    if bound:
+        if prov.get("sha256") != bound["sources"] or prov.get("research_tree_dirty") is not False:
+            problems.append("the run's recorded producer sources are not those of its bound commit")
+    elif prov.get("sha256") != source_hashes():
         problems.append("the run's recorded producer sources are not the sources being verified")
     req = run.get("requested", {})
     want = sorted((w, i, r) for w in req.get("worlds", []) for i in req.get("inits", []) for r in req.get("regimes", []))
@@ -526,10 +641,10 @@ def verify(run_dir: Path, design: dict = DESIGN) -> dict:
         problems.append("a world or init outside development was requested before the protocol was frozen")
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
-    units = [verify_unit(run_dir, info, problems, design) for info in run["units"]]
+    units = [verify_unit(run_dir, info, problems, design, rules) for info in run["units"]]
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
-    return {"verified": True, "commit": run["provenance"]["commit"], "units": units}
+    return {"verified": True, "commit": run["provenance"]["commit"], "rules": rules, "units": units}
 
 
 def main(argv=None):

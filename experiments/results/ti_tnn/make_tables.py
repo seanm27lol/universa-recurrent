@@ -486,6 +486,58 @@ def repeated_updates_tables(bundle: Path = HERE, rebuild: bool = False, reproduc
     return {"rebuilt": True, **recorded}
 
 
+def factored_interpreter_tables(bundle: Path = HERE, traces_dir: Path | None = None) -> dict:
+    """The factored interpreter's development engineering result (protocols/factored_interpreter_v1.md), recorded at
+    0e1a3c9 and closed without a confirmation.
+
+    The no-fit controls run (L, G, W and the lexical condition) is bundled whole. It is always re-verified by
+    `factored_interpreter_verify`, and the result must equal `controls_verification.json`. The pilot's compact export
+    is bundled; its eight A+K step-trace files are release assets (`pilot_trace_release.json`). With `traces_dir`, each
+    is checked against its sha256 and staged next to the bundled export. Then the pilot verifier and the A+K diagnosis
+    re-run, and must equal `pilot_verification.json` and `ak_diagnosis.json`."""
+    import shutil
+    import tempfile
+    root = bundle / "factored_interpreter"
+    sys.path.insert(0, str(BENCH))
+    import factored_interpreter_verify as FV  # research/ti_tnn/bench/factored_interpreter_verify.py
+    controls = next(d for d in sorted((root / "controls").iterdir()) if d.is_dir())
+    recorded = json.loads((root / "controls_verification.json").read_text())
+    rebuilt = json.loads(json.dumps(FV.verify(controls), sort_keys=True, default=str))
+    if rebuilt != recorded:
+        raise ValueError("factored interpreter: the controls re-verification differs from controls_verification.json")
+    out = {"controls": rebuilt, "pilot": json.loads((root / "pilot_verification.json").read_text()),
+           "diagnosis": json.loads((root / "ak_diagnosis.json").read_text()), "pilot_rebuilt": False}
+    if traces_dir is None:
+        return out
+    import factored_pilot_diagnose as FD  # research/ti_tnn/bench/factored_pilot_diagnose.py
+    import factored_pilot_verify as PV  # research/ti_tnn/bench/factored_pilot_verify.py
+    release = json.loads((root / "pilot_trace_release.json").read_text())
+    pilot = root / "pilot" / release["run"]
+    staging = Path(tempfile.mkdtemp(prefix="factored_"))
+    try:
+        target = staging / release["run"]
+        shutil.copytree(pilot, target, symlinks=True)
+        for asset in release["assets"]:
+            data = (Path(traces_dir) / asset["name"]).read_bytes()
+            if hashlib.sha256(data).hexdigest() != asset["sha256"] or len(data) != asset["bytes"]:
+                raise ValueError(f"{asset['name']}: does not match the sha256 in pilot_trace_release.json")
+            (target / asset["path"]).write_bytes(data)
+        pv = json.loads(json.dumps(PV.verify(target), sort_keys=True, default=str))
+        run = json.loads((target / "run.json").read_text())
+        cfg = run["config"]
+        dg = {"run": target.name, "commit": run["provenance"]["commit"],
+              "units": [FD.diagnose_unit(target, info, cfg["countries"], cfg["updates"], cfg["batch"])
+                        for info in run["units"]]}
+        dg = json.loads(json.dumps(dg, sort_keys=True))
+    finally:
+        shutil.rmtree(staging)
+    if pv != out["pilot"]:
+        raise ValueError("factored interpreter: the pilot re-verification differs from pilot_verification.json")
+    if dg != out["diagnosis"]:
+        raise ValueError("factored interpreter: the A+K diagnosis differs from ak_diagnosis.json")
+    return {**out, "pilot_rebuilt": True}
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -518,6 +570,8 @@ def main(argv=None):
                    "bundled export (a few minutes)")
     p.add_argument("--repeated-reproduce", action="store_true", help="with --repeated-updates, also retrain the frozen "
                    "sample of 114 chains (about 20 minutes)")
+    p.add_argument("--factored-traces", type=Path, help="the factored interpreter pilot's A+K trace files "
+                   "(factored_interpreter/pilot_trace_release.json); re-verifies the pilot and re-runs the A+K diagnosis")
     args = p.parse_args(argv)
     manifest = verify()
     print(f"{len(manifest['files'])} files match manifest.json\n")
@@ -647,6 +701,10 @@ def main(argv=None):
           f"{'rebuilt by the frozen verifier' if ru['rebuilt'] else 'as verified at bundling (pass --repeated-updates to rebuild)'}: "
           f"predictions {ru['predictions']}; PR 9 decision {({b: d['outcome'] for b, d in ru['decision'].items()})}; "
           f"sampled reproduction {ru['reproduction']['identical']}/{ru['reproduction']['chains']} identical")
+    fi = factored_interpreter_tables(traces_dir=args.factored_traces)
+    print(f"\nFactored interpreter (development; closed without confirmation): controls re-verified "
+          f"({len(fi['controls']['units'])} units); pilot {'re-verified with its A+K traces' if fi['pilot_rebuilt'] else 'as verified at bundling (pass --factored-traces to rebuild)'}"
+          f" ({len(fi['pilot']['units'])} units, rules {fi['pilot']['rules']})")
     for part in ("development", "confirmation"):
         a = s2[part]
         print(f"  {part} trace tables rebuilt for arms {a['traced_arms']}"

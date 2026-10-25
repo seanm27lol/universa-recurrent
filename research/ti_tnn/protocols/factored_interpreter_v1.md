@@ -1,6 +1,9 @@
 # A factored interpreter: learned lexical grounding under a supplied typed grammar (draft, revision 3)
 
-**Status: DRAFT, revision 3 (2026-10-25), after the review of revision 2.**
+**Status: CLOSED (2026-10-25) as a development engineering result, at revision 3.** It was never frozen, and no
+confirmation was run ("Closing record" below; [report](../reports/factored_interpreter_v1.md)).
+
+**Revision 3 (2026-10-25), after the review of revision 2:**
 - **The bounded engineering pilot has run** on development worlds 100–101: 16 fits of A and F, with A+K, F+B, L, G
   and W evaluated from them. The independent verifier re-derived it. Results are in "History".
 - **The lexical-generalization extension** is at the specification and no-fit-control stage. No neural model has
@@ -820,3 +823,27 @@ The module applications for answered programs were identical across the systems 
   and none lists those worlds.
 - **Directory names:** two matched "100[012]". Both are false positives: a timestamp (`…T131002`) and a data ID
   (`data-91000`).
+
+## Closing record (2026-10-25; nothing above was changed)
+
+**The decision.** The review of revision 3 closed this phase as a development engineering result. The 60-fit
+confirmation was not run, and worlds 1000–1002 remain untouched.
+
+**Corrections made in closing.** The recorded pilot and controls runs stay bound to `0e1a3c9`: the verifiers check
+their recorded sources against that commit's hashes, from `git show`.
+- **The pilot verifier** now also compares alpha and delta in every certificate, A's historical eligible calibration
+  records, and both historical category tables in full. Each has a new rejection test.
+- **The accounting** separates emitted decisions from evaluated decoder row-steps, labels A's training MACs as
+  unpadded or padded, and keeps F's and F+B's duration as one combined measurement, with its boundary stated.
+- **A+K's selection** uses the allowed logits in corrected code, with scores still from the original probabilities,
+  and has an underflow fixture. The recorded pilot used the earlier, probability-based rule. On its records this
+  changes no choice: none of its recorded steps tied at the maximum allowed probability.
+
+**The export's integrity.** All 58 original export files are complete: every gzip file decompressed in full, every
+JSON document parsed, and every records file holds 17,900 items. Their sha256 are in
+`experiments/results/ti_tnn/factored_interpreter/export_integrity.json`.
+
+**The A+K diagnosis** was made from the saved records only, with no new fit. It is in the report and in `ak_diagnosis.json`.
+
+**For a later proposal.** A lexical task is not begun merely to defeat W. A later proposal must start from a useful
+missing capability, specify what makes its semantics learnable, and include the cheapest relevant baseline.
