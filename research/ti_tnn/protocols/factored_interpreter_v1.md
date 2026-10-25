@@ -1,10 +1,11 @@
-# A factored interpreter: learned lexical grounding under a supplied typed grammar (draft, revision 2)
+# A factored interpreter: learned lexical grounding under a supplied typed grammar (draft, revision 3)
 
-**Status: DRAFT, revision 2 (2026-10-25), after the review of revision 1.**
-- **No neural model has been fitted,** and nothing is frozen.
-- **Implemented and run on development worlds 100–101:** the supplied grammar and the two no-fit controls, L and
-  G.
-- **Worlds 1000–1002 are reserved and untouched.** A logged inventory check is in "History".
+**Status: DRAFT, revision 3 (2026-10-25), after the review of revision 2.**
+- **The bounded engineering pilot has run** on development worlds 100–101: 16 fits of A and F, with A+K, F+B, L, G
+  and W evaluated from them. The independent verifier re-derived it. Results are in "History".
+- **The lexical-generalization extension** is at the specification and no-fit-control stage. No neural model has
+  been fitted on it.
+- **Nothing is frozen.** Worlds 1000–1002 are reserved and untouched (logged inventory check in "History").
 
 **Where this comes from.** It is item 2 of the order recorded in the [integration plan](../integration_plan.md)
 after the review of #61: the next main learning study. It responds to:
@@ -34,8 +35,8 @@ pairs. On development worlds 100 and 101, it made **no wrong decision, no error 
 - under full and reduced exposure;
 - with raw tokens as keys, and with the training-vocabulary representation proposed for F.
 
-G, the reference lexicon, did the same. The independent verifier re-derived every record. This reproduces the
-review's no-fit check, with a separate implementation.
+G, the reference lexicon, did the same. So did W, the word-association baseline added in revision 3. The independent
+verifier re-derived every record. This reproduces the review's no-fit check, with a separate implementation.
 
 **Why.** Every supported segment in every evaluation category occurs as an exact string in training, under both
 regimes:
@@ -75,11 +76,12 @@ Held-out (S4) segments never occur in training:
 | System | What it is | Fitted? |
 |---|---|---|
 | **A** | `word_aug` as in the robustness study: the same encoder, decoder, augmentation, training and greedy decoding, with its entity pointer | yes |
-| **A+K** | A's fitted model, decoded under the supplied grammar's constraints inside its recurrence (below), with its entity pointer | no: A's fit |
+| **A+K** | A grammar-admitted constrained policy sharing A's model and entity pointer: A's fit, decoded under the supplied grammar's constraints inside its recurrence (below) | no: A's fit |
 | **F** | The supplied grammar plus a neural segment-grounding model, greedy | yes |
 | **F+B** | F's fitted model, with the bounded-alternatives policy (below) | no: F's fit |
 | **L** | The supplied grammar plus a lookup dictionary induced from the same aligned training pairs available to F | no |
 | **G** | The supplied grammar plus the reference lexicon (Base and taught phrasings) | no |
+| **W** | The supplied grammar plus training-derived word associations: each word's label set from the aligned pairs, intersected across a segment (below) | no |
 
 **L and G** differ only in where the lexicon comes from. L learns it from examples; G receives it.
 
@@ -157,6 +159,22 @@ the runtime.
 
 **L is reported in both representations,** raw and vocab. The vocab one uses F's input representation.
 
+### W, the training-derived word association (no-fit; added in revision 3)
+
+**The association.** From the same aligned training pairs as L, W collects, for each (style, word), the set of
+labels of the training segments containing that word.
+
+**A segment's label** is the intersection of its words' label sets:
+- a unique relation is used;
+- a unique refusal label refuses;
+- an unseen word, an empty intersection or several labels refuse.
+
+**Its decisions** are made like L's: segments in execution order, then binding, type checks and execution by the
+runtime.
+
+**Why it is here.** It is the no-fit baseline for lexical generalization: it grounds a segment never seen as a
+string, when its words identify it.
+
 ### F, the neural grounding model (specified before any fit)
 
 - **Input:**
@@ -178,6 +196,9 @@ the runtime.
 - **Initialization:** the init seed. CPU only, 4 threads.
 - **Its score** is the product of its segments' chosen-label probabilities. The entity is bound deterministically,
   so its binding contributes 1.
+- **Training cost is reported as realized:** the presentations actually drawn, per (style, segment, label) tuple;
+  the tokens; the forward MACs from the layer shapes; and wall time. Equal update counts (1,500 × 64 for A and for
+  F) are not equal compute.
 
 ### F+B, the bounded-alternatives policy (complete)
 
@@ -227,6 +248,9 @@ Revision 1's rule would have answered `operator_of`, though `<unsupported>` was 
 
 ### A+K, constrained decoding inside the recurrence (complete)
 
+**A+K is a grammar-admitted constrained policy sharing A's model and entity pointer.** It answers only questions the
+grammar admits. Its grammar refusals are reported separately from its own decisions.
+
 The decoder feeds each chosen token into its next GRU step. So the constraints are applied while decoding, not to
 the logits of an unconstrained pass. The steps:
 
@@ -265,27 +289,84 @@ grounding input that the full regime presents. Only the multiplicity changes: 15
 
 **Training is not reduced further** to make the neural model uncertain. Ceiling results are reported as they are.
 
-## A separate lexical-generalization condition (proposed; decision 1; not implemented)
+## The lexical-generalization condition (specification and no-fit controls only)
 
-**What it would contain.** Supported segment forms that never occur as exact strings in training, but whose meaning
-the training identifies, kept separate from S4.
+**What it is for.** It tests grounding of supported segment forms that never occur as exact strings in training,
+but whose meaning training identifies. It is kept separate from S4, whose untaught essential wording must still be
+refused. No neural model is fitted on it.
 
-**A candidate design.** Recombine a taught head word with a Base connector of the same relation:
-- "the airfield serving": "airfield" occurs only in `airport_of` phrasings, and "serving" only in "the airport
-  serving";
-- "the firm operating";
-- "the nation containing";
-- "the most populous city in".
+**Identifiability, defined operationally.** A form is identifiable from the training pairs of a regime when all three
+hold:
+- every word of the form occurs, in the same style, in aligned training segments;
+- the intersection of those words' training label sets is exactly one relation, which is W's grounding;
+- the form occurs nowhere in training as a segment string.
 
-**The rule that keeps their meaning identifiable:** every word of an LG form occurs in training only in phrasings
-of one relation, and no LG word is a held-out (H) word.
+No held-out (H) word may occur in a form. Revision 2 described the rule as "every word occurs in phrasings of one
+relation", which was wrong for "the", "of" and "city". The intersection is the rule.
 
-**What the systems would do:**
-- L refuses LG forms by construction, because they are unseen;
-- the question is whether learned grounding answers them correctly;
-- S4's untaught essential wording must still be refused.
+**The complete phrase inventory** (`bench/lexical_condition.py`, `inventory`) follows one declared rule:
+- take each relation's taught head (the words between "the" and the taught phrasing's last word);
+- combine it with each connector (last word) of the relation's Base prefix phrasings, except "of";
+- drop any string that already occurs among the declared phrasings.
 
-**What it would need before any fit:** its own populations, reference programs and criteria.
+That gives **4 distinct phrases.** `capital_of` has none, because its Base phrasings use only "of".
+
+| Relation | Taught | Base phrasing with another connector | New phrase |
+|---|---|---|---|
+| `largest_city_of` | the most populous city of | the biggest city in | the most populous city in |
+| `country_of` | the nation of | the country containing | the nation containing |
+| `airport_of` | the airfield of | the airport serving | the airfield serving |
+| `operator_of` | the firm running | the company operating | the firm operating |
+
+**Sampling** (`lexical_items`). Draws are independent, with replacement, from the robustness study's held-out
+population (instances never used in training), in prefix style, with a seed fixed per world:
+- **LG1:** 400 draws of a one-step instance whose relation has a new phrase;
+- **LG2:** 800 draws of a two-step instance, with a position j chosen uniformly among the positions whose relation
+  has one.
+
+That is 4,400 questions per world.
+
+**Matched controls.** Every draw is one group of variants, each its own category, never pooled:
+
+| Design | Variant | The phrasing at the position | Expected |
+|---|---|---|---|
+| LG1 | `LG1` | the new phrase | answer |
+| LG1 | `LG1_taught` | the taught phrasing | answer |
+| LG1 | `LG1_base` | a Base phrasing | answer |
+| LG2 | `LG2` | the new phrase at j, Base elsewhere | answer |
+| LG2 | `LG2_taught` | the taught phrasing at j | answer |
+| LG2 | `LG2_base` | Base throughout | answer |
+| LG2 | `LG2_held` | the held-out phrasing at j | abstain |
+
+**Criteria, for any future neural lexical run.** A system grounds the new phrases when, in the same unit, all four
+hold:
+- it has a certificate;
+- `LG1` and `LG2` each have coverage ≥ 0.80 with a 95% error bound ≤ 1%, under primary correctness;
+- `LG2_held`, `S4a_primary` and `S4b_primary` each have abstention ≥ 0.95;
+- it passes the sanity checks.
+
+It must be reported against W, the no-fit standard of this condition. A neural run that only matches W shows no
+need for neural lexical generalization.
+
+**The no-fit results** (development worlds 100–101, both regimes; verified independently):
+- **The inventory:** 4 distinct phrases in each world. They are used in 1,200 LG1 and LG2 questions per world:
+  - "the nation containing" 490 and 534;
+  - "the airfield serving" 317 and 273;
+  - "the firm operating" 210 and 218;
+  - "the most populous city in" 183 and 175.
+- **Identifiability:** each of the 4 phrases is identifiable in both regimes. All its words are seen, W's
+  intersection is its relation, and it is never seen as a segment.
+- **W grounds every new phrase:**
+  - `LG1` 400 of 400 and `LG2` 800 of 800 answered, with exact programs;
+  - it refuses `LG2_held` (0 of 800 answered);
+  - it keeps S4 refusal: `S4a_primary` and `S4b_primary` 2,000 of 2,000 each;
+  - on the standard 17,900 items it makes no wrong decision.
+- **L and G refuse the new phrases** by construction (0 of 400 and 0 of 800) and answer the taught and Base variants.
+
+**What follows.** On this condition, a no-fit word association already solves the proposed phrases. A neural lexical
+run is therefore not proposed with this inventory. A future condition would need forms that W cannot ground, yet
+whose meaning training identifies by a stated rule. That rule would have to be specified, with its own no-fit
+standard, before any fit.
 
 ## Populations, categories and correctness
 
@@ -356,14 +437,28 @@ rule:
 - δ = 0.05;
 - the primary-correctness predicate.
 
-A certificate for A's greedy policy does not carry over to A+K, F or F+B. L and G have no score: each answers or
-abstains deterministically, and is reported with its observed error and exact bound.
+A certificate for A's greedy policy does not carry over to A+K, F or F+B.
+
+**The deterministic policies** L, G and W have no score. Each gets a single calibration risk test, on the same
+calibration items and the same primary-correctness endpoint as the neural policies. The null "accepted error ≥ 1%"
+is rejected when P(Binomial(n, 0.01) ≤ e) ≤ 0.05, where n is the number of calibration items it answers and e its
+errors. A policy that fails the test answers nothing under the certified policy.
 
 **The feasibility check in development.**
 - **The risk.** The strictest rule may accept too few calibration questions to certify, and that ends the sequence
   before looser rules are tested.
-- **The numbers.** At the strictest rule, 0 accepted errors are allowed below 473 accepted questions, 1 below 628
-  and 2 below 773 (the robustness study's power table).
+- **The numbers.** Fewer than **299** accepted items cannot certify, even with zero errors (0.99²⁹⁹ ≈ 0.0495 ≤ 0.05;
+  0.99²⁹⁸ ≈ 0.0500). The largest error count that can still certify grows with the accepted count:
+
+  | Accepted items n | Errors allowed |
+  |---|---|
+  | fewer than 299 | none certifies |
+  | 299–472 | 0 |
+  | 473–627 | 1 |
+  | 628–772 | 2 |
+  | 773–912 | 3 |
+
+  Revision 2 omitted the 299 floor.
 - **The check.** Development checks every system. Any change to the grid or its order is disclosed and made before
   freezing.
 
@@ -381,6 +476,8 @@ it is not simultaneous across systems or units.
 | Certified coverage and risk | empirical | empirical | empirical | empirical | observed (deterministic) | observed |
 | Cost | measured | measured | measured | measured | measured | measured |
 
+**W,** like L and G, is deterministic: its outcomes are construction checks, given the training support.
+
 ## Predictions (one-sided; bars provisional until development)
 
 **The criteria:**
@@ -393,7 +490,7 @@ it is not simultaneous across systems or units.
 
 | # | Prediction | Regime | Kind |
 |---|---|---|---|
-| P1 | **A's world-level verdicts replicate:** in every world, A's S2 verdict and its S1 (non-cancelling) verdict do not hold. That means fewer than 4 of 5 inits meet the criterion, which is not the same as at least 4 failing. Judged under the historical answer metric, and also reported under primary correctness | full | Replication |
+| P1 | **A's world-level verdicts replicate:** in every world, A's S2 verdict and its S1 (non-cancelling) verdict do not hold. That means fewer than 4 of 5 inits meet the criterion, which is not the same as at least 4 failing. It is judged under the historical answer metric, with A's historical answer-based certificate reconstructed separately (the robustness study's code, unchanged). A unit's failure counts as replicated only when that unit passes the historical sanity checks and T1, so that a broken fit cannot pass as a composition failure. Also reported under primary correctness | full | Replication |
 | P2 | **Learned grounding composes under the supplied structure:** F answers where it should on S2 and on S1's non-cancelling chains | full | Empirical (a memorization check on this language) |
 | P3a | **Grammar invariance:** every S3 item's segments equal its S3_base item's | both | Construction check |
 | P3b | **Learned novelty handling:** F abstains where it should on S4a and S4b primary | full | Empirical |
@@ -423,31 +520,71 @@ it is not simultaneous across systems or units.
 - for F and F+B: every segment's complete distribution and every step of the alternatives policy;
 - for A and A+K: the step traces, including A+K's allowed sets along its selected prefix.
 
-**The verifier** (`bench/factored_interpreter_verify.py`) imports only the study generator. It does not import the
-producer's grammar, label, decision, selection or decoding code. It re-implements, from this text:
-- the training-derived labels and L's dictionary;
+**Two verifiers.** `bench/factored_interpreter_verify.py` covers the no-fit stage: L, G, W, the support report and
+the lexical condition. `bench/factored_pilot_verify.py` covers the pilot.
+
+**What they import:**
+- the generators: the robustness study and `lexical_condition`;
+- the world;
+- numeric binomial helpers and the canonical hash;
+- the fixed-sequence certificate written independently in `interpreter_robustness_verify`.
+
+They do not import the producer's grammar, labels, grounding, decoding, decisions, selection or metrics.
+
+**What they re-implement, from this text:**
+- the training-derived labels, L's dictionaries and W's associations;
 - the segment boundaries and execution order;
 - the ordered segment-to-program alignment audit: each segment must be a declared phrasing of the relation at its
   position, not merely equal in number;
-- F's and F+B's decisions, from the exported distributions;
-- A+K's constraint application and score arithmetic, from the selected-prefix traces;
-- exact-program correctness, answer correctness and accidental agreement, each separately;
-- the certificates, inventories, costs and verdicts.
+- the support report: presentations, sources, unique tuples and keys, conflicts, exclusions, phrase multiplicities and
+  evaluation coverage;
+- the study and lexical-item identities, and the vocabulary size;
+- the decisions of every system:
+  - A's, by binding and executing its proposed program, with its float32 score product;
+  - A+K's, by re-deriving every allowed set along the chosen prefix and every choice, and the score from the recorded
+    original probabilities;
+  - F's and F+B's, completely, from the exported distributions;
+  - L's, G's and W's;
+- exact-program correctness, A's historical answer correctness and accidental agreement, each separately;
+- every certificate, the deterministic policies' risk test, every metric and criterion, P1's sanity-gated replication
+  and P5;
+- realized training cost: A's draws, by replaying the same generator calls, and F's draws against the aligned set,
+  with tokens and forward MACs;
+- the evaluation cost counts;
+- the requested inventory, the configuration, the producer-source hashes and the run-level totals.
 
-**Rejection tests.**
-- **Implemented now,** for the no-fit stage:
+**Rejection tests**, all implemented and passing. Each corruption is rejected with its intended message:
+- **The no-fit stage:**
   - reordered segments;
   - a wrong entity binding;
   - a wrong label;
   - an altered refusal decision;
   - a missing record;
-  - an incomplete unit inventory;
-  - changed correctness counts.
-- **Added with the neural stage:**
-  - masked-score renormalization;
-  - a missing alternative;
-  - an altered F+B refusal check;
-  - changed certificate correctness labels.
+  - changed correctness counts;
+  - altered phrase exposure;
+  - altered dictionary coverage;
+  - an altered calibration risk test;
+  - an altered study identity;
+  - one regime missing;
+  - both regimes of a requested world removed;
+  - a source mismatch;
+  - a configuration mismatch;
+  - altered run-level and unit totals.
+- **The pilot:**
+  - an A+K distribution renormalized over its allowed set;
+  - an A+K score computed from renormalized probabilities;
+  - a widened A+K allowed set;
+  - a missing F+B alternative;
+  - an altered F+B refusal decision;
+  - a changed certificate correctness label;
+  - an altered historical certificate;
+  - altered F presentations;
+  - altered A draws;
+  - an altered P5;
+  - an altered evaluation cost;
+  - an incomplete inventory;
+  - a configuration mismatch;
+  - a source mismatch.
 
 **Sampled reproduction.** One init per world and regime is chosen by an outcome-independent hash, fixed before
 confirmation. A and F are retrained; A+K and F+B are regenerated from those fits; L and G are rebuilt.
@@ -462,9 +599,9 @@ confirmation. A and F are retrained; A+K and F+B are regenerated from those fits
   - sampled reproduction: **12 more fits** (20%).
 - **Time.**
   - **The robustness word arms** took about 17 s per fit, plus evaluation of about 18,000 items.
-  - **The development pilot** is estimated at 25–35 minutes of CPU: 16 fits, A+K's stepwise decoding, F+B's
-    enumeration (at most 8 programs per item), and L and G in seconds.
-  - **The confirmation** is estimated at about 1.5 hours, plus reproduction.
+  - **The development pilot took 4 minutes of CPU at 4 threads,** 27–30 s per unit. Its realized costs are in
+    "History".
+  - **The confirmation would take about 15 minutes,** plus about 3 minutes for reproduction.
 
 ## Interpretation limits
 
@@ -488,13 +625,21 @@ confirmation. A and F are retrained; A+K and F+B are regenerated from those fits
 | 6 | Sampled reproduction | One init per world and regime by hash; A and F refitted; the 16 / 60 / 12 fit inventory |
 | 7 | Confirmation worlds | 1000–1002 reserved, subject to the logged inventory check ("History"). Development stays on 100–101 |
 
-## Decisions for the reviewer (revision 2)
+## Decisions (from the review of revision 2)
+
+| # | Decision | As specified above |
+|---|---|---|
+| 1 | The pilot | The bounded 16-fit engineering pilot (worlds 100–101 × inits 100–101 × full and reduced exposure × A and F). A+K and F+B are evaluated from those fits, with L, G and W retained. The lexical extension stays at specification and no-fit controls |
+| 2 | F's sampling | Per extracted segment presentation, multiplicities preserved, with realized presentations and training cost reported. Equal update counts are not described as equal compute |
+| 3 | A+K | It abstains when the grammar refuses, and those refusals are reported separately. It is described as a grammar-admitted constrained policy sharing A's model and entity pointer |
+| — | Before the pilot | The verifier rebuilds the support report, study identity and vocabulary size; checks configuration, sources and run-level totals; and binds units to the requested inventory. There are rejection tests, the single L/G/W risk test, A's separate historical certificate with sanity gating, and the corrected feasibility table |
+
+## Decisions for the reviewer (revision 3)
 
 | # | Decision | Recommendation |
 |---|---|---|
-| 1 | Run the neural pilot as the engineering comparison on this language, add the lexical-generalization condition, or both | Both, in that order: first the engineering pilot (A, A+K, F, F+B against L and G), then the separately specified condition, if you want the lexical question answered |
-| 2 | F's sampling: per extracted segment presentation (as specified), or per question | Per presentation, disclosed |
-| 3 | A+K abstains when the grammar refuses | Yes. Its constraints need the slot count |
+| 1 | Whether this language merits a confirmation at all. F and F+B were at the ceiling and matched L, G and W exactly, and F+B never differed from F | Not as a learning result. A confirmation would replicate an engineering equivalence. The informative finding is A+K against A |
+| 2 | Whether a lexical condition with forms W cannot ground should be specified | Only with a stated identifiability rule beyond word association and its own no-fit standard. Otherwise the main learning question moves on |
 
 ## History
 
@@ -572,6 +717,99 @@ S2's 800 and S1's 1,100 items were answered with exact programs in every case, a
 
 **P3a, checked as a construction property:** every S3 item's segments equalled its S3_base item's (1,000 of 1,000
 groups per world), and every S3_L3 item's equalled its L3_base item's (300 of 300).
+
+### Revision 2 (2026-10-25, reviewed at `fbef2fd`)
+
+The review authorized the bounded engineering pilot after a set of repairs:
+- **verifier coverage** of the support report, study identity, vocabulary size, configuration, sources, run-level
+  totals and the requested inventory, with new rejection tests;
+- **a single calibration risk test** for the deterministic policies;
+- **A's historical certificate** reconstructed separately, with sanity gating for P1;
+- **the corrected feasibility table;**
+- **W,** and the complete lexical specification.
+
+All are above. It kept the lexical extension at specification and no-fit controls.
+
+### The no-fit controls with W and the lexical condition (2026-10-25; development worlds 100–101)
+
+The run was `bench/factored_interpreter.py --worlds 100 101`, from a clean clone of `0e1a3c9`.
+`bench/factored_interpreter_verify.py` accepted it in full: 4 units.
+- **The standard benchmark.** L (raw and vocab), G and W made no wrong decision, no error and no accidental
+  agreement on 17,900 items per world and regime. Each passed its single calibration risk test: 760 (world 100) or
+  767 (world 101) answered calibration items, with 0 errors.
+- **The lexical condition:** the results under "The lexical-generalization condition" above.
+
+### The bounded engineering pilot (2026-10-25; development worlds 100–101 × inits 100–101 × both regimes)
+
+    CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 nice -n 10 python research/ti_tnn/bench/factored_pilot.py \
+        --worlds 100 101 --inits 100 101 --out <dir>
+
+**The run.** It used a clean clone of `0e1a3c9` and made 16 fits (A and F), in 27–30 s per unit, 4 minutes in all.
+`bench/factored_pilot_verify.py` accepted all 8 units against the declared design and the producer-source hashes.
+- **A disclosure.** That commit's no-fit test still expected three controls, because W had just been added. The
+  assertion was corrected in the next commit. Tests are not among the hashed producer sources.
+
+**Results (4 units per regime; certified policies; primary exact-program correctness):**
+
+| System | Certified (threshold) | Sanity | S2 criterion | S1 (non-cancelling) criterion | Joint novelty | S2 exact accuracy | S1 exact accuracy |
+|---|---|---|---|---|---|---|---|
+| A, full | 4/4 (0) | 4/4 | 0/4 | 0/4 | 4/4 | 0.809–0.975 | 0.000–0.233 |
+| A, reduced | 4/4 (0) | 4/4 | 0/4 | 0/4 | 4/4 | 0.771–0.954 | 0.006–0.471 |
+| A+K, full | 4/4 (0.2) | 4/4 | 3/4 | 0/4 | 4/4 | 0.976–1.000 | 0.611–0.985 |
+| A+K, reduced | 4/4 (0.2) | 4/4 | 4/4 | 0/4 | 4/4 | 0.964–1.000 | 0.470–0.823 |
+| F, both | 8/8 (0) | 8/8 | 8/8 | 8/8 | 8/8 | 1.000 | 1.000 |
+| F+B, both | 8/8 (0) | 8/8 | 8/8 | 8/8 | 8/8 | 1.000 | 1.000 |
+| L (raw, vocab), G, W, both | 8/8 (risk test) | 8/8 | 8/8 | 8/8 | 8/8 | 1.000 | 1.000 |
+
+**Exact accuracies** are unthresholded: abstentions count as failures. Every system had ID coverage 1.000 with 0
+errors, R abstention 1.000, and S4a and S4b primary abstention 1.000.
+
+**P1, A's replication** (historical answer-based certificate, the robustness code unchanged). In all 8 units A passed
+the historical sanity checks and T1, and its S2 and S1 criteria failed. So the composition failure replicates in
+every development unit, gated on sanity. The world-level form of P1 needs 5 inits and is not evaluable on 2.
+
+**P5.** F's (and F+B's) unthresholded S2 exact accuracy minus G's was 0.000 in every unit. So was L's and W's.
+
+**F+B against F.**
+- **No difference:** in all 8 units F+B made exactly F's decisions.
+- **Second candidates were rare:** at most 26 records per unit had one, above the 0.05 floor.
+- **Its abstentions:**
+  - refusal argmax `<unsupported>`, 6,391–6,419 per unit;
+  - refusal argmax `<ambiguous>`, 124–137;
+  - no well-typed candidate (the ill-typed refusals), 109–135;
+  - the grammar's unknown entity, 108–117.
+
+**A+K against A.** The constraints recovered most of A's S2 failures and much of its S1 failure. They did not reach
+the S1 criterion in any unit. A+K's grammar refusals (unknown entity, 108–117 per unit) are reported separately from
+its own `<unsupported>` and `<ambiguous>` abstentions.
+
+**Certification feasibility.** At the strictest rule (0.999), every scored system accepted 760–767 calibration items
+with 0 errors, well above the 299 floor. A, F and F+B passed every rule down to 0. A+K stopped at 0, so it certified
+0.2.
+
+**Realized cost per unit:**
+
+| | A | F |
+|---|---|---|
+| Updates × batch | 1,500 × 64 | 1,500 × 64 |
+| Presentations drawn | 96,000 questions | 96,000 segments, drawn from 1,657–2,007 aligned presentations |
+| Tokens processed | 742,457–768,389 | 263,769–275,158 |
+| Forward MACs over training presentations | 86.3–87.4 G | 11.4–11.9 G |
+| Parameters | 223,817–223,865 | 71,775–71,823 |
+| Training wall time | 15.3–17.5 s | 4.2–4.7 s |
+
+**Equal update counts are not equal compute.** F's training used about 7× fewer forward MACs and about 3.5× less wall
+time.
+
+**Evaluation over 17,900 items:**
+- **A:** 1.1–1.4 s, with 17,900 encoder passes and 71,600 decoder steps;
+- **A+K:** 1.2–1.6 s, with 17,783–17,792 encoder passes and 37,492–37,973 decoder steps;
+- **F and F+B together:** 0.66–0.72 s, with 30,151–30,156 segment passes per unit. F+B adds 11,238–11,290
+  enumerated candidates, of which 109–161 are pruned;
+- **L, G and W:** 0.17–0.32 s.
+
+The module applications for answered programs were identical across the systems that answered the same programs:
+20,015 in world 100 and 19,988 in world 101.
 
 ### The logged inventory check of worlds 1000–1002 (2026-10-25 04:19 UTC)
 
