@@ -847,8 +847,9 @@ JSON document parsed, and every records file holds 17,900 items. Their sha256 ar
 
 **The final repair pass** (review of the closing PR; no fit, no confirmation, worlds 1000–1002 untouched):
 - **Numerical portability.** Reconstruction compares recomputed binomial bounds and p-values within one declared
-  tolerance (`bench/statistical_tolerance.py`: |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15)). Everything else is
-  compared exactly, and the original evidence bytes are unchanged.
+  tolerance (`bench/statistical_tolerance.py`: |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15)). Both values must first
+  be finite probabilities in [0, 1], and not bools, even when they are equal. Everything else is compared exactly,
+  and the original evidence bytes are unchanged.
 - **Optional dependencies.** Table-only checks and the rejection of wrong release bytes run without torch.
 - **The diagnosis's wording.** The distribution in an A+K trace is the unmasked network conditioned on A+K's own
   prefix, kept separate from A's own trajectory. The same-source-type property of A+K's wrong programs is stated

@@ -15,9 +15,14 @@ Over the pilot's 8 units, CPython 3.12.3 recomputes 723 of the stored bounds and
 8.5e-13. Exact equality rejects every one.
 
 **The rule.** Only numbers under a key in `STATISTICAL_KEYS` may differ. These are exact binomial bounds and
-p-values, probabilities in [0, 1], and they may differ only by
+p-values, so every one must be a probability:
+- **Valid on both sides first.** It must be a number, not a bool, finite, and in [0, 1] (`probability`). This is
+  checked before equality or tolerance. An infinity, a NaN, an out-of-range value or a bool is a mismatch, even
+  when both sides hold the same one. Otherwise `inf <= inf` would let an infinity pass the tolerance, and equal
+  infinities would never reach it.
+- **Then within the tolerance:**
 
-    |stored − recomputed| ≤ max(REL · max(|stored|, |recomputed|), ABS),   REL = 1e-9, ABS = 1e-15.
+      |stored − recomputed| ≤ max(REL · max(|stored|, |recomputed|), ABS),   REL = 1e-9, ABS = 1e-15.
 
 Everything else is compared exactly:
 - counts;
@@ -35,6 +40,7 @@ largest permitted difference, 1e-9.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 STATISTICAL_KEYS = frozenset({"p_value", "error_upper_95", "abstention_interval_95",
@@ -42,12 +48,16 @@ STATISTICAL_KEYS = frozenset({"p_value", "error_upper_95", "abstention_interval_
 REL, ABS = 1e-9, 1e-15
 
 
+def probability(x) -> bool:
+    """A statistic this module may compare: a number (not a bool), finite, and in [0, 1]."""
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and 0.0 <= x <= 1.0 and math.isfinite(x)
+
+
 def close(stored: float, recomputed: float) -> bool:
+    """Both values are probabilities (`probability`), within the declared tolerance of each other."""
+    if not (probability(stored) and probability(recomputed)):
+        return False
     return abs(stored - recomputed) <= max(REL * max(abs(stored), abs(recomputed)), ABS)
-
-
-def _number(x) -> bool:
-    return isinstance(x, (int, float)) and not isinstance(x, bool)
 
 
 @dataclass
@@ -60,9 +70,9 @@ class Agreement:
     largest_difference: float = 0.0
 
     def compare(self, stored, recomputed, path: str = "", keys=STATISTICAL_KEYS) -> bool:
-        """True when `recomputed` agrees with `stored`: exactly, except numbers below a key in `keys`, which may
-        differ within `close`. Keys, lengths and every other value must be equal. Mismatches are recorded by
-        path; the totals accumulate."""
+        """True when `recomputed` agrees with `stored`: exactly, except values below a key in `keys`. Those must be
+        probabilities on both sides (`probability`) and may then differ within `close`. Keys, lengths and every
+        other value must be equal. Mismatches are recorded by path; the totals accumulate."""
         before = len(self.mismatches)
         self._walk(stored, recomputed, path, False, keys)
         return len(self.mismatches) == before
@@ -78,8 +88,13 @@ class Agreement:
                 self.mismatches.append(f"{path}: {len(a)} stored entries, {len(b)} recomputed")
             for i, (x, y) in enumerate(zip(a, b)):
                 self._walk(x, y, f"{path}[{i}]", statistical, keys)
-        elif statistical and _number(a) and _number(b):
+        elif statistical:
             self.statistical_values += 1
+            invalid = [side for side, v in (("stored", a), ("recomputed", b)) if not probability(v)]
+            if invalid:  # before equality: equal infinities, NaNs, bools or out-of-range values do not pass
+                self.mismatches.append(f"{path}: stored {a!r}, recomputed {b!r} "
+                                       f"({' and '.join(invalid)} not a finite probability in [0, 1])")
+                return
             if a != b:
                 if not close(a, b):
                     self.mismatches.append(f"{path}: stored {a!r}, recomputed {b!r} (beyond the statistical tolerance)")

@@ -120,7 +120,8 @@ refers to, and `make_tables.py` uses it there.
   `make_tables.py --factored-traces <dir>` checks every file's hash before anything that needs torch is imported,
   re-verifies the pilot and re-runs the A+K diagnosis. Both must agree with the bundled outputs.
 - **What "agree" means:** exactly, except that recomputed binomial bounds and p-values may differ by the declared
-  rounding tolerance (`research/ti_tnn/bench/statistical_tolerance.py`). The S2 rebuild uses the same rule.
+  rounding tolerance (`research/ti_tnn/bench/statistical_tolerance.py`). They must be finite probabilities in
+  [0, 1] on both sides. The S2 rebuild uses the same rule.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization

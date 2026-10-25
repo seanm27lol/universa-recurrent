@@ -43,7 +43,8 @@ selection or metric code. It uses:
 **One declared tolerance** (`statistical_tolerance`). A recomputed binomial bound or p-value (`p_value`,
 `error_upper_95`, `abstention_interval_95`) may differ from the stored one by
 |a − b| ≤ max(1e-9 · max(|a|, |b|), 1e-15). This is rounding, not evidence: another runtime sums the binomial
-tail in a different order or rounds its `lgamma` differently. Everything else is compared exactly, including:
+tail in a different order or rounds its `lgamma` differently. Both values must first be finite probabilities in
+[0, 1], and not bools. An infinity, a NaN, an out-of-range value or a bool fails even when both sides hold it. Everything else is compared exactly, including:
 - every count, threshold, alpha and delta;
 - every decision, including whether each p-value rejected;
 - every score read from the records.
