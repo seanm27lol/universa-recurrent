@@ -15,12 +15,17 @@
   - an altered historical certificate;
   - altered training presentations;
   - an incomplete inventory;
-  - a configuration mismatch.
+  - a configuration mismatch;
+  - a stored bound just beyond the declared statistical tolerance, a materially changed p-value, a flipped
+    rejection, and a one-ulp change outside the statistical keys.
+- **Authentic rounding is not a discrepancy.** Every stored bound and p-value moved as another runtime moves it
+  (a few ulps; 9.6e-13 relative for p-values) still verifies, and the agreement reports the differences.
 """
 from __future__ import annotations
 
 import gzip
 import json
+import math
 import shutil
 import sys
 from collections import Counter
@@ -35,6 +40,7 @@ torch = pytest.importorskip("torch")
 import factored_interpreter as FI  # noqa: E402
 import factored_pilot as P  # noqa: E402
 import factored_pilot_verify as PV  # noqa: E402
+import statistical_tolerance as ST  # noqa: E402
 from integrated import constrained_decoding as CD  # noqa: E402
 from integrated import interpreters as I  # noqa: E402
 from integrated import registry as G  # noqa: E402
@@ -215,6 +221,16 @@ CORRUPTIONS = {
     "A padded MACs altered": ("unit", None, lambda u: u["training"]["A"].__setitem__("forward_macs_padded", 1)),
     "A+K evaluated row-steps altered": ("unit", None, lambda u: u["evaluation_costs"]["AK"].__setitem__(
         "evaluated_row_steps", u["evaluation_costs"]["AK"]["emitted_decisions"])),
+    # the statistical tolerance admits rounding only: a material or just-beyond-tolerance statistic, a changed
+    # decision, and any change outside the statistical keys are still rejected
+    "a stored bound just beyond the tolerance": ("unit", None, lambda u: u["systems"]["A"]["none"]["S2"].__setitem__(
+        "error_upper_95", u["systems"]["A"]["none"]["S2"]["error_upper_95"] * (1 + 2 * ST.REL))),
+    "a stored p-value changed materially": ("unit", None, lambda u: u["systems"]["F"]["certificate"]["steps"][0]
+                                            .__setitem__("p_value", u["systems"]["F"]["certificate"]["steps"][0]["p_value"] * 1.5)),
+    "a step's rejection decision flipped": ("unit", None, lambda u: u["systems"]["F"]["certificate"]["steps"][0]
+                                            .__setitem__("rejected", not u["systems"]["F"]["certificate"]["steps"][0]["rejected"])),
+    "an exact accuracy changed by one ulp": ("unit", None, lambda u: u["systems"]["A"]["none"]["S2"].__setitem__(
+        "exact_accuracy", math.nextafter(u["systems"]["A"]["none"]["S2"]["exact_accuracy"], 2.0))),
 }
 
 
@@ -258,6 +274,32 @@ def test_run_level_corruptions_are_rejected(small_run, tmp_path, edit, match):
         PV.verify(bad, DESIGN)
 
 
+def _roundoff(x, key=None, statistical=False):
+    """Every stored bound and p-value strictly inside (0, 1), moved the way another runtime moves it: bounds by two
+    ulps, p-values by 9.6e-13 relative (the largest relative difference CPython 3.12.3 produced on the recorded
+    pilot). Everything else is left exactly as stored."""
+    statistical = statistical or key in ST.STATISTICAL_KEYS
+    if isinstance(x, dict):
+        return {k: _roundoff(v, k, statistical) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_roundoff(v, key, statistical) for v in x]
+    if statistical and isinstance(x, float) and 0.0 < x < 1.0:
+        return x * (1 + 9.6e-13) if key == "p_value" else math.nextafter(math.nextafter(x, 2.0), 2.0)
+    return x
+
+
+def test_roundoff_in_every_stored_statistic_still_verifies(small_run, tmp_path):
+    """Authentic cross-runtime rounding is not a discrepancy: the run verifies, and the agreement reports it."""
+    moved = tmp_path / "run"
+    shutil.copytree(small_run, moved)
+    for unit in sorted((moved / "units").iterdir()):
+        _edit_unit(moved, lambda u: u.update(_roundoff(u)), unit=unit.name)
+    agreement = ST.Agreement()
+    assert PV.verify(moved, DESIGN, agreement)["verified"]
+    assert agreement.statistical_differing > 100 and 0 < agreement.largest_difference <= 1e-11
+    assert not agreement.mismatches and agreement.exact_values > agreement.statistical_values  # the rest, exact
+
+
 # --- the A+K diagnosis (saved records only) -------------------------------------------------------------------------
 def test_the_diagnosis_classifies_every_outcome():
     import factored_pilot_diagnose as FD
@@ -284,7 +326,7 @@ def test_the_diagnosis_classifies_every_outcome():
     assert kind == "a relation the constraint forbids" and p_end == 0.0 and abs(p_forbidden - 0.97) < 1e-12
     cls, detail = FD.classify(item, {**base, "steps": [stops, step, step], "program": ["country_of", "operator_of"],
                                      "score": 0.01}, 0.2, outputs)
-    assert cls == "wrong program, filtered" and (detail["a_preferred"], detail["p_end"]) == ("<end>", 0.97)
+    assert cls == "wrong program, filtered" and (detail["unmasked_top"], detail["p_end"]) == ("<end>", 0.97)
     # A's own first divergence: a program that starts with a wrong-type relation and then ends early is a wrong-type
     # choice, not a premature stop
     from types import SimpleNamespace as NS
@@ -308,7 +350,7 @@ def test_the_diagnosis_partitions_every_question_of_a_run(small_run):
     for info in run["units"]:
         d = FD.diagnose_unit(small_run, info, cfg["countries"], cfg["updates"], cfg["batch"])
         for cat in FD.CATEGORIES:
-            classes, preferred = d[cat]["classes"], d[cat]["what_a_preferred"]
+            classes, preferred = d[cat]["classes"], d[cat]["unmasked_top_output_on_the_ak_prefix"]
             assert sum(classes.values()) == d[cat]["n"] > 0
             for kind, key in (("correct", "correct programs, at the weakest step"),
                               ("wrong", "wrong programs, at the first difference")):

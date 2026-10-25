@@ -57,7 +57,8 @@
    "unit": "w101_i101_reduced"
   }
  ],
- "description": "The development pilot's eight A+K step-trace files (records_AK.json.gz), byte-identical copies of the run's files, with their sha256. They are not committed (27 MB); they are kept byte-identical in the run directory and are to be published as release assets of the tag below once approved. make_tables.py --factored-traces <dir> checks each file against this sha256, stages it next to the bundled export, and re-runs the pilot verifier and the A+K diagnosis.",
+ "description": "The development pilot's eight A+K step-trace files (records_AK.json.gz): byte-identical copies of the run's files, with their sha256. They are the assets of the release named by `tag`, together with SHA256SUMS. The run was recorded at `original_run_commit`; the release notes name, separately, the commit holding the final verifier, diagnosis and report. make_tables.py --factored-traces <dir> checks each file against this sha256, stages it next to the bundled export, and re-runs the pilot verifier and the A+K diagnosis.",
+ "original_run_commit": "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3",
  "repository": "seanm27lol/universa-recurrent",
  "run": "20261025T051637",
  "tag": "ti-tnn-factored-pilot-traces-v1"

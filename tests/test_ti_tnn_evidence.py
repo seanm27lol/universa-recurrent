@@ -247,18 +247,21 @@ def test_the_repeated_updates_bundle_rebuilds_with_the_frozen_verifier():
     assert out["construction"]["screen_checker_agreement"]
 
 
-def test_the_factored_interpreter_bundle_is_bound_and_its_controls_re_verify(tmp_path):
-    """protocols/factored_interpreter_v1.md (development engineering result, recorded at 0e1a3c9): the bundled no-fit
-    controls re-verify exactly; the eight A+K trace files are bound to their committed sha256; every original export
-    passed the integrity check; and wrong bytes for a trace are refused."""
-    pytest.importorskip("torch")
+def test_the_factored_interpreter_bundle_is_bound_and_wrong_trace_bytes_are_refused(tmp_path):
+    """protocols/factored_interpreter_v1.md (development engineering result, recorded at 0e1a3c9), without torch:
+    - the bundled outputs are read as tables;
+    - the eight A+K trace files are bound to their committed sha256;
+    - every original export passed the integrity check;
+    - wrong bytes for a trace are refused before anything that needs torch is imported."""
     import json
     root = BUNDLE / "factored_interpreter"
-    out = tables.factored_interpreter_tables()
+    out = tables.factored_interpreter_tables(rebuild=False)
+    assert not out["controls_rebuilt"] and not out["pilot_rebuilt"]
     assert out["controls"]["verified"] and out["controls"]["commit"].startswith("0e1a3c9")
     assert out["pilot"]["verified"] and out["pilot"]["rules"] == "v1" and len(out["pilot"]["units"]) == 8
     release = json.loads((root / "pilot_trace_release.json").read_text())
     assert len(release["assets"]) == 8 and len({a["sha256"] for a in release["assets"]}) == 8
+    assert release["tag"] == "ti-tnn-factored-pilot-traces-v1" and release["original_run_commit"].startswith("0e1a3c9")
     integrity = json.loads((root / "export_integrity.json").read_text())
     assert len(integrity["files"]) == 58 and all(f["json_parses"] for f in integrity["files"])
     assert all(f["records"] == 17900 for f in integrity["files"] if f["path"].endswith(("records_A.json.gz",
@@ -267,3 +270,14 @@ def test_the_factored_interpreter_bundle_is_bound_and_its_controls_re_verify(tmp
         (tmp_path / a["name"]).write_bytes(b"not the traces")
     with pytest.raises(ValueError, match="sha256"):
         tables.factored_interpreter_tables(traces_dir=tmp_path)
+
+
+def test_the_factored_interpreter_controls_re_verify():
+    """The bundled no-fit controls run, re-verified: it agrees with controls_verification.json exactly, except
+    recomputed bounds and p-values, within the declared statistical tolerance."""
+    pytest.importorskip("torch")  # the verifier regenerates the study with the robustness generator, which imports torch
+    out = tables.factored_interpreter_tables()
+    assert out["controls_rebuilt"] and out["controls"]["verified"] and out["controls"]["commit"].startswith("0e1a3c9")
+    for level in ("inside_the_verifiers", "rebuilt_against_bundled"):
+        a = out["statistical_agreement"][level]
+        assert a["exact_values"] > 0 and a["largest_difference"] <= 1e-11

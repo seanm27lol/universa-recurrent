@@ -26,19 +26,34 @@ exact-program certificate selected on calibration. Nothing here chooses a thresh
 **For wrong programs:**
 - the first position at which the program differs from the reference;
 - the selected and the reference relation there, with their recorded probabilities at that step;
-- at that step, **what A itself preferred** before the constraint (`preference`): the chosen output, `<end>` where
-  the grammar required a relation, or a relation the type constraint forbids; with the probability A gave `<end>`
-  and the total it gave forbidden relations;
+- at that step, **the unmasked top output** (`preference`). Each A+K record keeps the network's full distribution
+  before the mask, so the output it ranks first is known: the chosen output, `<end>` where the grammar still
+  required a relation, or a relation the mask forbids. The probability it gave `<end>` and the total it gave
+  forbidden relations are recorded with it;
 - the entity pointer's probability;
 - the original probability of the final `<end>`, the step that completes the program.
 
-**For correct programs,** the same preference at the weakest step: the step whose chosen output had the lowest
-probability, the factor that most limits the score.
+**What that distribution is.** It is A's network conditioned on **A+K's own selected prefix**: every step feeds back
+A+K's previous choices, not A's. Up to the first divergence from the reference, that prefix is the reference
+prefix. So the unmasked top output says what the network prefers after A+K's choices; it is **not** A's own
+trajectory. A's own trajectory comes from A's records and is analysed separately (`first_divergence`).
+
+**The same source type, by construction.** At the first divergence, A+K's prefix equals the reference prefix and
+the entity is right, so the mask admits only relations whose source is the reference relation's source. Every
+wrong program's first wrong relation therefore shares its source type with the reference relation: that follows
+from the mask, not from the data. In these worlds the only such pairs are `airport_of`/`country_of` (from a City)
+and `capital_of`/`largest_city_of` (from a Country). The empirical findings are which of them occurred, where, how
+often, and with what probabilities.
+
+**For correct programs,** the unmasked top output at the weakest step: the step whose chosen output had the
+lowest probability, the factor that most limits the score.
 
 **Also reported, from the same records:**
 - **coverage and accepted-error bounds,** separately, under both policies;
-- **A against A+K** on the same questions, and where only A+K was exact, where A's own program first left the
-  reference (`first_divergence`);
+- **A against A+K** on the same questions, under **unthresholded** exact correctness (every proposed program counts).
+  Separately, how many questions A had exact had their A+K program filtered by A+K's certified threshold;
+- **A's own trajectory**, where only A+K was exact: where A's own program first left the reference
+  (`first_divergence`, from A's records);
 - **every recorded A+K step whose allowed set tied at its maximum probability.** The pilot recorded at `0e1a3c9`
   chose by probability. Where the maximum is unique, choosing by logit would have made the same choice.
 - **the corrected accounting:**
@@ -86,11 +101,12 @@ PREFERENCES = ("the chosen output", "<end>", "a relation the constraint forbids"
 
 
 def preference(step, outputs):
-    """What A itself put first at a recorded step, before the constraint; the probability it gave `<end>`; and the
-    total it gave relations outside the step's allowed set.
+    """The output the unmasked distribution puts first at a recorded A+K step; the probability it gave `<end>`; and
+    the total it gave relations outside the step's allowed set.
 
-    In the recorded runs, a step's top output is either the one chosen, or something the constraint did not allow
-    there: `<end>` (when the grammar still required a relation) or a relation of the wrong source type."""
+    The distribution is A's network conditioned on A+K's own selected prefix (see the module docstring), not A's
+    own trajectory. In the recorded runs its top output is either the one chosen, or something the mask did not
+    allow there: `<end>` (when the grammar still required a relation) or a relation of the wrong source type."""
     dist, allowed = step["distribution"], set(step["allowed"])
     end = outputs.index("<end>")
     relations = [k for k, o in enumerate(outputs) if not o.startswith("<")]
@@ -143,16 +159,16 @@ def classify(item, rec, threshold, outputs):
             return f"{kind}, {'released' if released else 'filtered'}", {"position": j, "selected": "<length>",
                                                                        "reference": "<length>", "p_selected": None,
                                                                        "p_reference": None, "reference_allowed": None,
-                                                                       "a_preferred": None, "p_end": None,
+                                                                       "unmasked_top": None, "p_end": None,
                                                                        "p_forbidden": None}
         st = rec["steps"][j]
         sel, ref = rec["program"][j], item["program"][j]
-        preferred, p_end, p_forbidden = preference(st, outputs)
+        top, p_end, p_forbidden = preference(st, outputs)
         detail = {"position": j, "selected": sel, "reference": ref,
                   "p_selected": st["distribution"][outputs.index(sel)],
                   "p_reference": st["distribution"][outputs.index(ref)],
                   "reference_allowed": outputs.index(ref) in st["allowed"],
-                  "a_preferred": preferred, "p_end": p_end, "p_forbidden": p_forbidden}
+                  "unmasked_top": top, "p_end": p_end, "p_forbidden": p_forbidden}
     return f"{kind}, {'released' if released else 'filtered'}", detail
 
 
@@ -190,13 +206,13 @@ def diagnose_unit(run_dir: Path, info: dict, countries: int, updates: int, batch
                         probs["wrong: p(reference) at the first difference"].append(detail["p_reference"])
                         probs["wrong: p(<end>) at the first difference"].append(detail["p_end"])
                         probs["wrong: p(forbidden relations) at the first difference"].append(detail["p_forbidden"])
-                        preferred["wrong programs, at the first difference"][detail["a_preferred"]] += 1
-                        wrong_by_preference[f"{where}; A preferred {detail['a_preferred']}"] += 1
+                        preferred["wrong programs, at the first difference"][detail["unmasked_top"]] += 1
+                        wrong_by_preference[f"{where}; unmasked top output {detail['unmasked_top']}"] += 1
                         mass = {PREFERENCES[0]: detail["p_selected"], PREFERENCES[1]: detail["p_end"],
-                                PREFERENCES[2]: detail["p_forbidden"]}.get(detail["a_preferred"])
+                                PREFERENCES[2]: detail["p_forbidden"]}.get(detail["unmasked_top"])
                         if mass is not None:
-                            probs[f"wrong, where A preferred {detail['a_preferred']}: its probability at the first "
-                                  "difference"].append(mass)
+                            probs[f"wrong, where the unmasked top output was {detail['unmasked_top']}: its probability "
+                                  "at the first difference"].append(mass)
                 else:
                     weakest = min(r["steps"], key=lambda st: st["distribution"][st["chosen"]])
                     preferred["correct programs, at the weakest step"][preference(weakest, outputs)[0]] += 1
@@ -217,12 +233,18 @@ def diagnose_unit(run_dir: Path, info: dict, countries: int, updates: int, batch
                          + ("A+K exact" if exact(r, x) else "A+K not exact")) for x, r, ra in sel)
         a_kinds = Counter(first_divergence(ra, x, world, type_of) for x, r, ra in sel
                           if not a_exact(ra, x) and exact(r, x))
+        # the comparison above counts every proposed program (unthresholded); under A+K's certified threshold, a
+        # question A had exact can still lose its (exact) A+K program to the threshold
+        filtered = sum(a_exact(ra, x) and exact(r, x) and not (threshold is not None and r["score"] >= threshold)
+                       for x, r, ra in sel)
         out[cat] = {"n": n, "classes": {c: counts.get(c, 0) for c in CLASSES}, "policies": policies,
                     "wrong_programs_by_first_difference": dict(wrong_detail.most_common()),
-                    "wrong_programs_by_first_difference_and_preference": dict(wrong_by_preference.most_common()),
+                    "wrong_programs_by_first_difference_and_unmasked_top": dict(wrong_by_preference.most_common()),
                     "probabilities": {k: quartiles(v) for k, v in sorted(probs.items())},
-                    "what_a_preferred": {k: dict(v.most_common()) for k, v in sorted(preferred.items())},
-                    "a_vs_ak": dict(sorted(cross.items())), "what_a_did_where_only_ak_was_exact": dict(a_kinds.most_common())}
+                    "unmasked_top_output_on_the_ak_prefix": {k: dict(v.most_common()) for k, v in sorted(preferred.items())},
+                    "a_vs_ak_unthresholded": dict(sorted(cross.items())),
+                    "a_exact_with_the_ak_program_filtered_by_its_threshold": filtered,
+                    "a_own_trajectory_where_only_ak_was_exact": dict(a_kinds.most_common())}
     # every recorded A+K step: ties at the maximum allowed probability (where logit selection could differ)
     ties = Counter()
     for r in ak:

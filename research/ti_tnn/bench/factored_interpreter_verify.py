@@ -49,6 +49,7 @@ import lexical_condition as LC  # noqa: E402  (the lexical condition's generator
 from integrated import calibration as K  # noqa: E402  (numeric binomial tail and bounds only)
 from integrated import relations as W  # noqa: E402
 from integrated.contracts import content_identity  # noqa: E402  (the canonical hash only)
+import statistical_tolerance as ST  # noqa: E402  (the one declared tolerance: recomputed bounds and p-values)
 
 GENERATOR_VERSION = "ti_tnn_factored_interpreter_v1"
 REDUCED_PER_PHRASE = 3
@@ -322,7 +323,7 @@ def audit(items, entities):
 
 
 # --- one unit -------------------------------------------------------------------------------------------------
-def verify_unit(run_dir: Path, info: dict, countries: int, problems: list) -> dict:
+def verify_unit(run_dir: Path, info: dict, countries: int, problems: list, agreement: ST.Agreement | None = None) -> dict:
     tag = f"w{info['world']} {info['regime']}"
     d = run_dir / info["path"]
     unit = json.loads((d / "unit.json").read_text())
@@ -393,7 +394,9 @@ def verify_unit(run_dir: Path, info: dict, countries: int, problems: list) -> di
         lookup, rep = lookups[name]
         rows = [decide(x["text"], world, entities, lookup, rep, vocab) for x in evals]
         risks[name] = risk(evals, rows)
-    if norm(unit.get("calibration_risk")) != norm(risks):
+    # the p-value and the bound may differ from recomputation within the declared statistical tolerance; the counts
+    # and the certification decision must be equal
+    if not (agreement if agreement is not None else ST.Agreement()).compare(norm(unit.get("calibration_risk")), norm(risks)):
         fail("a deterministic policy's calibration risk test does not re-derive")
     # the lexical condition: its items, every no-fit decision on them, and the identifiability audit
     lexical = LC.lexical_items(world, study, info["world"])
@@ -434,7 +437,8 @@ def source_hashes() -> dict:
     return {s: hashlib.sha256((here / s).read_bytes()).hexdigest() for s in SOURCES}
 
 
-def verify(run_dir: Path) -> dict:
+def verify(run_dir: Path, agreement: ST.Agreement | None = None) -> dict:
+    """`agreement`, when given, accumulates what was compared and the largest tolerated statistical difference."""
     run_dir = Path(run_dir)
     run = json.loads((run_dir / "run.json").read_text())
     problems = []
@@ -455,7 +459,7 @@ def verify(run_dir: Path) -> dict:
         problems.append("a world outside development was run before the protocol was frozen")
     if problems:
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
-    units = [verify_unit(run_dir, info, run["countries"], problems) for info in run["units"]]
+    units = [verify_unit(run_dir, info, run["countries"], problems, agreement) for info in run["units"]]
     if problems:  # a unit that does not re-derive has no trustworthy totals to sum
         raise VerificationError(f"{len(problems)} problems; first: {problems[:5]}")
     for info, u in zip(run["units"], units):

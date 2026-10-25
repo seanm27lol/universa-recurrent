@@ -115,9 +115,12 @@ refers to, and `make_tables.py` uses it there.
 
 **Factored interpreter.** A development engineering result, closed without a confirmation.
 - **What re-verifies from the bundle alone:** the no-fit controls, through `make_tables.py`.
-- **The pilot's A+K step traces** are bound by sha256 in `factored_interpreter/pilot_trace_release.json`. With
-  them, `make_tables.py --factored-traces <dir>` re-verifies the pilot and re-runs the A+K diagnosis, and requires
-  both to equal the bundled outputs.
+- **The pilot's A+K step traces** are the assets of the release `ti-tnn-factored-pilot-traces-v1` (with
+  `SHA256SUMS`), bound by sha256 in `factored_interpreter/pilot_trace_release.json`. With them,
+  `make_tables.py --factored-traces <dir>` checks every file's hash before anything that needs torch is imported,
+  re-verifies the pilot and re-runs the A+K diagnosis. Both must agree with the bundled outputs.
+- **What "agree" means:** exactly, except that recomputed binomial bounds and p-values may differ by the declared
+  rounding tolerance (`research/ti_tnn/bench/statistical_tolerance.py`). The S2 rebuild uses the same rule.
 
 **Initialization.** Every mixture run in `real_benchmarks/` and `adaptive_compute/` used the legacy expert
 initialization
