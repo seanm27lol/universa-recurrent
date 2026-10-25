@@ -124,7 +124,7 @@ def test_l_and_g_make_no_wrong_decision_on_the_development_worlds(dev_run, world
         unit = json.loads((dev_run / "units" / f"w{world}_{regime}" / "unit.json").read_text())
         assert unit["n_evaluated"] == 17900
         assert unit["totals"] == {s: {"wrong_decisions": 0, "errors": 0, "accidental_agreement": 0}
-                                  for s in ("L_raw", "L_vocab", "G")}
+                                  for s in ("L_raw", "L_vocab", "G", "W")}
         assert unit["alignment_audit"].get("misaligned", 0) == 0 and unit["support"]["conflicts"] == {"raw": [], "vocab": []}
         for cat in ("ID", "T1", "S2", "S1", "S3"):  # every supported evaluation segment was seen in training
             cov = unit["support"]["evaluation_coverage"]["raw"][cat]
