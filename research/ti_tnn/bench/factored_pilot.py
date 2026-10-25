@@ -236,11 +236,11 @@ def a_forward_macs(n_tokens: int, d: int = 48, hidden: int = 64, n_out: int = 8,
     return encoder + h2 * h2 + steps * per_step
 
 
-def a_realized_draws(n_examples: int, seed: int, updates: int, batch: int, entity_dropout: float = 0.1) -> list[int]:
-    """How often `interpreters.train` draws each example: the same generator calls in the same order (an epoch
-    permutation when the current one runs out, one dropout draw per example drawn)."""
+def a_realized_batches(n_examples: int, seed: int, updates: int, batch: int, entity_dropout: float = 0.1) -> list[list[int]]:
+    """The batches `interpreters.train` draws: the same generator calls in the same order (an epoch permutation when
+    the current one runs out, one dropout draw per example drawn)."""
     gen = torch.Generator().manual_seed(seed)
-    order, k, draws = [], 0, [0] * n_examples
+    order, k, out = [], 0, []
     for _ in range(updates):
         if k + batch > len(order):
             order, k = torch.randperm(n_examples, generator=gen).tolist(), 0
@@ -249,9 +249,27 @@ def a_realized_draws(n_examples: int, seed: int, updates: int, batch: int, entit
         if entity_dropout:
             for _ in idx:
                 torch.rand(1, generator=gen)
+        out.append(idx)
+    return out
+
+
+def a_realized_draws(n_examples: int, seed: int, updates: int, batch: int, entity_dropout: float = 0.1) -> list[int]:
+    """How often `interpreters.train` draws each example."""
+    draws = [0] * n_examples
+    for idx in a_realized_batches(n_examples, seed, updates, batch, entity_dropout):
         for i in idx:
             draws[i] += 1
     return draws
+
+
+def a_padded_macs(lengths: list[int], d: int = 48, hidden: int = 64, n_out: int = 8, steps: int = J.MAX_STEPS + 1) -> int:
+    """One training batch's forward MACs at its padded width W (its longest question). The encoder is packed, so it
+    sees each question's own tokens. The entity head and the attention scores and context run over all W positions
+    of every row."""
+    h2, B, W_ = 2 * hidden, len(lengths), max(lengths)
+    encoder = sum(n * 2 * 3 * (d * hidden + hidden * hidden) for n in lengths)
+    per_step = B * (h2 * h2 + 3 * ((d + h2) * h2 + h2 * h2) + 2 * h2 * n_out) + 2 * B * W_ * h2
+    return encoder + B * W_ * h2 + B * h2 * h2 + steps * per_step
 
 
 # --- one unit ---------------------------------------------------------------------------------------------------
@@ -274,11 +292,16 @@ def run_unit(world, init: int, regime: str, out_dir: Path) -> dict:
     t0 = time.time()
     net, vocab, loss = I.train("word", examples, vocab_texts, tuple(world.relations), init, UPDATES)
     a_seconds = time.time() - t0
-    draws = a_realized_draws(len(examples), init, UPDATES, BATCH)
+    batches = a_realized_batches(len(examples), init, UPDATES, BATCH)
+    draws = [0] * len(examples)
+    for idx in batches:
+        for i in idx:
+            draws[i] += 1
     lengths = [len(I.normalize(e.text)) for e in examples]
     training["A"] = {"updates": UPDATES, "batch": BATCH, "presentations": sum(draws), "examples": len(examples),
                      "tokens": sum(d * n for d, n in zip(draws, lengths)),
-                     "forward_macs": sum(d * a_forward_macs(n) for d, n in zip(draws, lengths)),
+                     "forward_macs_unpadded": sum(d * a_forward_macs(n) for d, n in zip(draws, lengths)),
+                     "forward_macs_padded": sum(a_padded_macs([lengths[i] for i in idx]) for idx in batches),
                      "parameters": sum(p.numel() for p in net.parameters()), "seconds": round(a_seconds, 2),
                      "loss": loss, "draws_by_category": dict(sorted(Counter(
                          x["category"] for x, d in zip(train + aug, draws) for _ in range(d)).items()))}
@@ -288,7 +311,8 @@ def run_unit(world, init: int, regime: str, out_dir: Path) -> dict:
     for row, parse in zip(a_rows, parses):
         row["program"] = list(parse.steps) if parse.outcome == "program" else None
     costs["A"] = {"seconds": round(time.time() - t0, 2), "encoder_passes": len(items),
-                  "decoder_steps": len(items) * (J.MAX_STEPS + 1)}
+                  "evaluated_row_steps": len(items) * (J.MAX_STEPS + 1),  # interpret runs every step for every row
+                  "emitted_decisions": sum(len(p.step_probabilities) for p in parses)}
     rows["A"] = a_rows
     records["A"] = [{"id": x["id"], "outcome": p.outcome, "steps": list(p.steps), "entity": p.entity,
                      "step_probabilities": list(p.step_probabilities), "entity_probability": p.entity_probability,
@@ -298,7 +322,8 @@ def run_unit(world, init: int, regime: str, out_dir: Path) -> dict:
     # A+K: A's fit, decoded under the grammar's constraints; the grammar's refusals abstain
     t0 = time.time()
     slots = [len(s.segments) if s.ok else None for s in segs]
-    ak = CD.decode(net, vocab, texts, slots, world)
+    ak_stats = {}
+    ak = CD.decode(net, vocab, texts, slots, world, stats=ak_stats)
     ak_rows, ak_records, steps_used = [], [], 0
     for x, seg, rec in zip(items, segs, ak):
         if rec is None:
@@ -318,7 +343,8 @@ def run_unit(world, init: int, regime: str, out_dir: Path) -> dict:
                                **{k: row[k] for k in ("decision", "reason", "answer")}})
         ak_rows.append(row)
     costs["AK"] = {"seconds": round(time.time() - t0, 2), "encoder_passes": sum(s is not None for s in slots),
-                   "decoder_steps": steps_used, "grammar_refusals": sum(s is None for s in slots)}
+                   "emitted_decisions": steps_used, "evaluated_row_steps": ak_stats.get("evaluated_row_steps", 0),
+                   "grammar_refusals": sum(s is None for s in slots)}
     rows["AK"], records["AK"] = ak_rows, ak_records
 
     # F: the segment grounder on the aligned presentations (per presentation, multiplicities preserved)
@@ -366,9 +392,14 @@ def run_unit(world, init: int, regime: str, out_dir: Path) -> dict:
                                                 "programs", "selected")}})
     seconds = round(time.time() - t0, 2)
     n_segments = len(flat)
-    costs["F"] = {"seconds": seconds, "segment_passes": n_segments, "module_applications": sum(
+    costs["F"] = {"segment_passes": n_segments, "module_applications": sum(
         len(r["program"]) for r in f_rows if r["decision"] == "answer")}
-    costs["FB"] = {"seconds": seconds, "segment_passes": n_segments, **dict(fb_cost)}
+    costs["FB"] = {"segment_passes": n_segments, **dict(fb_cost)}
+    costs["F_and_FB_combined"] = {
+        "seconds": seconds,
+        "boundary": "from after F's fit to the end of both policies: the grounding pass over every admitted segment, "
+                    "F's and F+B's decisions and their records. The grammar segmentation of every question ran once "
+                    "before A's fit and is outside every system's timing; L, G and W re-segment inside their own"}
     rows["F"], rows["FB"], records["F"], records["FB"] = f_rows, fb_rows, f_records, fb_records
 
     # the no-fit controls, on the same items (deterministic; identical across inits)
@@ -447,7 +478,8 @@ def provenance() -> dict:
 
 def config(countries: int = FI.COUNTRIES) -> dict:
     return {"pilot": PILOT_VERSION, **FI.config(countries), "updates": UPDATES, "batch": BATCH, "grid": list(GRID),
-            "fb": {"k": FB_K, "floor": FB_FLOOR, "ratio": FB_RATIO}}
+            "fb": {"k": FB_K, "floor": FB_FLOOR, "ratio": FB_RATIO},
+            "ak_selection": "allowed_logits", "accounting": "v2"}
 
 
 def run(worlds, inits, out: Path, countries: int = FI.COUNTRIES) -> Path:

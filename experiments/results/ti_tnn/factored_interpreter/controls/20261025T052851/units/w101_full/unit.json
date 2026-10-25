@@ -1,0 +1,1842 @@
+{
+ "alignment_audit": {
+  "aligned": 18892,
+  "aug_essential_replaced_position": 191
+ },
+ "calibration_risk": {
+  "G": {
+   "accepted": 767,
+   "calibration_items": 1000,
+   "certified": true,
+   "error_upper_95": 0.0038981610810327736,
+   "errors": 0,
+   "p_value": 0.0004489461549221687
+  },
+  "L_raw": {
+   "accepted": 767,
+   "calibration_items": 1000,
+   "certified": true,
+   "error_upper_95": 0.0038981610810327736,
+   "errors": 0,
+   "p_value": 0.0004489461549221687
+  },
+  "L_vocab": {
+   "accepted": 767,
+   "calibration_items": 1000,
+   "certified": true,
+   "error_upper_95": 0.0038981610810327736,
+   "errors": 0,
+   "p_value": 0.0004489461549221687
+  },
+  "W": {
+   "accepted": 767,
+   "calibration_items": 1000,
+   "certified": true,
+   "error_upper_95": 0.0038981610810327736,
+   "errors": 0,
+   "p_value": 0.0004489461549221687
+  }
+ },
+ "dropped_taught": 0,
+ "lexical": {
+  "distinct_forms": 4,
+  "identifiability": {
+   "the airfield serving": {
+    "reason": "",
+    "relation": "airport_of",
+    "seen_as_segment": false,
+    "w_label": "airport_of",
+    "words_seen": true
+   },
+   "the firm operating": {
+    "reason": "",
+    "relation": "operator_of",
+    "seen_as_segment": false,
+    "w_label": "operator_of",
+    "words_seen": true
+   },
+   "the most populous city in": {
+    "reason": "",
+    "relation": "largest_city_of",
+    "seen_as_segment": false,
+    "w_label": "largest_city_of",
+    "words_seen": true
+   },
+   "the nation containing": {
+    "reason": "",
+    "relation": "country_of",
+    "seen_as_segment": false,
+    "w_label": "country_of",
+    "words_seen": true
+   }
+  },
+  "identity": "2e5b4a0eb4342f1e234720b83d8333f11f3bbe5e9575a980b7122aaf4d3a7ca9",
+  "n": 4400,
+  "questions_per_form": {
+   "the airfield serving {x}": 273,
+   "the firm operating {x}": 218,
+   "the most populous city in {x}": 175,
+   "the nation containing {x}": 534
+  },
+  "systems": {
+   "G": {
+    "LG1": {
+     "abstained": 400,
+     "abstention_reasons": {
+      "unseen segment": 400
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 400
+    },
+    "LG1_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG1_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG2": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen segment": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 800
+    },
+    "LG2_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_held": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen segment": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 0,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    }
+   },
+   "L_raw": {
+    "LG1": {
+     "abstained": 400,
+     "abstention_reasons": {
+      "unseen segment": 400
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 400
+    },
+    "LG1_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG1_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG2": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen segment": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 800
+    },
+    "LG2_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_held": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen segment": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 0,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    }
+   },
+   "L_vocab": {
+    "LG1": {
+     "abstained": 400,
+     "abstention_reasons": {
+      "unseen segment": 400
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 400
+    },
+    "LG1_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG1_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG2": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen segment": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 800
+    },
+    "LG2_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_held": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "<unsupported>": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 0,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    }
+   },
+   "W": {
+    "LG1": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG1_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG1_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 400,
+     "errors": 0,
+     "exact_correct_answers": 400,
+     "expected_answer": 400,
+     "n": 400,
+     "wrong_decision": 0
+    },
+    "LG2": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_base": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_held": {
+     "abstained": 800,
+     "abstention_reasons": {
+      "unseen word": 800
+     },
+     "accidental_agreement": 0,
+     "answered": 0,
+     "errors": 0,
+     "exact_correct_answers": 0,
+     "expected_answer": 0,
+     "n": 800,
+     "wrong_decision": 0
+    },
+    "LG2_taught": {
+     "abstained": 0,
+     "abstention_reasons": {},
+     "accidental_agreement": 0,
+     "answered": 800,
+     "errors": 0,
+     "exact_correct_answers": 800,
+     "expected_answer": 800,
+     "n": 800,
+     "wrong_decision": 0
+    }
+   }
+  }
+ },
+ "n_evaluated": 17900,
+ "regime": "full",
+ "study_identity": "9b7b6fa7729d3d09c33bf2240216a509bd5e1f91adb50b919f19a43b5e38143b",
+ "support": {
+  "by_source": {
+   "aug_essential": 88,
+   "aug_inessential": 289,
+   "train_base": 1172,
+   "train_refusal:ambiguous": 21,
+   "train_refusal:ill_typed": 72,
+   "train_refusal:unsupported": 4,
+   "train_taught": 354
+  },
+  "conflicts": {
+   "raw": [],
+   "vocab": []
+  },
+  "contributing_questions": 1467,
+  "evaluation_coverage": {
+   "raw": {
+    "CAL": {
+     "in_dictionary": 1189,
+     "refusal_labelled": 0,
+     "segments": 1189
+    },
+    "CAL_R": {
+     "in_dictionary": 273,
+     "refusal_labelled": 122,
+     "segments": 285
+    },
+    "ID": {
+     "in_dictionary": 1178,
+     "refusal_labelled": 0,
+     "segments": 1178
+    },
+    "L3_base": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "R": {
+     "in_dictionary": 278,
+     "refusal_labelled": 106,
+     "segments": 292
+    },
+    "S1": {
+     "in_dictionary": 3300,
+     "refusal_labelled": 0,
+     "segments": 3300
+    },
+    "S2": {
+     "in_dictionary": 1600,
+     "refusal_labelled": 0,
+     "segments": 1600
+    },
+    "S2_L3": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "S2_base": {
+     "in_dictionary": 1600,
+     "refusal_labelled": 0,
+     "segments": 1600
+    },
+    "S3": {
+     "in_dictionary": 1539,
+     "refusal_labelled": 0,
+     "segments": 1539
+    },
+    "S3_L3": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "S3_base": {
+     "in_dictionary": 1539,
+     "refusal_labelled": 0,
+     "segments": 1539
+    },
+    "S4_L3": {
+     "in_dictionary": 600,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "S4_base": {
+     "in_dictionary": 1548,
+     "refusal_labelled": 0,
+     "segments": 1548
+    },
+    "S4_primary_base": {
+     "in_dictionary": 2795,
+     "refusal_labelled": 0,
+     "segments": 2795
+    },
+    "S4a": {
+     "in_dictionary": 548,
+     "refusal_labelled": 0,
+     "segments": 1548
+    },
+    "S4a_primary": {
+     "in_dictionary": 795,
+     "refusal_labelled": 0,
+     "segments": 2795
+    },
+    "S4b": {
+     "in_dictionary": 548,
+     "refusal_labelled": 0,
+     "segments": 1548
+    },
+    "S4b_primary": {
+     "in_dictionary": 795,
+     "refusal_labelled": 0,
+     "segments": 2795
+    },
+    "T1": {
+     "in_dictionary": 500,
+     "refusal_labelled": 0,
+     "segments": 500
+    },
+    "T1_base": {
+     "in_dictionary": 500,
+     "refusal_labelled": 0,
+     "segments": 500
+    }
+   },
+   "vocab": {
+    "CAL": {
+     "in_dictionary": 1189,
+     "refusal_labelled": 0,
+     "segments": 1189
+    },
+    "CAL_R": {
+     "in_dictionary": 273,
+     "refusal_labelled": 122,
+     "segments": 285
+    },
+    "ID": {
+     "in_dictionary": 1178,
+     "refusal_labelled": 0,
+     "segments": 1178
+    },
+    "L3_base": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "R": {
+     "in_dictionary": 278,
+     "refusal_labelled": 106,
+     "segments": 292
+    },
+    "S1": {
+     "in_dictionary": 3300,
+     "refusal_labelled": 0,
+     "segments": 3300
+    },
+    "S2": {
+     "in_dictionary": 1600,
+     "refusal_labelled": 0,
+     "segments": 1600
+    },
+    "S2_L3": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "S2_base": {
+     "in_dictionary": 1600,
+     "refusal_labelled": 0,
+     "segments": 1600
+    },
+    "S3": {
+     "in_dictionary": 1539,
+     "refusal_labelled": 0,
+     "segments": 1539
+    },
+    "S3_L3": {
+     "in_dictionary": 900,
+     "refusal_labelled": 0,
+     "segments": 900
+    },
+    "S3_base": {
+     "in_dictionary": 1539,
+     "refusal_labelled": 0,
+     "segments": 1539
+    },
+    "S4_L3": {
+     "in_dictionary": 849,
+     "refusal_labelled": 249,
+     "segments": 900
+    },
+    "S4_base": {
+     "in_dictionary": 1548,
+     "refusal_labelled": 0,
+     "segments": 1548
+    },
+    "S4_primary_base": {
+     "in_dictionary": 2795,
+     "refusal_labelled": 0,
+     "segments": 2795
+    },
+    "S4a": {
+     "in_dictionary": 1412,
+     "refusal_labelled": 864,
+     "segments": 1548
+    },
+    "S4a_primary": {
+     "in_dictionary": 2443,
+     "refusal_labelled": 1648,
+     "segments": 2795
+    },
+    "S4b": {
+     "in_dictionary": 1412,
+     "refusal_labelled": 864,
+     "segments": 1548
+    },
+    "S4b_primary": {
+     "in_dictionary": 2443,
+     "refusal_labelled": 1648,
+     "segments": 2795
+    },
+    "T1": {
+     "in_dictionary": 500,
+     "refusal_labelled": 0,
+     "segments": 500
+    },
+    "T1_base": {
+     "in_dictionary": 500,
+     "refusal_labelled": 0,
+     "segments": 500
+    }
+   }
+  },
+  "excluded": {
+   "aug_essential | refusal target over several segments: which one carries it is not given": 103,
+   "train_refusal:ambiguous | refusal target over several segments: which one carries it is not given": 25,
+   "train_refusal:unknown_entity | grammar: unknown entity": 46,
+   "train_refusal:unsupported | refusal target over several segments: which one carries it is not given": 42
+  },
+  "excluded_total": 216,
+  "label_multiplicities": {
+   "<ambiguous>": {
+    "prefix: the main city of": 21
+   },
+   "<unsupported>": {
+    "possessive: 's bibaka tahe ruda": 1,
+    "possessive: 's detuso": 1,
+    "possessive: 's dufe sanu bipe": 1,
+    "possessive: 's dukoc cati": 1,
+    "possessive: 's femo mewa vola": 1,
+    "possessive: 's fevumu wicetif roju": 1,
+    "possessive: 's fifesu": 1,
+    "possessive: 's fise kabiranu zowe": 1,
+    "possessive: 's fuwejo jijo": 1,
+    "possessive: 's gadizabe coparu vici": 1,
+    "possessive: 's hawo hudot": 1,
+    "possessive: 's hififuna tipa disuvi": 1,
+    "possessive: 's jehikoru bolubi jiba": 1,
+    "possessive: 's kebe nobuwo": 1,
+    "possessive: 's kiwejono": 1,
+    "possessive: 's lejube": 2,
+    "possessive: 's lobi lade": 1,
+    "possessive: 's majeh tivi nive": 1,
+    "possessive: 's mesu meke juhuzil": 1,
+    "possessive: 's mosi": 1,
+    "possessive: 's movi lobi kika": 1,
+    "possessive: 's mufi": 1,
+    "possessive: 's navawem marabo": 1,
+    "possessive: 's nekamefe binigolu zacobe": 1,
+    "possessive: 's nobuwo poride gelezuno": 1,
+    "possessive: 's pajide bamemedo pubagaso": 1,
+    "possessive: 's panevo": 1,
+    "possessive: 's panevo pajide": 1,
+    "possessive: 's pewel": 1,
+    "possessive: 's pewel geseg lehocu": 1,
+    "possessive: 's pugokuga": 1,
+    "possessive: 's pusus": 1,
+    "possessive: 's ripo fiti": 1,
+    "possessive: 's rufu": 1,
+    "possessive: 's salo balufi": 1,
+    "possessive: 's salo zarir jibi": 1,
+    "possessive: 's seba": 1,
+    "possessive: 's somesa gabuh": 1,
+    "possessive: 's tiba fiti detuso": 1,
+    "possessive: 's tivi": 1,
+    "possessive: 's tivi rezize zeva": 1,
+    "possessive: 's tudima dukoc pubagaso": 1,
+    "possessive: 's tunat": 1,
+    "possessive: 's welo": 1,
+    "possessive: 's wenu bafawade hosuti": 1,
+    "possessive: 's wicetif ropikobe banaje": 1,
+    "possessive: 's womunopi": 1,
+    "possessive: 's zamategu zape": 1,
+    "possessive: 's zasico mesa detuso": 1,
+    "possessive: 's zeku pobohi": 1,
+    "possessive: 's zowe": 1,
+    "possessive: 's zutokeva": 1,
+    "prefix: the balufi jizi of": 1,
+    "prefix: the catu wiwafi of": 1,
+    "prefix: the curuniho debegoh kehu of": 1,
+    "prefix: the fezu bafawade cejic": 1,
+    "prefix: the founder of": 2,
+    "prefix: the hicapi gete bide": 1,
+    "prefix: the hosuti hava of": 1,
+    "prefix: the hozavika": 1,
+    "prefix: the jamodo pebo tafew": 1,
+    "prefix: the kebibe": 1,
+    "prefix: the kehu pelipume of": 1,
+    "prefix: the kika hocuwo joco": 1,
+    "prefix: the kimo borus": 1,
+    "prefix: the lohew duru": 1,
+    "prefix: the majeh vila": 1,
+    "prefix: the mayor of": 1,
+    "prefix: the population of": 1,
+    "prefix: the pugokuga lobi curuniho of": 1,
+    "prefix: the pusa civudim coparu": 1,
+    "prefix: the rovu korimobe of": 1,
+    "prefix: the salo": 1,
+    "prefix: the sehi kabu cavali of": 1,
+    "prefix: the tafew fala korimobe": 1,
+    "prefix: the tipa gefizi vahi": 1,
+    "prefix: the tisaw zalova of": 1,
+    "prefix: the tivi tafufeti lade of": 1,
+    "prefix: the tuli": 1,
+    "prefix: the tuzalene of": 1,
+    "prefix: the vaho of": 1,
+    "prefix: the vavure": 1,
+    "prefix: the vici of": 1,
+    "prefix: the voda of": 1,
+    "prefix: the vore": 1,
+    "prefix: the vosecu": 1,
+    "prefix: the wuta lutik bibaka": 1,
+    "prefix: the zalova civudim": 1,
+    "prefix: the zoma nofada": 1,
+    "prefix: the zowe": 1
+   },
+   "airport_of": {
+    "possessive: 's airport": 179,
+    "prefix: the airfield of": 105,
+    "prefix: the airport of": 99,
+    "prefix: the airport serving": 79
+   },
+   "capital_of": {
+    "possessive: 's capital": 130,
+    "prefix: the administrative centre of": 34,
+    "prefix: the capital city of": 72,
+    "prefix: the capital of": 59
+   },
+   "country_of": {
+    "possessive: 's country": 215,
+    "prefix: the country containing": 99,
+    "prefix: the country of": 107,
+    "prefix: the nation of": 84
+   },
+   "largest_city_of": {
+    "possessive: 's largest city": 124,
+    "prefix: the biggest city in": 53,
+    "prefix: the largest city of": 52,
+    "prefix: the most populous city of": 30
+   },
+   "operator_of": {
+    "possessive: 's operator": 120,
+    "prefix: the company operating": 81,
+    "prefix: the firm running": 101,
+    "prefix: the operator of": 64
+   }
+  },
+  "presentations": 2000,
+  "unique_keys": {
+   "raw": 111,
+   "vocab": 33
+  },
+  "unique_tuples": 111
+ },
+ "systems": {
+  "G": {
+   "CAL": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 767,
+    "errors": 0,
+    "exact_correct_answers": 767,
+    "expected_answer": 767,
+    "n": 767,
+    "wrong_decision": 0
+   },
+   "CAL_R": {
+    "abstained": 233,
+    "abstention_reasons": {
+     "ill-typed program": 45,
+     "unknown entity": 54,
+     "unseen segment": 134
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 233,
+    "wrong_decision": 0
+   },
+   "ID": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 762,
+    "errors": 0,
+    "exact_correct_answers": 762,
+    "expected_answer": 762,
+    "n": 762,
+    "wrong_decision": 0
+   },
+   "L3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "R": {
+    "abstained": 238,
+    "abstention_reasons": {
+     "ill-typed program": 64,
+     "unknown entity": 54,
+     "unseen segment": 120
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 238,
+    "wrong_decision": 0
+   },
+   "S1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1100,
+    "errors": 0,
+    "exact_correct_answers": 1100,
+    "expected_answer": 1100,
+    "n": 1100,
+    "wrong_decision": 0
+   },
+   "S2": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S2_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S2_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S3_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_L3": {
+    "abstained": 300,
+    "abstention_reasons": {
+     "unseen segment": 300
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S4_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_primary_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 2000,
+    "errors": 0,
+    "exact_correct_answers": 2000,
+    "expected_answer": 2000,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4a": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen segment": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4a_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen segment": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4b": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen segment": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4b_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen segment": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "T1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   },
+   "T1_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   }
+  },
+  "L_raw": {
+   "CAL": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 767,
+    "errors": 0,
+    "exact_correct_answers": 767,
+    "expected_answer": 767,
+    "n": 767,
+    "wrong_decision": 0
+   },
+   "CAL_R": {
+    "abstained": 233,
+    "abstention_reasons": {
+     "<ambiguous>": 71,
+     "<unsupported>": 51,
+     "ill-typed program": 45,
+     "unknown entity": 54,
+     "unseen segment": 12
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 233,
+    "wrong_decision": 0
+   },
+   "ID": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 762,
+    "errors": 0,
+    "exact_correct_answers": 762,
+    "expected_answer": 762,
+    "n": 762,
+    "wrong_decision": 0
+   },
+   "L3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "R": {
+    "abstained": 238,
+    "abstention_reasons": {
+     "<ambiguous>": 66,
+     "<unsupported>": 40,
+     "ill-typed program": 64,
+     "unknown entity": 54,
+     "unseen segment": 14
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 238,
+    "wrong_decision": 0
+   },
+   "S1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1100,
+    "errors": 0,
+    "exact_correct_answers": 1100,
+    "expected_answer": 1100,
+    "n": 1100,
+    "wrong_decision": 0
+   },
+   "S2": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S2_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S2_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S3_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_L3": {
+    "abstained": 300,
+    "abstention_reasons": {
+     "unseen segment": 300
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S4_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_primary_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 2000,
+    "errors": 0,
+    "exact_correct_answers": 2000,
+    "expected_answer": 2000,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4a": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen segment": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4a_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen segment": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4b": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen segment": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4b_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen segment": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "T1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   },
+   "T1_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   }
+  },
+  "L_vocab": {
+   "CAL": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 767,
+    "errors": 0,
+    "exact_correct_answers": 767,
+    "expected_answer": 767,
+    "n": 767,
+    "wrong_decision": 0
+   },
+   "CAL_R": {
+    "abstained": 233,
+    "abstention_reasons": {
+     "<ambiguous>": 71,
+     "<unsupported>": 51,
+     "ill-typed program": 45,
+     "unknown entity": 54,
+     "unseen segment": 12
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 233,
+    "wrong_decision": 0
+   },
+   "ID": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 762,
+    "errors": 0,
+    "exact_correct_answers": 762,
+    "expected_answer": 762,
+    "n": 762,
+    "wrong_decision": 0
+   },
+   "L3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "R": {
+    "abstained": 238,
+    "abstention_reasons": {
+     "<ambiguous>": 66,
+     "<unsupported>": 40,
+     "ill-typed program": 64,
+     "unknown entity": 54,
+     "unseen segment": 14
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 238,
+    "wrong_decision": 0
+   },
+   "S1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1100,
+    "errors": 0,
+    "exact_correct_answers": 1100,
+    "expected_answer": 1100,
+    "n": 1100,
+    "wrong_decision": 0
+   },
+   "S2": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S2_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S2_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S3_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_L3": {
+    "abstained": 300,
+    "abstention_reasons": {
+     "<unsupported>": 249,
+     "unseen segment": 51
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S4_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_primary_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 2000,
+    "errors": 0,
+    "exact_correct_answers": 2000,
+    "expected_answer": 2000,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4a": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "<unsupported>": 864,
+     "unseen segment": 136
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4a_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "<unsupported>": 1648,
+     "unseen segment": 352
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4b": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "<unsupported>": 864,
+     "unseen segment": 136
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4b_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "<unsupported>": 1648,
+     "unseen segment": 352
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "T1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   },
+   "T1_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   }
+  },
+  "W": {
+   "CAL": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 767,
+    "errors": 0,
+    "exact_correct_answers": 767,
+    "expected_answer": 767,
+    "n": 767,
+    "wrong_decision": 0
+   },
+   "CAL_R": {
+    "abstained": 233,
+    "abstention_reasons": {
+     "<ambiguous>": 71,
+     "<unsupported>": 51,
+     "ill-typed program": 45,
+     "unknown entity": 54,
+     "unseen word": 12
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 233,
+    "wrong_decision": 0
+   },
+   "ID": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 762,
+    "errors": 0,
+    "exact_correct_answers": 762,
+    "expected_answer": 762,
+    "n": 762,
+    "wrong_decision": 0
+   },
+   "L3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "R": {
+    "abstained": 238,
+    "abstention_reasons": {
+     "<ambiguous>": 66,
+     "<unsupported>": 40,
+     "ill-typed program": 64,
+     "unknown entity": 54,
+     "unseen word": 14
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 238,
+    "wrong_decision": 0
+   },
+   "S1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1100,
+    "errors": 0,
+    "exact_correct_answers": 1100,
+    "expected_answer": 1100,
+    "n": 1100,
+    "wrong_decision": 0
+   },
+   "S2": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S2_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S2_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 800,
+    "errors": 0,
+    "exact_correct_answers": 800,
+    "expected_answer": 800,
+    "n": 800,
+    "wrong_decision": 0
+   },
+   "S3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S3_L3": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 300,
+    "errors": 0,
+    "exact_correct_answers": 300,
+    "expected_answer": 300,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S3_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_L3": {
+    "abstained": 300,
+    "abstention_reasons": {
+     "unseen word": 300
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 300,
+    "wrong_decision": 0
+   },
+   "S4_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 1000,
+    "errors": 0,
+    "exact_correct_answers": 1000,
+    "expected_answer": 1000,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4_primary_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 2000,
+    "errors": 0,
+    "exact_correct_answers": 2000,
+    "expected_answer": 2000,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4a": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen word": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4a_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen word": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "S4b": {
+    "abstained": 1000,
+    "abstention_reasons": {
+     "unseen word": 1000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 1000,
+    "wrong_decision": 0
+   },
+   "S4b_primary": {
+    "abstained": 2000,
+    "abstention_reasons": {
+     "unseen word": 2000
+    },
+    "accidental_agreement": 0,
+    "answered": 0,
+    "errors": 0,
+    "exact_correct_answers": 0,
+    "expected_answer": 0,
+    "n": 2000,
+    "wrong_decision": 0
+   },
+   "T1": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   },
+   "T1_base": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "accidental_agreement": 0,
+    "answered": 500,
+    "errors": 0,
+    "exact_correct_answers": 500,
+    "expected_answer": 500,
+    "n": 500,
+    "wrong_decision": 0
+   }
+  }
+ },
+ "totals": {
+  "G": {
+   "accidental_agreement": 0,
+   "errors": 0,
+   "wrong_decisions": 0
+  },
+  "L_raw": {
+   "accidental_agreement": 0,
+   "errors": 0,
+   "wrong_decisions": 0
+  },
+  "L_vocab": {
+   "accidental_agreement": 0,
+   "errors": 0,
+   "wrong_decisions": 0
+  },
+  "W": {
+   "accidental_agreement": 0,
+   "errors": 0,
+   "wrong_decisions": 0
+  }
+ },
+ "vocabulary_size": 562,
+ "world": 101
+}

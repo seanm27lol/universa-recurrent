@@ -17,6 +17,12 @@ question, A+K abstains with the grammar's reason. Those refusals are reported se
 
 `decode(..., constrained=False)` applies no constraint and must reproduce A's own greedy decoding
 (`interpreters.interpret`) exactly. A test checks this.
+
+**Selection by logits.** The choice is the highest **logit** among the allowed outputs (`select`); ties go to the
+earlier output index. The development pilot recorded at `0e1a3c9` chose the highest allowed **probability**
+instead. Where two allowed outputs both underflow to probability 0 in float32, that rule ties and takes the earlier
+index, whatever their logits. Each step now records its logits as well as its probabilities, and the scores still
+use the original unmasked probabilities.
 """
 from __future__ import annotations
 
@@ -28,14 +34,20 @@ from . import interpreters as I
 from . import routing as J
 
 
+def select(logits: list[float], allowed: list[int]) -> int:
+    """The allowed output with the highest logit; ties to the earlier index."""
+    return max(allowed, key=lambda k: (logits[k], -k))
+
+
 @torch.no_grad()
 def decode(net: I.Interpreter, vocab, texts: list[str], slots: list[int | None], world, constrained: bool = True,
-           batch: int = 256) -> list[dict | None]:
+           batch: int = 256, stats: dict | None = None) -> list[dict | None]:
     """One record per text; None where `slots` is None (the grammar refused: no decoding).
 
-    Each record holds the entity pointer's choice and probability, every step's full output distribution, its
-    allowed set and the chosen output, the outcome ("program", "unsupported", "ambiguous", "unknown entity" or
-    "malformed"), the program, and the score."""
+    Each record holds the entity pointer's choice and probability, every step's full output distribution and logits,
+    its allowed set and the chosen output, the outcome ("program", "unsupported", "ambiguous", "unknown entity" or
+    "malformed"), the program, and the score. `stats["evaluated_row_steps"]`, when given, accumulates the decoder
+    row-steps actually computed: every row of a batch, at every step the batch runs."""
     outputs = net.outputs
     index = {o: i for i, o in enumerate(outputs)}
     relation_outputs = [i for i, o in enumerate(outputs) if o in world.relations]
@@ -67,15 +79,18 @@ def decode(net: I.Interpreter, vocab, texts: list[str], slots: list[int | None],
         for t in range(J.MAX_STEPS + 1):
             if all(row["done"] for row in rows):
                 break
+            if stats is not None:
+                stats["evaluated_row_steps"] = stats.get("evaluated_row_steps", 0) + len(rows)
             scores = torch.bmm(enc, net.attend(state).unsqueeze(-1)).squeeze(-1).masked_fill(~mask, float("-inf"))
             context = (F.softmax(scores, -1).unsqueeze(-1) * enc).sum(1)
             state = net.cell(torch.cat([net.out_embed(prev), context], -1), state)
-            p = F.softmax(net.out(torch.cat([state, context], -1)), -1)
+            logits_t = net.out(torch.cat([state, context], -1))
+            p = F.softmax(logits_t, -1)
             nxt = prev.clone()
             for r, row in enumerate(rows):
                 if row["done"]:
                     continue
-                dist = p[r].tolist()
+                dist, logits = p[r].tolist(), logits_t[r].tolist()
                 if not constrained:
                     allowed = list(range(len(outputs)))
                 elif t < row["slots"]:
@@ -83,8 +98,8 @@ def decode(net: I.Interpreter, vocab, texts: list[str], slots: list[int | None],
                                      + refusals)
                 else:
                     allowed = sorted([index[J.END]] + refusals)
-                chosen = max(allowed, key=lambda k: (dist[k], -k))  # the highest probability; ties to the lower index
-                row["steps"].append({"distribution": dist, "allowed": allowed, "chosen": chosen})
+                chosen = select(logits, allowed)
+                row["steps"].append({"distribution": dist, "logits": logits, "allowed": allowed, "chosen": chosen})
                 o = outputs[chosen]
                 nxt[r] = chosen
                 if o in (J.UNSUPPORTED, J.AMBIGUOUS):
