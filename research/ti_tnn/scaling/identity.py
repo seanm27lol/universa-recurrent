@@ -118,7 +118,7 @@ def environment() -> dict:
     out = {"python": sys.version.split()[0], "executable": sys.executable, "platform": platform.platform(),
            "machine": platform.machine(), "host": socket.gethostname(),
            "gpu": _nvidia_smi("name"), "driver": _nvidia_smi("driver_version"),
-           "linear_attention_kernels": os.environ.get("TI_TNN_SCALING_LINEAR_KERNELS", "fla")}
+           "linear_attention_kernels": os.environ.get("TI_TNN_SCALING_LINEAR_KERNELS", "reference")}
     import importlib.metadata as md
     for pkg in ("torch", "transformers", "tokenizers", "safetensors", "sqlglot", "numpy", "huggingface_hub",
                 "accelerate", "flash-linear-attention", "causal-conv1d", "kernels", "triton"):
