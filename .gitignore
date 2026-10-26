@@ -1,6 +1,7 @@
 .venv/
 .venv-phase2/
 .venv-vllm/
+.venv-scaling/
 __pycache__/
 *.py[cod]
 .pytest_cache/
