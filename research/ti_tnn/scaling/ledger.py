@@ -22,7 +22,17 @@ inference and smoke training are all charged. The log is append-only, `<runs>/gp
 - a heartbeat that cannot be written makes `check()` fail;
 - foreign GPU processes are logged at start and end and never touched.
 
-**One owner.** An exclusive `flock` on `<runs>/gpu.lock` is held for the whole reservation.
+**One owner, one ledger.** An exclusive `flock` on `<runs>/gpu.lock` is held for the whole reservation. The first
+reservation writes an anchor file into the repository's git common directory, which every worktree shares. From then
+on, a reservation from any worktree must use that same runs directory.
+
+**Stopping.** Stops are `BaseException`s (`BudgetExceeded`, `Terminated`), so no `except Exception` in the work can
+swallow them:
+- **At the limit,** the watchdog sends SIGTERM to the process. The end entry is written when the process actually
+  stops, so the charge runs to the real stop. If the process has not stopped after the grace period, the watchdog
+  writes the end entry itself and exits.
+- **A failed heartbeat write** stops the run the same way.
+- **An external SIGTERM** stops it with status `terminated`.
 """
 from __future__ import annotations
 
@@ -49,8 +59,12 @@ TERMINATION_GRACE_SECONDS = 90.0
 _ACTIVE = None               # the reservation this process holds, if any
 
 
-class BudgetExceeded(RuntimeError):
-    pass
+class BudgetExceeded(BaseException):
+    """The reservation reached its limit. A BaseException, so `except Exception` handlers cannot swallow it."""
+
+
+class Terminated(BaseException):
+    """A SIGTERM reached the process (from the watchdog at the limit, or from outside)."""
 
 
 class LedgerCorrupt(RuntimeError):
@@ -67,6 +81,25 @@ def shared_runs() -> Path:
     if not path.is_absolute():
         raise RuntimeError(f"TI_TNN_SCALING_RUNS must be absolute, not {value!r}")
     return path
+
+
+def anchor_file() -> Path:
+    """The anchor, in the git common directory shared by every worktree of this repository."""
+    common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=C.REPO,
+                            capture_output=True, text=True, check=True).stdout.strip()
+    return Path(common) / "ti_tnn_scaling_ledger_anchor"
+
+
+def check_anchor(runs: Path) -> str:
+    """Refuse a runs directory other than the anchored one; anchor it on first use."""
+    f = anchor_file()
+    if f.exists():
+        anchored = f.read_text().strip()
+        if anchored != str(runs):
+            raise RuntimeError(f"this repository's GPU ledger is anchored at {anchored}; set TI_TNN_SCALING_RUNS to it")
+    else:
+        f.write_text(str(runs) + "\n")
+    return str(f)
 
 
 def ledger_path() -> Path:
@@ -158,6 +191,7 @@ class Reservation:
             raise ValueError(f"projected_hours must be a finite positive number, not {projected_hours!r}")
         self.command, self.projected_hours, self.cap_hours = command, float(projected_hours), float(cap_hours)
         runs = shared_runs() if path is None or lock is None else None
+        self.anchor = check_anchor(runs) if runs is not None else None
         self.path = Path(path) if path is not None else runs / "gpu_ledger.jsonl"
         self.lock_path = Path(lock) if lock is not None else runs / "gpu.lock"
         self.extra, self.terminate = extra or {}, terminate
@@ -168,6 +202,7 @@ class Reservation:
         self._ended = False
         self.exceeded = threading.Event()
         self.heartbeat_failed = threading.Event()
+        self.terminated = threading.Event()
         self.t_start = self.m_start = None
         self.used_before = 0.0
         self.limit_hours = None
@@ -210,7 +245,8 @@ class Reservation:
         self._append({"event": "start", "reservation": self.id, "t": self.t_start, "iso": _iso(self.t_start),
                       "elapsed": 0.0, "command": self.command, "projected_hours": self.projected_hours,
                       "limit_hours": self.limit_hours, "cap_hours": self.cap_hours,
-                      "used_before_hours": self.used_before, "ledger": str(self.path), "pid": os.getpid(),
+                      "used_before_hours": self.used_before, "ledger": str(self.path), "anchor": self.anchor,
+                      "pid": os.getpid(),
                       "host": socket.gethostname(), "foreign_gpu_processes": foreign_gpu_processes(),
                       "extra": self.extra})
         if threading.current_thread() is threading.main_thread():
@@ -221,12 +257,31 @@ class Reservation:
         return self
 
     def _on_sigterm(self, signum, frame):
-        if self.exceeded.is_set():
-            raise BudgetExceeded(f"{self.command}: terminated at the reservation limit ({self.limit_hours:.3f} h aggregate)")
-        raise RuntimeError(f"{self.command}: terminated by SIGTERM")
+        self.terminated.set()
+        if self.exceeded.is_set() or self.heartbeat_failed.is_set():
+            raise BudgetExceeded(f"{self.command}: stopped at the reservation limit ({self.limit_hours:.3f} h "
+                                 "aggregate) or after a failed heartbeat write")
+        raise Terminated(f"{self.command}: terminated by SIGTERM")
 
     def _over(self) -> bool:
         return self.used_before + self.elapsed_hours() > self.limit_hours
+
+    def _stop_process(self, reason: str) -> None:
+        """SIGTERM this process; the end entry is written where it actually stops (`__exit__`). After the grace period,
+        write it here and exit."""
+        if not self.terminate:
+            return
+        os.kill(os.getpid(), signal.SIGTERM)
+
+        def force():
+            if not self._ended:
+                try:
+                    self._end("budget_exceeded", f"{reason}; forced exit after {TERMINATION_GRACE_SECONDS:.0f} s grace")
+                finally:
+                    os._exit(3)
+        timer = threading.Timer(TERMINATION_GRACE_SECONDS, force)
+        timer.daemon = True
+        timer.start()
 
     def _watchdog(self) -> None:
         while not self._stop.wait(HEARTBEAT_SECONDS):
@@ -234,13 +289,12 @@ class Reservation:
                 self._append({"event": "heartbeat", "reservation": self.id, "t": time.time(),
                               "elapsed": self.elapsed_seconds()})
             except Exception:
-                self.heartbeat_failed.set()  # check() now fails closed
+                if not self.heartbeat_failed.is_set():
+                    self.heartbeat_failed.set()  # fail closed: stop now, not at the next check()
+                    self._stop_process("the ledger heartbeat could not be written")
             if self._over() and not self.exceeded.is_set():
                 self.exceeded.set()
-                self._end("budget_exceeded", f"limit {self.limit_hours:.3f} h aggregate reached")
-                if self.terminate:
-                    os.kill(os.getpid(), signal.SIGTERM)
-                    threading.Timer(TERMINATION_GRACE_SECONDS, lambda: os._exit(3)).start()
+                self._stop_process(f"limit {self.limit_hours:.3f} h aggregate reached")
 
     def check(self) -> None:
         """Raise if this reservation reached its limit or its heartbeat failed. Call it between units of work."""
@@ -275,12 +329,14 @@ class Reservation:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5)
-        if self.exceeded.is_set():
+        if self.exceeded.is_set() or self.heartbeat_failed.is_set() or exc_type is BudgetExceeded:
             status = "budget_exceeded"
+        elif self.terminated.is_set() or exc_type is Terminated:
+            status = "terminated"
         elif exc_type is None:
             status = "ok"
         else:
-            status = "budget_exceeded" if exc_type is BudgetExceeded else "failed"
+            status = "failed"
         self._end(status, None if exc is None else repr(exc))
         if self._old_handler is not None:
             signal.signal(signal.SIGTERM, self._old_handler)

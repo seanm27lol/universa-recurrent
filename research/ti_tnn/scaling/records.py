@@ -122,7 +122,7 @@ def validate(rec: dict) -> None:
     if rec["error"] is not None and f["kind"] != "abstain":
         raise RecordError(f"{tid}: a request with an error must abstain")
     _finite(rec["elapsed_seconds"], f"{tid}: elapsed_seconds", positive=True)
-    _finite(rec["peak_memory_bytes"], f"{tid}: peak_memory_bytes", allow_none=True)
+    _finite(rec["peak_memory_bytes"], f"{tid}: peak_memory_bytes", allow_none=True, integer=True)
     if not isinstance(rec["tokens"], dict):
         raise RecordError(f"{tid}: tokens must be a dict")
     for k, v in rec["tokens"].items():

@@ -68,6 +68,21 @@ def linear_attention_backend() -> dict:
             "causal_conv1d": "reference"}
 
 
+def bound_linear_attention() -> dict:
+    """What transformers actually bound for Qwen3.5's linear-attention functions, read from the kernel decorator's
+    closure. Call it after the model is loaded. It reports what ran, whatever the import order was."""
+    import transformers.models.qwen3_5.modeling_qwen3_5 as m
+    out = {}
+    for name in ("torch_chunk_gated_delta_rule", "torch_recurrent_gated_delta_rule", "causal_conv1d_fn",
+                 "causal_conv1d_update"):
+        fn = getattr(m, name, None)
+        cells = dict(zip(fn.__code__.co_freevars, (c.cell_contents for c in (fn.__closure__ or ())))) if fn else {}
+        impl = cells.get("implementation")
+        out[name] = (f"{impl.__module__}.{impl.__name__}" if impl is not None else "unknown") + \
+            (" (optimized)" if cells.get("is_new_implementation") else " (reference)")
+    return out
+
+
 # The model cards' recommended settings (Qwen3.8-27B: thinking / instruct; Qwen3.5-4B: thinking for precise coding /
 # instruct for general tasks). SQL generation is precise coding, so B4 thinking uses the card's coding setting.
 SAMPLING = {
@@ -186,7 +201,8 @@ class Runtime:
         out = {"key": self.key, "repo": C.MODELS[self.key]["repo"], "revision": C.MODELS[self.key]["revision"],
                "dtype": self.dtype, "parameters": self.parameters, "load_seconds": self.load_seconds,
                "chat_template_sha256": self.chat_template_sha256, "model_class": type(self.model).__name__,
-               "linear_attention": linear_attention_backend(), "stop_tokens": dict(zip(STOP_TOKENS, self.stop_ids))}
+               "linear_attention": linear_attention_backend(), "linear_attention_bound": bound_linear_attention(),
+               "stop_tokens": dict(zip(STOP_TOKENS, self.stop_ids))}
         if self.device.startswith("cuda"):
             out["memory_allocated_bytes"] = torch.cuda.memory_allocated()
             out["memory_reserved_bytes"] = torch.cuda.memory_reserved()
