@@ -162,6 +162,13 @@
       "report": "research/ti_tnn/reports/repeated_updates_v1.md",
       "source": "e8c6f99 (frozen revision 3; the freezing commit; recorded in the run, with a clean tree)",
       "command": "python research/ti_tnn/bench/repeated_updates.py --worlds 900 901 902 --inits 0 1 2 3 4 --confirmation --out runs/titnn_repeated_confirmation; python research/ti_tnn/bench/repeated_updates_verify.py <run> --reproduce --out verification.json"
+    },
+    "factored_interpreter": {
+      "what": "Factored interpreter, development engineering result (worlds 100-101 x inits 100-101 x full and reduced exposure; 16 fits of A and F; A+K, F+B, L, G and W evaluated from them), and its no-fit controls with the lexical condition: the original exports at 0e1a3c9 (A+K step traces as release assets, pilot_trace_release.json), their integrity check, the verifiers' outputs and the A+K diagnosis",
+      "protocol": "research/ti_tnn/protocols/factored_interpreter_v1.md",
+      "report": "research/ti_tnn/reports/factored_interpreter_v1.md",
+      "source": "0e1a3c9 (both runs; clean tree; recorded in the runs). No confirmation was run.",
+      "command": "python research/ti_tnn/bench/factored_interpreter.py --worlds 100 101; python research/ti_tnn/bench/factored_pilot.py --worlds 100 101 --inits 100 101 (each from 0e1a3c9)"
     }
   },
   "files": [
@@ -4272,6 +4279,391 @@
       "original_path": null,
       "sha256": "5d298acfd3aba1d16a2ba28f602ae122481eb67ab671b43bfd6417961da3f927",
       "bytes": 85005
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/run.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/run.json",
+      "sha256": "a80b8aa4e960bdfd3dc844596deb92b4cb7a88dc0ee1a31fa10354c79afcf3a1",
+      "bytes": 3492
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_full/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_full/records_A.json.gz",
+      "sha256": "1f64d201f7f15c0486ba5cfd041acd526b6ccbfabb65bbd7b89a15ca939e4c29",
+      "bytes": 634531
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_full/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_full/records_F.json.gz",
+      "sha256": "28b66437c5aa1e591af4e4fb0548470638c27d348b093f8a4df60693f8cfeea0",
+      "bytes": 195801
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_full/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_full/records_FB.json.gz",
+      "sha256": "70da88a0c515bc9bf5ca6f3cc41523376b0989eb256b13cb4d070b46978245f3",
+      "bytes": 286559
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_full/unit.json",
+      "sha256": "d5aa7aab25e96edd61f74b54e1268afd7febb68c4ef07807fad8019ff1730639",
+      "bytes": 548881
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_reduced/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_reduced/records_A.json.gz",
+      "sha256": "778c52c3a7b2c81f1864fd68022a37851194cc97315937ba3c358d94b6d5ac2f",
+      "bytes": 593365
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_reduced/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_reduced/records_F.json.gz",
+      "sha256": "cf65e74b6ea58d5fdd60596b2ec1c04317c389a6ea19e54a42b2eb8c637238bb",
+      "bytes": 196083
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_reduced/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_reduced/records_FB.json.gz",
+      "sha256": "0a625190ffe389ebea5d7468f3de6b3e3f320bca5a3a22bf292b8bc57bcc6504",
+      "bytes": 286187
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i100_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i100_reduced/unit.json",
+      "sha256": "f6abcbdb3853024d0b88e71b650a7f70eef36e71e716c1f601cf46aaf1defbb8",
+      "bytes": 546404
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_full/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_full/records_A.json.gz",
+      "sha256": "4676356f8c532413bfb4450e84c078464b268b56a20a1c998a9b3e9cc32fcc2e",
+      "bytes": 621088
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_full/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_full/records_F.json.gz",
+      "sha256": "2f9404cd9d370a838babab9da0789dba493635ed79bb2bd58d27b10d6bc27e9b",
+      "bytes": 192391
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_full/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_full/records_FB.json.gz",
+      "sha256": "72cb89af18f1180b79500cc530e07063e314b315a113445980472d6b047bfb68",
+      "bytes": 282982
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_full/unit.json",
+      "sha256": "fde32f6e7585eb86de8ee152ca0be2c2f033c5a37ffd17342dce7f9b04e0f94e",
+      "bytes": 546163
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_reduced/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_reduced/records_A.json.gz",
+      "sha256": "319b9150d41e54ca4fb99ed56c93dd9a5fb61046f2b95c48e220979a87424610",
+      "bytes": 605172
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_reduced/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_reduced/records_F.json.gz",
+      "sha256": "1b90e73cafaad7407f86aa3fe5ffa04e990fbc5e78e7d41f4b7a798d3df783b1",
+      "bytes": 196644
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_reduced/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_reduced/records_FB.json.gz",
+      "sha256": "c395b42d41670c986c99f4ba6132fd397693716211a79087c7b7c2bc0ca7ee08",
+      "bytes": 287413
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w100_i101_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w100_i101_reduced/unit.json",
+      "sha256": "bfbc4bc7c2d06366f443962215029398bfae1d24fe48b2020845ac8902f3e1a8",
+      "bytes": 546947
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_full/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_full/records_A.json.gz",
+      "sha256": "816201ec1b229a6b1d85b89168d4b03909eca2319cb49591c4da0768b86b68ee",
+      "bytes": 600655
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_full/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_full/records_F.json.gz",
+      "sha256": "49a15d358dc981fddfe3c44af22f40127c1d857f21f9da5d2008fd801a2eb0c9",
+      "bytes": 194558
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_full/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_full/records_FB.json.gz",
+      "sha256": "9ca88adbc2390c919d04a2baaddc5a8704fc06347c08134881ae8f1d923f2734",
+      "bytes": 286961
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_full/unit.json",
+      "sha256": "9751705f0992a313159303b7acf302aed84083c44ecd760f9df7431bc6e833d9",
+      "bytes": 548485
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_reduced/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_reduced/records_A.json.gz",
+      "sha256": "c187d09b3d414cfecfc6502078a550fdcaf54260e3cafffbd5af74622ff11bc6",
+      "bytes": 603729
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_reduced/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_reduced/records_F.json.gz",
+      "sha256": "31f2de6adce7e5047597874f5dc81e9d0e63dce4adcbf121dfb54354f1beb70c",
+      "bytes": 191638
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_reduced/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_reduced/records_FB.json.gz",
+      "sha256": "2c32683881bff47c0956171e06be4ac0a13e1e00a2cbe7ef2806f6aae7ce3075",
+      "bytes": 283810
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i100_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i100_reduced/unit.json",
+      "sha256": "34cafd8d89f0240d891e0ab020a84f3aa48aa289daa188ee9085d158be9d92a0",
+      "bytes": 549242
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_full/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_full/records_A.json.gz",
+      "sha256": "ed6a362eb2ff5e1e768805537dbd667cf8e0f5968033594ec0ebfbf38ec2e849",
+      "bytes": 616710
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_full/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_full/records_F.json.gz",
+      "sha256": "542610b176d6d0a23909514ec9a6c0fdf4c9dd29d8b742f47269bbf5af14b977",
+      "bytes": 195154
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_full/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_full/records_FB.json.gz",
+      "sha256": "ea358a2013d66a5722244f3869ed47bb441f01a58c3f9566897a8787fa4ac198",
+      "bytes": 286565
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_full/unit.json",
+      "sha256": "fd8cbc4f1f9e5606e352df67bd207a8faba8bcab663607e91105494bb1ab0b3a",
+      "bytes": 547515
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_reduced/records_A.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_reduced/records_A.json.gz",
+      "sha256": "08aea45cb7831e8efb473823f6cbbd79d29dd71bd2c4d1b31214a8f8e4675d97",
+      "bytes": 608125
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_reduced/records_F.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_reduced/records_F.json.gz",
+      "sha256": "eb17d7f7b32bab490b2e31a53111b09d1dcf2932c4be97931b1cba0d41f35af4",
+      "bytes": 195956
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_reduced/records_FB.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_reduced/records_FB.json.gz",
+      "sha256": "0298d11e879bedf6b3161a7ed181d78403d37dd5802fd318b37b57c2fa825233",
+      "bytes": 287735
+    },
+    {
+      "path": "factored_interpreter/pilot/20261025T051637/units/w101_i101_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_pilot/20261025T051637/units/w101_i101_reduced/unit.json",
+      "sha256": "cd8531094291c88c32564a711e6b744b80912809bcd0a424a12e91edeeb4f0bd",
+      "bytes": 548608
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/run.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/run.json",
+      "sha256": "745c05bc0fcc32fe8a6aa67c3051a55403d087601ede55d96cca09f3052296d6",
+      "bytes": 4022
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_full/labels.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_full/labels.json.gz",
+      "sha256": "198098fea5024e9b4ed47ee938f67e09e597dd8b943aee1b0be92fc350ba208f",
+      "bytes": 13687
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_full/lexical_records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_full/lexical_records.json.gz",
+      "sha256": "2989cd478c3866217fbd7f122a779d0f6f6c37b8bff8d1573975cdaf98fd3f23",
+      "bytes": 101883
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_full/records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_full/records.json.gz",
+      "sha256": "94bf13efae3d4fe752fe2f84e55f085733a52a68af009fc5db5b21f7ca6eee16",
+      "bytes": 478102
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_full/unit.json",
+      "sha256": "10406f64ca2820df02086cdaeb11675cb9d31c14af4bbed070e10948f1dfc5ee",
+      "bytes": 41458
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_reduced/labels.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_reduced/labels.json.gz",
+      "sha256": "4a509ab715d5534b9c6abce5bee26434ce7de2c00000ad7d97ea3abf77c91bf1",
+      "bytes": 13408
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_reduced/lexical_records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_reduced/lexical_records.json.gz",
+      "sha256": "bbd3b7c66dba13dc710b64f2cccd30c36ad6e7d8b2466173e0f51e86aed2776d",
+      "bytes": 101883
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_reduced/records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_reduced/records.json.gz",
+      "sha256": "d29b0d5f809cc7f30bec16d9f550b2868d8130fb1b41e88ac848c830e3fec1cb",
+      "bytes": 478102
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w100_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w100_reduced/unit.json",
+      "sha256": "e372ba51ce1ec9c0cf0fae649b2ee444412e5e9e875f7f26f840052ff5babdcb",
+      "bytes": 41455
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_full/labels.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_full/labels.json.gz",
+      "sha256": "e9d8c191d07ebbd5b3596e248adf4b06c2e76675983e56fbe9397baa81121749",
+      "bytes": 13540
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_full/lexical_records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_full/lexical_records.json.gz",
+      "sha256": "280bb1170af797411f7a35691d5ddff5548e880de59db16c7acbb0d3f9b3a5c4",
+      "bytes": 101304
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_full/records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_full/records.json.gz",
+      "sha256": "71d3a61e890c0114a004778a543d955e4be7c5fb20b6ff753b99b24f5ad02bf2",
+      "bytes": 477212
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_full/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_full/unit.json",
+      "sha256": "5d309de9a480100e4e298e7a8aff52d3cf210d7b77c5ea290704c401a126ef3c",
+      "bytes": 41309
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_reduced/labels.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_reduced/labels.json.gz",
+      "sha256": "75faec5a6e02d3604bbbf4e19053f00cdc32a5d873443462992583189f64a993",
+      "bytes": 13209
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_reduced/lexical_records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_reduced/lexical_records.json.gz",
+      "sha256": "96a2f5035f88930159d1c64ae2038ab4493c2c5bb6fd9cb2987fd3c25c1126a9",
+      "bytes": 101304
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_reduced/records.json.gz",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_reduced/records.json.gz",
+      "sha256": "460a704249a3f75956c053e59d13d1d9a62d25ea586effb111ae75304a915399",
+      "bytes": 477212
+    },
+    {
+      "path": "factored_interpreter/controls/20261025T052851/units/w101_reduced/unit.json",
+      "experiment": "factored_interpreter",
+      "original_path": "runs/titnn_factored_controls/20261025T052851/units/w101_reduced/unit.json",
+      "sha256": "b5682763d32aa337892a25a559d219701c582892323b8038adb682af2167f127",
+      "bytes": 41306
+    },
+    {
+      "path": "factored_interpreter/pilot_verification.json",
+      "experiment": "factored_interpreter",
+      "original_path": null,
+      "sha256": "8310ec7dcfde97c3aba9ced7aa526556353002ccc928c4c2967d04492065ef63",
+      "bytes": 13193
+    },
+    {
+      "path": "factored_interpreter/controls_verification.json",
+      "experiment": "factored_interpreter",
+      "original_path": null,
+      "sha256": "de4c6a5d9620c1f00e2b2a52a01cca431a0566d8ae93e83b92e3c937644fab55",
+      "bytes": 11794
+    },
+    {
+      "path": "factored_interpreter/ak_diagnosis.json",
+      "experiment": "factored_interpreter",
+      "original_path": null,
+      "sha256": "88579b432d2729fa6f44aa6bc5d2d73dd78a3d7219ab46365fd63674eedfbd05",
+      "bytes": 67089
+    },
+    {
+      "path": "factored_interpreter/export_integrity.json",
+      "experiment": "factored_interpreter",
+      "original_path": null,
+      "sha256": "0e081dc5d2b6588f29a962e2ce05d5c4079c790ecc645961b92f7f343e0cfa44",
+      "bytes": 15077
+    },
+    {
+      "path": "factored_interpreter/pilot_trace_release.json",
+      "experiment": "factored_interpreter",
+      "original_path": null,
+      "sha256": "d6df63bd75578e5569605c0152a321290165bc5b560cac59f888c5e30b9af2c0",
+      "bytes": 2840
     }
   ]
 }
