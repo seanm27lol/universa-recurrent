@@ -127,10 +127,11 @@ def baseline_projection_hours(model: str, n_requests: int, thinking: bool, limit
     else:
         per_request = min(worst, tokens / rate + 10 * prefill + 10 * limits.sql_timeout_seconds)
         basis = "token budget / measured decode rate + 10 prefills + 10 SQL timeouts"
-    seconds = load + (n_requests + 1) * per_request
+    scoring = 2 * limits.sql_timeout_seconds  # the scorer runs the submitted and the gold SQL inside the reservation
+    seconds = load + (n_requests + 1) * per_request + n_requests * scoring
     return {"hours": seconds / 3600, "decode_tokens_per_second": rate, "prefill_seconds_max": prefill,
             "load_seconds": load, "per_request_seconds": per_request, "worst_case_per_request_seconds": worst,
-            "requests": n_requests, "basis": basis}
+            "scoring_seconds_per_request_worst": scoring, "requests": n_requests, "basis": basis}
 
 
 def _probe_seconds(model: str, mode: str, effort: str | None) -> list[float]:

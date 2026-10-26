@@ -95,10 +95,37 @@ def user_message(task: C.Task, schema_text: str, examples: list) -> str:
     return "\n".join(parts)
 
 
+def _first_statement(text: str) -> str:
+    """A bare reply's first SQL statement, exactly as written.
+
+    1. The text is cut at the first semicolon outside string literals (sqlglot's tokenizer).
+    2. The longest prefix ending at a blank line, or at the end, that parses as exactly one SQLite statement is kept.
+       So prose after the query is dropped, and a CTE broken by a blank line is kept whole.
+    3. If no prefix parses, the first paragraph is returned; it will fail at execution and may be repaired."""
+    import sqlglot
+    from sqlglot.tokens import TokenType
+    try:
+        for tok in sqlglot.Dialect.get_or_raise("sqlite").tokenize(text):
+            if tok.token_type == TokenType.SEMICOLON:
+                text = text[:tok.start]
+                break
+    except Exception:
+        pass
+    cuts = [len(text)] + sorted((m.start() for m in re.finditer(r"\n\s*\n", text)), reverse=True)
+    for cut in cuts:
+        candidate = text[:cut].strip()
+        try:
+            if candidate and len([e for e in sqlglot.parse(candidate, read="sqlite") if e is not None]) == 1:
+                return candidate
+        except Exception:
+            continue
+    return re.split(r"\n\s*\n", text, maxsplit=1)[0].strip()
+
+
 def extract_final(content: str) -> tuple[str | None, str | None]:
-    """(final SQL, the raw text it was taken from). The SQL is the last sql/sqlite/unlabeled fenced block, or, for a bare
-    reply that starts with SELECT/WITH, its first statement (up to the first blank line or semicolon). Only
-    surrounding whitespace and a trailing semicolon are removed."""
+    """(final SQL, the raw text it was taken from). The SQL is the last sql/sqlite/unlabeled fenced block, or, for a
+    bare reply that starts with SELECT/WITH, its first statement (`_first_statement`). Only surrounding whitespace and
+    a trailing semicolon are removed from a fenced block."""
     blocks = FENCE.findall(content)
     if blocks:
         raw = blocks[-1][1]
@@ -106,9 +133,7 @@ def extract_final(content: str) -> tuple[str | None, str | None]:
         return (sql or None), raw
     stripped = content.strip()
     if re.match(r"(?is)^(select|with)\b", stripped):
-        first = re.split(r"\n\s*\n", stripped, maxsplit=1)[0]
-        first = first.split(";", 1)[0]
-        return (first.strip() or None), stripped
+        return (_first_statement(stripped) or None), stripped
     return None, None
 
 

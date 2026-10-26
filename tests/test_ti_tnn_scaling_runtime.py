@@ -76,6 +76,7 @@ def test_invalid_projections_are_refused(tmp_path, projected):
 
 
 def test_a_reservation_needs_the_one_shared_absolute_location(tmp_path, monkeypatch):
+    monkeypatch.setattr(ledger, "anchor_file", lambda: tmp_path / "anchor")  # never touch the real repository's anchor
     monkeypatch.delenv("TI_TNN_SCALING_RUNS", raising=False)
     with pytest.raises(RuntimeError, match="TI_TNN_SCALING_RUNS"):
         ledger.Reservation("x", projected_hours=0.1)
@@ -87,6 +88,12 @@ def test_a_reservation_needs_the_one_shared_absolute_location(tmp_path, monkeypa
         assert ledger.active() is r and r.path == tmp_path / "gpu_ledger.jsonl"
     assert ledger.active() is None
     assert ledger.read(tmp_path / "gpu_ledger.jsonl")[0]["ledger"] == str(tmp_path / "gpu_ledger.jsonl")
+    # the anchor pins that one location for every worktree: another absolute location is refused
+    other = tmp_path / "other"
+    other.mkdir()
+    monkeypatch.setenv("TI_TNN_SCALING_RUNS", str(other))
+    with pytest.raises(RuntimeError, match="anchored"):
+        ledger.Reservation("x", projected_hours=0.1)
 
 
 def test_a_crashed_reservation_is_charged_from_monotonic_heartbeats(tmp_path):
@@ -132,12 +139,42 @@ def test_the_watchdog_enforces_the_limit_with_one_end_entry(tmp_path, monkeypatc
 def test_a_dead_heartbeat_fails_closed(tmp_path, monkeypatch):
     monkeypatch.setattr(ledger, "HEARTBEAT_SECONDS", 0.05)
     with pytest.raises(ledger.BudgetExceeded, match="heartbeat"):
-        with _res(tmp_path, projected_hours=1.0) as r:
+        with _res(tmp_path, projected_hours=1.0, terminate=False) as r:
             real = r._append
             r._append = lambda entry: (_ for _ in ()).throw(OSError("disk full")) if entry["event"] == "heartbeat" \
                 else real(entry)
             time.sleep(0.3)
             r.check()
+
+
+STOP_CHILD = r"""
+import sys, time
+sys.path.insert(0, {root!r})
+from scaling import ledger
+ledger.HEARTBEAT_SECONDS = 0.1
+ledger.TERMINATION_GRACE_SECONDS = 30.0
+with ledger.Reservation("child", projected_hours=0.4 / 3600, path={path!r}, lock={lock!r}):
+    end = time.monotonic() + 20
+    while time.monotonic() < end:
+        try:
+            time.sleep(0.02)  # work wrapped in a broad handler, like a request loop
+        except Exception:
+            pass
+print("NOT STOPPED")
+"""
+
+
+def test_a_broad_except_cannot_swallow_the_stop_and_the_charge_runs_to_the_real_stop(tmp_path):
+    import subprocess
+    path, lock = tmp_path / "ledger.jsonl", tmp_path / "gpu.lock"
+    code = STOP_CHILD.format(root=str(ROOT), path=str(path), lock=str(lock))
+    t0 = time.monotonic()
+    proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=60)
+    took = time.monotonic() - t0
+    assert "NOT STOPPED" not in proc.stdout and "BudgetExceeded" in proc.stderr and took < 15
+    ends = [e for e in ledger.read(path) if e["event"] == "end"]
+    assert len(ends) == 1 and ends[0]["status"] == "budget_exceeded"
+    assert 0.6 <= ends[0]["elapsed"] < 5  # the limit is 0.6 s (0.4 × 1.5); charged to where it actually stopped
 
 
 def test_a_half_written_line_is_reported(tmp_path):
@@ -278,6 +315,9 @@ def test_tool_calls_and_reasoning_are_parsed():
     ("```python\nprint(1)\n```", None),
     ("SELECT count(*) FROM teams\n\nThis counts the teams.", "SELECT count(*) FROM teams"),
     ("SELECT name FROM t; SELECT 2", "SELECT name FROM t"),
+    ("SELECT motto FROM t WHERE motto = 'a;b'", "SELECT motto FROM t WHERE motto = 'a;b'"),
+    ("WITH a AS (SELECT 1)\n\nSELECT * FROM a", "WITH a AS (SELECT 1)\n\nSELECT * FROM a"),
+    ("SELECT motto FROM t WHERE motto = 'a;b'; -- done\n\nThat is the motto.", "SELECT motto FROM t WHERE motto = 'a;b'"),
     ("I cannot answer.", None),
 ])
 def test_the_final_sql_is_taken_exactly(content, expected):
