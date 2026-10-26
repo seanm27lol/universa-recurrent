@@ -1,0 +1,595 @@
+{
+ "action_grammar": {
+  "grammar": "tirel-1/actions-v1",
+  "rule": "actions.trace over the converted plan, with literal spans located in the request's real context (encode.fit_context, template context-v1, k = 3 retrieved examples) tokenized by the pinned Qwen3.5-4B tokenizer; literals counted per occurrence with the grammar's grounding rule; every encodable traversal is decoded back and compared with the plan (decode_mismatch)",
+  "splits": {
+   "dev": {
+    "converted": 1525,
+    "decode_mismatch": 0,
+    "encodable": 1447,
+    "families": {
+     "STOP": 1447,
+     "aggregate": 3383,
+     "predicate": 10320,
+     "projection": 10119,
+     "schema": 8445
+    },
+    "literals": {
+     "CONST": 847,
+     "NULL": 12,
+     "NUM": 468,
+     "TEXT_AS_ANY": 2,
+     "TEXT_AS_NONE": 1475,
+     "TEXT_AS_PRE": 3,
+     "TEXT_CAP_NONE": 27,
+     "TEXT_LO_NONE": 3,
+     "TEXT_TTL_NONE": 3,
+     "TEXT_UP_NONE": 19,
+     "not groundable": 91
+    },
+    "max_actions": 70,
+    "mean_actions": 23.3,
+    "not_encodable": {
+     "literal not groundable": 78
+    }
+   },
+   "train": {
+    "converted": 5064,
+    "decode_mismatch": 0,
+    "encodable": 4741,
+    "families": {
+     "STOP": 4741,
+     "aggregate": 11247,
+     "predicate": 31862,
+     "projection": 34021,
+     "schema": 29606
+    },
+    "literals": {
+     "CONST": 2489,
+     "NULL": 114,
+     "NUM": 1083,
+     "TEXT_AS_ANY": 38,
+     "TEXT_AS_NONE": 4934,
+     "TEXT_AS_PRE": 42,
+     "TEXT_AS_SUF": 2,
+     "TEXT_CAP_NONE": 110,
+     "TEXT_CAP_PRE": 1,
+     "TEXT_LO_NONE": 28,
+     "TEXT_TTL_NONE": 17,
+     "TEXT_TTL_PRE": 3,
+     "TEXT_UP_NONE": 68,
+     "not groundable": 385
+    },
+    "max_actions": 125,
+    "mean_actions": 23.51,
+    "not_encodable": {
+     "literal not groundable": 323
+    }
+   }
+  },
+  "template": "context-v1",
+  "tokenizer": {
+   "repo": "Qwen/Qwen3.5-4B",
+   "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a"
+  },
+  "vocabulary": {
+   "constants": [
+    [
+     "integer",
+     -4
+    ],
+    [
+     "integer",
+     0
+    ],
+    [
+     "integer",
+     1
+    ],
+    [
+     "integer",
+     2
+    ],
+    [
+     "integer",
+     3
+    ],
+    [
+     "integer",
+     4
+    ],
+    [
+     "integer",
+     5
+    ],
+    [
+     "integer",
+     6
+    ],
+    [
+     "integer",
+     7
+    ],
+    [
+     "integer",
+     8
+    ],
+    [
+     "integer",
+     9
+    ],
+    [
+     "integer",
+     10
+    ],
+    [
+     "integer",
+     30
+    ],
+    [
+     "integer",
+     60
+    ],
+    [
+     "integer",
+     100
+    ],
+    [
+     "integer",
+     365
+    ],
+    [
+     "integer",
+     100000
+    ],
+    [
+     "real",
+     "1.0"
+    ],
+    [
+     "real",
+     "1.8"
+    ],
+    [
+     "real",
+     "100.0"
+    ],
+    [
+     "text",
+     ""
+    ],
+    [
+     "text",
+     ","
+    ],
+    [
+     "text",
+     "$"
+    ],
+    [
+     "text",
+     "%Y"
+    ],
+    [
+     "text",
+     "%m"
+    ],
+    [
+     "text",
+     "%d"
+    ],
+    [
+     "text",
+     "%H"
+    ],
+    [
+     "text",
+     "%M"
+    ],
+    [
+     "text",
+     "%S"
+    ],
+    [
+     "text",
+     "%J"
+    ],
+    [
+     "text",
+     "%Y-%m"
+    ],
+    [
+     "text",
+     "%Y-%m-%d"
+    ]
+   ],
+   "families": [
+    "schema",
+    "predicate",
+    "aggregate",
+    "projection"
+   ],
+   "family_vocabulary_sizes": {
+    "aggregate": 88,
+    "predicate": 152,
+    "projection": 132,
+    "schema": 107
+   },
+   "functions": [
+    "STRFTIME/2",
+    "STRFTIME/3",
+    "SUBSTR/2",
+    "SUBSTR/3",
+    "INSTR/2",
+    "LENGTH/1",
+    "REPLACE/3",
+    "TRIM/1",
+    "TRIM/2",
+    "LTRIM/1",
+    "LTRIM/2",
+    "RTRIM/1",
+    "RTRIM/2",
+    "LOWER/1",
+    "UPPER/1",
+    "ROUND/1",
+    "ROUND/2",
+    "ABS/1",
+    "JULIANDAY/1",
+    "DATE/1",
+    "DATE/2",
+    "DATETIME/1",
+    "DATETIME/2",
+    "TIME/1",
+    "CURRENT_TIMESTAMP/0",
+    "COALESCE/2",
+    "COALESCE/3",
+    "NULLIF/2",
+    "MAX/2",
+    "MIN/2"
+   ],
+   "grammar": "tirel-1/actions-v1",
+   "limit_values": [
+    1,
+    20
+   ],
+   "max_span_tokens": 32,
+   "offset_values": [
+    0,
+    20
+   ],
+   "union_size": 479
+  }
+ },
+ "converter": "sql_to_ir-v1",
+ "ir_version": "tirel-1",
+ "round_trip_notes": "gold_not_executable = the gold query did not finish within the official 30 s timeout (re-checked alone: bird23tf-03253 and bird23tf-06441 time out at 120 s; bird23tf-03541 takes 38 s and its compiled plan matches it under a 300 s deadline)",
+ "rule": "convert gold SQL with sql_to_ir.convert; compile the plan with ir.compile; score the compiled SQL against the gold SQL with scorer.score (EX set equality, 30 s shared deadline); pairs that time out or exceed 15 s in the parallel pass are re-run serially",
+ "smoke_train": {
+  "candidates_pin_sha256": "668c3a38bce5200be0a5445d5fc22284732b657f37ea0ddf95a09fb4482ac825",
+  "rule": "order training-pool questions by sha256(salt + ':' + task_id), keep those whose gold SQL compiles to the action grammar, and take the first 128",
+  "size": 128,
+  "skipped_before_selection": {
+   "bird23tf-00091": "not encodable: literal not groundable",
+   "bird23tf-00505": "not encodable: literal not groundable",
+   "bird23tf-00510": "not encodable: literal not groundable",
+   "bird23tf-00551": "not encodable: literal not groundable",
+   "bird23tf-02171": "not encodable: literal not groundable",
+   "bird23tf-03791": "not encodable: literal not groundable",
+   "bird23tf-04715": "not encodable: literal not groundable",
+   "bird23tf-05352": "not encodable: literal not groundable",
+   "bird23tf-05663": "not encodable: literal not groundable",
+   "bird23tf-05898": "not encodable: literal not groundable",
+   "bird23tf-06583": "not encodable: literal not groundable"
+  },
+  "task_ids": [
+   "bird23tf-01612",
+   "bird23tf-03727",
+   "bird23tf-03340",
+   "bird23tf-02216",
+   "bird23tf-02215",
+   "bird23tf-00564",
+   "bird23tf-05062",
+   "bird23tf-01778",
+   "bird23tf-00080",
+   "bird23tf-05732",
+   "bird23tf-05803",
+   "bird23tf-03454",
+   "bird23tf-03345",
+   "bird23tf-01001",
+   "bird23tf-03832",
+   "bird23tf-02118",
+   "bird23tf-00484",
+   "bird23tf-06015",
+   "bird23tf-02947",
+   "bird23tf-00957",
+   "bird23tf-06152",
+   "bird23tf-00875",
+   "bird23tf-01324",
+   "bird23tf-02131",
+   "bird23tf-05788",
+   "bird23tf-02590",
+   "bird23tf-04179",
+   "bird23tf-04883",
+   "bird23tf-02594",
+   "bird23tf-00689",
+   "bird23tf-03184",
+   "bird23tf-02815",
+   "bird23tf-03398",
+   "bird23tf-02473",
+   "bird23tf-05789",
+   "bird23tf-02698",
+   "bird23tf-02904",
+   "bird23tf-02097",
+   "bird23tf-03320",
+   "bird23tf-06599",
+   "bird23tf-04784",
+   "bird23tf-06101",
+   "bird23tf-05762",
+   "bird23tf-03772",
+   "bird23tf-01053",
+   "bird23tf-02575",
+   "bird23tf-02276",
+   "bird23tf-05752",
+   "bird23tf-01358",
+   "bird23tf-06099",
+   "bird23tf-00958",
+   "bird23tf-06243",
+   "bird23tf-04777",
+   "bird23tf-05243",
+   "bird23tf-04566",
+   "bird23tf-06248",
+   "bird23tf-03170",
+   "bird23tf-02169",
+   "bird23tf-00224",
+   "bird23tf-06367",
+   "bird23tf-05851",
+   "bird23tf-02863",
+   "bird23tf-00692",
+   "bird23tf-06401",
+   "bird23tf-06481",
+   "bird23tf-05754",
+   "bird23tf-06029",
+   "bird23tf-02092",
+   "bird23tf-03854",
+   "bird23tf-05018",
+   "bird23tf-02631",
+   "bird23tf-00291",
+   "bird23tf-04201",
+   "bird23tf-02414",
+   "bird23tf-05622",
+   "bird23tf-02762",
+   "bird23tf-03404",
+   "bird23tf-00313",
+   "bird23tf-02075",
+   "bird23tf-01759",
+   "bird23tf-01251",
+   "bird23tf-00942",
+   "bird23tf-05253",
+   "bird23tf-01389",
+   "bird23tf-00628",
+   "bird23tf-03866",
+   "bird23tf-06466",
+   "bird23tf-02542",
+   "bird23tf-04531",
+   "bird23tf-05126",
+   "bird23tf-00030",
+   "bird23tf-04034",
+   "bird23tf-03626",
+   "bird23tf-01243",
+   "bird23tf-01429",
+   "bird23tf-05994",
+   "bird23tf-03303",
+   "bird23tf-04623",
+   "bird23tf-01781",
+   "bird23tf-02232",
+   "bird23tf-05131",
+   "bird23tf-02312",
+   "bird23tf-02913",
+   "bird23tf-06031",
+   "bird23tf-05832",
+   "bird23tf-05035",
+   "bird23tf-01184",
+   "bird23tf-04457",
+   "bird23tf-02864",
+   "bird23tf-01732",
+   "bird23tf-02352",
+   "bird23tf-04209",
+   "bird23tf-03935",
+   "bird23tf-02289",
+   "bird23tf-06326",
+   "bird23tf-06080",
+   "bird23tf-05259",
+   "bird23tf-02397",
+   "bird23tf-00552",
+   "bird23tf-04204",
+   "bird23tf-02190",
+   "bird23tf-01940",
+   "bird23tf-04767",
+   "bird23tf-00074",
+   "bird23tf-03748",
+   "bird23tf-00598",
+   "bird23tf-05806",
+   "bird23tf-00063"
+  ]
+ },
+ "snapshots_pin_sha256": "9450b33e8eec4968d6e9493276ed386ea16eec2a86bdaebfdcb27e0028766aa0",
+ "split_pin_sha256": "5e4e34b93f8baf6386a43b29e72eca77f1c58972e65f002fa10c304f376f18e5",
+ "splits": {
+  "dev": {
+   "converted": 1525,
+   "operator_inventory": {
+    "*": 83,
+    "+": 14,
+    "-": 60,
+    "/": 125,
+    "<": 52,
+    "<=": 25,
+    "<>": 12,
+    "=": 3230,
+    ">": 124,
+    ">=": 29,
+    "AND": 680,
+    "AVG": 36,
+    "AVG DISTINCT": 1,
+    "BETWEEN": 63,
+    "CASE": 159,
+    "CAST INTEGER": 6,
+    "CAST REAL": 125,
+    "COUNT": 438,
+    "COUNT DISTINCT": 74,
+    "COUNT(*)": 47,
+    "CURRENT_TIMESTAMP/0": 3,
+    "GROUP BY": 183,
+    "HAVING": 28,
+    "IN list": 18,
+    "IN subquery": 15,
+    "INSTR/2": 5,
+    "IS NULL": 12,
+    "JOIN CROSS": 3,
+    "JOIN INNER": 1341,
+    "JOIN LEFT": 1,
+    "LENGTH/1": 19,
+    "LIKE": 192,
+    "LIMIT": 287,
+    "MAX": 27,
+    "MIN": 15,
+    "NOT IS NULL": 35,
+    "NOT LIKE": 1,
+    "OR": 17,
+    "ORDER ASC": 45,
+    "ORDER BY": 266,
+    "ORDER DESC": 225,
+    "REPLACE/3": 17,
+    "SELECT": 1629,
+    "SELECT DISTINCT": 152,
+    "SELECT without FROM": 4,
+    "STRFTIME/2": 27,
+    "SUBSTR/2": 7,
+    "SUBSTR/3": 52,
+    "SUM": 215,
+    "TRIM/2": 14,
+    "WHERE": 1389,
+    "derived column": 41,
+    "derived table": 32,
+    "literal integer": 1225,
+    "literal null": 12,
+    "literal real": 28,
+    "literal text": 1685,
+    "scalar subquery": 57
+   },
+   "plan_round_trip_exact": 1525,
+   "questions": 1530,
+   "round_trip": {
+    "equivalent": 1524,
+    "gold_not_executable": 1
+   },
+   "round_trip_equivalent": 1524,
+   "sql_text_identical": 0,
+   "unsupported": {
+    "RIGHT JOIN": 1,
+    "aggregate GROUP_CONCAT": 1,
+    "reference into a derived table with *": 2,
+    "window function": 1
+   }
+  },
+  "train": {
+   "converted": 5064,
+   "operator_inventory": {
+    "*": 398,
+    "+": 40,
+    "-": 259,
+    "/": 449,
+    "<": 156,
+    "<=": 33,
+    "<>": 48,
+    "=": 11545,
+    ">": 353,
+    ">=": 43,
+    "AND": 1768,
+    "AVG": 164,
+    "BETWEEN": 128,
+    "CASE": 629,
+    "CAST INTEGER": 13,
+    "CAST NUMERIC": 2,
+    "CAST REAL": 390,
+    "CAST TEXT": 13,
+    "COUNT": 1429,
+    "COUNT DISTINCT": 164,
+    "COUNT(*)": 222,
+    "CURRENT_TIMESTAMP/0": 5,
+    "DATE/1": 1,
+    "DATETIME/1": 1,
+    "DATETIME/2": 1,
+    "GROUP BY": 470,
+    "HAVING": 45,
+    "IN list": 44,
+    "IN subquery": 22,
+    "INSTR/2": 22,
+    "IS NULL": 63,
+    "JOIN CROSS": 2,
+    "JOIN INNER": 5159,
+    "JOIN LEFT": 29,
+    "JULIANDAY/1": 10,
+    "LENGTH/1": 6,
+    "LIKE": 304,
+    "LIMIT": 917,
+    "LOWER/1": 6,
+    "MAX": 152,
+    "MAX/2": 3,
+    "MIN": 50,
+    "NOT IN list": 1,
+    "NOT IN subquery": 13,
+    "NOT IS NULL": 106,
+    "NOT LIKE": 1,
+    "OFFSET": 23,
+    "OR": 42,
+    "ORDER ASC": 167,
+    "ORDER BY": 870,
+    "ORDER DESC": 710,
+    "REPLACE/3": 56,
+    "ROUND/1": 1,
+    "ROUND/2": 1,
+    "SELECT": 5525,
+    "SELECT *": 3,
+    "SELECT DISTINCT": 436,
+    "SELECT without FROM": 9,
+    "STRFTIME/2": 272,
+    "SUBSTR/2": 31,
+    "SUBSTR/3": 39,
+    "SUM": 723,
+    "SUM DISTINCT": 1,
+    "TIME/1": 1,
+    "UNION": 4,
+    "UNION ALL": 7,
+    "WHERE": 4605,
+    "correlated column": 2,
+    "derived column": 279,
+    "derived table": 159,
+    "literal integer": 3105,
+    "literal null": 114,
+    "literal real": 90,
+    "literal text": 6005,
+    "scalar subquery": 256
+   },
+   "plan_round_trip_exact": 5064,
+   "questions": 5071,
+   "round_trip": {
+    "equivalent": 5062,
+    "gold_not_executable": 2
+   },
+   "round_trip_equivalent": 5062,
+   "sql_text_identical": 0,
+   "unsupported": {
+    "IS with a non-NULL operand": 1,
+    "RIGHT JOIN": 3,
+    "aggregate GROUP_CONCAT": 1,
+    "unknown column": 1,
+    "window function": 1
+   }
+  }
+ },
+ "sqlglot": "30.24.0",
+ "sqlite_version": "3.45.1",
+ "study": "ti_tnn_qwen38_scaling_dev",
+ "version": "ir_coverage_v1"
+}
