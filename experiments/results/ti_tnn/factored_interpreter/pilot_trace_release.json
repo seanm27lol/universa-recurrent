@@ -1,0 +1,65 @@
+{
+ "assets": [
+  {
+   "bytes": 3431684,
+   "name": "20261025T051637.w100_i100_full.records_AK.json.gz",
+   "path": "units/w100_i100_full/records_AK.json.gz",
+   "sha256": "9f282140b3313f74d036cb821a5aa48333b2b73ffa8f61f08bf0ba6020458da4",
+   "unit": "w100_i100_full"
+  },
+  {
+   "bytes": 3389605,
+   "name": "20261025T051637.w100_i100_reduced.records_AK.json.gz",
+   "path": "units/w100_i100_reduced/records_AK.json.gz",
+   "sha256": "6524acbd070856e6e1353fbecf956d900228f65763b25a9674906702c97e4aa8",
+   "unit": "w100_i100_reduced"
+  },
+  {
+   "bytes": 3423150,
+   "name": "20261025T051637.w100_i101_full.records_AK.json.gz",
+   "path": "units/w100_i101_full/records_AK.json.gz",
+   "sha256": "b81daaed21e2eba93311cebcb1e8d9e8e571a85b1d83cb7a21ba58bf10e6c17e",
+   "unit": "w100_i101_full"
+  },
+  {
+   "bytes": 3373642,
+   "name": "20261025T051637.w100_i101_reduced.records_AK.json.gz",
+   "path": "units/w100_i101_reduced/records_AK.json.gz",
+   "sha256": "66fcd1f11fa20e191849cd6fb5763c1c474361de836a982e8a1ecb624f3ba7ae",
+   "unit": "w100_i101_reduced"
+  },
+  {
+   "bytes": 3380723,
+   "name": "20261025T051637.w101_i100_full.records_AK.json.gz",
+   "path": "units/w101_i100_full/records_AK.json.gz",
+   "sha256": "c5f27b5f875a78d6b3030a2197b433db14ed082e0641887bdf3886f564f288d5",
+   "unit": "w101_i100_full"
+  },
+  {
+   "bytes": 3368917,
+   "name": "20261025T051637.w101_i100_reduced.records_AK.json.gz",
+   "path": "units/w101_i100_reduced/records_AK.json.gz",
+   "sha256": "6e0a4044693f4138ebb5c0bcc6dd4e9c9dd37d4b199211cad46c106ccc43df5f",
+   "unit": "w101_i100_reduced"
+  },
+  {
+   "bytes": 3396758,
+   "name": "20261025T051637.w101_i101_full.records_AK.json.gz",
+   "path": "units/w101_i101_full/records_AK.json.gz",
+   "sha256": "1a4727f2f64319e230eb8dbb9175f1ed3cfe4a3b77832992ab80770dabe0b00e",
+   "unit": "w101_i101_full"
+  },
+  {
+   "bytes": 3383361,
+   "name": "20261025T051637.w101_i101_reduced.records_AK.json.gz",
+   "path": "units/w101_i101_reduced/records_AK.json.gz",
+   "sha256": "265392ac49eb149778f28a6eff9259513d5f1185f4788e602a02ab3beb15b061",
+   "unit": "w101_i101_reduced"
+  }
+ ],
+ "description": "The development pilot's eight A+K step-trace files (records_AK.json.gz): byte-identical copies of the run's files, with their sha256. They are the assets of the release named by `tag`, together with SHA256SUMS. The run was recorded at `original_run_commit`; the release notes name, separately, the commit holding the final verifier, diagnosis and report. make_tables.py --factored-traces <dir> checks each file against this sha256, stages it next to the bundled export, and re-runs the pilot verifier and the A+K diagnosis.",
+ "original_run_commit": "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3",
+ "repository": "seanm27lol/universa-recurrent",
+ "run": "20261025T051637",
+ "tag": "ti-tnn-factored-pilot-traces-v1"
+}

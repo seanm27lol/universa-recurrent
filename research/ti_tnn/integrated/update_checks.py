@@ -80,7 +80,6 @@ def _network(module):
 
 def identity_and_scope(base, candidate, record) -> dict:
     """Write locality: which modules changed, whether that is allowed, and whether identities are honest."""
-    from .modules import module_identity
     problems = []
     if set(base.modules) != set(candidate.modules):
         problems.append("the candidate does not implement the same relations")
@@ -100,6 +99,7 @@ def identity_and_scope(base, candidate, record) -> dict:
             elif r in changed:
                 unverifiable.append(r)
             continue
+        from .modules import module_identity  # neural modules only: torch is needed only when a network exists
         if module_identity(m.version.kind, r, net) != m.version.identity:
             problems.append(f"{r}: declared identity does not match its parameters")
         for p in net.parameters():

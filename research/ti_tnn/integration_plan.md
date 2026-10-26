@@ -519,7 +519,7 @@ its contracts state. Every gap below is repaired, with a regression test that fa
    - **What it is:** a small study of update and rehearsal failure, with every deployed model exact.
    - **What it decides:** whether ordinary methods leave a prespecified gap, which keeps PR 9 conditional. A gap
      makes PR 9 eligible, with its target chosen from the whole frontier.
-2. **The next main learning study: a factored interpreter.** It responds to the robustness and S2 failures:
+2. **The next main learning study: a factored interpreter.** **Closed as a development engineering result** ([report](reports/factored_interpreter_v1.md)), with no confirmation. Exact lookup solves the language; F reaches lookup performance under the supplied structure; F+B showed no benefit; word association solves the declared lexical recombinations; constraints on the existing decoder repair premature stopping and wrong-type choices, but not same-source-type confusions. A later proposal must start from a useful missing capability, state what makes its semantics learnable, and include the cheapest relevant baseline. It responds to the robustness and S2 failures:
    - taught phrases did not transfer into two-step questions;
    - non-cancelling three-step composition failed;
    - the diagnosis found premature stopping and dropped relations.

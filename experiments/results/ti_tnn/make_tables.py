@@ -36,6 +36,12 @@ Checks every file against manifest.json first (sha256), then prints:
 
       gh release download ti-tnn-s2-diagnosis-traces-v1 --repo seanm27lol/universa-recurrent --dir s2_traces
       python experiments/results/ti_tnn/make_tables.py --s2-traces s2_traces
+- the factored interpreter (development; closed without a confirmation): the no-fit controls re-verified from the
+  bundle; with the A+K trace release downloaded, the pilot re-verified and the A+K diagnosis re-run:
+      gh release download ti-tnn-factored-pilot-traces-v1 --repo seanm27lol/universa-recurrent --dir factored_traces
+      python experiments/results/ti_tnn/make_tables.py --factored-traces factored_traces
+  Here and in the S2 rebuild, comparisons are exact except recomputed binomial bounds and p-values, which may differ
+  by the declared rounding tolerance (research/ti_tnn/bench/statistical_tolerance.py).
 
     python experiments/results/ti_tnn/make_tables.py            # from the repository root
 """
@@ -358,24 +364,26 @@ def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False, traces_dir: Pa
       The other 63 trace files are a release asset (`s2_diagnosis/trace_release.json`). With `traces_dir` (where
       they were downloaded), each is checked against the sha256 committed in `s2_diagnosis/local_traces.json`, every
       trace is checked against its decision records, and every arm's trace tables are rebuilt and compared.
-    `quick` rebuilds the development part only (for tests)."""
+    `quick` rebuilds the development part only (for tests). Every comparison with the bundled analyses is exact, except
+    recomputed bounds and p-values, which may differ within the declared statistical tolerance
+    (research/ti_tnn/bench/statistical_tolerance.py): another runtime rounds the binomial tail differently.
+    Trace files are checked against their committed sha256 before anything that needs torch is imported."""
     import shutil
     import tempfile
     sys.path.insert(0, str(BENCH))
-    import s2_development_analysis as DA  # research/ti_tnn/bench/s2_development_analysis.py
-    import s2_diagnosis as D2  # research/ti_tnn/bench/s2_diagnosis.py
+    import statistical_tolerance as ST  # research/ti_tnn/bench/statistical_tolerance.py (no torch)
     root = bundle / "s2_diagnosis"
+    agreement = ST.Agreement()
 
     def check(rebuilt: dict, recorded_path: str, keys, traced=()) -> dict:
+        """Exact, except recomputed bounds and p-values, within the declared statistical tolerance."""
         recorded = json.loads((root / recorded_path).read_text())
         rebuilt = json.loads(json.dumps(rebuilt, sort_keys=True))  # the stored file's JSON round trip
         for k in keys:
-            if rebuilt[k] != recorded[k]:
-                raise ValueError(f"{recorded_path}: {k} differs from the rebuilt value")
+            ST.require(recorded[k], rebuilt[k], f"{recorded_path}: {k}", agreement)
         for k in ("stopping", "failure_kinds", "failure_kind_by_class"):
             for arm in traced:
-                if rebuilt[k][arm] != recorded[k][arm]:
-                    raise ValueError(f"{recorded_path}: {k} for arm {arm} differs from the rebuilt value")
+                ST.require(recorded[k][arm], rebuilt[k][arm], f"{recorded_path}: {k} for arm {arm}", agreement)
         return rebuilt
 
     runs = {part: sorted(p for p in (root / part).iterdir() if p.is_dir()) for part in ("development", "confirmation")}
@@ -402,6 +410,8 @@ def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False, traces_dir: Pa
             part, run, name = asset["name"].split(".", 2)
             (staging / part / run / "traces" / name).symlink_to((Path(traces_dir) / asset["name"]).resolve())
         runs = staged
+    import s2_development_analysis as DA  # research/ti_tnn/bench/s2_development_analysis.py (torch)
+    import s2_diagnosis as D2  # research/ti_tnn/bench/s2_diagnosis.py
     try:
         dev = DA.analyse(runs["development"])
         out = {"development": check(dev, "development_analysis/s2_development_analysis.json",
@@ -416,6 +426,7 @@ def s2_diagnosis_tables(bundle: Path = HERE, quick: bool = False, traces_dir: Pa
     finally:
         if staging is not None:
             shutil.rmtree(staging)
+    out["statistical_agreement"] = agreement.summary()
     return out
 
 def integration_test_tables(bundle: Path = HERE, sessions_dir: Path | None = None) -> dict:
@@ -434,9 +445,13 @@ def integration_test_tables(bundle: Path = HERE, sessions_dir: Path | None = Non
     recorded = json.loads((root / "verification.json").read_text())
     if sessions_dir is None:
         return {"rebuilt": False, **recorded}
-    sys.path.insert(0, str(BENCH))
-    import integration_test_verify as VF  # research/ti_tnn/bench/integration_test_verify.py
     release = json.loads((root / "session_release.json").read_text())
+    for asset in release["assets"]:  # every downloaded file, before anything that needs torch is imported
+        data = (Path(sessions_dir) / asset["name"]).read_bytes()
+        if hashlib.sha256(data).hexdigest() != asset["sha256"] or len(data) != asset["bytes"]:
+            raise ValueError(f"{asset['name']}: does not match the sha256 in session_release.json")
+    sys.path.insert(0, str(BENCH))
+    import integration_test_verify as VF  # research/ti_tnn/bench/integration_test_verify.py (torch)
     run = root / release["run"]
     staging = Path(tempfile.mkdtemp(prefix="integration_"))
     try:
@@ -445,9 +460,6 @@ def integration_test_tables(bundle: Path = HERE, sessions_dir: Path | None = Non
         (target / "run.json").symlink_to((run / "run.json").resolve())
         for asset in release["assets"]:
             source = (Path(sessions_dir) / asset["name"]).resolve()
-            data = source.read_bytes()
-            if hashlib.sha256(data).hexdigest() != asset["sha256"] or len(data) != asset["bytes"]:
-                raise ValueError(f"{asset['name']}: does not match the sha256 in session_release.json")
             unit = target / "units" / asset["unit"]
             unit.mkdir()
             for f in (run / "units" / asset["unit"]).iterdir():
@@ -486,6 +498,75 @@ def repeated_updates_tables(bundle: Path = HERE, rebuild: bool = False, reproduc
     return {"rebuilt": True, **recorded}
 
 
+def factored_interpreter_tables(bundle: Path = HERE, traces_dir: Path | None = None, rebuild: bool = True) -> dict:
+    """The factored interpreter's development engineering result (protocols/factored_interpreter_v1.md), recorded at
+    0e1a3c9 and closed without a confirmation.
+
+    - **Table only** (`rebuild=False`, no traces): the bundled verifier outputs and diagnosis, which the manifest
+      check has already covered. Nothing here needs torch.
+    - **The controls** (`rebuild`, the default): the no-fit controls run is bundled whole and re-verified by
+      `factored_interpreter_verify`. The result must agree with `controls_verification.json`.
+    - **The pilot** (`traces_dir`, where the release `ti-tnn-factored-pilot-traces-v1` was downloaded):
+      - every trace file is checked against the sha256 in `pilot_trace_release.json`, before anything that needs
+        torch is imported;
+      - each file is staged next to the bundled compact export;
+      - the pilot verifier and the A+K diagnosis re-run, and must agree with `pilot_verification.json` and
+        `ak_diagnosis.json`.
+
+    **"Agree"** means exactly, except recomputed bounds and p-values, within the declared statistical tolerance
+    (research/ti_tnn/bench/statistical_tolerance.py). `statistical_agreement` reports what was compared at two
+    levels: inside the verifiers (stored records against recomputation), and rebuilt outputs against bundled ones."""
+    import shutil
+    import tempfile
+    root = bundle / "factored_interpreter"
+    sys.path.insert(0, str(BENCH))
+    import statistical_tolerance as ST  # research/ti_tnn/bench/statistical_tolerance.py (no torch)
+    out = {"controls": json.loads((root / "controls_verification.json").read_text()),
+           "pilot": json.loads((root / "pilot_verification.json").read_text()),
+           "diagnosis": json.loads((root / "ak_diagnosis.json").read_text()),
+           "controls_rebuilt": False, "pilot_rebuilt": False}
+    release = json.loads((root / "pilot_trace_release.json").read_text())
+    traces = {}
+    if traces_dir is not None:  # every downloaded file, before anything that needs torch is imported
+        for asset in release["assets"]:
+            data = (Path(traces_dir) / asset["name"]).read_bytes()
+            if hashlib.sha256(data).hexdigest() != asset["sha256"] or len(data) != asset["bytes"]:
+                raise ValueError(f"{asset['name']}: does not match the sha256 in pilot_trace_release.json")
+            traces[asset["path"]] = data
+    if not rebuild and traces_dir is None:
+        return out
+    import factored_interpreter_verify as FV  # research/ti_tnn/bench/factored_interpreter_verify.py (torch)
+    inner, outer = ST.Agreement(), ST.Agreement()
+    controls = next(d for d in sorted((root / "controls").iterdir()) if d.is_dir())
+    rebuilt = json.loads(json.dumps(FV.verify(controls, agreement=inner), sort_keys=True, default=str))
+    ST.require(out["controls"], rebuilt, "factored interpreter: the controls re-verification (controls_verification.json)",
+               outer)
+    out.update(controls=rebuilt, controls_rebuilt=True)
+    if traces_dir is not None:
+        import factored_pilot_diagnose as FD  # research/ti_tnn/bench/factored_pilot_diagnose.py
+        import factored_pilot_verify as PV  # research/ti_tnn/bench/factored_pilot_verify.py
+        staging = Path(tempfile.mkdtemp(prefix="factored_"))
+        try:
+            target = staging / release["run"]
+            shutil.copytree(root / "pilot" / release["run"], target, symlinks=True)
+            for path, data in traces.items():
+                (target / path).write_bytes(data)
+            pv = json.loads(json.dumps(PV.verify(target, agreement=inner), sort_keys=True, default=str))
+            run = json.loads((target / "run.json").read_text())
+            cfg = run["config"]
+            dg = {"run": target.name, "commit": run["provenance"]["commit"],
+                  "units": [FD.diagnose_unit(target, info, cfg["countries"], cfg["updates"], cfg["batch"])
+                            for info in run["units"]]}
+            dg = json.loads(json.dumps(dg, sort_keys=True))
+        finally:
+            shutil.rmtree(staging)
+        ST.require(out["pilot"], pv, "factored interpreter: the pilot re-verification (pilot_verification.json)", outer)
+        ST.require(out["diagnosis"], dg, "factored interpreter: the A+K diagnosis (ak_diagnosis.json)", outer)
+        out.update(pilot=pv, diagnosis=dg, pilot_rebuilt=True)
+    out["statistical_agreement"] = {"inside_the_verifiers": inner.summary(), "rebuilt_against_bundled": outer.summary()}
+    return out
+
+
 def frontier_names(learning: dict) -> list:
     sys.path.insert(0, str(BENCH))
     import frontier
@@ -518,6 +599,8 @@ def main(argv=None):
                    "bundled export (a few minutes)")
     p.add_argument("--repeated-reproduce", action="store_true", help="with --repeated-updates, also retrain the frozen "
                    "sample of 114 chains (about 20 minutes)")
+    p.add_argument("--factored-traces", type=Path, help="the factored interpreter pilot's A+K trace files "
+                   "(factored_interpreter/pilot_trace_release.json); re-verifies the pilot and re-runs the A+K diagnosis")
     args = p.parse_args(argv)
     manifest = verify()
     print(f"{len(manifest['files'])} files match manifest.json\n")
@@ -638,6 +721,9 @@ def main(argv=None):
     conf = s2["confirmation"]["confirmation"]
     print(f"  confirmation: S2 and S3/S4 in the same unit {conf['successes_by_world']}; C holds {conf['prediction_C_holds']}; "
           f"C above B in every world {conf['secondary_C_above_B_every_world']}")
+    a = s2["statistical_agreement"]
+    print(f"  rebuilt against bundled: {a['exact_values']} values equal exactly; {a['statistical_values']} statistical "
+          f"values, {a['statistical_differing']} differing, largest difference {a['largest_difference']:.1e}")
     it = integration_test_tables(sessions_dir=args.integration_sessions)
     v = it["verdict"]
     print(f"\nIntegration test (worlds 800-802 x 5 inits) {'rebuilt by the frozen verifier' if it['rebuilt'] else 'as verified at bundling (pass --integration-sessions to rebuild)'}: "
@@ -647,6 +733,14 @@ def main(argv=None):
           f"{'rebuilt by the frozen verifier' if ru['rebuilt'] else 'as verified at bundling (pass --repeated-updates to rebuild)'}: "
           f"predictions {ru['predictions']}; PR 9 decision {({b: d['outcome'] for b, d in ru['decision'].items()})}; "
           f"sampled reproduction {ru['reproduction']['identical']}/{ru['reproduction']['chains']} identical")
+    fi = factored_interpreter_tables(traces_dir=args.factored_traces)
+    print(f"\nFactored interpreter (development; closed without confirmation): controls re-verified "
+          f"({len(fi['controls']['units'])} units); pilot {'re-verified with its A+K traces' if fi['pilot_rebuilt'] else 'as verified at bundling (pass --factored-traces to rebuild)'}"
+          f" ({len(fi['pilot']['units'])} units, rules {fi['pilot']['rules']})")
+    for level, a in fi["statistical_agreement"].items():
+        print(f"  {level.replace('_', ' ')}: {a['exact_values']} values equal exactly; {a['statistical_values']} "
+              f"statistical values, {a['statistical_differing']} differing, largest difference {a['largest_difference']:.1e} "
+              f"(tolerance {a['tolerance']['rel']:g} relative, {a['tolerance']['abs']:g} absolute)")
     for part in ("development", "confirmation"):
         a = s2[part]
         print(f"  {part} trace tables rebuilt for arms {a['traced_arms']}"

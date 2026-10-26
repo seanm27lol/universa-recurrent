@@ -1,0 +1,846 @@
+{
+ "commit": "0e1a3c94004f1f1d178af6a7c62bb85bfa1ebfe3",
+ "units": [
+  {
+   "calibration_risk": {
+    "G": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "L_raw": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "L_vocab": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "W": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    }
+   },
+   "evaluated": 17900,
+   "lexical": {
+    "G": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_raw": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_vocab": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "W": {
+     "LG1": [
+      400,
+      400,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      800,
+      800,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    }
+   },
+   "totals": {
+    "G": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_raw": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_vocab": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "W": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    }
+   },
+   "unit": "w100 full"
+  },
+  {
+   "calibration_risk": {
+    "G": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "L_raw": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "L_vocab": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    },
+    "W": {
+     "accepted": 760,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.003933994480587549,
+     "errors": 0,
+     "p_value": 0.00048166811042842084
+    }
+   },
+   "evaluated": 17900,
+   "lexical": {
+    "G": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_raw": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_vocab": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "W": {
+     "LG1": [
+      400,
+      400,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      800,
+      800,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    }
+   },
+   "totals": {
+    "G": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_raw": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_vocab": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "W": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    }
+   },
+   "unit": "w100 reduced"
+  },
+  {
+   "calibration_risk": {
+    "G": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "L_raw": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "L_vocab": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "W": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    }
+   },
+   "evaluated": 17900,
+   "lexical": {
+    "G": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_raw": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_vocab": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "W": {
+     "LG1": [
+      400,
+      400,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      800,
+      800,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    }
+   },
+   "totals": {
+    "G": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_raw": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_vocab": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "W": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    }
+   },
+   "unit": "w101 full"
+  },
+  {
+   "calibration_risk": {
+    "G": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "L_raw": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "L_vocab": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    },
+    "W": {
+     "accepted": 767,
+     "calibration_items": 1000,
+     "certified": true,
+     "error_upper_95": 0.0038981610810327736,
+     "errors": 0,
+     "p_value": 0.0004489461549221687
+    }
+   },
+   "evaluated": 17900,
+   "lexical": {
+    "G": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_raw": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "L_vocab": {
+     "LG1": [
+      0,
+      0,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      0,
+      0,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    },
+    "W": {
+     "LG1": [
+      400,
+      400,
+      0
+     ],
+     "LG1_base": [
+      400,
+      400,
+      0
+     ],
+     "LG1_taught": [
+      400,
+      400,
+      0
+     ],
+     "LG2": [
+      800,
+      800,
+      0
+     ],
+     "LG2_base": [
+      800,
+      800,
+      0
+     ],
+     "LG2_held": [
+      0,
+      0,
+      0
+     ],
+     "LG2_taught": [
+      800,
+      800,
+      0
+     ]
+    }
+   },
+   "totals": {
+    "G": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_raw": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "L_vocab": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    },
+    "W": {
+     "accidental_agreement": 0,
+     "errors": 0,
+     "wrong_decisions": 0
+    }
+   },
+   "unit": "w101 reduced"
+  }
+ ],
+ "verified": true
+}
