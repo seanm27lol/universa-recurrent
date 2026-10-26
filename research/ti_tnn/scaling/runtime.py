@@ -2,32 +2,71 @@
 tool-call parsing and exact token, time and memory accounting.
 
 **Example.** Q27 receives a question, its schema and three retrieved training examples, with three tools available. In
-thinking mode the chat template ends the prompt with `<think>\\n`. The model then writes reasoning, `</think>`, and then
-either a `<tool_call>` block or a final answer, and ends the turn with `<|im_end|>`.
+thinking mode the chat template ends the prompt with `<think>\\n`; the model writes its reasoning, then `</think>`,
+then a `<tool_call>` block or a final answer, and ends the turn with `<|im_end|>`.
 
 For each turn, `Runtime.generate_turn` returns:
-- the generated text, split into reasoning and content;
-- the parsed tool calls;
-- token counts: prompt, generated, reasoning, content;
-- the finish reason: `eos`, `max_new_tokens` (truncated) or `timeout`;
-- the time to first token, the decode time and the decode rate.
+- the text, split into reasoning and content, and the parsed tool calls;
+- this turn's prompt (prefill) tokens, generated tokens, and the reasoning/content split;
+- the finish reason: `eos`, `max_new_tokens` (truncated), `timeout` or `budget`;
+- the time to first token, measured with a GPU synchronisation, and the decode rate.
 
-**Pinned loading.** Weights, tokenizer and chat template are read from the local cache at the revision in `contracts.MODELS`,
-with no network. The precision is BF16 (`dtype=torch.bfloat16`). Any other precision would be a separately named
-configuration, never a silent substitute.
+**Token counting:**
+- The generated count includes the stop token.
+- In thinking mode, everything before `</think>` is reasoning. `</think>` and what follows it count as content.
 
-**Sampling.** The settings come from the official model cards, keyed by (model, thinking), and are recorded in every
-run's configuration. Presence penalty follows the OpenAI/vLLM convention: subtract the penalty once from the logit of
-every token already generated in this turn.
+**Pinned loading:**
+- Weights, tokenizer and chat template come from the local cache at the pinned revision; the files are checked
+  against `pins/models_v1.json`. There is no network access.
+- The precision is BF16. Any other precision would be a separately named configuration, never a silent substitute.
+- A GPU model can only be loaded inside a `ledger.Reservation`.
+
+**Linear-attention kernels.** Qwen3.5 and Qwen3.8 put three gated-delta-rule (linear attention) layers before every
+full-attention layer. transformers chooses their kernel when it is imported:
+- `flash-linear-attention` (Triton), when the package imports;
+- otherwise its reference PyTorch implementation, which is correct but much slower.
+
+The configuration is named by `TI_TNN_SCALING_LINEAR_KERNELS`:
+- `fla`, the default;
+- `reference`, which blocks the import so the reference path runs.
+
+The backend that actually ran is recorded. Causal conv1d always uses the reference implementation, because
+`causal-conv1d` has no wheel for this platform.
+
+**Sampling** follows the official model cards, keyed by (model, thinking), and is recorded in every configuration.
+Presence penalty follows the OpenAI/vLLM convention: subtract it once from the logit of every token already
+generated in this turn.
 """
 from __future__ import annotations
 
+import importlib.util
+import os
 import re
+import sys
 import time
 from dataclasses import asdict, dataclass, field
 
 from . import contracts as C
-from . import identity
+from . import identity, ledger
+
+KERNELS = os.environ.get("TI_TNN_SCALING_LINEAR_KERNELS", "fla")
+if KERNELS not in ("fla", "reference"):
+    raise RuntimeError(f"TI_TNN_SCALING_LINEAR_KERNELS must be 'fla' or 'reference', not {KERNELS!r}")
+if KERNELS == "reference":
+    sys.modules["fla"] = None  # transformers then selects its reference PyTorch implementation
+
+
+def linear_attention_backend() -> dict:
+    """What transformers will use for the gated delta rule and causal conv1d in this process."""
+    blocked = "fla" in sys.modules and sys.modules["fla"] is None
+    fla = (not blocked) and importlib.util.find_spec("fla") is not None
+    version = None
+    if fla:
+        import importlib.metadata as md
+        version = md.version("flash-linear-attention")
+    return {"configuration": KERNELS, "gated_delta_rule": f"flash-linear-attention {version}" if fla else "reference",
+            "causal_conv1d": "reference"}
+
 
 # The model cards' recommended settings (Qwen3.8-27B: thinking / instruct; Qwen3.5-4B: thinking for precise coding /
 # instruct for general tasks). SQL generation is precise coding, so B4 thinking uses the card's coding setting.
@@ -44,6 +83,7 @@ SAMPLING = {
 
 TOOL_CALL = re.compile(r"<tool_call>\s*<function=([^>\s]+)>(.*?)</function>\s*</tool_call>", re.S)
 PARAMETER = re.compile(r"<parameter=([^>\s]+)>\n?(.*?)\n?</parameter>", re.S)
+STOP_TOKENS = ("<|im_end|>", "<|endoftext|>")
 
 
 @dataclass
@@ -51,19 +91,30 @@ class GenerationConfig:
     model: str                      # "Q27" | "B4"
     thinking: bool
     max_new_tokens: int
-    reasoning_effort: str | None = None   # Q27 only: "xhigh" (default) | "medium" | "low"
+    reasoning_effort: str | None = None   # Q27 thinking only: "xhigh" | "medium" | "low" (None: the template default)
     sampling: dict = field(default_factory=dict)
 
     @classmethod
     def official(cls, model: str, thinking: bool, limits: C.Limits, reasoning_effort: str | None = None):
-        if reasoning_effort is not None and model != "Q27":
-            raise ValueError("reasoning_effort is a Qwen3.8 template option")
+        if reasoning_effort is not None and (model != "Q27" or not thinking):
+            raise ValueError("reasoning_effort is a Qwen3.8 template option and applies only in thinking mode")
         return cls(model=model, thinking=thinking, reasoning_effort=reasoning_effort,
                    max_new_tokens=limits.max_new_tokens_thinking if thinking else limits.max_new_tokens_nonthinking,
                    sampling=dict(SAMPLING[(model, thinking)]))
 
+    def template_options(self) -> dict:
+        """The chat-template options as they actually apply (template defaults made explicit)."""
+        out = {"enable_thinking": self.thinking}
+        if self.model == "Q27":
+            out["reasoning_effort"] = (self.reasoning_effort or "xhigh") if self.thinking else "not applied (thinking off)"
+            out["preserve_thinking"] = True  # the Qwen3.8 template's default; earlier reasoning is kept in context
+        else:
+            out["reasoning_effort"] = "not supported by the Qwen3.5 template"
+            out["preserve_thinking"] = "not supported by the Qwen3.5 template (only the latest turn's reasoning is kept)"
+        return out
+
     def as_dict(self) -> dict:
-        return asdict(self)
+        return {**asdict(self), "template_options": self.template_options()}
 
 
 @dataclass
@@ -72,11 +123,12 @@ class Turn:
     reasoning: str
     content: str
     tool_calls: list
-    prompt_tokens: int
-    generated_tokens: int
+    prompt_tokens: int              # this turn's prefill (the whole conversation so far)
+    generated_tokens: int           # includes the stop token, if one was generated
     reasoning_tokens: int
     content_tokens: int
-    finish_reason: str              # "eos" | "max_new_tokens" | "timeout"
+    finish_reason: str              # "eos" | "max_new_tokens" | "timeout" | "budget"
+    stop_token: str | None
     seconds: float
     time_to_first_token: float | None
     decode_tokens_per_second: float | None
@@ -87,10 +139,8 @@ class Turn:
 
 def parse_tool_calls(content: str) -> list[dict]:
     """Qwen's XML tool-call format (`qwen3_coder`): <tool_call><function=NAME><parameter=P>V</parameter>...</function></tool_call>."""
-    calls = []
-    for name, body in TOOL_CALL.findall(content):
-        calls.append({"name": name, "arguments": {k: v for k, v in PARAMETER.findall(body)}})
-    return calls
+    return [{"name": name, "arguments": {k: v for k, v in PARAMETER.findall(body)}}
+            for name, body in TOOL_CALL.findall(content)]
 
 
 def split_reasoning(text: str, thinking: bool) -> tuple[str, str]:
@@ -105,12 +155,15 @@ def split_reasoning(text: str, thinking: bool) -> tuple[str, str]:
 
 
 class Runtime:
-    """One loaded model. Loading happens inside the caller's GPU reservation, so it is charged."""
+    """One loaded model. On a GPU it must be loaded inside the caller's reservation, so loading is charged."""
 
     def __init__(self, key: str, device: str = "cuda", attn_implementation: str | None = None):
         import torch
         from transformers import AutoModelForImageTextToText, AutoTokenizer
+        if device.startswith("cuda") and ledger.active() is None:
+            raise RuntimeError("load a GPU model only inside a ledger.Reservation")
         self.key, self.device = key, device
+        self.model_identity = identity.model_identity(key)
         self.snapshot = identity.model_snapshot_dir(key)
         t0 = time.perf_counter()
         self.tokenizer = AutoTokenizer.from_pretrained(self.snapshot, local_files_only=True)
@@ -123,16 +176,17 @@ class Runtime:
         self.load_seconds = time.perf_counter() - t0
         self.dtype = str(next(self.model.parameters()).dtype)
         self.parameters = sum(p.numel() for p in self.model.parameters())
-        self.im_end = self.tokenizer.convert_tokens_to_ids("<|im_end|>")
+        self.stop_ids = [self.tokenizer.convert_tokens_to_ids(t) for t in STOP_TOKENS]
         self.think_end = self.tokenizer.convert_tokens_to_ids("</think>")
-        self.chat_template_sha256 = identity.sha256_file(self.snapshot / "chat_template.jinja") \
-            if (self.snapshot / "chat_template.jinja").exists() else None
+        tpl = self.snapshot / "chat_template.jinja"
+        self.chat_template_sha256 = identity.sha256_file(tpl) if tpl.exists() else None
 
     def describe(self) -> dict:
         import torch
         out = {"key": self.key, "repo": C.MODELS[self.key]["repo"], "revision": C.MODELS[self.key]["revision"],
                "dtype": self.dtype, "parameters": self.parameters, "load_seconds": self.load_seconds,
-               "chat_template_sha256": self.chat_template_sha256, "model_class": type(self.model).__name__}
+               "chat_template_sha256": self.chat_template_sha256, "model_class": type(self.model).__name__,
+               "linear_attention": linear_attention_backend(), "stop_tokens": dict(zip(STOP_TOKENS, self.stop_ids))}
         if self.device.startswith("cuda"):
             out["memory_allocated_bytes"] = torch.cuda.memory_allocated()
             out["memory_reserved_bytes"] = torch.cuda.memory_reserved()
@@ -149,13 +203,16 @@ class Runtime:
 
     def generate_turn(self, messages: list[dict], tools: list[dict] | None, cfg: GenerationConfig, seed: int,
                       deadline: float | None = None, max_new_tokens: int | None = None) -> Turn:
-        """One assistant turn. `deadline` is a time.time() wall-clock limit for the whole request."""
+        """One assistant turn. `deadline` is a time.monotonic() limit for the whole request."""
         import torch
         from transformers import LogitsProcessor, LogitsProcessorList, StoppingCriteria, StoppingCriteriaList
         prompt = self.render(messages, tools, cfg)
         enc = self.tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(self.device)
         n_prompt = enc["input_ids"].shape[1]
         budget = cfg.max_new_tokens if max_new_tokens is None else min(cfg.max_new_tokens, max_new_tokens)
+        if budget <= 0:
+            return Turn("", "", "", [], n_prompt, 0, 0, 0, "budget", None, 0.0, None, None)
+        cuda = self.device.startswith("cuda")
         stamps: list[float] = []
 
         class Presence(LogitsProcessor):
@@ -163,6 +220,8 @@ class Runtime:
                 self.penalty = penalty
 
             def __call__(self, input_ids, scores):
+                if not stamps and cuda:
+                    torch.cuda.synchronize()  # the prefill is done once its logits exist
                 stamps.append(time.perf_counter())
                 if self.penalty and input_ids.shape[1] > n_prompt:
                     gen = input_ids[:, n_prompt:]
@@ -174,29 +233,29 @@ class Runtime:
             hit = False
 
             def __call__(self, input_ids, scores, **kwargs):
-                if deadline is not None and time.time() > deadline:
+                if deadline is not None and time.monotonic() > deadline:
                     Deadline.hit = True
                     return torch.ones(input_ids.shape[0], dtype=torch.bool, device=input_ids.device)
                 return torch.zeros(input_ids.shape[0], dtype=torch.bool, device=input_ids.device)
 
         s = cfg.sampling
         torch.manual_seed(seed)
-        if self.device.startswith("cuda"):
+        if cuda:
             torch.cuda.synchronize()
         t0 = time.perf_counter()
         with torch.inference_mode():
             out = self.model.generate(
-                **enc, max_new_tokens=max(1, budget), do_sample=True, temperature=s["temperature"], top_p=s["top_p"],
+                **enc, max_new_tokens=budget, do_sample=True, temperature=s["temperature"], top_p=s["top_p"],
                 top_k=s["top_k"], min_p=s["min_p"] or None, repetition_penalty=s["repetition_penalty"],
                 logits_processor=LogitsProcessorList([Presence(s["presence_penalty"])]),
-                stopping_criteria=StoppingCriteriaList([Deadline()]), eos_token_id=[self.im_end],
-                pad_token_id=self.tokenizer.pad_token_id or self.im_end)
-        if self.device.startswith("cuda"):
+                stopping_criteria=StoppingCriteriaList([Deadline()]), eos_token_id=self.stop_ids,
+                pad_token_id=self.tokenizer.pad_token_id or self.stop_ids[0])
+        if cuda:
             torch.cuda.synchronize()
         seconds = time.perf_counter() - t0
         gen_ids = out[0, n_prompt:].tolist()
-        ended = bool(gen_ids) and gen_ids[-1] == self.im_end
-        body = gen_ids[:-1] if ended else gen_ids
+        stop = gen_ids[-1] if gen_ids and gen_ids[-1] in self.stop_ids else None
+        body = gen_ids[:-1] if stop is not None else gen_ids
         text = self.tokenizer.decode(body, skip_special_tokens=False)
         reasoning, content = split_reasoning(text, cfg.thinking)
         if cfg.thinking and self.think_end in body:
@@ -205,11 +264,12 @@ class Runtime:
             n_reason = len(body)
         else:
             n_reason = 0
-        finish = "eos" if ended else ("timeout" if Deadline.hit else "max_new_tokens")
+        finish = "eos" if stop is not None else ("timeout" if Deadline.hit else "max_new_tokens")
         ttft = (stamps[0] - t0) if stamps else None
         decode = (seconds - ttft) if ttft is not None else None
         rate = ((len(gen_ids) - 1) / decode) if decode and len(gen_ids) > 1 else None
         return Turn(text=text, reasoning=reasoning, content=content, tool_calls=parse_tool_calls(content),
                     prompt_tokens=n_prompt, generated_tokens=len(gen_ids), reasoning_tokens=n_reason,
-                    content_tokens=len(body) - n_reason, finish_reason=finish, seconds=seconds,
-                    time_to_first_token=ttft, decode_tokens_per_second=rate)
+                    content_tokens=len(body) - n_reason, finish_reason=finish,
+                    stop_token=self.tokenizer.convert_ids_to_tokens(stop) if stop is not None else None,
+                    seconds=seconds, time_to_first_token=ttft, decode_tokens_per_second=rate)
