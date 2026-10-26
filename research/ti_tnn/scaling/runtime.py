@@ -27,8 +27,15 @@ full-attention layer. transformers chooses their kernel when it is imported:
 - otherwise its reference PyTorch implementation, which is correct but much slower.
 
 The configuration is named by `TI_TNN_SCALING_LINEAR_KERNELS`:
-- `fla`, the default;
-- `reference`, which blocks the import so the reference path runs.
+- `reference`, the default, which blocks the `fla` import so the reference path runs;
+- `fla`, which uses flash-linear-attention 0.6.0.
+
+**The 4B profiles chose `reference`:**
+- prefill held steady at 2,500–2,700 tokens/s from 1k to 28.7k tokens;
+- `fla` took 6.7 s at 4k and 13.5 s at 28.7k against 1.6 s and 11.5 s, apparently compiling its Triton kernels for
+  every new sequence length;
+- decode was only about 4% faster with `fla`;
+- the fixed-prompt logits agree: identical top-20 set, total-variation distance 0.014.
 
 The backend that actually ran is recorded. Causal conv1d always uses the reference implementation, because
 `causal-conv1d` has no wheel for this platform.
@@ -49,7 +56,7 @@ from dataclasses import asdict, dataclass, field
 from . import contracts as C
 from . import identity, ledger
 
-KERNELS = os.environ.get("TI_TNN_SCALING_LINEAR_KERNELS", "fla")
+KERNELS = os.environ.get("TI_TNN_SCALING_LINEAR_KERNELS", "reference")  # chosen after the 4B profiles
 if KERNELS not in ("fla", "reference"):
     raise RuntimeError(f"TI_TNN_SCALING_LINEAR_KERNELS must be 'fla' or 'reference', not {KERNELS!r}")
 if KERNELS == "reference":
