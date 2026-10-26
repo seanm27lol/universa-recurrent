@@ -1,0 +1,503 @@
+{
+ "version": "snapshots_v1",
+ "study": "ti_tnn_qwen38_scaling_dev",
+ "root": "runs/ti_tnn_scaling/data/databases",
+ "description_digest": "sha256 over lines '<file name>\\t<sha256>\\n' of database_description/*, sorted by name",
+ "archive": {
+  "url": "https://bird-bench.oss-cn-beijing.aliyuncs.com/train.zip",
+  "bytes": 8919543554,
+  "etag": "1FBA2891BD215A42CE1004736AB7F47F-400",
+  "last_modified": "Tue, 11 Jul 2023 06:13:29 GMT",
+  "sha256": "66e9e3115b59559554013aa3b124156249f30437a6b4e4f96de3d2dfb5ae8cbc",
+  "nested": {
+   "name": "train/train_databases.zip",
+   "bytes": 9347158408,
+   "sha256": "902fed2d1e75d42dd8c9896e006489acdc8518b2c73b21ba3ae1e42d57ea9aaa"
+  }
+ },
+ "databases": {
+  "address": {
+   "file": "address/address.sqlite",
+   "sha256": "cc75a98289fc6998bb0cc314306b92277f23c97000ef3f2bd0d8b220cb1e8771",
+   "bytes": 26550272,
+   "description_sha256": "0438fc1436bb1dfb77112392b62e5cf2d9206e18b2f0fc0128f80526528fdbec",
+   "description_files": 9
+  },
+  "airline": {
+   "file": "airline/airline.sqlite",
+   "sha256": "50308a01c2467df9370ce6ee45595c97af2a06b73e195f52444406d4cdad08a8",
+   "bytes": 122699776,
+   "description_sha256": "3beb5ae627130887ae2f3020137d757d74436d7dd823da7cbbdcfc948e4816b9",
+   "description_files": 3
+  },
+  "app_store": {
+   "file": "app_store/app_store.sqlite",
+   "sha256": "5abf267faa3c2b25f1b23c0a82bca1ca7b65368b84b16be2a6e7228168a681ef",
+   "bytes": 18018304,
+   "description_sha256": "0ded2192c079ed43e684a34f7f5c1cccb3762fff6ecf73042674a73f804bf45a",
+   "description_files": 2
+  },
+  "authors": {
+   "file": "authors/authors.sqlite",
+   "sha256": "72f3c288aab05bcfdeae92dbb419e6d8468f63c7b36813b09ea1be2b9956b72f",
+   "bytes": 616001536,
+   "description_sha256": "76731993682bb3cb385fc4ab2f846fd005e873cafe2fd14dcd615c5c70320fa3",
+   "description_files": 5
+  },
+  "beer_factory": {
+   "file": "beer_factory/beer_factory.sqlite",
+   "sha256": "3cf815ded995e8bec52d59b4763f8229054556f171a4eeb7b53f86535b94bc19",
+   "bytes": 991232,
+   "description_sha256": "c4b7d55cd7d755ae1814c966da7eb20003828bad5e26d2cac854e655b7cd5696",
+   "description_files": 7
+  },
+  "bike_share_1": {
+   "file": "bike_share_1/bike_share_1.sqlite",
+   "sha256": "3d6918cb16405c1a5f483182d5effbe00c6e07d14f950b1843ec28ad8991246b",
+   "bytes": 5209406464,
+   "description_sha256": "fd332410f6d933d526228a2fe86ed5fee35d49d00f0ca6d0e234b5099a3605b0",
+   "description_files": 4
+  },
+  "book_publishing_company": {
+   "file": "book_publishing_company/book_publishing_company.sqlite",
+   "sha256": "b493a54214d7b224a6f2b9b22b0f651c98f0c345a91cdec10b94825d4d897f4d",
+   "bytes": 184320,
+   "description_sha256": "3fac6863ce4e7fdd06e35aaf389c2edd1588a3cd0ac81e4f862b1a3b3fba29c1",
+   "description_files": 11
+  },
+  "books": {
+   "file": "books/books.sqlite",
+   "sha256": "8b34bb9752cb1550a622945e1b814b5978cd9435a00ab037c2758b552a7f856e",
+   "bytes": 4337664,
+   "description_sha256": "fe6ba68f573971ea37cdc8862eb04b5ffe0b3b4593466df0e4b0252421001cda",
+   "description_files": 15
+  },
+  "car_retails": {
+   "file": "car_retails/car_retails.sqlite",
+   "sha256": "a5c434b67cd62c8e35721dfb462405b8750fee684e9d005f79bcc23bacdb1bf5",
+   "bytes": 487424,
+   "description_sha256": "77bcf87cccb41e15981836d3bce3f08a590c99d780f4318803336b0e2d4c16e2",
+   "description_files": 8
+  },
+  "cars": {
+   "file": "cars/cars.sqlite",
+   "sha256": "0338e4d6f3c7bb90748b6a1971c0d18f301166b77f2ca9984c197a0f20d7f67e",
+   "bytes": 135168,
+   "description_sha256": "3264484431466b9975a3a7a1bc4199aa16824fa1287c6176acc40ed04edbd15b",
+   "description_files": 4
+  },
+  "chicago_crime": {
+   "file": "chicago_crime/chicago_crime.sqlite",
+   "sha256": "dfd081c54e79be5e980d16c8f0dd8403a82946073f2f061936fa18fb8ad69161",
+   "bytes": 66723840,
+   "description_sha256": "a6ac850ffe71e03c7f2e6cd069a82c00dad8cf13f84fe094566af975cd783e1e",
+   "description_files": 7
+  },
+  "citeseer": {
+   "file": "citeseer/citeseer.sqlite",
+   "sha256": "2590117d0545f92aec1651f1bc063bd5897755eaadfd56aaf0c105a81e616e32",
+   "bytes": 7430144,
+   "description_sha256": "931d345403e42b0d1133f75ce156c8041cce6a5932922ba707034ec310b10be0",
+   "description_files": 3
+  },
+  "codebase_comments": {
+   "file": "codebase_comments/codebase_comments.sqlite",
+   "sha256": "e4b25e8c72a79cc4142deab8c81c0c6bfd1294ae7014d518d55b7a3e8faff0a8",
+   "bytes": 4497768448,
+   "description_sha256": "3dd3bc0dd8a867c2ae836d6cf62b265ac4a3d7f26fa511b364b89ed4a0175d35",
+   "description_files": 4
+  },
+  "coinmarketcap": {
+   "file": "coinmarketcap/coinmarketcap.sqlite",
+   "sha256": "ff179a460968f85bc7b0836a50d6c3dd3e5002be7990fb9e2bfa88213803a0f2",
+   "bytes": 1508139008,
+   "description_sha256": "a77d8d004c3d50d93aa4d8538ec9157a6c22a601e7a57d12b7b5ab6a466cbc0d",
+   "description_files": 2
+  },
+  "college_completion": {
+   "file": "college_completion/college_completion.sqlite",
+   "sha256": "f60afb45836644ef4d6311882afd985e3d2320ee26a097fe5a706f880df6507e",
+   "bytes": 71217152,
+   "description_sha256": "51979a31725236873b05a31622227356a71ee55350cb757b599dec38582d3b1a",
+   "description_files": 4
+  },
+  "computer_student": {
+   "file": "computer_student/computer_student.sqlite",
+   "sha256": "617669575dff24ed08efacf95e05bb53347f2d895f053faa2dcbcd047b27a513",
+   "bytes": 45056,
+   "description_sha256": "11f6a681df39424a4cb13328c2a7e1b17d2193c2195bf1890aa0fd24dee96089",
+   "description_files": 4
+  },
+  "cookbook": {
+   "file": "cookbook/cookbook.sqlite",
+   "sha256": "bff5b9b84f633be89f7954eb4067e246f4ba7441ad4ffb33374ca8a8efe206da",
+   "bytes": 1220608,
+   "description_sha256": "c1c0a8b725325421c17bea0eed0ecd7ca7eb7632fb816f33c4324002a9aa546c",
+   "description_files": 4
+  },
+  "craftbeer": {
+   "file": "craftbeer/craftbeer.sqlite",
+   "sha256": "127bad8fbd45772d66f81aa3935e5b957eaeccce104ec3e933ff156efea168ea",
+   "bytes": 442368,
+   "description_sha256": "127ef16a6fd622a7dfa0e527f87f55e6ff438b761fed78915ddbf74834bbad09",
+   "description_files": 2
+  },
+  "cs_semester": {
+   "file": "cs_semester/cs_semester.sqlite",
+   "sha256": "c6b199692b7169678682ad9e327762d0a0cafff1ac8f3d61505c7b2fed28b5eb",
+   "bytes": 36864,
+   "description_sha256": "faf8e04a6e75b79a220a33c002ab83b4c5f687b513f903073b5c0b082eb0ce96",
+   "description_files": 5
+  },
+  "disney": {
+   "file": "disney/disney.sqlite",
+   "sha256": "0356fc508607fa20da3c94dc785705f05a4b8a9455bb4ac02fb1271fe3bd5c25",
+   "bytes": 258048,
+   "description_sha256": "4f11620632db8bbcc22299ec71769f33ce0cd783e6f8fc50040adf64ce3bb370",
+   "description_files": 5
+  },
+  "donor": {
+   "file": "donor/donor.sqlite",
+   "sha256": "b7012d018662e149011e4e010563ecfe7d2a7472ab2d29524fea886f81a97e35",
+   "bytes": 4497768448,
+   "description_sha256": "64ea4cecd9fce6b2030d9271aa79f4da6e2f0ef53a70de2151104e85d93ac0c9",
+   "description_files": 4
+  },
+  "european_football_1": {
+   "file": "european_football_1/european_football_1.sqlite",
+   "sha256": "1a7c2e8e0868a3c61f0cf6dc936483b31e05d86226400273280a5975c5fc99d5",
+   "bytes": 11907072,
+   "description_sha256": "fd46e4bdaca3bb22b4fe566025e6aa9f32cf232b6f59d74209646bc5ee17f9ef",
+   "description_files": 2
+  },
+  "food_inspection": {
+   "file": "food_inspection/food_inspection.sqlite",
+   "sha256": "c76a6576ba7fe150e12b64a9eefa0ad418b10449f771f91830a87319e34f64c1",
+   "bytes": 5021696,
+   "description_sha256": "7b860210fd68126b11b1fddeb60f3fe0b4d00c31df8f7d792ec6b4d35ccd48f9",
+   "description_files": 3
+  },
+  "food_inspection_2": {
+   "file": "food_inspection_2/food_inspection_2.sqlite",
+   "sha256": "f07515ff7c40c1944b35858fee8a5b6c19a6df2a46699fff853b1ce29299df65",
+   "bytes": 216940544,
+   "description_sha256": "594220ff2a422dc9ccbaf96614f70e3d18b801928955de51b5093ed7255dd624",
+   "description_files": 5
+  },
+  "genes": {
+   "file": "genes/genes.sqlite",
+   "sha256": "726f142a9281a90cb36a6969b08be51d03a7ba2a58d30dfa02bdb766993fe6b5",
+   "bytes": 1527808,
+   "description_sha256": "544102b552918eb9d4467258ddbf099274018f15c7f7bf90d769600587c4aa7f",
+   "description_files": 3
+  },
+  "hockey": {
+   "file": "hockey/hockey.sqlite",
+   "sha256": "2987cba3921e2544fcd4603eccf5ff97b17f63103d8feb6fb908d55eb5bd9ba2",
+   "bytes": 6893568,
+   "description_sha256": "3b07a507343ca997f0990731e8c7dcf15c4da9f8039c938f3098d053e4792e7f",
+   "description_files": 22
+  },
+  "human_resources": {
+   "file": "human_resources/human_resources.sqlite",
+   "sha256": "9cc6021a63b07908765954f922f86c4f335706a54b956e7c401f8f0c23aaa6f2",
+   "bytes": 28672,
+   "description_sha256": "22a59b64ff32ca66d20c3f37cb6a315dc36615301838961d6ee48cf7bb756fd6",
+   "description_files": 3
+  },
+  "ice_hockey_draft": {
+   "file": "ice_hockey_draft/ice_hockey_draft.sqlite",
+   "sha256": "4b297d4b7f8c0ff3b751a4017c4d2355aa8eeb11159cf258600995a56f53bf18",
+   "bytes": 1028096,
+   "description_sha256": "bee56f27005b992cf06055e27fb71962f40284f4f5889eaaa8cc96227554faec",
+   "description_files": 4
+  },
+  "image_and_language": {
+   "file": "image_and_language/image_and_language.sqlite",
+   "sha256": "e2fde5486e977b4fde2097bbfbb789be5950753872a3707956b946c92080d0f1",
+   "bytes": 138891264,
+   "description_sha256": "020b0474d47b9abe1758f62d3b6416a64e91b3c38756ac5f0c0b45389a0865e0",
+   "description_files": 6
+  },
+  "language_corpus": {
+   "file": "language_corpus/language_corpus.sqlite",
+   "sha256": "826e913eb22387a8b4a59da8ba6e7e539ea0d288565b2da5b0ec708baffb7d15",
+   "bytes": 2383298560,
+   "description_sha256": "e683f26139e098c15c0a5e61a16c4db78fb2179936c1784868eb2fa9ac47e7c0",
+   "description_files": 6
+  },
+  "law_episode": {
+   "file": "law_episode/law_episode.sqlite",
+   "sha256": "164ae73150ba2f081931fcca583aafc51f319c239eab3e0005ac1a08e6f95fc7",
+   "bytes": 548864,
+   "description_sha256": "90c504fdbcab84cc3c18a9522f52bfeb49f455a2b41ea23c3e16b081d6244923",
+   "description_files": 6
+  },
+  "legislator": {
+   "file": "legislator/legislator.sqlite",
+   "sha256": "7fb0b945de2e21967c6f857325a42c727ef486e9f283520e2337c2ff08efdf4c",
+   "bytes": 3485696,
+   "description_sha256": "5a3ed9f84f4b08f32dc57f493e8dd3a3d6313d088b26139487d171402b144bf8",
+   "description_files": 5
+  },
+  "mental_health_survey": {
+   "file": "mental_health_survey/mental_health_survey.sqlite",
+   "sha256": "677194717340a10ed4ec490297d695b6bb7614e928bedc81d4753bb13d47433c",
+   "bytes": 18276352,
+   "description_sha256": "266b4135dc987d89d29b115a466353f93c82cf5fef26ecd22a0ff8373666b16b",
+   "description_files": 3
+  },
+  "menu": {
+   "file": "menu/menu.sqlite",
+   "sha256": "d38ef4f6982d34a536bb169e4af9b31f6b97d3959048f4fc1bdd5f9e15462d08",
+   "bytes": 272371712,
+   "description_sha256": "0049353e95f56ddb30ca232ca0c6124348ab7a0860ce2c37c2523aa2d13e6de3",
+   "description_files": 4
+  },
+  "mondial_geo": {
+   "file": "mondial_geo/mondial_geo.sqlite",
+   "sha256": "02e71c23c27973be373e0c110600b4f12c77904c7594f3e345310511fe8b8d63",
+   "bytes": 2113536,
+   "description_sha256": "443ad2f1298801f2941805839c2f27bd1724af02b2801ad8b1a7e3f6142dd391",
+   "description_files": 34
+  },
+  "movie": {
+   "file": "movie/movie.sqlite",
+   "sha256": "4d87ad371470f07af926e4bbca2784aed9a643935dd6e6a00d8009aad1816547",
+   "bytes": 1568768,
+   "description_sha256": "3941e0a031950aa02ded08e830aba07af355ffe77720bc0e8b851d884a1e757b",
+   "description_files": 3
+  },
+  "movie_3": {
+   "file": "movie_3/movie_3.sqlite",
+   "sha256": "af79f59f94e64e43fb0bb6a8fdc6e6d3a2017aec9dfcb5519bc840d16e01871f",
+   "bytes": 6356992,
+   "description_sha256": "b93d70d2613f547d539d4821d854a08ac887298041c9ac22ccb2156c2d756010",
+   "description_files": 16
+  },
+  "movie_platform": {
+   "file": "movie_platform/movie_platform.sqlite",
+   "sha256": "cd03bfa8c12445c40f46dcd69811d02fa3df917fbe54f4d886ac0f149c4004a9",
+   "bytes": 4311130112,
+   "description_sha256": "e2e488de4d7c141110a35397fca6552cc7196d6c8db8e596a795862851f8927e",
+   "description_files": 5
+  },
+  "movielens": {
+   "file": "movielens/movielens.sqlite",
+   "sha256": "7c0f4f556f28e787eef6ed52ad2745f05124302c9405a977643ceb5f190ee431",
+   "bytes": 85786624,
+   "description_sha256": "05bcf113dbe571656ab7c295b51ae641e30fb885dffe0d6f6f2138ab92e20f75",
+   "description_files": 7
+  },
+  "movies_4": {
+   "file": "movies_4/movies_4.sqlite",
+   "sha256": "65bdaa5265e5d84fc97cc22eb977bff86755c7d07f2f607d7bb3d9e36046afcd",
+   "bytes": 13070336,
+   "description_sha256": "f7c11937dab5c264769b1aebd07a68130d6cc344f804c959bf0ab7f570b4ef96",
+   "description_files": 17
+  },
+  "music_platform_2": {
+   "file": "music_platform_2/music_platform_2.sqlite",
+   "sha256": "5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09",
+   "bytes": 1554345984,
+   "description_sha256": "55d85a2d08652c1ea17ce40c8007230f1f7410fc9083bec93c6745a9c7aacc38",
+   "description_files": 4
+  },
+  "music_tracker": {
+   "file": "music_tracker/music_tracker.sqlite",
+   "sha256": "7c2444428e987218e2ce0655e489448dac95cec1225ba965183f09961034038f",
+   "bytes": 15204352,
+   "description_sha256": "e2232e3ed27991a65beb0e1c33173006d2e214ff4867382ee178e278654a119d",
+   "description_files": 2
+  },
+  "olympics": {
+   "file": "olympics/olympics.sqlite",
+   "sha256": "c34a94838914a78f62c2989b729907aa9f58cd45b93567ab211a8a840957e074",
+   "bytes": 18145280,
+   "description_sha256": "d49173da658a2a2baafdb58979e3c35c0373118c3ee43470a24c44a1750577cd",
+   "description_files": 11
+  },
+  "professional_basketball": {
+   "file": "professional_basketball/professional_basketball.sqlite",
+   "sha256": "11bc18807f9209e4fae852695907c77961a208639e25b59def05802c9f0b8839",
+   "bytes": 6668288,
+   "description_sha256": "2f90e210e78454179b17bdfaa6089b2d37a8ed3938be2196dc0ed327454a68e9",
+   "description_files": 9
+  },
+  "public_review_platform": {
+   "file": "public_review_platform/public_review_platform.sqlite",
+   "sha256": "d87fa4bbcb2d5daec149330d5c47378b2c669222e616bfe2c04cc3624e7ad4ba",
+   "bytes": 65339392,
+   "description_sha256": "4cfec655f953d6b3a641f6591cf6315fa728d17fa7c56aaf32b5d9fed8bc500b",
+   "description_files": 15
+  },
+  "regional_sales": {
+   "file": "regional_sales/regional_sales.sqlite",
+   "sha256": "9820888505c30dfd913738265ddb9150bf1c33a93e1b236313964ada98423a0c",
+   "bytes": 2277376,
+   "description_sha256": "4e7a9735e075469a5836d3c717305f1ec555384cfb9ca731ff1dd23e2aad97fe",
+   "description_files": 6
+  },
+  "restaurant": {
+   "file": "restaurant/restaurant.sqlite",
+   "sha256": "39dbaf39bf244e1062e50d3be9dfd952320bd12e8471a58ae93db6ff83d57504",
+   "bytes": 806912,
+   "description_sha256": "7b045415e518bab5daa2c63905bb785444bbcebb71b225a25aee3371eeb33cb0",
+   "description_files": 3
+  },
+  "retail_complains": {
+   "file": "retail_complains/retail_complains.sqlite",
+   "sha256": "03dce545a321d5564f5ac1ccd123bd5948c90ef7b56253fea534e11235cbe8bc",
+   "bytes": 25133056,
+   "description_sha256": "781782bf1d7c047e89b22fcb9aea0192b0799c2b9dbc5a4ed77e90c7be8268cc",
+   "description_files": 6
+  },
+  "retail_world": {
+   "file": "retail_world/retail_world.sqlite",
+   "sha256": "90ac33a038f95e9f2fae7ed4782b3bbe5e65ee94b7df5422915a745419f77d33",
+   "bytes": 65536,
+   "description_sha256": "5b7d31fe51a339aec8fa0cc2cae0f7b8ba074c9ed84a05b11c0ab911c863e81d",
+   "description_files": 8
+  },
+  "retails": {
+   "file": "retails/retails.sqlite",
+   "sha256": "2021fa97598a34216fbdbe604817c7d5bfdb15819da55aabdbd68ab04e4e3d78",
+   "bytes": 1027735552,
+   "description_sha256": "3afb710a59d5d6df37577595997c569420854876d687b2c2ceccfe6b13003f9b",
+   "description_files": 8
+  },
+  "sales": {
+   "file": "sales/sales.sqlite",
+   "sha256": "632673acfed3a90241f8992324755fdd5304d282fe26a97db551bab7dfafce8a",
+   "bytes": 130338816,
+   "description_sha256": "a91f13a2a8d895437c70ed7ce8c27f378354333e803cdef36c709e81ab230741",
+   "description_files": 4
+  },
+  "sales_in_weather": {
+   "file": "sales_in_weather/sales_in_weather.sqlite",
+   "sha256": "470eb5d25cd281042ef3ced349c2a2fbd7a6c16122a037f5ca391d4bac8a8f89",
+   "bytes": 464236544,
+   "description_sha256": "5d17bf17547ccefb58bb7b2cceeab0e75d48cefbdbaac3d0a7637e0efe62c5ac",
+   "description_files": 3
+  },
+  "shakespeare": {
+   "file": "shakespeare/shakespeare.sqlite",
+   "sha256": "c9557c1bafa039c420d8b87d5407f90d0a8c99f24f9129f9ea6b39024f0c788d",
+   "bytes": 12029952,
+   "description_sha256": "0b605e0fc31841c4cdba76295bca5706766976c047dc4fc656e9aa2996644b8c",
+   "description_files": 4
+  },
+  "shipping": {
+   "file": "shipping/shipping.sqlite",
+   "sha256": "a6b4af6401c43aeb7f678ba18e3ebc5ba8708d4a98674be6095e3d9863f4f259",
+   "bytes": 131072,
+   "description_sha256": "3122853c02be9936e73f3f30dfff4b0fe44a75de2c16fa68df93279e1f095a52",
+   "description_files": 5
+  },
+  "shooting": {
+   "file": "shooting/shooting.sqlite",
+   "sha256": "9d96c60a9ef532f6c02b942ac5691eda753937324ddedd2dae7a131185cae82b",
+   "bytes": 180224,
+   "description_sha256": "e2f3475342e2edd2756953ff6a5a7df33078ec8128510905cbf6098522ca2b19",
+   "description_files": 3
+  },
+  "simpson_episodes": {
+   "file": "simpson_episodes/simpson_episodes.sqlite",
+   "sha256": "777172b55c622b0106dc4e0a03a1c1af61a0413d0a358f40e6210b8f0ca64f4d",
+   "bytes": 753664,
+   "description_sha256": "cd39fe04426d3128bf3cbea9e76969f41d6047817b9c0986646c40c461fe366f",
+   "description_files": 7
+  },
+  "soccer_2016": {
+   "file": "soccer_2016/soccer_2016.sqlite",
+   "sha256": "84651eed21dbfae9f36a15697a5df81f3cb6ad78740f7301096e99dd7c4c06d5",
+   "bytes": 17170432,
+   "description_sha256": "1aa861b449ad807636ffcefa71ff0620c860c9b2573fc39dbcd11171e26fad9e",
+   "description_files": 21
+  },
+  "social_media": {
+   "file": "social_media/social_media.sqlite",
+   "sha256": "5b085c690554b800656b847cd170411bf0a0e26840c106c3f0813b1107d4f78f",
+   "bytes": 69132288,
+   "description_sha256": "f12a137507b1841ba2423a2979004db1e6fad537b971efb915bbb3a561aa2c31",
+   "description_files": 3
+  },
+  "software_company": {
+   "file": "software_company/software_company.sqlite",
+   "sha256": "21b00d9d2b3bf20af55597c5e844223340ae35efb034797b34100681827e2ca2",
+   "bytes": 342118400,
+   "description_sha256": "36a0f15e62eac4bd827ae25866359a9ea2da7ea0da700aaec4553d555afa3bea",
+   "description_files": 5
+  },
+  "student_loan": {
+   "file": "student_loan/student_loan.sqlite",
+   "sha256": "8dac8a8757e66599716907071ebdfb20bfd1d06b90d9cecc945dd5a040a0f3b6",
+   "bytes": 307200,
+   "description_sha256": "4ae0fbe053095880b7115090bf061045e53617fb0b1148cda98ae9ac11c7af5a",
+   "description_files": 10
+  },
+  "superstore": {
+   "file": "superstore/superstore.sqlite",
+   "sha256": "6090a5d5214c49b4eb41ab793e87c370bf54973febe6a017d569c6d0c245ab77",
+   "bytes": 6631424,
+   "description_sha256": "51660d0906a8546cc51d8575c5c1f7313e78e6f1a69b2da712b2fb2edd23da48",
+   "description_files": 6
+  },
+  "synthea": {
+   "file": "synthea/synthea.sqlite",
+   "sha256": "7803821b0e4f7e88dfb89461d85d3c6e0e4cfe31a9c6fd979d07fa5b735bffd4",
+   "bytes": 38637568,
+   "description_sha256": "a5f02debd1cfd35e550ca42c9ba9d13b8b325786aa51395b2e634c3a1377ed30",
+   "description_files": 11
+  },
+  "talkingdata": {
+   "file": "talkingdata/talkingdata.sqlite",
+   "sha256": "a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50",
+   "bytes": 1903886336,
+   "description_sha256": "8063444c2c22051382c84f732995c333c5b6fdf3330b2d23bd46f79dc4f886d9",
+   "description_files": 12
+  },
+  "trains": {
+   "file": "trains/trains.sqlite",
+   "sha256": "5ff21e3769ac341aec4b58d8c3e2fc5215688958cc2c0a82132223eeb124d724",
+   "bytes": 5070848,
+   "description_sha256": "6a9b73d7596099d6a24d6119c7a2a87124ef601ff0412f61529bed58991e041e",
+   "description_files": 2
+  },
+  "university": {
+   "file": "university/university.sqlite",
+   "sha256": "295afab81225bea2df72f5b779e4da0b6c5fb691ff8f7e9f448ed20e54555e18",
+   "bytes": 630784,
+   "description_sha256": "43288c437cd74f8454cae95b5960f0b1293b666110d15371e711a0c3469c64ef",
+   "description_files": 6
+  },
+  "video_games": {
+   "file": "video_games/video_games.sqlite",
+   "sha256": "d45a2b2e9014c1bac97ab0a94ca71a3d17632f046e48e3766134d01f5e155641",
+   "bytes": 2547712,
+   "description_sha256": "f5a52a2d41432a496a870546b37c78dbf0b6f3afaf70935237f69fd06e7473c1",
+   "description_files": 8
+  },
+  "works_cycles": {
+   "file": "works_cycles/works_cycles.sqlite",
+   "sha256": "5a5968b86a2de3cf521294eca7cdc54887830b765e8ca7ab0b103d0f1d7daf1b",
+   "bytes": 114724864,
+   "description_sha256": "f4414fa4a1b94a80a6c3dfb8de9ff51b65d52d72b9a060173ff7d2a532fad8b4",
+   "description_files": 65
+  },
+  "world": {
+   "file": "world/world.sqlite",
+   "sha256": "813faade795b875f6d46cf81d9651e2400524b414a407aa9d473aa9a8c142861",
+   "bytes": 253952,
+   "description_sha256": "c1a70f855317bdea7559056bc1c9bb0bdcb49173a02845ca72abb97b985f6cfb",
+   "description_files": 3
+  },
+  "world_development_indicators": {
+   "file": "world_development_indicators/world_development_indicators.sqlite",
+   "sha256": "363cacb7b42219c8bad1b4b7a092107f3b2466852bc47d1aab34d34cae040c0c",
+   "bytes": 2451682304,
+   "description_sha256": "6cc31d3a7128af49c89b41d9607f2bec4475f9c8e65b6309530806584c9a6aec",
+   "description_files": 6
+  }
+ }
+}
