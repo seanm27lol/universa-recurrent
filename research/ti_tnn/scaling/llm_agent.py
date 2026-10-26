@@ -50,6 +50,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import time
 
 from . import contracts as C
@@ -174,6 +175,12 @@ def observation(result: dict, limit_chars: int = 6000) -> str:
     return text if len(text) <= limit_chars else text[:limit_chars] + " …(truncated)"
 
 
+def progress(event: dict) -> None:
+    """One line per turn and per tool call on stderr, so a long request shows where its time goes (no effect on
+    behaviour or records)."""
+    print(json.dumps(event, default=str), file=sys.stderr, flush=True)
+
+
 def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text: str, examples: list,
                    cfg: GenerationConfig, limits: C.Limits, seed: int) -> dict:
     """One request after retrieval and schema serialisation (the caller times those too). Returns the record's
@@ -219,6 +226,11 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                      "final_status": None}
             pending_repair = False
             turns.append(entry)
+            progress({"task": task.task_id, "turn": entry["turn"], "kind": entry["kind"], "finish": turn.finish_reason,
+                      "prompt": turn.prompt_tokens, "generated": turn.generated_tokens,
+                      "reasoning": turn.reasoning_tokens, "seconds": round(turn.seconds, 1),
+                      "ttft": round(turn.time_to_first_token or 0, 1), "tool_calls": len(turn.tool_calls),
+                      "elapsed": round(time.monotonic() - m0, 1)})
             if turn.finish_reason == "timeout":
                 stop_reason = "request timeout"
                 break
@@ -241,6 +253,8 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                     obs = observation(result)
                     tokens["tool_observation"] += rt.count_tokens(obs)
                     entry["tool_results"].append({"call": call, "result": result})
+                    progress({"task": task.task_id, "tool": call["name"], "status": result.get("status"),
+                              "seconds": result.get("elapsed_seconds"), "elapsed": round(time.monotonic() - m0, 1)})
                     messages.append({"role": "tool", "content": obs})
                 if remaining_time() <= 0:
                     stop_reason = "request timeout"
