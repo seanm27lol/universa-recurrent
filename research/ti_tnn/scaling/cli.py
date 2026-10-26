@@ -195,6 +195,17 @@ def profile(args) -> None:
             res.check()
             cfg = GenerationConfig.official(args.model, False, limits)
             rt.generate_turn(_synthetic_prompt(rt, 256), None, cfg, seed=args.seed, max_new_tokens=16)  # warm-up
+            # numerical probe: the last-position logits of one fixed ~1k-token prompt, for comparing kernel paths
+            enc = rt.tokenizer(rt.render(_synthetic_prompt(rt, 1024), None, cfg), return_tensors="pt",
+                               add_special_tokens=False).to(rt.device)
+            with torch.inference_mode():
+                logits = rt.model(**enc).logits[0, -1].float().cpu()
+            import numpy as np
+            np.save(run_dir / "probe_logits.npy", logits.numpy())
+            top = torch.topk(logits, 20)
+            results["logit_probe"] = {"prompt_tokens": int(enc["input_ids"].shape[1]),
+                                      "top20_ids": top.indices.tolist(), "top20_logits": top.values.tolist(),
+                                      "file": "probe_logits.npy"}
             for n in args.prompt_lengths:
                 res.check()
                 torch.cuda.reset_peak_memory_stats()
