@@ -30,6 +30,8 @@ REPO = SCALING.parents[2]
 # GPU runs execute from a separate clean worktree at the commit being run (so files edited during development cannot
 # change a running producer); TI_TNN_SCALING_RUNS points every worktree at the one shared output directory.
 RUNS = Path(os.environ.get("TI_TNN_SCALING_RUNS", REPO / "runs" / "ti_tnn_scaling"))
+if not RUNS.is_absolute():
+    raise RuntimeError(f"TI_TNN_SCALING_RUNS must be an absolute path, not {str(RUNS)!r}")
 DATA_RAW = RUNS / "data" / "raw"
 DATA = RUNS / "data"
 PINS = SCALING / "pins"  # compact committed identities: split, inventory ids, snapshot hashes

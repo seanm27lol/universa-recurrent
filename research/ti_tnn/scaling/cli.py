@@ -1,27 +1,30 @@
 """Command line for the TI-TNN scaling development study (not frozen).
 
     PY=.venv-scaling/bin/python; export PYTHONPATH=research/ti_tnn
+    export TI_TNN_SCALING_RUNS=/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling  # one shared, absolute
     $PY -m scaling.cli preflight                      # hardware, processes, pins, data, git, ledger (no GPU)
+    $PY -m scaling.cli inventory                      # the split and the development inventory
     $PY -m scaling.cli ledger                         # GPU-reservation hours used and remaining
-    $PY -m scaling.cli project profile --model Q27    # dry-run resource projection (no GPU)
-    $PY -m scaling.cli profile --model B4             # load, prefill/decode throughput, memory (GPU reservation)
+    $PY -m scaling.cli project baseline --model Q27   # dry-run resource projection (no GPU)
+    $PY -m scaling.cli profile --model B4 --projected-hours 0.4      # load, prefill/decode throughput, memory
     $PY -m scaling.cli baseline --arm B4 --subset 16 --mode nonthinking   # L, B4 or Q27 on the development subset
-    $PY -m scaling.cli smoke                          # one paired C4/T4 smoke (GPU reservation)
+    $PY -m scaling.cli smoke ...                      # one paired C4/T4 smoke (GPU reservation)
     $PY -m scaling.cli verify <run dir>               # the independent verifier
 
 **GPU discipline.**
 - Every GPU command runs inside one `ledger.Reservation`, opened before the model loads.
-- The aggregate cap is 8 h; `--projected-hours` must fit what remains, or the command refuses to start.
+- The ledger and lock live in the one shared `$TI_TNN_SCALING_RUNS` (absolute); without it, no reservation starts.
+- The aggregate cap is 8 h. A run is held to min(cap, used + projection × 1.5) and terminated past it.
 - GPU commands run from a clean worktree at a committed revision. The manifest records it and refuses a dirty
   research tree.
-- Outputs go to `runs/ti_tnn_scaling/` (or `$TI_TNN_SCALING_RUNS`).
 """
 from __future__ import annotations
 
 import argparse
 import json
+import math
+import os
 import shutil
-import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -44,55 +47,114 @@ def _write(path: Path, obj) -> None:
     path.write_text(json.dumps(obj, indent=1, sort_keys=True, default=str) + "\n")
 
 
+def _append(path: Path, obj: dict) -> None:
+    with open(path, "a") as f:
+        f.write(json.dumps(obj, sort_keys=True, default=str) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
+
+
 # --- preflight ---------------------------------------------------------------------------------------------------------
 def preflight(args) -> dict:
     out = {"time": _stamp(), "git": identity.git_state(), "environment": identity.environment(),
            "ledger": {k: v for k, v in ledger.usage().items() if k != "reservations"},
            "foreign_gpu_processes": ledger.foreign_gpu_processes()}
+    try:
+        out["shared_runs"] = str(ledger.shared_runs())
+    except RuntimeError as e:
+        out["shared_runs"] = f"NOT SET: {e}"
     mem = {}
     for line in Path("/proc/meminfo").read_text().splitlines():
         k, v = line.split(":", 1)
         if k in ("MemTotal", "MemAvailable", "MemFree", "Cached"):
             mem[k] = v.strip()
     out["memory"] = mem
-    du = shutil.disk_usage(C.REPO)
-    out["disk_free_gb"] = round(du.free / 1e9, 1)
+    out["disk_free_gb"] = round(shutil.disk_usage(C.REPO).free / 1e9, 1)
     models = {}
     for key in C.MODELS:
         try:
-            models[key] = {k: v for k, v in identity.model_identity(key, verify=args.verify_models).items()}
-        except FileNotFoundError as e:
-            models[key] = {"missing": str(e)}
+            m = identity.model_identity(key, verify=args.verify_models)
+            models[key] = {"repo": m["repo"], "revision": m["revision"], "files": len(m["files"]), "matches_pin": True}
+        except Exception as e:
+            models[key] = {"error": str(e)}
     out["models"] = models
     out["data"] = {"databases_dir": C.DATABASES.is_dir(), "pins": sorted(p.name for p in C.PINS.glob("*.json"))}
-    try:
-        out["load_average"] = Path("/proc/loadavg").read_text().split()[:3]
-    except OSError:
-        pass
+    out["load_average"] = Path("/proc/loadavg").read_text().split()[:3]
     print(json.dumps(out, indent=1, default=str))
     return out
 
 
 # --- projections ---------------------------------------------------------------------------------------------------
-DEFAULT_PROJECTIONS_HOURS = {  # used only until a measured profile exists; deliberately generous
-    ("profile", "B4"): 0.4, ("profile", "Q27"): 1.0,
-}
+DEFAULT_PROJECTIONS_HOURS = {("profile", "B4"): 0.4, ("profile", "Q27"): 1.0}
 
 
 def measured_profile(model: str) -> dict | None:
-    runs = sorted((C.RUNS / "profiles").glob(f"*_{model}/profile.json"))
-    return json.loads(runs[-1].read_text()) if runs else None
+    """The latest complete profile: no errors, and every requested prompt length measured."""
+    for path in sorted((C.RUNS / "profiles").glob(f"*_{model}/profile.json"), reverse=True):
+        p = json.loads(path.read_text())
+        want = p.get("prompt_lengths_requested") or []
+        if not p.get("errors") and p.get("synthetic") and len(p["synthetic"]) == len(want) and \
+                all(s.get("decode_tokens_per_second") and s.get("time_to_first_token") for s in p["synthetic"]):
+            return p
+    return None
+
+
+def baseline_projection_hours(model: str, n_requests: int, thinking: bool, limits: C.Limits | None = None,
+                              probes: list[float] | None = None) -> dict:
+    """Projected reservation hours for an LLM baseline.
+
+    - The worst case per request is the request timeout, plus one uninterruptible prefill and one SQL timeout.
+    - With measured probe requests in the same configuration, the estimate per request is min(worst case, 1.5 × the
+      largest probe request).
+    - Without probes, it is min(worst case, generated-token budget / measured decode rate + 10 prefills of the largest
+      measured prompt + 10 SQL timeouts).
+    - The total is model load + one warm-up request + n requests.
+
+    The run is then held to its projection × 1.5 by the ledger."""
+    limits = limits or C.Limits()
+    prof = measured_profile(model)
+    if prof is None:
+        raise SystemExit(f"no complete measured profile for {model}: run `profile --model {model}` first")
+    rate = min(s["decode_tokens_per_second"] for s in prof["synthetic"])
+    prefill = max(s["time_to_first_token"] for s in prof["synthetic"])
+    load = prof["model"]["load_seconds"]
+    timeout = limits.request_timeout_seconds_27b if model == "Q27" else limits.request_timeout_seconds_4b
+    worst = timeout + prefill + limits.sql_timeout_seconds
+    tokens = limits.max_generated_tokens_thinking if thinking else limits.max_generated_tokens_nonthinking
+    if probes:
+        per_request = min(worst, 1.5 * max(probes))
+        basis = f"1.5 × the largest of {len(probes)} probe requests ({max(probes):.0f} s)"
+    else:
+        per_request = min(worst, tokens / rate + 10 * prefill + 10 * limits.sql_timeout_seconds)
+        basis = "token budget / measured decode rate + 10 prefills + 10 SQL timeouts"
+    seconds = load + (n_requests + 1) * per_request
+    return {"hours": seconds / 3600, "decode_tokens_per_second": rate, "prefill_seconds_max": prefill,
+            "load_seconds": load, "per_request_seconds": per_request, "worst_case_per_request_seconds": worst,
+            "requests": n_requests, "basis": basis}
+
+
+def _probe_seconds(model: str, mode: str, effort: str | None) -> list[float]:
+    """Per-request elapsed seconds of completed probe runs (inventory positions 16-20, outside the 16) in this
+    configuration."""
+    out = []
+    pattern = f"*_{model}_{mode}{'_' + effort if effort else ''}_p16-20/summary.json"
+    for summary in (C.RUNS / "baselines").glob(pattern):
+        recs = summary.parent / "records.jsonl"
+        if recs.exists():
+            out += [json.loads(line)["elapsed_seconds"] for line in recs.read_text().splitlines() if line.strip()]
+    return out
 
 
 def project(args) -> float:
     if args.what == "profile":
-        hours = DEFAULT_PROJECTIONS_HOURS[("profile", args.model)]
-        basis = "default (no measured profile yet)"
+        hours, basis = DEFAULT_PROJECTIONS_HOURS[("profile", args.model)], "default (no measured profile yet)"
     else:
-        raise SystemExit(f"no projection rule for {args.what!r} yet")
+        b = baseline_projection_hours(args.model, args.requests, args.mode == "thinking",
+                                      probes=_probe_seconds(args.model, args.mode, args.reasoning_effort) or None)
+        hours, basis = b["hours"], b
     u = ledger.usage()
-    print(json.dumps({"what": args.what, "model": getattr(args, "model", None), "projected_hours": hours, "basis": basis,
-                      "used_hours": u["used_hours"], "remaining_hours": u["remaining_hours"],
+    print(json.dumps({"what": args.what, "model": args.model, "projected_hours": hours, "basis": basis,
+                      "used_hours": u["used_hours"], "remaining_hours": u["remaining_hours"], "ledger": u["ledger"],
                       "fits": u["used_hours"] + hours <= ledger.CAP_HOURS}, indent=1))
     return hours
 
@@ -110,20 +172,24 @@ def _synthetic_prompt(rt, tokens: int) -> list[dict]:
 
 def profile(args) -> None:
     import torch
-    from scaling.runtime import GenerationConfig, Runtime
+    from scaling.runtime import GenerationConfig, Runtime, linear_attention_backend
     limits = C.Limits()
+    if args.decode_tokens > limits.max_new_tokens_nonthinking:
+        raise SystemExit(f"--decode-tokens above the per-turn limit ({limits.max_new_tokens_nonthinking}) would be capped")
     run_dir = C.RUNS / "profiles" / f"{_stamp()}_{args.model}"
     config = {"command": "profile", "model": C.MODELS[args.model], "model_key": args.model, "dtype": "bfloat16",
-              "runtime": "transformers generate (batch 1)", "limits": limits.as_dict(),
-              "prompt_lengths": args.prompt_lengths, "decode_tokens": args.decode_tokens, "seed": args.seed,
-              "generation": GenerationConfig.official(args.model, False, limits).as_dict()}
+              "runtime": "transformers generate (batch 1)", "linear_attention": linear_attention_backend(),
+              "limits": limits.as_dict(), "prompt_lengths": args.prompt_lengths, "decode_tokens": args.decode_tokens,
+              "seed": args.seed, "generation": GenerationConfig.official(args.model, False, limits).as_dict()}
     manifest = identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty,
                                        extra={"model_identity": identity.model_identity(args.model)})
-    results = {"config_identity": manifest["config_identity"], "model": None, "synthetic": [], "errors": []}
+    results = {"config_identity": manifest["config_identity"], "prompt_lengths_requested": args.prompt_lengths,
+               "model": None, "synthetic": [], "errors": []}
     with ledger.Reservation(f"profile {args.model}", projected_hours=args.projected_hours,
                             extra={"run_dir": str(run_dir)}) as res:
-        t_res = time.time()
+        t_res = time.perf_counter()
         try:
+            res.check()
             rt = Runtime(args.model)
             results["model"] = rt.describe()
             res.check()
@@ -132,8 +198,8 @@ def profile(args) -> None:
             for n in args.prompt_lengths:
                 res.check()
                 torch.cuda.reset_peak_memory_stats()
-                msgs = _synthetic_prompt(rt, n)
-                turn = rt.generate_turn(msgs, None, cfg, seed=args.seed, max_new_tokens=args.decode_tokens)
+                turn = rt.generate_turn(_synthetic_prompt(rt, n), None, cfg, seed=args.seed,
+                                        max_new_tokens=args.decode_tokens)
                 results["synthetic"].append({
                     "prompt_tokens": turn.prompt_tokens, "generated_tokens": turn.generated_tokens,
                     "finish_reason": turn.finish_reason, "seconds": turn.seconds,
@@ -148,9 +214,164 @@ def profile(args) -> None:
             results["errors"].append(f"{type(e).__name__}: {e}"[:2000])
             raise
         finally:
-            results["reservation"] = {"id": res.id, "seconds": time.time() - t_res}
+            results["reservation"] = {"id": res.id, "seconds": time.perf_counter() - t_res}
             _write(run_dir / "profile.json", results)
     print(json.dumps({"profile": str(run_dir / "profile.json"), "ledger": ledger.usage()["used_hours"]}, indent=1))
+
+
+# --- baselines (L, B4, Q27) -------------------------------------------------------------------------------------------
+def _seed(arm: str, task_id: str) -> int:
+    return int(identity.sha256_bytes(f"{arm}:{task_id}".encode())[:8], 16)
+
+
+def _warm_databases(db_ids) -> float:
+    """The warm-cache policy: read every pinned database file once before timing."""
+    from scaling import data
+    t0 = time.perf_counter()
+    for db in sorted(set(db_ids)):
+        with open(data.snapshot(db).path, "rb") as f:
+            while f.read(1 << 24):
+                pass
+    return time.perf_counter() - t0
+
+
+def _abstain(reason: str, error: str | None = None) -> dict:
+    return {"attempts": [], "final": {"kind": "abstain", "sql": None, "reason": reason}, "tokens": {},
+            "tool_calls": 0, "repairs": 0, "peak_memory_bytes": None, "timed_out": False, "error": error}
+
+
+def baseline(args) -> None:
+    from scaling import data, retrieval, schema, scorer
+    from scaling import records as R
+    limits = C.Limits()
+    ids = data.inventory_ids(C.INVENTORY["size"])
+    lo, hi = (int(x) for x in args.positions.split(":")) if args.positions else (0, args.subset)
+    requested = ids[lo:hi]
+    arm, thinking = args.arm, args.mode == "thinking"
+    tag = f"{arm}_{args.mode}" + (f"_{args.reasoning_effort}" if args.reasoning_effort else "") + f"_p{lo}-{hi}"
+    run_dir = C.RUNS / "baselines" / f"{_stamp()}_{tag}"
+    gen_cfg, backend = None, None
+    if arm in ("B4", "Q27"):
+        from scaling.runtime import GenerationConfig, linear_attention_backend
+        gen_cfg, backend = GenerationConfig.official(arm, thinking, limits, args.reasoning_effort), linear_attention_backend()
+    warm_id = json.loads(Path(data.PIN_SMOKE).read_text())["task_ids"][0]  # a training-pool question, excluded
+    config = {"command": "baseline", "arm": arm, "mode": args.mode, "reasoning_effort": args.reasoning_effort,
+              "positions": [lo, hi], "requested": requested, "limits": limits.as_dict(),
+              "generation": gen_cfg.as_dict() if gen_cfg else None, "model": C.MODELS.get(arm),
+              "dtype": "bfloat16" if gen_cfg else None,
+              "runtime": "transformers generate (batch 1)" if gen_cfg else "cpu", "linear_attention": backend,
+              "retrieval": retrieval.RETRIEVAL_VERSION, "schema_text": schema.SCHEMA_TEXT_VERSION,
+              "schema_budget_chars": schema.PROMPT_BUDGET_CHARS, "scorer": scorer.SCORER_VERSION,
+              "warm_up_task": warm_id, "seed_rule": "int(sha256(arm:task_id)[:8], 16)",
+              "cost_unit": C.CostUnit().__dict__, "inventory_pin_sha256": identity.sha256_file(data.PIN_INVENTORY),
+              "snapshots_pin_sha256": identity.sha256_file(data.PIN_SNAPSHOTS)}
+    extra = {"model_identity": identity.model_identity(arm)} if arm in C.MODELS else {}
+    manifest = identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty, extra=extra)
+    records_path = run_dir / "records.jsonl"
+    index = retrieval.training_pool_index()  # built before timing (warm-cache policy)
+    warm_seconds = _warm_databases([data.task(i).db_id for i in requested] + [data.task(warm_id).db_id])
+    tasks = [data.task(i) for i in requested]
+
+    def serve(rt, task) -> tuple[dict, float, list, str | None]:
+        """One request end to end, timed from retrieval to the final answer (CPU-side work included)."""
+        t0 = time.perf_counter()
+        examples, text = [], None
+        try:
+            snap = data.snapshot(task.db_id)
+            examples = retrieval.retrieve(task, limits.retrieval_k, index=index)
+            if arm == "L":
+                from scaling import baseline_l
+                out = baseline_l.run(task, snap, examples=examples, max_tool_calls=limits.max_tool_calls)
+                result = {"attempts": out["attempts"], "final": out["final"], "tokens": {},
+                          "tool_calls": out["tool_call_count"], "tool_log": out["tool_calls"], "repairs": 0,
+                          "peak_memory_bytes": None, "timed_out": False, "error": None}
+            else:
+                from scaling import llm_agent
+                text = schema.serialize(schema.load_schema(task.db_id, snap), budget_chars=schema.PROMPT_BUDGET_CHARS).text
+                result = llm_agent.answer_request(rt, task, snap, text, examples, gen_cfg, limits,
+                                                  seed=_seed(arm, task.task_id))
+        except Exception as e:  # a failed request stays in the denominator as an abstention, with its error
+            if isinstance(e, ledger.BudgetExceeded):
+                raise
+            result = _abstain(f"error: {type(e).__name__}", f"{type(e).__name__}: {e}"[:1000])
+            if arm == "L":
+                result["tool_log"] = []
+        return result, time.perf_counter() - t0, examples, text
+
+    def run_all(rt, res=None):
+        for task in tasks:
+            if res is not None:
+                res.check()
+            result, elapsed, examples, text = serve(rt, task)
+            snap = data.snapshot(task.db_id)
+            submitted = result["final"].get("sql")
+            score = scorer.score(snap, submitted, data.gold(task.task_id).sql)
+            score = {**score, "scored_sql_sha256": R.sql_sha256(submitted), "snapshot_sha256": snap.sha256}
+            input_identity = identity.content_identity({
+                "task": [task.task_id, task.db_id, task.question, task.evidence],
+                "examples": [e.task_id for e in examples],
+                "schema_sha256": identity.sha256_bytes((text or "").encode()),
+                "config_identity": manifest["config_identity"]})
+            rec = {"task_id": task.task_id, "db_id": task.db_id, "arm": arm,
+                   "config_identity": manifest["config_identity"], "input_identity": input_identity,
+                   "snapshot_sha256": snap.sha256, "retrieved": [e.task_id for e in examples],
+                   "attempts": result["attempts"], "final": result["final"], "score": score,
+                   "tokens": result["tokens"], "controller_work": None, "elapsed_seconds": elapsed,
+                   "peak_memory_bytes": result["peak_memory_bytes"], "timed_out": result["timed_out"],
+                   "error": result["error"], "repairs": result["repairs"], "tool_calls": result["tool_calls"],
+                   "template_options": result.get("template_options")}
+            if arm == "L":
+                rec["tool_log"] = result["tool_log"]
+            _append(records_path, rec)
+            print(json.dumps({"task": task.task_id, "final": rec["final"]["kind"], "reason": rec["final"]["reason"],
+                              "correct": score.get("correct"), "elapsed": round(elapsed, 2),
+                              "tokens": result["tokens"]}), flush=True)
+
+    out = {"run_dir": str(run_dir), "warm_database_seconds": warm_seconds}
+    if arm == "L":
+        run_all(None)
+    else:
+        from scaling import llm_agent
+        from scaling.runtime import Runtime
+        if args.projected_hours is not None:
+            projected = args.projected_hours
+        else:
+            projected = baseline_projection_hours(arm, len(tasks), thinking, limits,
+                                                  probes=_probe_seconds(arm, args.mode, args.reasoning_effort) or None)["hours"]
+        with ledger.Reservation(f"baseline {tag}", projected_hours=projected, extra={"run_dir": str(run_dir)}) as res:
+            res.check()
+            rt = Runtime(arm)
+            out["model"] = rt.describe()
+            res.check()
+            t_w = time.perf_counter()
+            wt = data.task(warm_id)
+            wsnap = data.snapshot(wt.db_id)
+            wtext = schema.serialize(schema.load_schema(wt.db_id, wsnap), budget_chars=schema.PROMPT_BUDGET_CHARS).text
+            warm = llm_agent.answer_request(rt, wt, wsnap, wtext, retrieval.retrieve(wt, limits.retrieval_k, index=index),
+                                            gen_cfg, limits, seed=_seed(arm, wt.task_id))
+            out["warm_up"] = {"task": wt.task_id, "seconds": time.perf_counter() - t_w, "tokens": warm["tokens"],
+                              "final": warm["final"]["kind"], "excluded_from_records": True}
+            run_all(rt, res)
+            out["reservation"] = {"id": res.id, "hours": res.elapsed_hours(), "projected_hours": projected}
+    recs = R.load(records_path)
+    try:
+        out["summary"] = R.summarize(recs, requested)
+    except R.RecordError as e:
+        out["summary_error"] = str(e)
+    _write(run_dir / "summary.json", out)
+    print(json.dumps(out.get("summary", out.get("summary_error")), indent=1, default=str))
+
+
+def inventory_cmd(args) -> None:
+    from collections import Counter
+    from scaling import data
+    ids = data.inventory_ids(C.INVENTORY["size"])
+    out = {"inventory": len(ids)}
+    for n in (16, 64, len(ids)):
+        out[f"first_{n}_by_database"] = dict(Counter(data.task(i).db_id for i in ids[:n]))
+    out["split"] = {k: v for k, v in json.loads(Path(data.PIN_SPLIT).read_text()).items()
+                    if k in ("dev", "train_pool", "dev_questions", "train_pool_questions")}
+    print(json.dumps(out, indent=1))
 
 
 def main(argv=None) -> None:
@@ -162,18 +383,35 @@ def main(argv=None) -> None:
     s = sub.add_parser("ledger")
     s.set_defaults(fn=lambda a: print(json.dumps(ledger.usage(), indent=1, default=str)))
     s = sub.add_parser("project")
-    s.add_argument("what", choices=["profile"])
+    s.add_argument("what", choices=["profile", "baseline"])
     s.add_argument("--model", choices=sorted(C.MODELS), default="B4")
+    s.add_argument("--requests", type=int, default=16)
+    s.add_argument("--mode", choices=["thinking", "nonthinking"], default="nonthinking")
+    s.add_argument("--reasoning-effort", choices=["xhigh", "medium", "low"], default=None)
     s.set_defaults(fn=project)
     s = sub.add_parser("profile")
     s.add_argument("--model", choices=sorted(C.MODELS), required=True)
-    s.add_argument("--prompt-lengths", type=int, nargs="+", default=[1024, 4096, 12288])
+    s.add_argument("--prompt-lengths", type=int, nargs="+", default=[1024, 4096, 12288, 28672])
     s.add_argument("--decode-tokens", type=int, default=256)
     s.add_argument("--seed", type=int, default=100)
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=profile)
+    s = sub.add_parser("inventory")
+    s.set_defaults(fn=inventory_cmd)
+    s = sub.add_parser("baseline")
+    s.add_argument("--arm", choices=["L", "B4", "Q27"], required=True)
+    s.add_argument("--subset", type=int, default=16, choices=[16, 64, 512])
+    s.add_argument("--positions", help="inventory positions lo:hi instead of the subset (e.g. 16:20 for the probes)")
+    s.add_argument("--mode", choices=["thinking", "nonthinking"], default="nonthinking")
+    s.add_argument("--reasoning-effort", choices=["xhigh", "medium", "low"], default=None)
+    s.add_argument("--projected-hours", type=float, default=None)
+    s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
+    s.set_defaults(fn=baseline)
     args = p.parse_args(argv)
+    if getattr(args, "projected_hours", None) is not None and not (math.isfinite(args.projected_hours)
+                                                                   and args.projected_hours > 0):
+        raise SystemExit("--projected-hours must be finite and positive")
     args.fn(args)
 
 
