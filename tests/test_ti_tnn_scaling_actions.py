@@ -9,6 +9,10 @@ What these tests establish, on a synthetic schema (no downloaded data):
   rules.
 - **The documented worked example** has the documented actions and families.
 - **Literal grounding** follows the documented normalization and priority.
+- **No dead ends, no plans SQLite refuses** (the review of 641ff3c). Seeded random legal walks over a schema with a
+  20-column table always have a legal option until the plan is finished, and SQLite prepares every finished plan
+  except the one documented fold (`x AND 0` as a GROUP BY term). Compound members stay within the item budget;
+  GROUP BY and ORDER BY terms are never bare literals and never see enclosing queries.
 
 A sample of gold queries runs through the grammar only when the training release is present.
 """
@@ -252,3 +256,116 @@ def test_gold_sample_through_the_grammar():
             continue
         assert A.decode(acts, schema_items, spans) == plan
     assert set(reasons) <= {"literal not groundable"}
+
+
+# --- the review's mask walk (641ff3c): dead ends and plans SQLite rejects -------------------------------------------------
+WIDE = {**TABLES, "wide": [f"c{i}" for i in range(20)]}  # wider than MAX_ITEMS, so `SELECT *` can outgrow a member
+
+
+def _walk(m, rng):
+    leaves = ("END", "NONE", "NULL", "NUM", "STAR", "COUNT_STAR", "SELECT_ALL", "SELECT_DISTINCT", "QUERY_SELECT",
+              "FROM_TABLE", "FROM_NONE")
+
+    def weight(op):
+        if op in ("END", "NONE"):
+            return 30.0
+        if op in leaves or op.startswith(("COL", "DCOL", "CONST_", "TEXT_", "STAR_", "LIMIT_", "OFFSET_")):
+            return 6.0
+        return 0.15 if op not in A.SET_OP else 2.0  # compounds often, to reach the right member
+
+    while not m.finished and m.steps < 80:
+        opts = m.options()
+        assert opts, f"dead end after {m.steps} steps: {[type(f).__name__ for f in m.stack]}"
+        ops = list(opts)
+        op = rng.choices(ops, weights=[weight(o) for o in ops])[0]
+        arg = None
+        if opts[op] is not None:
+            kind, targets = opts[op]
+            assert targets, f"{op} has no legal {kind} target"
+            if kind == "span":
+                start = rng.choice(list(targets))
+                arg = (start, rng.choice(list(m.span_ends(op, start))))
+            else:
+                arg = rng.choice(list(targets))
+        m.apply(A.Action(op, arg))
+    return m
+
+
+def test_random_legal_walks_never_dead_end_and_sqlite_accepts_the_plans(spans):
+    import random
+    import sqlite3
+    items = A.SchemaItems.coerce(WIDE)
+    con = sqlite3.connect(":memory:")
+    for table, cols in WIDE.items():
+        con.execute(f'CREATE TABLE "{table}" ({", ".join(chr(34) + c + chr(34) for c in cols)})')
+    rng = random.Random(11)
+    finished, rejected = 0, []
+    for _ in range(400):
+        m = _walk(A.Machine(items, spans, max_steps=80), rng)
+        if not m.finished:
+            continue
+        finished += 1
+        assert ir.validate(m.plan, items.index) == []
+        sql = ir.compile(m.plan)
+        try:
+            con.execute("EXPLAIN " + sql).fetchall()
+        except sqlite3.Error as error:
+            rejected.append((str(error), sql))
+    assert finished > 300
+    # the one documented residual: SQLite folds a GROUP BY/ORDER BY term like `x AND 0` to the integer 0
+    assert all("term out of range" in e and " AND 0" in s for e, s in rejected), rejected[:2]
+
+
+def test_compound_members_stay_within_the_item_budget(spans):
+    items = A.SchemaItems.coerce(WIDE)
+    m = drive(items, spans, ["QUERY_UNION", "QUERY_SELECT", A.Action("FROM_TABLE", item(items, "wide")), "END",
+                             "NONE", "END", "SELECT_ALL"])
+    assert "STAR" not in m.options() and "COL0" in m.options()  # 20 columns would leave the right member stuck
+    m = drive(items, spans, ["QUERY_UNION", "QUERY_SELECT", A.Action("FROM_TABLE", item(items, "movies")), "END",
+                             "NONE", "END", "SELECT_ALL", "STAR", "END", "NONE", "QUERY_SELECT",
+                             A.Action("FROM_TABLE", item(items, "wide")), "END", "NONE", "END", "SELECT_ALL"])
+    assert "STAR" not in m.options()  # the right member needs exactly 6 columns
+    for _ in range(5):
+        m.apply(A.Action("COL0", item(items, "wide", "c0")))
+        assert "END" not in m.options()
+    m.apply(A.Action("COL0", item(items, "wide", "c1")))
+    assert set(m.options()) == {"END"}
+
+
+def test_group_and_order_terms_are_never_literals(items, spans):
+    m = drive(items, spans, ["QUERY_SELECT", A.Action("FROM_TABLE", item(items, "movies")), "END", "NONE"])
+    assert m.top.kind == "GROUP"
+    opts = set(m.options())
+    assert not opts & set(A.LITERAL_OPS) and "COL0" in opts and "END" in opts
+    m.apply(A.Action("ADD"))  # inside an expression a literal is fine: GROUP BY year + 1
+    assert "NUM" in m.options() or f"CONST_{A.CONSTANT_INDEX[('integer', 1)]}" in m.options()
+    m = drive(items, spans, ["QUERY_SELECT", A.Action("FROM_TABLE", item(items, "movies")), "END", "NONE", "END",
+                             "SELECT_ALL", A.Action("COL0", item(items, "movies", "title")), "END", "NONE",
+                             "ORDER_ASC"])
+    assert m.top.kind == "ORDER_EXPR" and not set(m.options()) & set(A.LITERAL_OPS)
+    for sql in ("SELECT title FROM movies GROUP BY 1", "SELECT title FROM movies ORDER BY 1"):
+        plan = X.convert(sql.replace(" 1", " title"), items.index)
+        import dataclasses
+        field = "group_by" if "GROUP" in sql else "order_by"
+        literal = ir.Literal("integer", 1)
+        bad = dataclasses.replace(plan, **{field: (literal,) if field == "group_by" else
+                                           (ir.OrderItem(literal, False),)})
+        assert any("literal" in e for e in ir.validate(bad, items.index))
+
+
+def test_group_and_order_terms_cannot_see_enclosing_queries(items, spans):
+    base = ["QUERY_SELECT", A.Action("FROM_TABLE", item(items, "movies")), "END", "EQ",
+            A.Action("COL0", item(items, "movies", "year")), "SUBQ", "QUERY_SELECT",
+            A.Action("FROM_TABLE", item(items, "ratings")), "END", "NONE"]
+    m = drive(items, spans, base)
+    assert m.top.kind == "GROUP" and column_targets(m) == {item(items, "ratings", c) for c in TABLES["ratings"]}
+    m = drive(items, spans, base[:-1] + [A.Action("EQ"), A.Action("COL0", item(items, "ratings", "movie_id")),
+                                         A.Action("COL0", item(items, "movies", "movie_id"))])
+    assert m.top.kind == "GROUP"  # the subquery's WHERE did see the outer movies; its GROUP BY does not
+    assert item(items, "movies", "title") not in column_targets(m)
+    plan = X.convert("SELECT (SELECT COUNT(*) FROM ratings GROUP BY ratings.critic) FROM movies", items.index)
+    sub = plan.items[0].query
+    import dataclasses
+    outer = ir.Column(1, 0, "title")
+    bad = dataclasses.replace(plan, items=(ir.ScalarQuery(dataclasses.replace(sub, group_by=(outer,))),))
+    assert any("enclosing query" in e for e in ir.validate(bad, items.index))

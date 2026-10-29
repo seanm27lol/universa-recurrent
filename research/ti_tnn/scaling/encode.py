@@ -34,11 +34,22 @@ summary that initializes the controller.
 **Layer.** `layer=-1` (the default) is the final layer after the model's last RMSNorm (`last_hidden_state`). Any
 other `l` is `hidden_states[l]` (0 = the token embeddings, `l` = the output of decoder layer `l`).
 
-**Cache.** Only the immutable backbone states are cached, under `contracts.CACHE / "encodings"`, keyed by
-`sha256(canonical JSON of [model repo, revision, layer, dtype, exact token ids])`. A file is written once (temporary
+**Cache.** Only the immutable backbone states are cached, under `contracts.CACHE / "encodings"`, keyed by the sha256
+of the canonical JSON of the backbone's identity and the exact token ids. The identity covers:
+- the model repo, revision, layer and dtype;
+- the encoder version;
+- the device type and name;
+- torch and transformers;
+- the linear-attention implementation transformers actually bound (`runtime.bound_linear_attention`; on CPU the
+  reference functions, which `reference_kernels` forces).
+
+So states computed with different kernels, software or devices never share an entry. A file is written once (temporary
 file, then an atomic link) and never overwritten; the cost record says whether a request computed its states or read
-them. The key does not cover the software or the device (bf16 kernels can differ between GPUs); each file's metadata
-records torch, transformers and the device for provenance.
+them.
+
+**Kernels.** Importing this module imports `runtime`, which applies `TI_TNN_SCALING_LINEAR_KERNELS` (default
+`reference`) before transformers loads. If transformers was imported earlier with other kernels, the identity still
+records what was bound.
 
 **Costs.** Every request returns `cost`: tokenization, forward (or read) seconds, tokens, bytes written and read,
 cache hit, and the context's own identity. Nothing is shared silently between requests.
@@ -63,8 +74,9 @@ from pathlib import Path
 
 from . import actions
 from . import contracts as C
+from . import runtime  # noqa: F401  (applies TI_TNN_SCALING_LINEAR_KERNELS before transformers is imported)
 
-ENCODER_VERSION = "encode-v1"
+ENCODER_VERSION = "encode-v2"
 TEMPLATE_VERSION = "context-v1"
 DEFAULT_LAYER = -1
 REGIONS = ("other", "examples", "question", "evidence", "schema")  # token type ids, in this order
@@ -233,6 +245,13 @@ class Backbone:
         self.dtype = str(next(self.model.parameters()).dtype).replace("torch.", "")
         self.hidden_size = int(self.model.config.hidden_size)
         self._torch = torch
+        import transformers
+        cuda = device.startswith("cuda")
+        self.platform = {"device_type": "cuda" if cuda else "cpu",
+                         "device_name": torch.cuda.get_device_name(torch.device(device)) if cuda else "cpu",
+                         "torch": torch.__version__, "transformers": transformers.__version__,
+                         "linear_attention": runtime.bound_linear_attention() if cuda
+                         else "reference (forced on CPU by reference_kernels)"}
 
     @classmethod
     def from_pinned(cls, device: str = "cuda", layer: int = DEFAULT_LAYER, model=None, tokenizer=None):
@@ -275,11 +294,10 @@ class Backbone:
 
     def identity(self) -> dict:
         return {"repo": self.repo, "revision": self.revision, "layer": self.layer, "dtype": self.dtype,
-                "hidden_size": self.hidden_size, "encoder": ENCODER_VERSION}
+                "hidden_size": self.hidden_size, "encoder": ENCODER_VERSION, **self.platform}
 
     def cache_key(self, token_ids: list) -> str:
-        material = json.dumps([self.repo, self.revision, self.layer, self.dtype, list(map(int, token_ids))],
-                              separators=(",", ":"))
+        material = json.dumps([self.identity(), list(map(int, token_ids))], sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(material.encode()).hexdigest()
 
     def states(self, token_ids: list):

@@ -32,6 +32,8 @@ well-formedness:
 | HAVING, and an aggregate in ORDER BY, need an aggregate query (GROUP BY, or an aggregate in the SELECT list) | `HAVING clause on a non-aggregate query`, `misuse of aggregate` |
 | scalar and IN subqueries return one column; compound members have equal arity | `sub-select returns N columns`, `... same number of result columns` |
 | `*` needs a FROM clause; compound members carry no ORDER BY or LIMIT | `no tables specified`, `ORDER BY clause should come after UNION` |
+| no literal as a whole GROUP BY or ORDER BY term (an integer is a result-column position; other constants do nothing) | `GROUP BY term out of range`, or a silent change of meaning |
+| a GROUP BY or ORDER BY term sees its own SELECT's sources, not an enclosing query's (even through a nested subquery) | `no such column` |
 
 Each row was checked on this host's SQLite (3.45.1); see `tests/test_ti_tnn_scaling_ir.py`. Anything else that
 SQLite accepts, the validator accepts. Declared column types are information only, never a restriction. CAST is the
@@ -44,7 +46,8 @@ the constructs the work order names (EXISTS, INTERSECT, EXCEPT, COALESCE, IFNULL
 functions, GROUP_CONCAT, RIGHT/FULL/NATURAL joins, ESCAPE, COLLATE, GLOB, row values and CTEs are outside it;
 `sql_to_ir.py` reports them as `Unsupported(reason)`. LIMIT and OFFSET are non-negative integer constants. The
 validator does not reproduce every SQLite preparation error (for example an aggregate of an outer query hidden inside
-a subquery's WHERE); a plan it accepts can still fail when executed, and that failure is then recorded, never hidden.
+a subquery's WHERE, or a GROUP BY term that SQLite folds to the integer 0, such as `x AND 0`); a plan it accepts can
+still fail when executed, and that failure is then recorded, never hidden.
 """
 from __future__ import annotations
 
@@ -452,6 +455,7 @@ class _Scope:
     select: Select
     visible: bool          # False for the SELECT that contains a derived table, seen from inside that table
     sources: tuple         # indices of this SELECT's FROM items visible here
+    hidden_by: str = "derived table"  # why it is not visible: "derived table", or "GROUP BY/ORDER BY term"
 
 
 @dataclass(frozen=True)
@@ -599,8 +603,12 @@ class _Validator:
                 self.expr(item.on, stack + (_Scope(s, True, visible),), _Ctx("ON"), f"{path}.from_[{k}].on")
         if s.where is not None:
             self.expr(s.where, here, _Ctx("WHERE"), path + ".where")
+        # GROUP BY and ORDER BY terms see this SELECT's sources (and their own subqueries') but no enclosing query's
+        terms = tuple(_Scope(sc.select, False, (), "GROUP BY/ORDER BY term") for sc in stack) + (here[-1],)
         for k, g in enumerate(s.group_by):
-            self.expr(g, here, _Ctx("GROUP"), f"{path}.group_by[{k}]")
+            if isinstance(g, Literal):
+                self.err(f"{path}.group_by[{k}]", "a literal GROUP BY term (SQLite reads an integer as a column position)")
+            self.expr(g, terms, _Ctx("GROUP"), f"{path}.group_by[{k}]")
         if not s.items:
             self.err(path, "a SELECT needs at least one result column")
         for k, item in enumerate(s.items):
@@ -622,9 +630,11 @@ class _Validator:
             if not isinstance(o, OrderItem) or not isinstance(o.descending, bool):
                 self.err(p, "expected OrderItem")
                 continue
+            if isinstance(o.expr, Literal):
+                self.err(p, "a literal ORDER BY term (SQLite reads an integer as a column position)")
             if not aggregate_query and any(True for _ in _direct_aggregates(o.expr)):
                 self.err(p, "an aggregate in ORDER BY needs an aggregate query")
-            self.expr(o.expr, here, _Ctx("ORDER"), p)
+            self.expr(o.expr, terms, _Ctx("ORDER"), p)
         for name in ("limit", "offset"):
             value = getattr(s, name)
             if value is not None and (not isinstance(value, int) or isinstance(value, bool) or value < 0):
@@ -642,7 +652,8 @@ class _Validator:
             return None
         scope = stack[-1 - e.level]
         if not scope.visible:
-            self.err(path, "a derived table cannot reference its own SELECT's sources")
+            self.err(path, "a derived table cannot reference its own SELECT's sources" if scope.hidden_by == "derived table"
+                     else "a GROUP BY or ORDER BY term cannot reference an enclosing query's columns")
             return None
         if e.source not in scope.sources:
             if 0 <= e.source < len(scope.select.from_):

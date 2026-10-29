@@ -237,13 +237,12 @@ def _seed(arm: str, task_id: str) -> int:
 
 
 def _warm_databases(db_ids) -> float:
-    """The warm-cache policy: read every pinned database file once before timing."""
-    from scaling import data
+    """The warm-cache policy, and the run-start check: re-hash every database file the run uses against its pin
+    (reading it whole also warms the page cache), so no earlier in-process verification is trusted."""
+    from scaling import data, tools
     t0 = time.perf_counter()
     for db in sorted(set(db_ids)):
-        with open(data.snapshot(db).path, "rb") as f:
-            while f.read(1 << 24):
-                pass
+        tools.verify_snapshot(data.snapshot(db), rehash=True)
     return time.perf_counter() - t0
 
 

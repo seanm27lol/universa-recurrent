@@ -14,6 +14,10 @@ model, never its weights) with a deterministic mock tokenizer. What these tests 
 - **Checkpoints.** Content-hashed files reload exactly; resuming reproduces the uninterrupted run bit for bit;
   tampering is detected.
 - **Parameter matching.** c4_params matches T4's total trainable parameters within 1% at the real backbone width.
+- **From the review of 641ff3c:** the cache key covers the kernels, device, software and encoder version; a grammar
+  dead end abstains (`dead_end`) instead of crashing; one failing request does not stop an evaluation; uninterrupted
+  runs give byte-identical checkpoints, and a resumed run equal weight and optimizer digests, with superseded log lines
+  kept aside.
 """
 from __future__ import annotations
 
@@ -241,3 +245,75 @@ def test_c4_params_matches_t4_at_the_real_backbone_width():
         head = K.semantic_step_macs(cfg["T4"], "T4", f)
         assert head < K.semantic_step_macs(cfg["c4_active"], "c4_active", f) < \
             K.semantic_step_macs(cfg["c4_params"], "c4_params", f)
+
+
+# --- the review of 641ff3c: cache identity, dead ends, per-request guard, deterministic checkpoints -------------------
+def test_the_cache_key_covers_kernels_device_software_and_encoder(backbone):
+    ident = backbone.identity()
+    assert ident["encoder"] == E.ENCODER_VERSION and ident["device_type"] == "cpu"
+    assert ident["linear_attention"].startswith("reference") and ident["torch"] == torch.__version__
+    ids = [1, 2, 3]
+    for field, value in (("linear_attention", {"torch_chunk_gated_delta_rule": "fla"}), ("device_type", "cuda"),
+                         ("device_name", "NVIDIA GB10"), ("transformers", "0.0")):
+        other = E.Backbone(backbone.model, backbone.tokenizer, repo=backbone.repo, revision=backbone.revision)
+        other.platform = {**other.platform, field: value}
+        assert other.cache_key(ids) != backbone.cache_key(ids), field
+
+
+def test_a_dead_end_abstains_instead_of_crashing(prepared, monkeypatch):
+    model = models()["T4"]
+    monkeypatch.setattr(A.Machine, "legal_families", lambda self: [False] * len(A.FAMILIES + ("STOP",)))
+    for d in I.decode_batch(model, prepared, max_steps=40):
+        assert d.abstain_reason == "dead_end" and d.sql is None and d.work["steps"] == 0
+    monkeypatch.undo()
+
+    # a pointer operator with no legal target, or a target lookup that fails: abstain after that one decision
+    monkeypatch.setattr(A.Machine, "options", lambda self: {"FROM_TABLE": ("table", ())})
+    for d in I.decode_batch(model, prepared, max_steps=40):
+        assert d.abstain_reason == "dead_end" and "no legal table target" in d.detail
+        assert d.work["steps"] == len(d.work["families"]) == len(d.work["heads"]) == 1
+
+    def lookup_fails(self, op):
+        raise KeyError(op)
+    monkeypatch.setattr(A.Machine, "options", lambda self: {"FROM_TABLE": ("table", (0,))})
+    monkeypatch.setattr(A.Machine, "pointer_targets", lookup_fails)
+    for d in I.decode_batch(model, prepared, max_steps=40):
+        assert d.abstain_reason == "dead_end" and "KeyError" in d.detail and d.work["steps"] == 1
+
+
+def test_one_failing_request_does_not_stop_the_evaluation(backbone, monkeypatch):
+    from scaling import data, retrieval
+    tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e, split="dev")
+             for tid, q, e, _ in REQUESTS}
+    monkeypatch.setattr(data, "task", lambda tid: tasks[tid])
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    real = E.encode_request
+
+    def flaky(bb, task, *a, **kw):
+        if task.task_id == "t2":
+            raise RuntimeError("boom")
+        return real(bb, task, *a, **kw)
+    monkeypatch.setattr(E, "encode_request", flaky)
+    out = I.evaluate(models()["c4_params"], list(tasks), backbone, score=False, max_steps=40, log=None)
+    assert [r["task_id"] for r in out] == ["t1", "t2", "t3"]
+    assert out[1]["final"] == {"kind": "abstain", "sql": None, "reason": "error: RuntimeError", "detail": "boom"}
+    assert out[0]["controller_work"] is not None and out[2]["controller_work"] is not None
+
+
+def test_checkpoint_bytes_agree_across_runs_and_resume_keeps_superseded_lines(prepared, tmp_path):
+    import random
+
+    import numpy as np
+    cfg = T.TrainConfig(arm="T4", updates=3, effective_batch=2, micro_batch=1, checkpoint_every=1)
+    first = T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "a", log=None)
+    random.random(), np.random.rand()  # disturb the global generators, as another process would differ
+    second = T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "b", log=None)
+    assert [c["sha256"] for c in first["checkpoints"]] == [c["sha256"] for c in second["checkpoints"]]
+    resumed = T.fit(T.build_model("T4", 16, 7), prepared, cfg, tmp_path / "a",
+                    resume_from=first["checkpoints"][0]["path"], log=None)
+    for key in ("model_digest", "optimizer_digest"):  # equal tensors; the file bytes may differ (pickle sharing)
+        assert resumed["checkpoints"][-1][key] == first["checkpoints"][-1][key]
+    kept = [json.loads(line)["update"] for line in open(tmp_path / "a" / "train_log.jsonl")]
+    moved = [json.loads(line)["update"] for line in open(tmp_path / "a" / "train_log.superseded.jsonl")]
+    assert kept == [0, 1, 2] and moved == [1, 2]

@@ -1,6 +1,6 @@
 """Teacher forcing for C4 and T4: identical targets, loss terms, recipe and example order; immutable checkpoints.
 
-**Example.** The smoke run trains T4 and c4_active on the same 128 training-pool questions (seed 100, at most 100
+**Example.** The smoke run trains T4 and c4_params (the parameter-matched shared controller) on the same 128 training-pool questions (seed 100, at most 100
 updates). Update u uses examples [32u, 32u + 32) of a fixed stream: the concatenation of seeded per-epoch
 permutations of the 128. Each update sums the loss terms of its 32 examples over all their gold steps, in micro-batches
 of 8 with gradient accumulation, divides by the number of steps, clips the gradient norm to 1.0 and takes one AdamW
@@ -21,6 +21,12 @@ The weights are 1, 1 and 1. They are written into the run configuration before f
 CUDA) RNG states, and the configuration. It is serialized once, named by the sha256 of its bytes
 (`ckpt_u000100_<sha16>.pt`) and never overwritten. `load_checkpoint` re-hashes the file before use. Resuming from
 update k reproduces the uninterrupted run exactly, because the sampling stream is a pure function of (seed, update).
+`build_model` seeds Python, NumPy and torch, so the saved RNG states, and with them the bytes of an uninterrupted
+run's checkpoints, agree across processes. A resumed run's checkpoint holds equal weights, optimizer state and RNG
+states, but pickle can lay the same objects out differently, so the verifier compares `model_digest` and
+`optimizer_digest` (tensors in a fixed order), not file hashes. On resume,
+`train_log.jsonl` keeps the lines before the resume point; later lines move to `train_log.superseded.jsonl`, so an
+abandoned stretch of training stays visible.
 
 **Limits.** This is supervised imitation of gold traversals only: no reinforcement, no execution feedback, no repair,
 no beam. The smoke run's 100 updates on 128 questions test the machinery; they say nothing about the comparison.
@@ -123,8 +129,33 @@ def _set_rng_state(state: dict) -> None:
         torch.cuda.set_rng_state_all(state["cuda"])
 
 
+def tensor_digest(state: dict) -> str:
+    """sha256 over a state dict's tensors in sorted-key order (name, dtype, shape, bytes): equal weights give an equal
+    digest whatever the serializer does. The verifier compares models with this, not with file hashes."""
+    h = hashlib.sha256()
+    for name in sorted(state):
+        t = state[name].detach().to("cpu").contiguous().reshape(-1)
+        h.update(json.dumps([name, str(t.dtype), list(t.shape)]).encode())
+        h.update(t.view(torch.uint8).numpy().tobytes() if t.numel() else b"")
+    return h.hexdigest()
+
+
+def optimizer_digest(state: dict) -> str:
+    """sha256 over an optimizer state dict: param groups as canonical JSON, then each parameter's state tensors in
+    (parameter index, key) order."""
+    h = hashlib.sha256(json.dumps(state["param_groups"], sort_keys=True, default=str).encode())
+    for index in sorted(state["state"]):
+        for key in sorted(state["state"][index]):
+            value = state["state"][index][key]
+            h.update(json.dumps([index, key]).encode())
+            h.update(tensor_digest({"v": value}).encode() if torch.is_tensor(value) else json.dumps(value).encode())
+    return h.hexdigest()
+
+
 def save_checkpoint(run_dir: Path, model, optimizer, update: int, config: dict) -> dict:
-    """Serialize once, name by content hash, never overwrite. Returns {"path", "sha256", "update", "bytes"}."""
+    """Serialize once, name by content hash, never overwrite. Returns {"path", "sha256", "update", "bytes",
+    "model_digest", "optimizer_digest"}. A resumed run's file can differ in bytes from the uninterrupted run's (pickle
+    shares equal objects differently) while every tensor is equal; the digests are what a verifier compares."""
     buffer = io.BytesIO()
     torch.save({"version": TRAIN_VERSION, "update": update, "model": model.state_dict(),
                 "optimizer": optimizer.state_dict(), "rng": _rng_state(), "config": config,
@@ -140,7 +171,8 @@ def save_checkpoint(run_dir: Path, model, optimizer, update: int, config: dict) 
         tmp = path.with_name(path.name + ".tmp")
         tmp.write_bytes(data)
         tmp.replace(path)
-    return {"path": str(path), "sha256": digest, "update": update, "bytes": len(data)}
+    return {"path": str(path), "sha256": digest, "update": update, "bytes": len(data),
+            "model_digest": tensor_digest(model.state_dict()), "optimizer_digest": optimizer_digest(optimizer.state_dict())}
 
 
 def load_checkpoint(path) -> dict:
@@ -173,7 +205,10 @@ def model_from_checkpoint(ckpt: dict, device: str = "cpu") -> K.Controller:
 
 # --- fitting -----------------------------------------------------------------------------------------------------------
 def build_model(arm: str, backbone_width: int, seed: int) -> K.Controller:
-    """The arm's controller, initialized under `seed` (the trunk first, so equal seeds give equal trunks)."""
+    """The arm's controller, initialized under `seed` (the trunk first, so equal seeds give equal trunks). Python's and
+    NumPy's generators are seeded too, so the RNG state a checkpoint saves is the same in every process."""
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
     return K.Controller(K.matched_config(arm, backbone_width))
 
@@ -204,6 +239,14 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
     if resume_from is not None:
         start = restore(load_checkpoint(resume_from), model, optimizer) + 1
     log_path = run_dir / "train_log.jsonl"
+    if log_path.exists():  # lines past the resume point (or a whole earlier attempt) move aside, never vanish
+        lines = log_path.read_text().splitlines()
+        keep = [ln for ln in lines if ln.strip() and json.loads(ln)["update"] < start]
+        moved = [ln for ln in lines if ln.strip() and json.loads(ln)["update"] >= start]
+        if moved:
+            with open(run_dir / "train_log.superseded.jsonl", "a") as fh:
+                fh.write("".join(ln + "\n" for ln in moved))
+            log_path.write_text("".join(ln + "\n" for ln in keep))
     checkpoints = []
     n = len(examples)
     for update in range(start, cfg.updates):

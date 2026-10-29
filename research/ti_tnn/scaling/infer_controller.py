@@ -20,6 +20,8 @@ the schema and compiled to SQL.
 | `budget_exhausted` | `max_steps` decisions without completing the plan |
 | `invalid_plan` | the completed plan fails `ir.validate` |
 | `unsupported_operation` | an action the machine cannot apply (should not happen under the masks; recorded if it does) |
+| `dead_end` | the grammar offers no legal family, operator target or span end (should not happen; recorded if it does) |
+| `error: <type>` | an exception while encoding or decoding this request; the evaluation goes on with the next |
 | `context_too_long` | the request does not fit the backbone's token limit (raised by `encode`) |
 
 **Work accounting** per request: steps, the family chosen at each step, the head executed at each step (T4: that
@@ -101,7 +103,12 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
         state, hidden = model.trunk.states(mem, _step_tensors(rows, device), hidden)
         state = state[:, 0]
         fam_logits = model.trunk.family_head(state)
-        legal_fam = torch.tensor([m.legal_families() for m in machines], dtype=torch.bool, device=device)
+        masks = [m.legal_families() for m in machines]
+        for b in range(B):
+            if active[b] and not any(masks[b]):  # the grammar offers nothing: abstain, never guess
+                results[b].abstain_reason, results[b].detail = "dead_end", f"no legal family at step {machines[b].steps}"
+                active[b] = False
+        legal_fam = torch.tensor(masks, dtype=torch.bool, device=device)
         family = fam_logits.masked_fill(~legal_fam, K.NEG).argmax(-1)
         live = [b for b in range(B) if active[b]]
         op_rows = [b for b in live if int(family[b]) < A.STOP]
@@ -111,6 +118,8 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
                 results[b].work["families"].append("STOP")
                 results[b].work["heads"].append(None)
                 results[b].work["steps"] += 1
+        if not any(active):
+            break
         if not op_rows:
             continue
         index = torch.tensor(op_rows, dtype=torch.long, device=device)
@@ -129,12 +138,22 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
         starts = torch.zeros((B, 1), dtype=torch.long, device=device)
         items, start, _ = model.trunk.pointer_scores(mem, queries)
         args = {}
+        dead = set()
         for b, op in chosen.items():
             kind = A.POINTER_KIND[op]
             if kind is None:
                 args[b] = None
                 continue
-            _, targets = machines[b].pointer_targets(op)
+            try:
+                _, targets = machines[b].pointer_targets(op)
+            except (KeyError, TypeError, ValueError) as error:
+                targets, detail = (), f"{op}: {type(error).__name__}: {error}"
+            else:
+                detail = f"{op}: no legal {kind} target"
+            if not targets:
+                results[b].abstain_reason, results[b].detail = "dead_end", detail[:300]
+                dead.add(b)
+                continue
             if kind in ("table", "column"):
                 scores = items[b, 0, 0 if kind == "table" else 1]
                 mask = torch.zeros_like(scores, dtype=torch.bool)
@@ -145,22 +164,37 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
                 mask = torch.zeros_like(scores, dtype=torch.bool)
                 mask[list(targets)] = True
                 starts[b, 0] = int(scores.masked_fill(~mask, K.NEG).argmax())
-        span_rows = [b for b, op in chosen.items() if A.POINTER_KIND[op] == "span"]
+        span_rows = [b for b, op in chosen.items() if A.POINTER_KIND[op] == "span" and b not in dead]
         if span_rows:
             _, _, end = model.trunk.pointer_scores(mem, queries, starts)
             for b in span_rows:
                 s = int(starts[b, 0])
-                ends = machines[b].span_ends(chosen[b], s)
+                try:
+                    ends = machines[b].span_ends(chosen[b], s)
+                except (KeyError, TypeError, ValueError, AttributeError) as error:
+                    ends, detail = (), f"{chosen[b]}: {type(error).__name__}: {error}"
+                else:
+                    detail = f"{chosen[b]}: no legal span end after {s}"
+                if not ends:
+                    results[b].abstain_reason, results[b].detail = "dead_end", detail[:300]
+                    dead.add(b)
+                    continue
                 scores = end[b, 0]
                 mask = torch.zeros_like(scores, dtype=torch.bool)
                 mask[list(ends)] = True
                 args[b] = (s, int(scores.masked_fill(~mask, K.NEG).argmax()))
         heads = model.semantic.executed(family.index_select(0, index).tolist())
         for k, b in enumerate(op_rows):
-            action = A.Action(chosen[b], args[b])
-            m = machines[b]
             fam = int(family[b])
             res = results[b]
+            if b in dead:  # the decision was made and its work is counted; the row then abstains
+                res.work["steps"] += 1
+                res.work["families"].append(A.FAMILIES[fam])
+                res.work["heads"].append(A.FAMILIES[heads[k]] if isinstance(heads[k], int) else heads[k])
+                active[b] = False
+                continue
+            action = A.Action(chosen[b], args[b])
+            m = machines[b]
             res.work["steps"] += 1
             res.work["families"].append(A.FAMILIES[fam])
             res.work["heads"].append(A.FAMILIES[heads[k]] if isinstance(heads[k], int) else heads[k])
@@ -223,9 +257,19 @@ def evaluate(model: K.Controller, task_ids, backbone, *, score: bool = True, max
         except encode.ContextTooLong as error:
             record.update(final={"kind": "abstain", "sql": None, "reason": "context_too_long",
                                  "detail": str(error)[:300]}, controller_work=None, encode_cost=None)
+        except Exception as error:  # one request's failure is its own abstention, never the whole evaluation's
+            record.update(final={"kind": "abstain", "sql": None, "reason": f"error: {type(error).__name__}",
+                                 "detail": str(error)[:300]}, controller_work=None, encode_cost=None,
+                          error=f"{type(error).__name__}: {error}"[:1000])
         else:
-            dec = decode_one(model, K.prepare(enc), max_steps=max_steps)
-            record.update(dec.as_record())
+            try:
+                dec = decode_one(model, K.prepare(enc), max_steps=max_steps)
+            except Exception as error:
+                record.update(final={"kind": "abstain", "sql": None, "reason": f"error: {type(error).__name__}",
+                                     "detail": str(error)[:300]}, controller_work=None,
+                              error=f"{type(error).__name__}: {error}"[:1000])
+            else:
+                record.update(dec.as_record())
             record["encode_cost"] = enc.cost
         record["elapsed_seconds"] = time.perf_counter() - t0
         if score:
