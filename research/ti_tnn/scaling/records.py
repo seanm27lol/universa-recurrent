@@ -59,10 +59,21 @@ def sql_sha256(sql) -> str:
     return sha256_bytes((sql or "").encode())
 
 
+# The harness's own refusals: calls it did not run, at no budget cost. Up to 6abcf17 they were recorded with status
+# "rejected" and one of these texts; since then with status "not_run". A tool's own "rejected" (a statement that is
+# not a read-only SELECT) did run and is counted.
+HARNESS_REFUSALS = ("the request deadline has passed", "the tool-call budget is exhausted; give the final SQL now",
+                    "tool-call budget exhausted without a final answer")
+
+
+def _not_run(t: dict) -> bool:
+    r = t.get("result") or {}
+    return r.get("status") == "not_run" or (r.get("status") == "rejected" and r.get("error") in HARNESS_REFUSALS)
+
+
 def _validate_llm(rec: dict, tid: str) -> None:
     attempts = rec["attempts"]
-    executed = sum(1 for a in attempts for t in a.get("tool_results", [])
-                   if (t.get("result") or {}).get("status") != "rejected")
+    executed = sum(1 for a in attempts for t in a.get("tool_results", []) if not _not_run(t))
     if rec["tool_calls"] != executed:
         raise RecordError(f"{tid}: {rec['tool_calls']} tool calls counted, {executed} executed in the attempts")
     repairs = sum(1 for a in attempts if a.get("kind") == "repair")
@@ -81,11 +92,11 @@ def _validate_llm(rec: dict, tid: str) -> None:
             raise RecordError(f"{tid}: attempt {i} is labelled finalize but does not follow the turn that spent the "
                               f"tool budget")
         if used >= budget and results:
-            if i != len(attempts) - 1 or any((t.get("result") or {}).get("status") != "rejected" for t in results):
+            if i != len(attempts) - 1 or not all(_not_run(t) for t in results):
                 raise RecordError(f"{tid}: attempt {i} called tools after the budget was spent and the request went on")
         if used >= budget and i and attempts[i - 1].get("tool_results") and a.get("kind") != "finalize":
             raise RecordError(f"{tid}: the turn after the tool budget was spent is not labelled finalize")
-        used += sum(1 for t in results if (t.get("result") or {}).get("status") != "rejected")
+        used += sum(1 for t in results if not _not_run(t))
     if rec["final"]["kind"] == "sql":
         last = attempts[-1] if attempts else {}
         if last.get("final_sql") != rec["final"]["sql"]:

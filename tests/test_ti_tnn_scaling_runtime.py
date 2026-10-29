@@ -455,3 +455,15 @@ def test_a_reply_without_a_final_query_uses_the_one_repair(tmp_path):
     assert rec["final"] == {"kind": "abstain", "sql": None, "reason": "no final SQL in the reply"}
     assert len(rec["attempts"]) == 2 and rec["repairs"] == 1
     records.validate(rec)
+
+
+def test_a_statement_the_tool_refuses_still_counts_as_a_call(tmp_path):
+    delete = _CALL.replace("SELECT name FROM t", "DELETE FROM t")
+    rec, _ = _agent_record(tmp_path, [delete, "```sql\nSELECT name FROM t\n```"])
+    result = rec["attempts"][0]["tool_results"][0]["result"]
+    assert result["status"] == "rejected" and rec["tool_calls"] == 1  # the tool ran its read-only check
+    records.validate(rec)
+    old = copy.deepcopy(rec)  # a harness refusal as recorded before 6abcf17 is still recognised as not run
+    old["attempts"][0]["tool_results"].append({"call": {}, "result": {
+        "status": "rejected", "error": "the tool-call budget is exhausted; give the final SQL now"}})
+    records.validate(old)

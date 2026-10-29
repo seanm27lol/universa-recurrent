@@ -92,6 +92,11 @@ TOOLS = [
 FINALIZE = ("The tool-call budget is exhausted: no more tool calls will run. Reply now with your final query in a "
             "```sql``` code block.")
 BUDGET_STOP = "tool-call budget exhausted without a final answer"
+DEADLINE_PASSED = "the request deadline has passed"
+BUDGET_SPENT = "the tool-call budget is exhausted; give the final SQL now"
+# A call the harness refuses without running it is recorded with status "not_run" and costs no budget. Every other
+# result, including a tool's own "rejected" (a statement that is not a read-only SELECT), ran and was counted.
+NOT_RUN = "not_run"
 MISSING_FINAL = "Your reply has no final query. Reply with the final query in a ```sql``` code block."
 
 # The last fenced block that is unlabeled or labeled sql/sqlite (and nothing longer, e.g. not ```sqlx or ```python).
@@ -248,7 +253,7 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                 stop_reason = "request timeout"
                 break
             if turn.tool_calls and budget_was_exhausted:  # it was told no more tools would run
-                entry["tool_results"] = [{"call": c, "result": {"status": "rejected", "error": BUDGET_STOP}}
+                entry["tool_results"] = [{"call": c, "result": {"status": NOT_RUN, "error": BUDGET_STOP}}
                                          for c in turn.tool_calls]
                 stop_reason = BUDGET_STOP
                 break
@@ -261,9 +266,9 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                 messages.append(assistant)
                 for call in turn.tool_calls:
                     if remaining_time() <= 0:
-                        result = {"status": "rejected", "error": "the request deadline has passed"}
+                        result = {"status": NOT_RUN, "error": DEADLINE_PASSED}
                     elif tool_calls_used >= limits.max_tool_calls:
-                        result = {"status": "rejected", "error": "the tool-call budget is exhausted; give the final SQL now"}
+                        result = {"status": NOT_RUN, "error": BUDGET_SPENT}
                     else:
                         tool_calls_used += 1
                         result = run_tool(snapshot, call, limits, timeout=min(limits.sql_timeout_seconds,
