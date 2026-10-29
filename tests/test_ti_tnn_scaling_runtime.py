@@ -28,6 +28,9 @@ output parsing.
 - The final SQL from sql/sqlite/unlabeled fences, never other labels; a bare reply's first statement only.
 
 **Identities** are deterministic and refuse types that would make them depend on a repr or on hash order.
+
+**The agent loop** (a scripted model): a model that keeps calling tools gets one `finalize` turn after the budget, then
+abstains; records with more turns than the budgets allow, or a mislabelled `finalize` turn, are rejected.
 """
 from __future__ import annotations
 
@@ -357,3 +360,85 @@ def test_threads_do_not_leak_from_reservations(tmp_path):
         pass
     time.sleep(0.05)
     assert threading.active_count() <= before
+
+
+# --- the agent loop with a scripted model -----------------------------------------------------------------------------
+class _ScriptedRuntime:
+    """Replies from a script; the last reply repeats. A tool call is Qwen's XML format; anything else is content."""
+    device = "cpu"
+
+    def __init__(self, replies):
+        self.replies, self.seen = list(replies), []
+
+    def render(self, messages, tools, cfg):
+        return json.dumps(messages)
+
+    def count_tokens(self, text):
+        return max(1, len(text) // 4)
+
+    def generate_turn(self, messages, tools, cfg, seed, deadline, max_new_tokens):
+        from scaling.runtime import Turn
+        self.seen.append(copy.deepcopy(messages))
+        text = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]
+        return Turn(text=text, reasoning="", content=text, tool_calls=parse_tool_calls(text), prompt_tokens=50,
+                    generated_tokens=10, reasoning_tokens=0, content_tokens=10, finish_reason="eos", stop_token=None,
+                    seconds=0.01, time_to_first_token=0.001, decode_tokens_per_second=1000.0)
+
+
+_CALL = ("<tool_call>\n<function=execute_select>\n<parameter=sql>\nSELECT name FROM t\n</parameter>\n</function>\n"
+         "</tool_call>")
+
+
+def _agent_record(tmp_path, replies):
+    import sqlite3
+    from scaling import tools
+    from scaling.llm_agent import answer_request
+    path = tmp_path / "t.sqlite"
+    with sqlite3.connect(path) as con:
+        con.execute("CREATE TABLE t (name TEXT)")
+        con.execute("INSERT INTO t VALUES ('a')")
+    snap = tools.snapshot_for_file("t", path)
+    rt = _ScriptedRuntime(replies)
+    out = answer_request(rt, C.Task("x1", "t", "q?", "", "dev"), snap, "t(name)", [],
+                         GenerationConfig.official("B4", False, C.Limits()), C.Limits(), seed=0)
+    sql = out["final"]["sql"]
+    rec = {"task_id": "x1", "db_id": "t", "arm": "B4", "config_identity": "c", "input_identity": "i",
+           "snapshot_sha256": snap.sha256, "controller_work": None, **out,
+           "score": {"correct": 0, "scored_sql_sha256": records.sql_sha256(sql), "snapshot_sha256": snap.sha256}}
+    return rec, rt
+
+
+def test_a_model_that_keeps_calling_tools_gets_one_finalize_turn_then_abstains(tmp_path):
+    rec, rt = _agent_record(tmp_path, [_CALL])
+    budget = C.Limits().max_tool_calls
+    assert rec["tool_calls"] == budget and len(rec["attempts"]) == budget + 1
+    assert [a["kind"] for a in rec["attempts"]][-1] == "finalize"
+    assert rec["final"] == {"kind": "abstain", "sql": None, "reason": "tool-call budget exhausted without a final answer"}
+    assert rt.seen[-1][-1]["role"] == "user" and "budget is exhausted" in rt.seen[-1][-1]["content"]
+    records.validate(rec)
+
+
+def test_the_finalize_turn_can_answer(tmp_path):
+    rec, _ = _agent_record(tmp_path, [_CALL] * C.Limits().max_tool_calls + ["```sql\nSELECT name FROM t\n```"])
+    assert rec["final"]["kind"] == "sql" and rec["attempts"][-1]["kind"] == "finalize"
+    records.validate(rec)
+
+
+def test_records_reject_turns_beyond_the_budget(tmp_path):
+    rec, _ = _agent_record(tmp_path, [_CALL])
+    bad = copy.deepcopy(rec)  # a request that went on after calling tools with the budget spent
+    extra = copy.deepcopy(bad["attempts"][-1]) | {"kind": "generation", "turn": len(bad["attempts"])}
+    bad["attempts"].append(extra)
+    for k in ("prefill", "generated", "content"):
+        bad["tokens"][k] += extra["generation"][{"prefill": "prompt_tokens", "generated": "generated_tokens",
+                                                 "content": "content_tokens"}[k]]
+    with pytest.raises(records.RecordError, match="exceed the tool and repair budgets|after the budget"):
+        records.validate(bad)
+    relabelled = copy.deepcopy(rec)
+    relabelled["attempts"][-1]["kind"] = "generation"
+    with pytest.raises(records.RecordError, match="not labelled finalize"):
+        records.validate(relabelled)
+    early = copy.deepcopy(rec)
+    early["attempts"][2]["kind"] = "finalize"
+    with pytest.raises(records.RecordError, match="labelled finalize but"):
+        records.validate(early)

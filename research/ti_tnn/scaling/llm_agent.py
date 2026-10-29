@@ -31,6 +31,11 @@ only what the model sees.
   proposed SQL.
 - An exception at any point returns the attempts made so far, the error, and an abstention ("error: <type>"). The
   caller never re-invokes a request.
+- **Tool budget.** When the 8th tool call has run, the harness tells the model the budget is exhausted and asks for the
+  final query; that next turn is labelled `finalize`. A tool call in any turn that starts with the budget exhausted
+  ends the request: it abstains with "tool-call budget exhausted without a final answer". So a request has at most
+  max_tool_calls + repairs + 1 turns. (Development probe, 2026-10-26: without this rule the 4B kept calling tools
+  after the budget, up to 124 turns, until the token limit.)
 
 **Token counts:**
 
@@ -82,6 +87,10 @@ TOOLS = [
         "name": "execute_select", "description": "Run one read-only SELECT statement and see the first rows.",
         "parameters": {"type": "object", "properties": {"sql": {"type": "string"}}, "required": ["sql"]}}},
 ]
+
+FINALIZE = ("The tool-call budget is exhausted: no more tool calls will run. Reply now with your final query in a "
+            "```sql``` code block.")
+BUDGET_STOP = "tool-call budget exhausted without a final answer"
 
 # The last fenced block that is unlabeled or labeled sql/sqlite (and nothing longer, e.g. not ```sqlx or ```python).
 FENCE = re.compile(r"```(sqlite|sql)?(?![A-Za-z0-9_+-])[ \t]*\n?(.*?)```", re.S | re.I)
@@ -196,7 +205,7 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
         torch.cuda.reset_peak_memory_stats()
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user_message(task, schema_text, examples)}]
     turns: list[dict] = []
-    tool_calls_used, repairs, pending_repair = 0, 0, False
+    tool_calls_used, repairs, pending_repair, pending_finalize = 0, 0, False, False
     tokens = {"initial_prompt": 0, "prefill": 0, "generated": 0, "reasoning": 0, "content": 0, "tool_observation": 0}
     final, stop_reason, error = None, None, None
     remaining_time = lambda: deadline - time.monotonic()  # noqa: E731
@@ -221,10 +230,12 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
             for k, v in (("generated", turn.generated_tokens), ("reasoning", turn.reasoning_tokens),
                          ("content", turn.content_tokens)):
                 tokens[k] += v
-            entry = {"turn": len(turns), "kind": "repair" if pending_repair else "generation",
+            budget_was_exhausted = tool_calls_used >= limits.max_tool_calls
+            entry = {"turn": len(turns),
+                     "kind": "repair" if pending_repair else "finalize" if pending_finalize else "generation",
                      "generation": turn.as_dict(), "tool_results": [], "final_sql": None, "final_raw": None,
                      "final_status": None}
-            pending_repair = False
+            pending_repair = pending_finalize = False
             turns.append(entry)
             progress({"task": task.task_id, "turn": entry["turn"], "kind": entry["kind"], "finish": turn.finish_reason,
                       "prompt": turn.prompt_tokens, "generated": turn.generated_tokens,
@@ -233,6 +244,11 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                       "elapsed": round(time.monotonic() - m0, 1)})
             if turn.finish_reason == "timeout":
                 stop_reason = "request timeout"
+                break
+            if turn.tool_calls and budget_was_exhausted:  # it was told no more tools would run
+                entry["tool_results"] = [{"call": c, "result": {"status": "rejected", "error": BUDGET_STOP}}
+                                         for c in turn.tool_calls]
+                stop_reason = BUDGET_STOP
                 break
             if turn.tool_calls:
                 assistant = {"role": "assistant", "content": strip_tool_calls(turn.content),
@@ -259,6 +275,9 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                 if remaining_time() <= 0:
                     stop_reason = "request timeout"
                     break
+                if tool_calls_used >= limits.max_tool_calls:
+                    messages.append({"role": "user", "content": FINALIZE})
+                    pending_finalize = True
                 continue
             if turn.finish_reason in ("max_new_tokens", "budget"):
                 stop_reason = "turn truncated at the token limit without a final answer"
