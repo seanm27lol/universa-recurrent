@@ -162,6 +162,18 @@ runs, baseline inference and smoke training all count. The ledger (`ledger.py`) 
 | Paired C4/T4 smoke (encoding, 2 × ≤ 100 updates, evaluation, save/reload) | ≤ 1.0 |
 | Margin for failures and reloads | ≥ 2.1 |
 
+**Choosing each model's mode from the probes** (written 2026-10-29, after the B4 probes and before any Q27 probe
+result was read):
+1. The mode must fit: its projected GPU hours for the 16 questions, from the probe's measured per-request time,
+   must leave room for the remaining planned steps under the 8-hour cap.
+2. Among the modes that fit, take the one with more correct probe answers.
+3. On a tie, take the one with the lower total elapsed seconds over the probe requests (the cost unit's numerator).
+
+Four questions cannot separate the modes statistically. This rule only makes the choice mechanical and stops the 16
+from choosing it. For Q27, thinking is probed at `reasoning_effort` low. At the measured 3.7–4.0 decode tokens per
+second, the default xhigh can spend the whole 1,800 s request timeout inside one 4,096-token turn, so it is not
+probed. B4 has no effort option.
+
 **Before each run:**
 - commit the producer code, and run from a clean worktree at that commit;
 - bind source, configuration, model, data and snapshot identities in the manifest;
