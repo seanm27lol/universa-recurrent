@@ -477,16 +477,21 @@ def smoke(args) -> None:
             arm_config = identity.content_identity({"run": manifest["config_identity"], "arm": arm,
                                                     "model_digest": final["model_digest"]})
             records_path = run_dir / arm / "records.jsonl"
-            for ev in evals:
+            record_errors = []
+            for ev in evals:  # every record is kept; a malformed one is reported, and the summary then fails
                 snap = data.snapshot(ev["db_id"])
                 score = scorer.score(snap, ev["final"]["sql"], data.gold(ev["task_id"]).sql)
                 rec = _controller_record(ev, label, arm_config, snap, score)
-                R.validate(rec)
+                try:
+                    R.validate(rec)
+                except R.RecordError as e:
+                    record_errors.append(str(e))
                 _append(records_path, rec)
             recs = R.load(records_path)
             arm_out = {"label": label, "config_identity": arm_config, "train_seconds": train_seconds,
                        "checkpoint": final, "checkpoints": result["checkpoints"], "train_log": result["log"],
                        "examples": result["examples"], "eval_peak_memory_bytes": peak, "reconstruction": recon,
+                       "record_errors": record_errors,
                        "reconstruction_all_equal": all(r["same_actions"] and r["same_final"] for r in recon),
                        "log_tail": [json.loads(x) for x in Path(result["log"]).read_text().splitlines()[-1:]]}
             try:
