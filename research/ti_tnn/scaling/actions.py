@@ -88,7 +88,7 @@ from dataclasses import dataclass, field
 
 from . import ir
 
-GRAMMAR_VERSION = "tirel-1/actions-v1"
+GRAMMAR_VERSION = "tirel-1/actions-v2"  # v2: the masks after the review of 641ff3c; gold traversals unchanged
 
 FAMILIES = ("schema", "predicate", "aggregate", "projection")
 SCHEMA, PREDICATE, AGGREGATE, PROJECTION = 0, 1, 2, 3
