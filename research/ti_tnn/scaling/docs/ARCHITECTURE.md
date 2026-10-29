@@ -203,8 +203,20 @@ A traversal has 23.5 steps on average, STOP included (maximum 125).
 - no aggregate in WHERE, ON or GROUP BY, or inside an aggregate;
 - HAVING and aggregates in ORDER BY only in an aggregate query;
 - exactly one column in scalar and IN subqueries, and equal arity for a compound's right member;
+- compound members at most `MAX_ITEMS` (16) columns wide, with no `*` of unknown width inside a width-bounded SELECT;
+- no literal as a whole GROUP BY or ORDER BY term (SQLite reads an integer there as a column position);
+- GROUP BY and ORDER BY terms see only their own SELECT's sources, never an enclosing query's (SQLite: `no such
+  column`, even through a nested subquery);
 - `*` only with a FROM clause;
 - span ends that decode to a literal.
+
+**Every unfinished state has a legal option.** The review of 641ff3c found two defects in random legal walks: 12
+dead ends in about 3,600 walks (a compound's right member could exhaust its 16 items before matching the left
+member's width), and 2,326 of 3,553 finished plans that SQLite rejected. Most rejections were integer GROUP BY or
+ORDER BY terms; the rest were outer references in a subquery's GROUP BY or ORDER BY. The three bounds above fixed
+both. Rerunning the reviewer's walk gave 0 dead ends, and SQLite rejected 1 of 3,571 finished plans: a term like
+`x AND 0`, which SQLite folds to the integer 0. No converted gold plan of either split changed, and neither did the
+128 smoke ids. A seeded walk over a schema with a 20-column table is now a CPU test.
 
 Three canonical-form rules mirror the converter: no AND directly inside AND (or OR in OR), no NOT directly over a
 negatable predicate, and no unary minus directly over a number. Each removes a second spelling, not a query.
@@ -225,9 +237,16 @@ the final one after the last RMSNorm (`layer=-1`); `layer=l` selects `hidden_sta
 mean of its tokens' states, located through the benchmark's character spans. The question and evidence tokens are the
 literal pointer targets, and the last token is the request summary.
 
-**Cache.** Only backbone states are cached, under `CACHE/encodings/<key[:2]>/<key>.safetensors`. The key is
-sha256(repo, revision, layer, dtype, exact token ids). Files are written once by temporary file and atomic link,
-never overwritten. Each request returns a cost record:
+**Cache.** Only backbone states are cached, under `CACHE/encodings/<key[:2]>/<key>.safetensors`. The key is the
+sha256 of the backbone identity and the exact token ids. The identity holds:
+- the repo, revision, layer and dtype;
+- the encoder version (`encode-v2`);
+- the device type and name;
+- torch and transformers;
+- the linear-attention functions transformers actually bound.
+
+Importing `encode` applies `TI_TNN_SCALING_LINEAR_KERNELS` (default `reference`) through `runtime`. Files are written
+once by temporary file and atomic link, never overwritten. Each request returns a cost record:
 - tokenize seconds;
 - forward or read seconds;
 - tokens;
@@ -314,10 +333,14 @@ grammar's vocabulary summary.
 
 **Checkpoints.** Each checkpoint holds the model, the optimizer, the update counter and the Python, NumPy and torch
 RNG states. It is named `ckpt_u<update>_<sha16>.pt` by content hash, written once, and re-hashed when loaded.
-Resuming reproduces the uninterrupted run exactly (tested).
+Resuming reproduces the uninterrupted run exactly (tested). `build_model` seeds Python, NumPy and torch, so separate
+uninterrupted runs give byte-identical checkpoints. A resumed run's checkpoint has equal tensors but can differ in
+bytes, because pickle shares equal objects differently. Each checkpoint therefore also reports `model_digest` and
+`optimizer_digest`, and those are what the verifier compares.
 
 **Logging.** Every update appends to `train_log.jsonl`: the loss terms, step counts, examples, gradient norm, wall
-time and T4 head calls.
+time and T4 head calls. A resume keeps the lines before the resume point; later lines move to
+`train_log.superseded.jsonl`, never deleted.
 
 **Smoke selection** (`contracts.SMOKE_TRAIN`). The 1,024 candidates are taken in pinned smoke order, and those whose
 gold SQL encodes under the grammar with the pinned tokenizer are kept: the first 128. Eleven were skipped, all for
@@ -336,8 +359,9 @@ Decoding is greedy and legal at every step:
 4. pick the best legal pointer (for a span, the start first, then the end).
 
 There is no top-k, no beam and no repair. The plan is validated and compiled. Abstentions carry one of these reasons:
-`budget_exhausted` (256 steps by default), `invalid_plan`, `unsupported_operation`, or `context_too_long` (from
-encoding).
+`budget_exhausted` (256 steps by default), `invalid_plan`, `unsupported_operation`, `dead_end` (no legal family,
+target or span end: should not happen, recorded if it does), `context_too_long` (from encoding), or `error: <type>`
+(an exception in one request; the evaluation goes on).
 
 Work accounting records, per request: steps, the family and the head executed at each step, and MACs split into
 trunk, semantic and pointer, plus the per-request memory MACs. Batch-of-one decoding equals batched decoding (tested).
@@ -357,8 +381,8 @@ trunk, semantic and pointer, plus the per-request memory MACs. Batch-of-one deco
 
 **Evidence.** These CPU tests, all synthetic and data-free, run in CI:
 - `tests/test_ti_tnn_scaling_ir.py` (47);
-- `tests/test_ti_tnn_scaling_actions.py` (32);
-- `tests/test_ti_tnn_scaling_controller.py` (10).
+- `tests/test_ti_tnn_scaling_actions.py` (36);
+- `tests/test_ti_tnn_scaling_controller.py` (14).
 
 They establish:
 - SQL NULL, duplicate and ordering semantics through the compiler;
@@ -366,7 +390,9 @@ They establish:
 - that gold actions are legal and illegal ones masked;
 - C4/T4 supervision equivalence and T4's selected-only head execution;
 - batch equivalence;
-- exact checkpoint reload and resume;
+- exact checkpoint reload and resume, and byte-identical checkpoints across uninterrupted runs;
+- that random legal walks never dead-end and compile to SQL that SQLite prepares;
+- that a dead end or a failing request abstains instead of stopping a decode or an evaluation;
 - c4_params parameter matching.
 
 The coverage pin establishes conversion and outcome equivalence on the training release.

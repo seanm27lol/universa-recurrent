@@ -577,6 +577,12 @@ class _SelectFrame(_Frame):
         return self.parent_scope + (_Entry(self),)
 
     @property
+    def term_scope(self) -> tuple:
+        """What a GROUP BY or ORDER BY term sees: this SELECT's sources, and no enclosing query's (SQLite resolves
+        those terms without outer references, even inside a nested subquery: `no such column`)."""
+        return tuple(_Entry(e.select, False, e.limit) for e in self.parent_scope) + (_Entry(self),)
+
+    @property
     def ctx(self) -> _Ctx:
         family = SCHEMA if self.phase in ("FROM_FIRST", "FROM_MORE") else PROJECTION
         return _Ctx("FROM" if family == SCHEMA else ("LIMIT" if self.phase in ("LIMIT", "OFFSET") else "SELECT"),
@@ -660,7 +666,8 @@ class _SelectFrame(_Frame):
                 return None
             self.pending_desc = op == "ORDER_DESC"
             self.phase = "ORDER_EXPR"
-            m.push(_ExprSlot(_Ctx("ORDER", PROJECTION, self.own, self.depth), "ORDER_EXPR", parent_op=op))
+            m.push(_ExprSlot(_Ctx("ORDER", PROJECTION, self.term_scope, self.depth), "ORDER_EXPR", parent_op=op,
+                             forbid=_SET["literal"]))
             return None
         if self.phase == "LIMIT":
             if op == "NONE":
@@ -745,18 +752,31 @@ class _SelectFrame(_Frame):
         m.push(_ExprSlot(_Ctx("WHERE", PREDICATE, self.own, self.depth), "WHERE", allow_none=True))
 
     def push_group(self, m):
-        m.push(_ExprSlot(_Ctx("GROUP", AGGREGATE, self.own, self.depth), "GROUP", allow_end=True,
-                         allow_scalar=len(self.group) < MAX_GROUP, child_index=len(self.group)))
+        # a literal as a whole GROUP BY or ORDER BY term is not allowed: SQLite reads an integer there as a result
+        # column position ("GROUP BY 1"), and any other constant term groups or orders nothing
+        m.push(_ExprSlot(_Ctx("GROUP", AGGREGATE, self.term_scope, self.depth), "GROUP", allow_end=True,
+                         allow_scalar=len(self.group) < MAX_GROUP, child_index=len(self.group),
+                         forbid=_SET["literal"]))
+
+    def star_width(self, op: str) -> "int | None":
+        """The columns a `*` adds, or None when a derived source's width is unknown (stored as arity 0)."""
+        chosen = self.sources if op == "STAR" else [self.sources[int(op.split("_")[1])]]
+        return None if any(s.arity <= 0 for s in chosen) else sum(s.arity for s in chosen)
 
     def push_item(self, m):
+        """The next result column, or END. A compound member's width is bounded: the left member's by MAX_ITEMS, the
+        right member's exactly by the left's (`want`). Within those bounds every item adds at least one known column,
+        so the width still missing never exceeds the items still allowed, and some option always remains."""
         n, want, a = len(self.items), self.want, self.arity
+        bound = want if want is not None else MAX_ITEMS if self.member else None
         allow_end = n >= 1 and (want is None or a == want)
         room = n < MAX_ITEMS
-        allow_scalar = room and (want is None or a + 1 <= want)
+        allow_scalar = room and (bound is None or a + 1 <= bound)
         stars = {}
         if room and self.sources:
             for op in ("STAR",) + tuple(f"STAR_{k}" for k in range(min(4, len(self.sources)))):
-                if want is None or a + self.star_arity(op) <= want:
+                width = self.star_width(op)
+                if bound is None or (width is not None and a + width <= bound):
                     stars[op] = None
         m.push(_ExprSlot(_Ctx("SELECT", PROJECTION, self.own, self.depth), "ITEM", allow_end=allow_end,
                          allow_scalar=allow_scalar, stars=stars, child_index=n))
