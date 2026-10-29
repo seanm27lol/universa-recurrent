@@ -383,7 +383,7 @@ trunk, semantic and pointer, plus the per-request memory MACs. Batch-of-one deco
 **Evidence.** These CPU tests, all synthetic and data-free, run in CI:
 - `tests/test_ti_tnn_scaling_ir.py` (47);
 - `tests/test_ti_tnn_scaling_actions.py` (36);
-- `tests/test_ti_tnn_scaling_controller.py` (14).
+- `tests/test_ti_tnn_scaling_controller.py` (15).
 
 They establish:
 - SQL NULL, duplicate and ordering semantics through the compiler;
