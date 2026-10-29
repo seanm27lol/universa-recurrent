@@ -14,6 +14,8 @@ correct and the requests took 1,040 s end to end in total:
   the exact submitted SQL and snapshot.
 - **Hidden retries or edits:**
   - a counted repair or tool call not present in the attempts, or the reverse;
+  - more turns than the tool and repair budgets allow, a mislabelled `finalize` turn, or a request that went on after
+    calling tools with the budget spent;
   - more repairs than the arm allows;
   - a failed final check not followed by a labelled repair;
   - a final SQL that differs from the last attempt's;
@@ -69,6 +71,21 @@ def _validate_llm(rec: dict, tid: str) -> None:
     for i, a in enumerate(attempts[:-1]):
         if a.get("final_status") not in (None, "ok") and attempts[i + 1].get("kind") != "repair":
             raise RecordError(f"{tid}: attempt {i} failed its final check but the next attempt is not a labelled repair")
+    budget = C.Limits().max_tool_calls
+    if len(attempts) > budget + repairs + 1:
+        raise RecordError(f"{tid}: {len(attempts)} turns exceed the tool and repair budgets ({budget} + {repairs} + 1)")
+    used = 0
+    for i, a in enumerate(attempts):
+        results = a.get("tool_results", [])
+        if a.get("kind") == "finalize" and not (used >= budget and i and attempts[i - 1].get("tool_results")):
+            raise RecordError(f"{tid}: attempt {i} is labelled finalize but does not follow the turn that spent the "
+                              f"tool budget")
+        if used >= budget and results:
+            if i != len(attempts) - 1 or any((t.get("result") or {}).get("status") != "rejected" for t in results):
+                raise RecordError(f"{tid}: attempt {i} called tools after the budget was spent and the request went on")
+        if used >= budget and i and attempts[i - 1].get("tool_results") and a.get("kind") != "finalize":
+            raise RecordError(f"{tid}: the turn after the tool budget was spent is not labelled finalize")
+        used += sum(1 for t in results if (t.get("result") or {}).get("status") != "rejected")
     if rec["final"]["kind"] == "sql":
         last = attempts[-1] if attempts else {}
         if last.get("final_sql") != rec["final"]["sql"]:
