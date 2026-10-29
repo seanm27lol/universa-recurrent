@@ -21,6 +21,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import math
 import os
@@ -236,6 +237,9 @@ def _seed(arm: str, task_id: str) -> int:
     return int(identity.sha256_bytes(f"{arm}:{task_id}".encode())[:8], 16)
 
 
+WARM_UP_TOKENS = 256  # the untimed warm-up request stops after this many generated tokens (prefill and decode warmed)
+
+
 def _warm_databases(db_ids) -> float:
     """The warm-cache policy, and the run-start check: re-hash every database file the run uses against its pin
     (reading it whole also warms the page cache), so no earlier in-process verification is trusted."""
@@ -273,7 +277,8 @@ def baseline(args) -> None:
               "runtime": "transformers generate (batch 1)" if gen_cfg else "cpu", "linear_attention": backend,
               "retrieval": retrieval.RETRIEVAL_VERSION, "schema_text": schema.SCHEMA_TEXT_VERSION,
               "schema_budget_chars": schema.PROMPT_BUDGET_CHARS, "scorer": scorer.SCORER_VERSION,
-              "warm_up_task": warm_id, "seed_rule": "int(sha256(arm:task_id)[:8], 16)",
+              "warm_up_task": warm_id, "warm_up_max_generated_tokens": WARM_UP_TOKENS,
+              "seed_rule": "int(sha256(arm:task_id)[:8], 16)",
               "cost_unit": C.CostUnit().__dict__, "inventory_pin_sha256": identity.sha256_file(data.PIN_INVENTORY),
               "snapshots_pin_sha256": identity.sha256_file(data.PIN_SNAPSHOTS)}
     extra = {"model_identity": identity.model_identity(arm)} if arm in C.MODELS else {}
@@ -358,8 +363,10 @@ def baseline(args) -> None:
             wt = data.task(warm_id)
             wsnap = data.snapshot(wt.db_id)
             wtext = schema.serialize(schema.load_schema(wt.db_id, wsnap), budget_chars=schema.PROMPT_BUDGET_CHARS).text
+            warm_limits = dataclasses.replace(limits, max_generated_tokens_thinking=WARM_UP_TOKENS,
+                                              max_generated_tokens_nonthinking=WARM_UP_TOKENS)
             warm = llm_agent.answer_request(rt, wt, wsnap, wtext, retrieval.retrieve(wt, limits.retrieval_k, index=index),
-                                            gen_cfg, limits, seed=_seed(arm, wt.task_id))
+                                            gen_cfg, warm_limits, seed=_seed(arm, wt.task_id))
             out["warm_up"] = {"task": wt.task_id, "seconds": time.perf_counter() - t_w, "tokens": warm["tokens"],
                               "final": warm["final"]["kind"], "excluded_from_records": True}
             run_all(rt, res)
