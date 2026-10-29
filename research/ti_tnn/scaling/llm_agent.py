@@ -201,7 +201,6 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
                    cfg: GenerationConfig, limits: C.Limits, seed: int) -> dict:
     """One request after retrieval and schema serialisation (the caller times those too). Returns the record's
     `attempts`, `final`, `tokens`, counters and timing fields. Never raises for a request-level failure."""
-    import torch
     from . import tools
     timeout = limits.request_timeout_seconds_27b if cfg.model == "Q27" else limits.request_timeout_seconds_4b
     max_total = limits.max_generated_tokens_thinking if cfg.thinking else limits.max_generated_tokens_nonthinking
@@ -209,6 +208,7 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
     deadline = m0 + timeout
     cuda = rt.device.startswith("cuda")
     if cuda:
+        import torch
         torch.cuda.reset_peak_memory_stats()
     messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user_message(task, schema_text, examples)}]
     turns: list[dict] = []

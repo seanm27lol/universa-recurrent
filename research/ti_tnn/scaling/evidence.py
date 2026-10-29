@@ -87,8 +87,10 @@ def tables() -> str:
     rows = []
     for d in sorted((BUNDLE / "baselines").iterdir()) if (BUNDLE / "baselines").exists() else []:
         cfg = json.loads((d / "manifest.json").read_text())["config"]
-        s = json.loads((d / "summary.json").read_text()).get("summary")
+        s = json.loads((d / "summary.json").read_text()).get("summary") if (d / "summary.json").exists() else None
         if not s:
+            rows.append(f"| {d.name} | {cfg['arm']} | {cfg['mode']} | {cfg['positions'][0]}:{cfg['positions'][1]} | "
+                        "stopped by the ledger before any request finished (no records) |" + " |" * 10)
             continue
         recs = _load(d / "records.jsonl")
         mode = cfg["mode"] + (f" ({cfg['reasoning_effort']})" if cfg.get("reasoning_effort") else "")
@@ -118,6 +120,19 @@ def tables() -> str:
                        f"{sm.get('abstained')} {json.dumps(sm.get('abstention_reasons'))} | "
                        f"{sm.get('elapsed_seconds_total', float('nan')):.1f} | {sm.get('cost_seconds_per_correct')} | "
                        f"{a['train_seconds']:.1f} | {log[-1]['loss']:.4f} | {a['reconstruction_all_equal']} |")
+    if (BUNDLE / "profiles").exists():
+        out.append("")
+        out.append("| profile | model | kernels | load s | prompt tokens | prefill tok/s | first token s | decode tok/s | "
+                   "peak allocated GB | peak reserved GB |")
+        out.append("|" + "---|" * 10)
+        for d in sorted((BUNDLE / "profiles").iterdir()):
+            prof = json.loads((d / "profile.json").read_text())
+            m = prof["model"]
+            for r in prof["synthetic"]:
+                out.append(f"| {d.name} | {m['key']} | {m['linear_attention']['configuration']} | "
+                           f"{m['load_seconds']:.0f} | {r['prompt_tokens']} | {r['prefill_tokens_per_second']:.0f} | "
+                           f"{r['time_to_first_token']:.2f} | {r['decode_tokens_per_second']:.2f} | "
+                           f"{r['peak_memory_allocated_bytes'] / 1e9:.1f} | {r['peak_memory_reserved_bytes'] / 1e9:.1f} |")
     ledger = _load(BUNDLE / "gpu_ledger.jsonl")
     out.append("")
     out.append("| reservation | command | status | projected h | charged h |")
