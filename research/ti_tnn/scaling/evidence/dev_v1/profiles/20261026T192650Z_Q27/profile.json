@@ -1,0 +1,135 @@
+{
+ "config_identity": "df644198574bf5bea04d93f2d39500630496067f91c5d8a543ef84c8ed4bb44c",
+ "errors": [],
+ "logit_probe": {
+  "file": "probe_logits.npy",
+  "prompt_tokens": 1040,
+  "top20_ids": [
+   760,
+   27775,
+   13962,
+   8160,
+   332,
+   40,
+   2473,
+   16,
+   2523,
+   7667,
+   2064,
+   550,
+   2,
+   3733,
+   5170,
+   24108,
+   1206,
+   21005,
+   826,
+   63
+  ],
+  "top20_logits": [
+   21.625,
+   21.625,
+   21.5,
+   21.5,
+   21.0,
+   20.125,
+   20.125,
+   19.875,
+   19.875,
+   19.5,
+   18.875,
+   18.875,
+   18.375,
+   18.375,
+   17.75,
+   17.5,
+   17.25,
+   17.125,
+   17.125,
+   17.0
+  ]
+ },
+ "model": {
+  "chat_template_sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+  "dtype": "torch.bfloat16",
+  "key": "Q27",
+  "linear_attention": {
+   "causal_conv1d": "reference",
+   "configuration": "reference",
+   "gated_delta_rule": "reference"
+  },
+  "linear_attention_bound": {
+   "causal_conv1d_fn": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_fn (reference)",
+   "causal_conv1d_update": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_update (reference)",
+   "torch_chunk_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_chunk_gated_delta_rule (reference)",
+   "torch_recurrent_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_recurrent_gated_delta_rule (reference)"
+  },
+  "load_seconds": 291.7627018811181,
+  "memory_allocated_bytes": 54728103936,
+  "memory_reserved_bytes": 54748250112,
+  "model_class": "Qwen3_5ForConditionalGeneration",
+  "parameters": 27356728560,
+  "repo": "Qwen/Qwen3.8-27B",
+  "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "stop_tokens": {
+   "<|endoftext|>": 248044,
+   "<|im_end|>": 248046
+  }
+ },
+ "prompt_lengths_requested": [
+  1024,
+  4096,
+  12288,
+  28672
+ ],
+ "reservation": {
+  "id": "20261026T192650-7d38a451",
+  "seconds": 637.7437213966623
+ },
+ "synthetic": [
+  {
+   "decode_tokens_per_second": 4.02507575671059,
+   "finish_reason": "max_new_tokens",
+   "generated_tokens": 256,
+   "peak_memory_allocated_bytes": 55398017536,
+   "peak_memory_reserved_bytes": 56130273280,
+   "prefill_tokens_per_second": 664.4759577596694,
+   "prompt_tokens": 1040,
+   "seconds": 64.9179880283773,
+   "time_to_first_token": 1.5651431595906615
+  },
+  {
+   "decode_tokens_per_second": 3.9824979747788443,
+   "finish_reason": "max_new_tokens",
+   "generated_tokens": 256,
+   "peak_memory_allocated_bytes": 56739826176,
+   "peak_memory_reserved_bytes": 57415827456,
+   "prefill_tokens_per_second": 679.6497951343608,
+   "prompt_tokens": 4120,
+   "seconds": 70.092109862715,
+   "time_to_first_token": 6.06194547470659
+  },
+  {
+   "decode_tokens_per_second": 3.8682846463453133,
+   "finish_reason": "max_new_tokens",
+   "generated_tokens": 256,
+   "peak_memory_allocated_bytes": 60279124480,
+   "peak_memory_reserved_bytes": 63117983744,
+   "prefill_tokens_per_second": 602.13961992812,
+   "prompt_tokens": 12320,
+   "seconds": 86.38106277957559,
+   "time_to_first_token": 20.460370970889926
+  },
+  {
+   "decode_tokens_per_second": 3.656497496841612,
+   "finish_reason": "max_new_tokens",
+   "generated_tokens": 256,
+   "peak_memory_allocated_bytes": 67378789376,
+   "peak_memory_reserved_bytes": 75661049856,
+   "prefill_tokens_per_second": 614.8894158644413,
+   "prompt_tokens": 28680,
+   "seconds": 116.3814022289589,
+   "time_to_first_token": 46.642533210106194
+  }
+ ]
+}
