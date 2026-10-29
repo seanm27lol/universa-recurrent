@@ -317,3 +317,24 @@ def test_checkpoint_bytes_agree_across_runs_and_resume_keeps_superseded_lines(pr
     kept = [json.loads(line)["update"] for line in open(tmp_path / "a" / "train_log.jsonl")]
     moved = [json.loads(line)["update"] for line in open(tmp_path / "a" / "train_log.superseded.jsonl")]
     assert kept == [0, 1, 2] and moved == [1, 2]
+
+
+def test_smoke_records_pass_the_common_record_checks(backbone, monkeypatch):
+    from scaling import cli, data, retrieval
+    from scaling import records as R
+    tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e, split="dev")
+             for tid, q, e, _ in REQUESTS}
+    monkeypatch.setattr(data, "task", lambda tid: tasks[tid])
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    snap = C.Snapshot(db_id="cinema", path="/nonexistent", sha256="0" * 64, bytes=1)
+    evals = I.evaluate(models()["c4_params"], list(tasks), backbone, score=False, max_steps=40, use_cache=False,
+                       log=None)
+    assert all(e["states_sha256"] and e["encode_cost"]["cache_used"] is False for e in evals)
+    recs = []
+    for ev in evals:
+        correct = 0
+        score = {"correct": correct, "status": "scored"}
+        recs.append(cli._controller_record(ev, "C4_params", "cfg", snap, score))
+    summary = R.summarize(recs, list(tasks))
+    assert summary["arm"] == "C4_params" and summary["requested"] == 3 and summary["tool_calls"] == 0

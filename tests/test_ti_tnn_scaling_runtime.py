@@ -29,8 +29,9 @@ output parsing.
 
 **Identities** are deterministic and refuse types that would make them depend on a repr or on hash order.
 
-**The agent loop** (a scripted model): a model that keeps calling tools gets one `finalize` turn after the budget, then
-abstains; records with more turns than the budgets allow, or a mislabelled `finalize` turn, are rejected.
+**The agent loop** (a scripted model): a reply without a final query uses the one repair; a model that keeps calling
+tools gets one `finalize` turn after the budget, then abstains; records with more turns than the budgets allow, or a
+mislabelled `finalize` turn, are rejected.
 """
 from __future__ import annotations
 
@@ -442,3 +443,15 @@ def test_records_reject_turns_beyond_the_budget(tmp_path):
     early["attempts"][2]["kind"] = "finalize"
     with pytest.raises(records.RecordError, match="labelled finalize but"):
         records.validate(early)
+
+
+def test_a_reply_without_a_final_query_uses_the_one_repair(tmp_path):
+    (tmp_path / "one").mkdir(), (tmp_path / "two").mkdir()
+    rec, rt = _agent_record(tmp_path / "one", ["The answer is a.", "```sql\nSELECT name FROM t\n```"])
+    assert [a["kind"] for a in rec["attempts"]] == ["generation", "repair"] and rec["repairs"] == 1
+    assert rec["final"]["kind"] == "sql" and "no final query" in rt.seen[-1][-1]["content"]
+    records.validate(rec)
+    rec, _ = _agent_record(tmp_path / "two", ["The answer is a."])
+    assert rec["final"] == {"kind": "abstain", "sql": None, "reason": "no final SQL in the reply"}
+    assert len(rec["attempts"]) == 2 and rec["repairs"] == 1
+    records.validate(rec)
