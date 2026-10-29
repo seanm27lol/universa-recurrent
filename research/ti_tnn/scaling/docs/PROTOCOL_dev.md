@@ -174,6 +174,19 @@ from choosing it. For Q27, thinking is probed at `reasoning_effort` low. At the 
 second, one full 4,096-token thinking turn takes about 1,050 s, so the default xhigh would exceed the 1,800 s request
 timeout within two turns. It is not probed. B4 has no effort option.
 
+**As run** (2026-10-26 to 2026-10-29; results in `REPORT_dev.md`):
+- **Modes chosen by the rule:** B4 thinking (a tie at 2 of 4 correct; 198.9 s against 229.0 s) and Q27 thinking at
+  effort low (4 of 4 against 3 of 4).
+- **Harness changes made during the probes, before any run on the 16:**
+  - one `finalize` turn after the tool budget, then a stop;
+  - a reply without a final query uses the one repair;
+  - harness refusals are recorded as `not_run`;
+  - the untimed warm-up request stops after 256 generated tokens.
+- **The smoke** paired T4 with C4_params, the parameter-matched shared controller. Each final checkpoint was
+  reloaded from disk and evaluated with a fresh backbone forward per request, then decoded again from a second reload
+  (the reconstruction).
+- **GPU:** 2.861 of 8 hours, every reservation in the ledger, including one stopped by the ledger.
+
 **Before each run:**
 - commit the producer code, and run from a clean worktree at that commit;
 - bind source, configuration, model, data and snapshot identities in the manifest;
