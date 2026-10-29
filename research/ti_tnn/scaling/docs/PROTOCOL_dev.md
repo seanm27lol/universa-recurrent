@@ -171,8 +171,8 @@ result was read):
 
 Four questions cannot separate the modes statistically. This rule only makes the choice mechanical and stops the 16
 from choosing it. For Q27, thinking is probed at `reasoning_effort` low. At the measured 3.7–4.0 decode tokens per
-second, the default xhigh can spend the whole 1,800 s request timeout inside one 4,096-token turn, so it is not
-probed. B4 has no effort option.
+second, one full 4,096-token thinking turn takes about 1,050 s, so the default xhigh would exceed the 1,800 s request
+timeout within two turns. It is not probed. B4 has no effort option.
 
 **Before each run:**
 - commit the producer code, and run from a clean worktree at that commit;
