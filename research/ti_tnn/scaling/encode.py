@@ -338,12 +338,21 @@ def _write_once(path: Path, tensor, metadata: dict) -> int:
     return written
 
 
-def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None) -> tuple:
-    """(states [T, D], cost dict). Reads the immutable cache entry, or computes and writes it once."""
+def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None, use_cache: bool = True) -> tuple:
+    """(states [T, D], cost dict). Reads the immutable cache entry, or computes and writes it once. With
+    `use_cache=False` it always computes and neither reads nor writes (a timed serving request pays its own forward)."""
     from safetensors.torch import load_file
     key = backbone.cache_key(token_ids)
     path = cache_path(key, root)
     t0 = time.perf_counter()
+    if not use_cache:
+        if backbone.device.startswith("cuda"):
+            backbone._torch.cuda.synchronize()
+        states = backbone.states(token_ids)
+        if backbone.device.startswith("cuda"):
+            backbone._torch.cuda.synchronize()
+        return states, {"cache_key": key, "cache_hit": False, "cache_used": False,
+                        "forward_seconds": time.perf_counter() - t0, "bytes_written": 0, "bytes_read": 0}
     if path.exists():
         states = load_file(str(path))["states"]
         if tuple(states.shape) != (len(token_ids), backbone.hidden_size):
@@ -419,13 +428,13 @@ def fit_context(task: C.Task, schema, examples, tokenizer, max_tokens: int) -> t
 
 
 def encode_request(backbone: Backbone, task: C.Task, schema, examples=(), *, max_tokens: "int | None" = None,
-                   cache_root: "Path | None" = None) -> Encoding:
+                   cache_root: "Path | None" = None, use_cache: bool = True) -> Encoding:
     """Build the context, tokenize, run (or read) the frozen backbone and locate items and spans."""
     t0 = time.perf_counter()
     max_tokens = max_tokens or C.Limits().max_context_tokens
     ctx, serialized, ids, offsets = fit_context(task, schema, examples, backbone.tokenizer, max_tokens)
     tok_seconds = time.perf_counter() - t0
-    states, cost = cached_states(backbone, ids, cache_root)
+    states, cost = cached_states(backbone, ids, cache_root, use_cache=use_cache)
     ranges = []
     for (a, b) in ctx.item_spans:
         r = token_range(offsets, a, b)

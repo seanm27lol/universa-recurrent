@@ -241,19 +241,25 @@ def decode_one(model: K.Controller, example, **kw) -> Decoded:
 
 
 def evaluate(model: K.Controller, task_ids, backbone, *, score: bool = True, max_steps: int = DEFAULT_MAX_STEPS,
-             cache_root=None, log=print) -> list:
+             cache_root=None, use_cache: bool = True, log=print) -> list:
     """Decode development tasks at batch size one (the serving-cost unit), each with its own encoding cost, and
-    optionally score them with the benchmark scorer. Gold SQL is read only by the scorer."""
+    optionally score them with the benchmark scorer. Gold SQL is read only by the scorer. With `use_cache=False` every
+    request runs its own backbone forward (timed serving); `states_sha256` (computed after the timing) lets a second
+    pass check it decoded from the same states."""
+    import hashlib
+
     from . import data, encode, retrieval, scorer
     from . import schema as schema_mod
     out = []
     for n, tid in enumerate(task_ids):
         task = data.task(tid)
         t0 = time.perf_counter()
-        record = {"task_id": tid, "db_id": task.db_id, "arm": model.cfg.arm, "infer_version": INFER_VERSION}
+        record = {"task_id": tid, "db_id": task.db_id, "arm": model.cfg.arm, "infer_version": INFER_VERSION,
+                  "error": None}
+        enc = None
         try:
             enc = encode.encode_request(backbone, task, schema_mod.load_schema(task.db_id), retrieval.retrieve(task),
-                                        cache_root=cache_root)
+                                        cache_root=cache_root, use_cache=use_cache)
         except encode.ContextTooLong as error:
             record.update(final={"kind": "abstain", "sql": None, "reason": "context_too_long",
                                  "detail": str(error)[:300]}, controller_work=None, encode_cost=None)
@@ -271,7 +277,11 @@ def evaluate(model: K.Controller, task_ids, backbone, *, score: bool = True, max
             else:
                 record.update(dec.as_record())
             record["encode_cost"] = enc.cost
+        if torch.cuda.is_available() and next(model.parameters()).is_cuda:
+            torch.cuda.synchronize()
         record["elapsed_seconds"] = time.perf_counter() - t0
+        record["states_sha256"] = (hashlib.sha256(enc.states.contiguous().view(torch.uint8).numpy().tobytes())
+                                   .hexdigest() if enc is not None else None)
         if score:
             snap = data.snapshot(task.db_id)
             record["score"] = scorer.score(snap, record["final"]["sql"], data.gold(tid).sql)

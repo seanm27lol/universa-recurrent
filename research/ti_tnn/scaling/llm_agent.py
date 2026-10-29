@@ -9,8 +9,9 @@ and complete per-request records.
 
 It might call `lookup_values` to see how a team name is spelt, then test a query with `execute_select` (20 preview
 rows plus the full row count), then reply with the final query in a ```sql``` block. The harness executes that final
-SQL once, as the answer. If it fails (an error, a timeout or a rejected statement), the model gets one repair turn
-with the error.
+SQL once, as the answer. If it fails (an error, a timeout or a rejected statement), or if a reply has no final query
+at all, the model gets one repair turn with the error (or the reminder). (Development probe, 2026-10-29: B4 in
+thinking mode once ended with a prose answer and no query.)
 
 **What is recorded:**
 - every turn's reasoning and content;
@@ -91,6 +92,7 @@ TOOLS = [
 FINALIZE = ("The tool-call budget is exhausted: no more tool calls will run. Reply now with your final query in a "
             "```sql``` code block.")
 BUDGET_STOP = "tool-call budget exhausted without a final answer"
+MISSING_FINAL = "Your reply has no final query. Reply with the final query in a ```sql``` code block."
 
 # The last fenced block that is unlabeled or labeled sql/sqlite (and nothing longer, e.g. not ```sqlx or ```python).
 FENCE = re.compile(r"```(sqlite|sql)?(?![A-Za-z0-9_+-])[ \t]*\n?(.*?)```", re.S | re.I)
@@ -285,8 +287,17 @@ def answer_request(rt: Runtime, task: C.Task, snapshot: C.Snapshot, schema_text:
             sql, raw = extract_final(turn.content)
             entry["final_sql"], entry["final_raw"] = sql, raw
             if sql is None:
-                stop_reason = "no final SQL in the reply"
-                break
+                if repairs >= limits.max_repairs_llm or remaining_time() <= 0:
+                    stop_reason = "no final SQL in the reply"
+                    break
+                entry["final_status"] = "missing"  # a reply without a final query uses the one repair
+                repairs += 1
+                pending_repair = True
+                assistant = {"role": "assistant", "content": turn.content}
+                if turn.reasoning:
+                    assistant["reasoning_content"] = turn.reasoning
+                messages += [assistant, {"role": "user", "content": MISSING_FINAL}]
+                continue
             if remaining_time() <= 0:
                 stop_reason = "request timeout"
                 break
