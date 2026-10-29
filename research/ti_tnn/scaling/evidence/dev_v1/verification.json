@@ -1,0 +1,67 @@
+{
+ "verifier": "scaling.verify (in-package; reuses the producer scorer and record checks)",
+ "runs": [
+  {
+   "run": "20261026T191302Z_L_nonthinking_p16-20",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261026T194920Z_B4_nonthinking_p16-20",
+   "kind": "baseline",
+   "verdict": "rejected",
+   "problems": [
+    "records: bird23tf-03029: 62 turns exceed the tool and repair budgets (8 + 0 + 1)"
+   ]
+  },
+  {
+   "run": "20261029T194301Z_B4_nonthinking_p16-20",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T200113Z_B4_thinking_p16-20",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T200709Z_Q27_nonthinking_p16-20",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T202024Z_Q27_thinking_low_p16-20",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T203112Z_L_nonthinking_p0-16",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T203119Z_B4_thinking_p0-16",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T205933Z_Q27_thinking_low_p0-16",
+   "kind": "baseline",
+   "verdict": "accepted",
+   "problems": []
+  },
+  {
+   "run": "20261029T214506Z_T4-vs-c4_params_s100_u100",
+   "kind": "smoke",
+   "verdict": "accepted",
+   "problems": []
+  }
+ ]
+}

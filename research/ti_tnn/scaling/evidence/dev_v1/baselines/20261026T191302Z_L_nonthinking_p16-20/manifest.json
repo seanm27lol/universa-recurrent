@@ -1,0 +1,102 @@
+{
+ "config": {
+  "arm": "L",
+  "command": "baseline",
+  "cost_unit": {
+   "batch_size": 1,
+   "denominator": "requests whose final output scores correct under the pinned scorer",
+   "extra": {},
+   "numerator": "sum of per-request end-to-end elapsed seconds, all requested tasks",
+   "warm_cache_policy": "model loaded and one excluded warm-up request served; each pinned database file read once before timing; the retrieval index built before timing"
+  },
+  "dtype": null,
+  "generation": null,
+  "inventory_pin_sha256": "6c164f63c27df7d1dd4c39a73201f931d8d9348b9dd92be9e4a8d1ebdb77885e",
+  "limits": {
+   "lookup_max_values": 20,
+   "max_context_tokens": 32768,
+   "max_generated_tokens_nonthinking": 4096,
+   "max_generated_tokens_thinking": 16384,
+   "max_new_tokens_nonthinking": 1024,
+   "max_new_tokens_thinking": 4096,
+   "max_repairs_controller": 0,
+   "max_repairs_llm": 1,
+   "max_tool_calls": 8,
+   "preview_rows": 20,
+   "request_timeout_seconds_27b": 1800.0,
+   "request_timeout_seconds_4b": 600.0,
+   "retrieval_k": 3,
+   "sql_timeout_seconds": 30.0
+  },
+  "linear_attention": null,
+  "mode": "nonthinking",
+  "model": null,
+  "positions": [
+   16,
+   20
+  ],
+  "reasoning_effort": null,
+  "requested": [
+   "bird23tf-03029",
+   "bird23tf-04905",
+   "bird23tf-01628",
+   "bird23tf-03134"
+  ],
+  "retrieval": "bm25-v1",
+  "runtime": "cpu",
+  "schema_budget_chars": 24000,
+  "schema_text": "schema-text-v1",
+  "scorer": "scorer-v1",
+  "seed_rule": "int(sha256(arm:task_id)[:8], 16)",
+  "snapshots_pin_sha256": "9450b33e8eec4968d6e9493276ed386ea16eec2a86bdaebfdcb27e0028766aa0",
+  "warm_up_task": "bird23tf-01612"
+ },
+ "config_identity": "8567600670b7760e8a21efa56483473f109d61378f9bbceb4299bced88e26863",
+ "environment": {
+  "accelerate": "1.15.0",
+  "causal-conv1d": null,
+  "driver": "580.173.02",
+  "executable": "/home/seanjazm27/projects/universa-recurrent-scaling/.venv-scaling/bin/python",
+  "flash-linear-attention": "0.6.0",
+  "gpu": "NVIDIA GB10",
+  "host": "spark-ecfd",
+  "huggingface_hub": "2.3.0",
+  "kernels": null,
+  "linear_attention_kernels": "fla",
+  "machine": "aarch64",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.17.0-1026-nvidia-aarch64-with-glibc2.39",
+  "python": "3.12.3",
+  "safetensors": "0.8.0",
+  "sqlglot": "30.24.0",
+  "tokenizers": "0.23.3",
+  "torch": "2.13.0+cu130",
+  "transformers": "5.20.2",
+  "triton": "3.7.1"
+ },
+ "git": {
+  "branch": "HEAD",
+  "commit": "b7eb28a594d10a4f09a2d819a77b7a4ec3e333d7",
+  "dirty_paths": [],
+  "research_tree_dirty": false,
+  "worktree": "/home/seanjazm27/projects/universa-recurrent-scaling-run"
+ },
+ "sources": {
+  "__init__.py": "55003f9f77395025ee8b21453e7b96071db00a1cd5f875f422b4a349a65a9c86",
+  "baseline_l.py": "4614879979afc138176ff97809d29fca3c7d7384f2364f85bb27959c58e39983",
+  "cli.py": "74f9944931021bc4c4bc5666802b673be789477250f4eadbb4fcda7eefecc3c3",
+  "contracts.py": "091c928b93722c515e31e9dac0a381eace6a1de3a7ba08ef3fc95cb2c53a7206",
+  "data.py": "302f0b45ef0d6ffd5b0e26306537422cc1dea566504dcfac06952a9c02acb4a1",
+  "identity.py": "e93a89c7f4bd913675916728ecaca86a94e30124925c74b5fe7b2e760ad44daf",
+  "ledger.py": "11606d688d272fb0bd32d51c68bfec179010b40e4d34b8ad5ca22f8ad41b0df4",
+  "llm_agent.py": "19dc33fb4e48dd238947f98845dbc970b6d9e915b54656314e3a4aa9840103df",
+  "records.py": "50061e184d9d7028c19edd7411d9a8ea80259697b8461095019b205014778b9e",
+  "retrieval.py": "150f559c4ad7365b80f32a47c9fbdf04dd4e63dff0f20a69c286ff4a58179e7f",
+  "runtime.py": "a56a0c1995e34d993657cd6a00c8db9619f83ce5940c69f056f205f72c0caa78",
+  "schema.py": "12e24931623d7aadea4d3d1c4597e3b413435841b250a189bb60e448c74d26b2",
+  "scorer.py": "6143a26a7da7362beee7d388f115ed045a43ea7bdf607ca2d76f98424a9d126c",
+  "tools.py": "6e6326b888a54958db5c7a74e4739bc7035a890b0849b12a61441debe996ac42"
+ },
+ "study": "ti_tnn_qwen38_scaling_dev",
+ "study_version": "dev-1"
+}

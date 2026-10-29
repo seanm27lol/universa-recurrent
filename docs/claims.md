@@ -800,3 +800,17 @@ Rows for the [integration plan](../research/ti_tnn/integration_plan.md). Unrun c
 | Integrated natural-language performance | Not established | Not planned before the finite typed executor passes its gates |
 | Autonomous update safety | Not claimed | Out of scope; nothing planned here would establish it |
 
+
+## TI-TNN scaling against Qwen3.8 (development, 2026-10-29)
+
+Feasibility only: 16 development questions from the BIRD training release (Li et al., NeurIPS 2023) and a 100-update
+paired smoke ([report](../research/ti_tnn/scaling/docs/REPORT_dev.md), development protocol, not frozen).
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| A budget-enforced, verified harness runs Qwen3.8-27B, Qwen3.5-4B, a no-fit template baseline and the C4/T4 controllers on the same requests | Implemented; tested locally; development runs verified independently | 239 CPU tests. The in-package verifier and the reviewer's independent verifiers (no producer modules, own EX rule) re-derive every outcome; a CPU re-decode reproduces both smoke arms 16/16. 2.861 of 8 GPU-hours, every reservation in the ledger |
+| Qwen3.8-27B (thinking, effort low) answers more development questions correctly than Qwen3.5-4B (thinking) | Not established (n = 16) | 13/16 against 11/16; the two differ on 2 questions (exact McNemar p = 0.5). Eager transformers harness at batch size one |
+| The C4/T4 controllers can learn BIRD text-to-SQL | Not established | Smoke: 0/16 for both arms after 100 updates on 128 questions (executable but wrong SQL); this tests the machinery only |
+| T4's typed specialists beat a parameter-matched shared controller (C4_params) | Not tested | The smoke cannot measure it; the two-seed pilot is not authorized |
+| A controller request costs far less than an LLM request on this host | Measured (development, this harness) | 1.25 s per request (1.19 s of it the frozen 4B's forward) against 101 s (B4) and 145 s (Q27) mean; no prefix caching for the LLMs. Cost per correct request is undefined for the controllers (no correct answer) |
+| Anything about the reserved BIRD Mini-Dev 500 | Not measured (reserved) | Ids and file hashes pinned only; no arm read them |

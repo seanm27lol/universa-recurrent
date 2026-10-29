@@ -1,0 +1,252 @@
+# independent/verify_baselines.py (all baseline runs with records)
+== 20261029T203112Z_L_nonthinking_p0-16: PASS (356 checks passed, 0 failed, 0 warnings)
+== 20261029T203119Z_B4_thinking_p0-16: PASS (501 checks passed, 0 failed, 0 warnings)
+== 20261029T205933Z_Q27_thinking_low_p0-16: PASS (497 checks passed, 0 failed, 0 warnings)
+== 20261026T191302Z_L_nonthinking_p16-20: PASS (110 checks passed, 0 failed, 0 warnings)
+== 20261029T194301Z_B4_nonthinking_p16-20: PASS (141 checks passed, 0 failed, 0 warnings)
+== 20261029T200113Z_B4_thinking_p16-20: PASS (138 checks passed, 0 failed, 0 warnings)
+== 20261029T200709Z_Q27_nonthinking_p16-20: PASS (140 checks passed, 0 failed, 0 warnings)
+== 20261029T202024Z_Q27_thinking_low_p16-20: PASS (139 checks passed, 0 failed, 0 warnings)
+== 20261026T194920Z_B4_nonthinking_p16-20: FAIL (133 checks passed, 233 failed, 0 warnings)
+   FAIL bird23tf-03029: turn 8 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 8, after the budget was spent, is not labelled finalize
+   FAIL bird23tf-03029: turn 9 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 10 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 11 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 12 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 13 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 14 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 15 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 16 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 17 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 18 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 19 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 20 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 21 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 22 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 23 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 24 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 25 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 26 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 27 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 28 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 29 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 30 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 31 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 32 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 33 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 34 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 35 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 36 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 37 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 38 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 39 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 40 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 41 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 42 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 43 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 44 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 45 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 46 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 47 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 48 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 49 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 50 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 51 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 52 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 53 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 54 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 55 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 56 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 57 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 58 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 59 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn 60 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03029: turn bound 8 + repairs + 1: 62 turns (bound 9)
+   FAIL bird23tf-04905: turn 8 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 8, after the budget was spent, is not labelled finalize
+   FAIL bird23tf-04905: turn 9 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 10 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 11 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 12 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 13 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 14 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 15 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 16 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 17 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 18 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 19 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 20 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 21 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 22 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 23 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 24 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 25 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 26 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 27 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 28 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 29 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 30 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 31 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 32 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 33 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 34 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 35 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 36 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 37 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 38 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 39 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 40 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 41 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 42 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 43 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 44 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 45 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 46 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 47 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 48 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 49 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 50 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 51 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 52 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 53 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 54 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 55 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 56 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 57 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 58 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 59 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 60 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 61 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 62 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 63 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 64 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 65 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 66 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 67 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 68 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 69 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 70 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 71 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 72 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 73 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 74 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 75 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 76 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 77 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 78 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 79 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 80 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 81 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 82 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 83 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 84 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 85 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 86 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 87 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 88 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 89 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 90 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 91 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 92 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 93 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 94 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 95 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 96 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 97 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 98 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 99 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 100 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 101 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 102 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 103 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 104 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 105 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 106 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 107 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 108 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 109 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 110 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 111 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 112 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 113 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 114 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 115 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 116 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 117 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 118 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 119 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 120 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 121 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn 122 called tools after the budget was spent and the request went on
+   FAIL bird23tf-04905: turn bound 8 + repairs + 1: 124 turns (bound 9)
+   FAIL bird23tf-03134: turn 8 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 8, after the budget was spent, is not labelled finalize
+   FAIL bird23tf-03134: turn 9 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 10 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 11 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 12 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 13 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 14 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 15 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 16 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 17 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 18 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 19 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 20 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 21 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 22 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 23 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 24 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 25 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 26 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 27 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 28 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 29 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 30 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 31 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 32 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 33 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 34 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 35 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 36 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 37 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 38 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 39 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 40 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 41 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 42 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 43 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 44 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 45 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 46 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 47 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 48 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 49 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 50 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 51 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 52 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 53 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 54 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 55 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 56 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 57 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 58 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 59 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 60 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 61 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 62 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 63 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 64 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 65 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn 66 called tools after the budget was spent and the request went on
+   FAIL bird23tf-03134: turn bound 8 + repairs + 1: 68 turns (bound 9)
+exit 1
+
+# independent/verify_smoke.py --redecode
+   T4: re-derived 0/16 correct; scorer statuses (own, recorded): [('incorrect', 'incorrect')]; timeouts []
+   c4_params: re-derived 0/16 correct; scorer statuses (own, recorded): [('incorrect', 'incorrect'), ('timeout', 'predicted_timeout')]; timeouts [('bird23tf-00469', 'timeout', 30.7, 'predicted_timeout')]
+   T4: CPU re-decode: 16/16 identical in actions and final SQL
+   c4_params: CPU re-decode: 16/16 identical in actions and final SQL
+== 20261029T214506Z_T4-vs-c4_params_s100_u100: PASS (244 checks passed, 0 failed, 0 warnings)
+exit 0

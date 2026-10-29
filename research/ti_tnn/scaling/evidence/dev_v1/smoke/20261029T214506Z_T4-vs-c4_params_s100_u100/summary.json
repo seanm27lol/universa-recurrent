@@ -1,0 +1,511 @@
+{
+ "arms": {
+  "T4": {
+   "checkpoint": {
+    "bytes": 204296393,
+    "model_digest": "2eb2fd1fa1816cf607c73bfc698abd99794d32f4ea28c41863030f50404a80e7",
+    "optimizer_digest": "899c6a6387a53c0d3a0a2907b6f9e155f1b4490326c875d9399f95cba1d421b9",
+    "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/checkpoints/ckpt_u000099_f48bedbb4330aee0.pt",
+    "sha256": "f48bedbb4330aee0425f21afbcd6e0b4c3700c6603aef99276f0351ca742d629",
+    "update": 99
+   },
+   "checkpoints": [
+    {
+     "bytes": 204296393,
+     "model_digest": "2eb2fd1fa1816cf607c73bfc698abd99794d32f4ea28c41863030f50404a80e7",
+     "optimizer_digest": "899c6a6387a53c0d3a0a2907b6f9e155f1b4490326c875d9399f95cba1d421b9",
+     "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/checkpoints/ckpt_u000099_f48bedbb4330aee0.pt",
+     "sha256": "f48bedbb4330aee0425f21afbcd6e0b4c3700c6603aef99276f0351ca742d629",
+     "update": 99
+    }
+   ],
+   "config_identity": "b05f15a177041f6f0bc96da017cf32c57bac847ff0c346f80aa39a6e21f56051",
+   "eval_peak_memory_bytes": 12276429824,
+   "examples": 128,
+   "label": "T4",
+   "log_tail": [
+    {
+     "examples": [
+      "bird23tf-03184",
+      "bird23tf-05732",
+      "bird23tf-04623",
+      "bird23tf-05851",
+      "bird23tf-00313",
+      "bird23tf-06466",
+      "bird23tf-01243",
+      "bird23tf-05243",
+      "bird23tf-03866",
+      "bird23tf-03772",
+      "bird23tf-00628",
+      "bird23tf-02414",
+      "bird23tf-03727",
+      "bird23tf-06326",
+      "bird23tf-02594",
+      "bird23tf-02075",
+      "bird23tf-04457",
+      "bird23tf-01389",
+      "bird23tf-02215",
+      "bird23tf-01429",
+      "bird23tf-00564",
+      "bird23tf-06481",
+      "bird23tf-03170",
+      "bird23tf-03340",
+      "bird23tf-06099",
+      "bird23tf-02590",
+      "bird23tf-06243",
+      "bird23tf-01759",
+      "bird23tf-00291",
+      "bird23tf-05994",
+      "bird23tf-00074",
+      "bird23tf-05789"
+     ],
+     "family": 0.01413289700400978,
+     "grad_norm": 1.6728196144104004,
+     "head_calls": [
+      [
+       0,
+       36
+      ],
+      [
+       1,
+       51
+      ],
+      [
+       2,
+       14
+      ],
+      [
+       3,
+       51
+      ],
+      [
+       0,
+       54
+      ],
+      [
+       1,
+       41
+      ],
+      [
+       2,
+       26
+      ],
+      [
+       3,
+       61
+      ],
+      [
+       0,
+       46
+      ],
+      [
+       1,
+       46
+      ],
+      [
+       2,
+       20
+      ],
+      [
+       3,
+       59
+      ],
+      [
+       0,
+       52
+      ],
+      [
+       1,
+       49
+      ],
+      [
+       2,
+       23
+      ],
+      [
+       3,
+       60
+      ]
+     ],
+     "loss": 0.23066402969677802,
+     "lr": 0.0003,
+     "op": 0.18129424678469166,
+     "op_steps": 689,
+     "pointer": 0.035236889380191795,
+     "pointer_steps": 248,
+     "steps": 721,
+     "update": 99,
+     "wall_seconds": 1.1719255819916725
+    }
+   ],
+   "reconstruction": [
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04097"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 16,
+    "arm": "T4",
+    "config_identity": "b05f15a177041f6f0bc96da017cf32c57bac847ff0c346f80aa39a6e21f56051",
+    "correct": 0,
+    "cost_seconds_per_correct": null,
+    "elapsed_seconds_total": 20.227213281206787,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.0,
+    "repairs": 0,
+    "requested": 16,
+    "timeouts": 0,
+    "tokens": {
+     "context": 50781
+    },
+    "tool_calls": 0
+   },
+   "train_log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/train_log.jsonl",
+   "train_seconds": 178.76415491756052
+  },
+  "c4_params": {
+   "checkpoint": {
+    "bytes": 204282217,
+    "model_digest": "f5e034d851af86b76a0d1188ea2c3c7600e78558a8e54a87c31b7b5f9468ec7a",
+    "optimizer_digest": "6588509a28dec2841d5be28abfef8bff9108446a6f4a9ae8347d599a5114d7ba",
+    "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/c4_params/checkpoints/ckpt_u000099_3dbec20af9ba9d76.pt",
+    "sha256": "3dbec20af9ba9d76629108eb9a38b24ba26ea2dc9cc71cf802ce707c7bb41b17",
+    "update": 99
+   },
+   "checkpoints": [
+    {
+     "bytes": 204282217,
+     "model_digest": "f5e034d851af86b76a0d1188ea2c3c7600e78558a8e54a87c31b7b5f9468ec7a",
+     "optimizer_digest": "6588509a28dec2841d5be28abfef8bff9108446a6f4a9ae8347d599a5114d7ba",
+     "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/c4_params/checkpoints/ckpt_u000099_3dbec20af9ba9d76.pt",
+     "sha256": "3dbec20af9ba9d76629108eb9a38b24ba26ea2dc9cc71cf802ce707c7bb41b17",
+     "update": 99
+    }
+   ],
+   "config_identity": "539fd8ead7139de84269fc1344a1a6e55e8d3e8cc6ccfc37a9ed91e3b61c56ce",
+   "eval_peak_memory_bytes": 12346578944,
+   "examples": 128,
+   "label": "C4_params",
+   "log_tail": [
+    {
+     "examples": [
+      "bird23tf-03184",
+      "bird23tf-05732",
+      "bird23tf-04623",
+      "bird23tf-05851",
+      "bird23tf-00313",
+      "bird23tf-06466",
+      "bird23tf-01243",
+      "bird23tf-05243",
+      "bird23tf-03866",
+      "bird23tf-03772",
+      "bird23tf-00628",
+      "bird23tf-02414",
+      "bird23tf-03727",
+      "bird23tf-06326",
+      "bird23tf-02594",
+      "bird23tf-02075",
+      "bird23tf-04457",
+      "bird23tf-01389",
+      "bird23tf-02215",
+      "bird23tf-01429",
+      "bird23tf-00564",
+      "bird23tf-06481",
+      "bird23tf-03170",
+      "bird23tf-03340",
+      "bird23tf-06099",
+      "bird23tf-02590",
+      "bird23tf-06243",
+      "bird23tf-01759",
+      "bird23tf-00291",
+      "bird23tf-05994",
+      "bird23tf-00074",
+      "bird23tf-05789"
+     ],
+     "family": 0.025019299140750288,
+     "grad_norm": 1.7644761800765991,
+     "head_calls": [
+      [
+       "shared",
+       152
+      ],
+      [
+       "shared",
+       182
+      ],
+      [
+       "shared",
+       171
+      ],
+      [
+       "shared",
+       184
+      ]
+     ],
+     "loss": 0.2569243898008138,
+     "lr": 0.0003,
+     "op": 0.19654896718949783,
+     "op_steps": 689,
+     "pointer": 0.035356119502433954,
+     "pointer_steps": 248,
+     "steps": 721,
+     "update": 99,
+     "wall_seconds": 1.1440947307273746
+    }
+   ],
+   "reconstruction": [
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "same_actions": true,
+     "same_final": true,
+     "same_states": true,
+     "task_id": "bird23tf-04097"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 16,
+    "arm": "C4_params",
+    "config_identity": "539fd8ead7139de84269fc1344a1a6e55e8d3e8cc6ccfc37a9ed91e3b61c56ce",
+    "correct": 0,
+    "cost_seconds_per_correct": null,
+    "elapsed_seconds_total": 20.04051528032869,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.0,
+    "repairs": 0,
+    "requested": 16,
+    "timeouts": 0,
+    "tokens": {
+     "context": 50781
+    },
+    "tool_calls": 0
+   },
+   "train_log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/c4_params/train_log.jsonl",
+   "train_seconds": 178.0045797964558
+  }
+ },
+ "backbone": {
+  "device_name": "NVIDIA GB10",
+  "device_type": "cuda",
+  "dtype": "bfloat16",
+  "encoder": "encode-v2",
+  "hidden_size": 2560,
+  "layer": -1,
+  "linear_attention": {
+   "causal_conv1d_fn": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_fn (reference)",
+   "causal_conv1d_update": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_update (reference)",
+   "torch_chunk_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_chunk_gated_delta_rule (reference)",
+   "torch_recurrent_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_recurrent_gated_delta_rule (reference)"
+  },
+  "repo": "Qwen/Qwen3.5-4B",
+  "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+  "torch": "2.13.0+cu130",
+  "transformers": "5.20.2"
+ },
+ "dev_cache_pass_seconds": 20.31471832562238,
+ "prepare": {
+  "cache_hits": 0,
+  "examples": 128,
+  "forward_seconds": 250.6357855424285,
+  "seconds": 260.2370427791029,
+  "skipped": {}
+ },
+ "reservation": {
+  "hours": 0.21262426540617727,
+  "id": "20261029T214509-014595cd",
+  "projected_hours": 0.4
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100",
+ "warm_database_seconds": 1.8531483439728618
+}
