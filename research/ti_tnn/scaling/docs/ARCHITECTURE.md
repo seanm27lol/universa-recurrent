@@ -215,7 +215,8 @@ dead ends in about 3,600 walks (a compound's right member could exhaust its 16 i
 member's width), and 2,326 of 3,553 finished plans that SQLite rejected. Most rejections were integer GROUP BY or
 ORDER BY terms; the rest were outer references in a subquery's GROUP BY or ORDER BY. The three bounds above fixed
 both. Rerunning the reviewer's walk gave 0 dead ends, and SQLite rejected 1 of 3,571 finished plans: a term like
-`x AND 0`, which SQLite folds to the integer 0. No converted gold plan of either split changed, and neither did the
+`x AND 0`, which SQLite folds to the integer 0. The reviewer's larger re-run (8,400 walks) found 4 of 8,315 of this
+kind, which is a known residual: such a plan fails when executed, and that failure is recorded. No converted gold plan of either split changed, and neither did the
 128 smoke ids. A seeded walk over a schema with a 20-column table is now a CPU test.
 
 Three canonical-form rules mirror the converter: no AND directly inside AND (or OR in OR), no NOT directly over a

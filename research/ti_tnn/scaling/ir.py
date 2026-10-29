@@ -46,7 +46,8 @@ the constructs the work order names (EXISTS, INTERSECT, EXCEPT, COALESCE, IFNULL
 functions, GROUP_CONCAT, RIGHT/FULL/NATURAL joins, ESCAPE, COLLATE, GLOB, row values and CTEs are outside it;
 `sql_to_ir.py` reports them as `Unsupported(reason)`. LIMIT and OFFSET are non-negative integer constants. The
 validator does not reproduce every SQLite preparation error (for example an aggregate of an outer query hidden inside
-a subquery's WHERE, or a GROUP BY term that SQLite folds to the integer 0, such as `x AND 0`); a plan it accepts can
+a subquery's WHERE, or a constant GROUP BY or ORDER BY term that SQLite folds to an integer, such as `x AND 0`,
+which then reads as a column position: 4 of 8,315 random legal plans in the review of 41804b0); a plan it accepts can
 still fail when executed, and that failure is then recorded, never hidden.
 """
 from __future__ import annotations
