@@ -165,6 +165,7 @@ def save_checkpoint(run_dir: Path, model, optimizer, update: int, config: dict) 
     """Serialize once, name by content hash, never overwrite. Returns {"path", "sha256", "update", "bytes",
     "model_digest", "optimizer_digest"}. A resumed run's file can differ in bytes from the uninterrupted run's (pickle
     shares equal objects differently) while every tensor is equal; the digests are what a verifier compares."""
+    t0 = time.perf_counter()
     buffer = io.BytesIO()
     torch.save({"version": TRAIN_VERSION, "update": update, "model": model.state_dict(),
                 "optimizer": optimizer.state_dict(), "rng": _rng_state(), "config": config,
@@ -181,7 +182,8 @@ def save_checkpoint(run_dir: Path, model, optimizer, update: int, config: dict) 
         tmp.write_bytes(data)
         tmp.replace(path)
     return {"path": str(path), "sha256": digest, "update": update, "bytes": len(data),
-            "model_digest": tensor_digest(model.state_dict()), "optimizer_digest": optimizer_digest(optimizer.state_dict())}
+            "model_digest": tensor_digest(model.state_dict()), "optimizer_digest": optimizer_digest(optimizer.state_dict()),
+            "save_seconds": time.perf_counter() - t0}
 
 
 def load_checkpoint(path) -> dict:
@@ -273,6 +275,25 @@ def micro_batches(examples: list, idx: list, micro_batch: int) -> list:
     return [order[m0:m0 + micro_batch] for m0 in range(0, len(order), micro_batch)]
 
 
+class CheckpointMismatch(ValueError):
+    """A checkpoint offered for resumption was made under a different configuration (arm, seed, ordered training ids,
+    backbone, precision, controller, source files or anything else in the run configuration)."""
+
+
+def _canonical(obj) -> str:
+    return json.dumps(obj, sort_keys=True, default=str)
+
+
+def check_resumable(ckpt: dict, config: dict) -> None:
+    """Resuming is allowed only from a checkpoint whose recorded configuration equals this run's, field for field."""
+    recorded = ckpt.get("config") or {}
+    keys = sorted(set(recorded) | set(config))
+    differ = [k for k in keys if _canonical(recorded.get(k)) != _canonical(config.get(k))]
+    if differ:
+        detail = {k: (str(recorded.get(k))[:80], str(config.get(k))[:80]) for k in differ[:4]}
+        raise CheckpointMismatch(f"the checkpoint was made under a different configuration: {differ} {detail}")
+
+
 def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resume_from=None, extra_config=None,
         log=print) -> dict:
     """Train for cfg.updates updates (from 0, or after the update stored in `resume_from`)."""
@@ -283,16 +304,20 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
         raise ValueError("the effective batch must be a multiple of the micro-batch")
     if any(e.steps is None for e in examples):
         raise ValueError("every training example needs teacher-forcing steps")
+    from . import identity
     config = {"train": cfg.as_dict(), "controller": model.cfg.as_dict(),
               "parameters": K.parameter_report(model), "examples": [e.task_id for e in examples],
-              "grammar": A.vocabulary_summary(), **(extra_config or {})}
+              "grammar": A.vocabulary_summary(), "sources": identity.source_hashes(), **(extra_config or {})}
+    resume_ckpt = load_checkpoint(resume_from) if resume_from is not None else None
+    if resume_ckpt is not None:
+        check_resumable(resume_ckpt, config)
     config_identity = write_config(run_dir, config)
     device = torch.device(cfg.device)
     model.to(device).train()
     optimizer = make_optimizer(model, cfg)
     start = 0
-    if resume_from is not None:
-        start = restore(load_checkpoint(resume_from), model, optimizer) + 1
+    if resume_ckpt is not None:
+        start = restore(resume_ckpt, model, optimizer) + 1
     log_path = run_dir / "train_log.jsonl"
     if log_path.exists():  # lines past the resume point (or a whole earlier attempt) move aside, never vanish
         lines = log_path.read_text().splitlines()
@@ -374,13 +399,16 @@ def gold_steps(gold_sql: str, encoding) -> tuple:
 
 
 def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, require_hit: bool = False,
-                     log=print) -> tuple:
+                     require_verified: bool = False, anchors: "dict | None" = None, log=print) -> tuple:
     """Encode training tasks (frozen backbone, cached) and attach their gold teacher-forcing steps.
     Returns (prepared, skipped {task_id: reason}, costs {task_id: cost}). With `lazy`, each example keeps only the
     path of its cache file and training reads the states per update (the prefetcher overlaps the reads); each read is
     checked against the CRC32 of the states seen here. With `require_hit`, a missing cache entry raises
     `encode.CacheMiss` instead of being encoded (the pilot prepares from `encode-pool`'s entries only, on the CPU,
-    with `encode.Backbone.cache_reader`)."""
+    with `encode.Backbone.cache_reader`). With `require_verified`, an entry without a recorded sha256 raises
+    `encode.CacheUnverified`. With `anchors` ({task_id: {"cache_key", "states_sha256"}}, written by the encoding run
+    when it created each entry), every entry must have exactly the anchored key and sha256, which its bytes have
+    just been checked against; a mismatch raises `encode.CacheCorrupt`."""
     from . import data, encode, retrieval
     from . import schema as schema_mod
     prepared, skipped, costs = [], {}, {}
@@ -390,10 +418,18 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False,
             raise ValueError(f"{tid} is a {task.split} question; training reads the training pool only")
         try:
             enc = encode.encode_request(backbone, task, schema_mod.load_schema(task.db_id), retrieval.retrieve(task),
-                                        cache_root=cache_root, require_hit=require_hit)
+                                        cache_root=cache_root, require_hit=require_hit,
+                                        require_verified=require_verified)
         except encode.ContextTooLong as e:
             skipped[tid] = f"context too long: {e}"
             continue
+        if anchors is not None:
+            anchor = anchors.get(tid)
+            if anchor is None or anchor["cache_key"] != enc.cost["cache_key"] or \
+                    anchor["states_sha256"] != enc.cost.get("states_sha256"):
+                raise encode.CacheCorrupt(f"{tid}: the cache entry does not match its anchor "
+                                          f"({anchor and anchor['states_sha256'][:12]} vs "
+                                          f"{str(enc.cost.get('states_sha256'))[:12]})")
         costs[tid] = enc.cost
         steps, reason = gold_steps(data.gold(tid).sql, enc)
         if steps is None:
@@ -495,7 +531,8 @@ def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tupl
 def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_TRAIN["max_updates"],
               seed: int = C.SMOKE_TRAIN["seed"], device: "str | None" = None, micro_batch: int = 8,
               cache_root=None, prepared=None, resume_from=None, lazy: bool = False,
-              matmul_precision: str = "highest", log=print) -> dict:
+              matmul_precision: str = "highest", checkpoint_every: int = 0, extra_config: "dict | None" = None,
+              log=print) -> dict:
     """The CLI entry point: encode (or reuse `prepared`), build the arm under `seed`, fit, checkpoint."""
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     skipped, costs = {}, {}
@@ -503,9 +540,9 @@ def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_T
         prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy, log=log)
     model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed)
     cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device,
-                      matmul_precision=matmul_precision)
+                      matmul_precision=matmul_precision, checkpoint_every=checkpoint_every)
     extra = {"backbone": backbone.identity() if backbone is not None else None, "skipped": skipped,
-             "requested_task_ids": list(task_ids)}
+             "requested_task_ids": list(task_ids), **(extra_config or {})}
     result = fit(model, prepared, cfg, run_dir, resume_from=resume_from, extra_config=extra, log=log)
     result.update(skipped=skipped, encode_costs=costs, examples=len(prepared))
     return result

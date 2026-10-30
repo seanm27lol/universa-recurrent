@@ -93,7 +93,17 @@ class CacheMiss(RuntimeError):
 
 
 class CacheCorrupt(RuntimeError):
-    """A cache entry's states do not hash to the sha256 recorded when it was written."""
+    """A cache entry's states do not hash to the sha256 recorded when it was written, or do not have the dtype and
+    shape this backbone and context require. An infrastructure error: it stops a run; it is never one request's
+    abstention."""
+
+
+class CacheUnverified(RuntimeError):
+    """`require_verified` was set and the entry records no sha256 (written before entries recorded one). The pilot
+    never establishes integrity by hashing such bytes after the fact; it re-encodes into its own cache instead."""
+
+
+PILOT_CACHE = C.CACHE / "pilot_v1"  # the pilot's encodings: written fresh, every entry with its recorded sha256
 
 
 def states_sha256(states) -> str:
@@ -369,7 +379,7 @@ def _write_once(path: Path, tensor, metadata: dict) -> int:
 
 
 def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None, use_cache: bool = True,
-                  require_hit: bool = False) -> tuple:
+                  require_hit: bool = False, require_verified: bool = False) -> tuple:
     """(states [T, D], cost dict). Reads the immutable cache entry, or computes and writes it once. With
     `use_cache=False` it always computes and neither reads nor writes (a timed serving request pays its own forward).
     With `require_hit` a missing entry raises `CacheMiss` instead of being computed. An entry that records its
@@ -392,11 +402,16 @@ def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = Non
         with safe_open(str(path), framework="pt") as f:
             recorded = (f.metadata() or {}).get("states_sha256")
             states = f.get_tensor("states").clone()
+        if recorded is None and require_verified:
+            raise CacheUnverified(f"{path}: no recorded sha256 (require_verified)")
+        if str(states.dtype).replace("torch.", "") != backbone.dtype or \
+                tuple(states.shape) != (len(token_ids), backbone.hidden_size):
+            raise CacheCorrupt(f"{path}: {states.dtype} {tuple(states.shape)}, expected {backbone.dtype} "
+                               f"{(len(token_ids), backbone.hidden_size)}")
         if recorded is not None and states_sha256(states) != recorded:
             raise CacheCorrupt(f"{path}: the states do not hash to the sha256 recorded when it was written")
-        if tuple(states.shape) != (len(token_ids), backbone.hidden_size):
-            raise RuntimeError(f"cache entry {path} has shape {tuple(states.shape)}")
         return states, {"cache_key": key, "cache_hit": True, "forward_seconds": 0.0, "verified": recorded is not None,
+                        "states_sha256": recorded,
                         "read_seconds": time.perf_counter() - t0, "bytes_written": 0,
                         "bytes_read": path.stat().st_size}
     if backbone.device.startswith("cuda"):
@@ -408,13 +423,14 @@ def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = Non
     forward = time.perf_counter() - t0
     import torch
     import transformers
-    meta = {**backbone.identity(), "tokens": len(token_ids), "states_sha256": states_sha256(states),
+    digest = states_sha256(states)
+    meta = {**backbone.identity(), "tokens": len(token_ids), "states_sha256": digest,
             "torch": torch.__version__,
             "transformers": transformers.__version__, "device": backbone.device,
             "device_name": torch.cuda.get_device_name(0) if backbone.device.startswith("cuda") else "cpu"}
     t1 = time.perf_counter()
     written = _write_once(path, states, meta)
-    return states, {"cache_key": key, "cache_hit": False, "forward_seconds": forward,
+    return states, {"cache_key": key, "cache_hit": False, "forward_seconds": forward, "states_sha256": digest,
                     "write_seconds": time.perf_counter() - t1, "bytes_written": written, "bytes_read": 0}
 
 
@@ -468,13 +484,15 @@ def fit_context(task: C.Task, schema, examples, tokenizer, max_tokens: int) -> t
 
 
 def encode_request(backbone: Backbone, task: C.Task, schema, examples=(), *, max_tokens: "int | None" = None,
-                   cache_root: "Path | None" = None, use_cache: bool = True, require_hit: bool = False) -> Encoding:
+                   cache_root: "Path | None" = None, use_cache: bool = True, require_hit: bool = False,
+                   require_verified: bool = False) -> Encoding:
     """Build the context, tokenize, run (or read) the frozen backbone and locate items and spans."""
     t0 = time.perf_counter()
     max_tokens = max_tokens or C.Limits().max_context_tokens
     ctx, serialized, ids, offsets = fit_context(task, schema, examples, backbone.tokenizer, max_tokens)
     tok_seconds = time.perf_counter() - t0
-    states, cost = cached_states(backbone, ids, cache_root, use_cache=use_cache, require_hit=require_hit)
+    states, cost = cached_states(backbone, ids, cache_root, use_cache=use_cache, require_hit=require_hit,
+                                 require_verified=require_verified)
     ranges = []
     for (a, b) in ctx.item_spans:
         r = token_range(offsets, a, b)

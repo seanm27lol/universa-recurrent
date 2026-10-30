@@ -241,7 +241,7 @@ def decode_one(model: K.Controller, example, **kw) -> Decoded:
 
 
 def evaluate(model: K.Controller, task_ids, backbone, *, score: bool = True, max_steps: int = DEFAULT_MAX_STEPS,
-             cache_root=None, use_cache: bool = True, require_hit: bool = False,
+             cache_root=None, use_cache: bool = True, require_hit: bool = False, require_verified: bool = False,
              matmul_precision: "str | None" = None, log=print) -> list:
     """`matmul_precision` ("highest" or "high"), when given, is set while decoding and restored afterwards; the pilot
     decodes at its training precision. `require_hit` refuses to encode a context that is not in the cache."""
@@ -250,13 +250,13 @@ def evaluate(model: K.Controller, task_ids, backbone, *, score: bool = True, max
         torch.set_float32_matmul_precision(matmul_precision)
     try:
         return _evaluate(model, task_ids, backbone, score=score, max_steps=max_steps, cache_root=cache_root,
-                         use_cache=use_cache, require_hit=require_hit, log=log)
+                         use_cache=use_cache, require_hit=require_hit, require_verified=require_verified, log=log)
     finally:
         torch.set_float32_matmul_precision(previous)
 
 
 def _evaluate(model: K.Controller, task_ids, backbone, *, score: bool, max_steps: int, cache_root, use_cache: bool,
-              require_hit: bool, log) -> list:
+              require_hit: bool, require_verified: bool, log) -> list:
     """Decode development tasks at batch size one (the serving-cost unit), each with its own encoding cost, and
     optionally score them with the benchmark scorer. Gold SQL is read only by the scorer. With `use_cache=False` every
     request runs its own backbone forward (timed serving); `states_sha256` (computed after the timing) lets a second
@@ -274,12 +274,13 @@ def _evaluate(model: K.Controller, task_ids, backbone, *, score: bool, max_steps
         enc = None
         try:
             enc = encode.encode_request(backbone, task, schema_mod.load_schema(task.db_id), retrieval.retrieve(task),
-                                        cache_root=cache_root, use_cache=use_cache, require_hit=require_hit)
+                                        cache_root=cache_root, use_cache=use_cache, require_hit=require_hit,
+                                        require_verified=require_verified)
         except encode.ContextTooLong as error:
             record.update(final={"kind": "abstain", "sql": None, "reason": "context_too_long",
                                  "detail": str(error)[:300]}, controller_work=None, encode_cost=None)
-        except encode.CacheMiss:  # a setup error (the wrong cache or identity), not a request's failure
-            raise
+        except (encode.CacheMiss, encode.CacheCorrupt, encode.CacheUnverified):
+            raise  # infrastructure errors (the wrong cache or identity, damaged bytes): fatal, never an abstention
         except Exception as error:  # one request's failure is its own abstention, never the whole evaluation's
             record.update(final={"kind": "abstain", "sql": None, "reason": f"error: {type(error).__name__}",
                                  "detail": str(error)[:300]}, controller_work=None, encode_cost=None,

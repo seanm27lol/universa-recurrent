@@ -378,6 +378,7 @@ class Prepared:
     step_cache: "dict | None" = None
     tokens_file: "str | None" = None
     tokens_crc32: "int | None" = None  # of the states as read at prepare time; every later read is checked against it
+    tokens_dtype: "str | None" = None  # the states' dtype at prepare time; every later read must match it and the shape
 
     @property
     def n_tokens(self) -> int:
@@ -391,8 +392,10 @@ class Prepared:
             # get_tensor maps the file; clone() reads it into ordinary memory here (on the prefetch thread). A mapped
             # tensor copied to the GPU directly was read page by page during the copy: 5.3 s per update, measured.
             states = f.get_tensor("states").clone()
-        if states.shape[0] != self.n_tokens:
-            raise RuntimeError(f"{self.task_id}: {self.tokens_file} holds {states.shape[0]} tokens, not {self.n_tokens}")
+        expected = (self.n_tokens, int(self.items.shape[1]))
+        if tuple(states.shape) != expected or (self.tokens_dtype and str(states.dtype) != self.tokens_dtype):
+            raise RuntimeError(f"{self.task_id}: {self.tokens_file} holds {states.dtype} {tuple(states.shape)}, "
+                               f"expected {self.tokens_dtype} {expected}")
         if self.tokens_crc32 is not None and _crc32(states) != self.tokens_crc32:
             raise RuntimeError(f"{self.task_id}: {self.tokens_file} changed since it was prepared (CRC32 mismatch)")
         return states
@@ -418,7 +421,7 @@ def prepare(encoding, steps=None, tokens_file: "str | None" = None) -> Prepared:
                     token_types=torch.tensor(encoding.token_types), items=items, item_kinds=kinds,
                     summary=states[-1].float().clone(), schema=encoding.schema, spans=encoding.spans, steps=steps,
                     meta={"cost": dict(encoding.cost)}, step_cache=dense, tokens_file=tokens_file,
-                    tokens_crc32=_crc32(states) if tokens_file else None)
+                    tokens_crc32=_crc32(states) if tokens_file else None, tokens_dtype=str(states.dtype))
 
 
 @dataclass
