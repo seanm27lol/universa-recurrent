@@ -520,8 +520,9 @@ def train_timing(args) -> None:
     smoke_runs = sorted(p for p in (C.RUNS / "smoke").iterdir() if (p / "summary.json").exists())
     reference = smoke_runs[-1] / args.arm / "train_log.jsonl"
     ref = [json.loads(x) for x in reference.read_text().splitlines()][:args.updates]
-    run_dir = C.RUNS / "timing" / f"{_stamp()}_{args.arm}_u{args.updates}"
+    run_dir = C.RUNS / "timing" / f"{_stamp()}_{args.arm}_u{args.updates}_mb{args.micro_batch}_{args.matmul_precision}"
     config = {"command": "train-timing", "arm": args.arm, "updates": args.updates, "seed": C.SMOKE_TRAIN["seed"],
+              "modes": args.modes, "micro_batch": args.micro_batch, "matmul_precision": args.matmul_precision,
               "train_task_ids": train_ids, "reference_log": str(reference),
               "reference_log_sha256": identity.sha256_file(reference), "backbone": C.MODELS["B4"]}
     manifest = identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty,
@@ -532,7 +533,7 @@ def train_timing(args) -> None:
         from scaling.runtime import Runtime
         rt = Runtime("B4")
         bb = encode.Backbone.from_pinned(device="cuda", model=rt.model, tokenizer=rt.tokenizer)
-        for mode, lazy in (("memory", False), ("file", True)):
+        for mode, lazy in [m for m in (("memory", False), ("file", True)) if m[0] in args.modes]:
             res.check()
             t0 = time.perf_counter()
             prepared, skipped, costs = train.prepare_examples(train_ids, bb, lazy=lazy, log=None)
@@ -546,7 +547,8 @@ def train_timing(args) -> None:
                 profiler.start()
                 train.PROFILER_STEP = profiler.step
             result = train.train_arm(args.arm, train_ids, bb, run_dir / mode, updates=args.updates,
-                                     seed=C.SMOKE_TRAIN["seed"], device="cuda", prepared=prepared, log=None)
+                                     seed=C.SMOKE_TRAIN["seed"], device="cuda", prepared=prepared,
+                                     micro_batch=args.micro_batch, matmul_precision=args.matmul_precision, log=None)
             if profiler is not None:
                 profiler.stop()
                 train.PROFILER_STEP = None
@@ -569,12 +571,12 @@ def train_timing(args) -> None:
             del prepared
         out["reference"] = {"log": str(reference), "update_seconds_mean": statistics.mean(r["wall_seconds"] for r in ref)}
         out["reservation"] = {"id": res.id, "hours": res.elapsed_hours(), "projected_hours": args.projected_hours}
-    for mode in ("memory", "file"):  # the models are measurements only; their checkpoints are not kept
+    for mode in args.modes:  # the models are measurements only; their checkpoints are not kept
         for ckpt in (run_dir / mode / "checkpoints").glob("*.pt"):
             ckpt.unlink()
     _write(run_dir / "summary.json", out)
     print(json.dumps({"reference_update_seconds": out["reference"]["update_seconds_mean"],
-                      **{m: round(o["update_seconds_mean"], 3) for m, o in out["modes"].items()}}, indent=1))
+                      **{m: round(o["update_seconds_after_first"], 3) for m, o in out["modes"].items()}}, indent=1))
 
 
 def verify_cmd(args) -> None:
@@ -635,6 +637,9 @@ def main(argv=None) -> None:
     s.add_argument("--arm", choices=["T4", "c4_params", "c4_active"], default="T4")
     s.add_argument("--updates", type=int, default=20)
     s.add_argument("--profile", action="store_true", help="torch.profiler tables for updates 3-5 of each mode")
+    s.add_argument("--modes", nargs="+", choices=["memory", "file"], default=["memory", "file"])
+    s.add_argument("--micro-batch", type=int, default=8)
+    s.add_argument("--matmul-precision", choices=["highest", "high"], default="highest")
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=train_timing)
