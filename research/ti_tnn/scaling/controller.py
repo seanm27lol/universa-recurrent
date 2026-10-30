@@ -157,7 +157,9 @@ class Trunk(nn.Module):
 
     # memory: once per request
     def memory(self, batch: "Batch") -> dict:
-        tok = self.token_proj(batch.tokens) + self.region_embed(batch.token_types)
+        # the backbone states arrive in their stored dtype (BF16) and are widened here, on the model's device: exact,
+        # and four times less host-to-device traffic than widening first
+        tok = self.token_proj(batch.tokens.float()) + self.region_embed(batch.token_types)
         itm = self.item_proj(batch.items) + self.kind_embed(batch.item_kinds)
         tok, itm = self.memory_norm(tok), self.memory_norm(itm)
         memory = torch.cat([tok, itm], dim=1)
@@ -356,25 +358,56 @@ class Controller(nn.Module):
 # --- inputs ----------------------------------------------------------------------------------------------------------
 @dataclass
 class Prepared:
-    """One request, ready for the controller. `steps` (teacher-forcing targets) only exist for training."""
+    """One request, ready for the controller. `steps` (teacher-forcing targets) only exist for training.
+
+    The token states stay in the backbone's dtype (BF16), the dtype they are cached in, and are widened on the model's
+    device (`Trunk.memory`), so the values are exactly the float32 ones. With `tokens_file` set they are not held in
+    memory at all: `token_states()` reads them from the immutable encoding cache when a batch needs them. The training
+    pool's states (about 126 GB) do not fit in this host's memory. `step_cache` holds the dense teacher-forcing
+    tensors, built once at this example's own sizes."""
     task_id: str
-    tokens: torch.Tensor          # [T, D] backbone states
+    tokens: "torch.Tensor | None"  # [T, D] backbone states, or None when read from `tokens_file`
     token_types: torch.Tensor     # [T] region ids
-    items: torch.Tensor           # [N, D] pooled item states
+    items: torch.Tensor           # [N, D] pooled item states (float32)
     item_kinds: torch.Tensor      # [N] 0 table, 1 column
-    summary: torch.Tensor         # [D] the last token's state
+    summary: torch.Tensor         # [D] the last token's state (float32)
     schema: A.SchemaItems
     spans: A.SpanIndex
     steps: "list | None" = None
     meta: dict = field(default_factory=dict)
+    step_cache: "dict | None" = None
+    tokens_file: "str | None" = None
+
+    @property
+    def n_tokens(self) -> int:
+        return int(self.token_types.shape[0])
+
+    def token_states(self) -> torch.Tensor:
+        if self.tokens is not None:
+            return self.tokens
+        from safetensors import safe_open
+        with safe_open(self.tokens_file, framework="pt") as f:
+            states = f.get_tensor("states")
+        if states.shape[0] != self.n_tokens:
+            raise RuntimeError(f"{self.task_id}: {self.tokens_file} holds {states.shape[0]} tokens, not {self.n_tokens}")
+        return states
+
+    def steps_dense(self) -> dict:
+        if self.step_cache is None:
+            self.step_cache = step_tensors(self.steps, self.items.shape[0], self.n_tokens)
+        return self.step_cache
 
 
-def prepare(encoding, steps=None) -> Prepared:
-    states = encoding.states.float()
+def prepare(encoding, steps=None, tokens_file: "str | None" = None) -> Prepared:
+    """With `tokens_file` (the encoding's cache file), the token states are not kept; they are read per batch."""
+    states = encoding.states
     kinds = torch.tensor([0 if it.kind == "table" else 1 for it in encoding.schema.items], dtype=torch.long)
-    return Prepared(task_id=encoding.task_id, tokens=states, token_types=torch.tensor(encoding.token_types),
-                    items=encoding.item_vectors(), item_kinds=kinds, summary=states[-1], schema=encoding.schema,
-                    spans=encoding.spans, steps=steps, meta={"cost": dict(encoding.cost)})
+    items = encoding.item_vectors()
+    dense = step_tensors(steps, items.shape[0], states.shape[0]) if steps is not None else None
+    return Prepared(task_id=encoding.task_id, tokens=None if tokens_file else states,
+                    token_types=torch.tensor(encoding.token_types), items=items, item_kinds=kinds,
+                    summary=states[-1].float(), schema=encoding.schema, spans=encoding.spans, steps=steps,
+                    meta={"cost": dict(encoding.cost)}, step_cache=dense, tokens_file=tokens_file)
 
 
 @dataclass
@@ -449,38 +482,49 @@ def step_tensors(steps: list, n_items: int, n_tokens: int) -> dict:
     return out
 
 
-def collate(examples: list) -> Batch:
-    """Pad a list of Prepared into one Batch (steps included when every example has them)."""
+# dense teacher-forcing tensors whose trailing axis is the example's item or token count (padded per batch)
+_ITEM_AXIS, _TOKEN_AXIS = ("ptr_items",), ("span_start", "span_end")
+
+
+def collate(examples: list, device="cpu", token_states: "dict | None" = None) -> Batch:
+    """Pad a list of Prepared into one Batch on `device` (steps included when every example has them). The padded
+    buffers are allocated on the device and each example is copied in once. `token_states` may supply already loaded
+    states by task id (the training prefetcher)."""
+    dev = torch.device(device)
     B = len(examples)
-    T = max(e.tokens.shape[0] for e in examples)
+    T = max(e.n_tokens for e in examples)
     N = max(e.items.shape[0] for e in examples)
-    D = examples[0].tokens.shape[1]
-    tokens = torch.zeros(B, T, D)
-    token_types = torch.zeros(B, T, dtype=torch.long)
-    token_mask = torch.zeros(B, T, dtype=torch.bool)
-    items = torch.zeros(B, N, D)
-    item_kinds = torch.zeros(B, N, dtype=torch.long)
-    item_mask = torch.zeros(B, N, dtype=torch.bool)
-    summary = torch.zeros(B, D)
-    for b, e in enumerate(examples):
-        t, n = e.tokens.shape[0], e.items.shape[0]
-        tokens[b, :t] = e.tokens
-        token_types[b, :t] = e.token_types
+    D = examples[0].items.shape[1]
+    states = [(token_states or {}).get(e.task_id) for e in examples]
+    states = [s if s is not None else e.token_states() for s, e in zip(states, examples)]
+    tokens = torch.zeros(B, T, D, dtype=states[0].dtype, device=dev)
+    token_types = torch.zeros(B, T, dtype=torch.long, device=dev)
+    token_mask = torch.zeros(B, T, dtype=torch.bool, device=dev)
+    items = torch.zeros(B, N, D, device=dev)
+    item_kinds = torch.zeros(B, N, dtype=torch.long, device=dev)
+    item_mask = torch.zeros(B, N, dtype=torch.bool, device=dev)
+    summary = torch.zeros(B, D, device=dev)
+    for b, (e, st) in enumerate(zip(examples, states)):
+        t, n = e.n_tokens, e.items.shape[0]
+        tokens[b, :t] = st.to(dev, non_blocking=True)
+        token_types[b, :t] = e.token_types.to(dev)
         token_mask[b, :t] = True
-        items[b, :n] = e.items
-        item_kinds[b, :n] = e.item_kinds
+        items[b, :n] = e.items.to(dev)
+        item_kinds[b, :n] = e.item_kinds.to(dev)
         item_mask[b, :n] = True
-        summary[b] = e.summary
+        summary[b] = e.summary.to(dev)
     steps = None
     if all(e.steps is not None for e in examples):
-        per = [step_tensors(e.steps, N, T) for e in examples]
+        per = [e.steps_dense() for e in examples]
         S = max(p["valid"].shape[0] for p in per)
         steps = {}
         for key in per[0]:
-            shape = (B, S) + tuple(per[0][key].shape[1:])
-            buf = torch.zeros(shape, dtype=per[0][key].dtype)
+            tail = (N,) if key in _ITEM_AXIS else (T,) if key in _TOKEN_AXIS else tuple(per[0][key].shape[1:])
+            buf = torch.zeros((B, S) + tail, dtype=per[0][key].dtype, device=dev)
             for b, p in enumerate(per):
-                buf[b, :p[key].shape[0]] = p[key]
+                v = p[key]
+                index = (b, slice(0, v.shape[0])) + tuple(slice(0, k) for k in v.shape[1:])
+                buf[index] = v.to(dev)
             steps[key] = buf
     return Batch(task_ids=[e.task_id for e in examples], tokens=tokens, token_types=token_types,
                  token_mask=token_mask, items=items, item_kinds=item_kinds, item_mask=item_mask, summary=summary,

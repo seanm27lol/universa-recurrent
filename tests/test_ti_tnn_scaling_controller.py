@@ -338,3 +338,71 @@ def test_smoke_records_pass_the_common_record_checks(backbone, monkeypatch):
         recs.append(cli._controller_record(ev, "C4_params", "cfg", snap, score))
     summary = R.summarize(recs, list(tasks))
     assert summary["arm"] == "C4_params" and summary["requested"] == 3 and summary["tool_calls"] == 0
+
+
+# --- the training-throughput repair: BF16 storage, cached step tensors, device collate, length groups, file-backed
+def _old_step_tensors(examples):
+    """The dense steps as collate built them before the repair: every example at the batch's N and T."""
+    N = max(e.items.shape[0] for e in examples)
+    T = max(e.n_tokens for e in examples)
+    per = [K.step_tensors(e.steps, N, T) for e in examples]
+    S = max(p["valid"].shape[0] for p in per)
+    out = {}
+    for key in per[0]:
+        buf = torch.zeros((len(per), S) + tuple(per[0][key].shape[1:]), dtype=per[0][key].dtype)
+        for b, p in enumerate(per):
+            buf[b, :p[key].shape[0]] = p[key]
+        out[key] = buf
+    return out
+
+
+def test_cached_step_tensors_pad_to_the_same_batch(prepared):
+    new = K.collate(prepared).steps
+    old = _old_step_tensors(prepared)
+    assert new.keys() == old.keys() and all(torch.equal(new[k], old[k]) for k in old)
+
+
+def test_bf16_storage_gives_exactly_the_float32_losses(prepared):
+    model = models()["T4"]
+    as_bf16 = [K.Prepared(**{**e.__dict__, "tokens": e.tokens.to(torch.bfloat16)}) for e in prepared]
+    widened = [K.Prepared(**{**e.__dict__, "tokens": e.tokens.to(torch.bfloat16).float()}) for e in prepared]
+    a, b = model.losses(K.collate(as_bf16)), model.losses(K.collate(widened))
+    assert K.collate(as_bf16).tokens.dtype == torch.bfloat16
+    assert all(torch.equal(a[k], b[k]) for k in ("total", "family", "op", "pointer"))
+
+
+def test_file_backed_examples_train_exactly_like_in_memory_ones(prepared, backbone, cache_root, tmp_path):
+    lazy = []
+    for e in prepared:
+        key = e.meta["cost"]["cache_key"]
+        lazy.append(K.Prepared(**{**e.__dict__, "tokens": None,
+                                  "tokens_file": str(E.cache_path(key, cache_root))}))
+    assert all(torch.equal(x.token_states(), y.tokens) for x, y in zip(lazy, prepared))
+    cfg = T.TrainConfig(arm="T4", updates=3, effective_batch=2, micro_batch=1, checkpoint_every=0)
+    a = T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "memory", log=None)
+    b = T.fit(T.build_model("T4", 16, 100), lazy, cfg, tmp_path / "file", log=None)
+    for key in ("model_digest", "optimizer_digest"):
+        assert a["checkpoints"][-1][key] == b["checkpoints"][-1][key]
+
+
+def test_micro_batches_group_by_length_and_keep_the_update(prepared):
+    groups = T.micro_batches(prepared, [2, 0, 1], 2)
+    assert sorted(i for g in groups for i in g) == [0, 1, 2]
+    lengths = [prepared[i].n_tokens for g in groups for i in g]
+    assert lengths == sorted(lengths)
+
+
+def test_the_prefetcher_reads_the_files_of_the_update(prepared, cache_root):
+    lazy = [K.Prepared(**{**e.__dict__, "tokens": None,
+                          "tokens_file": str(E.cache_path(e.meta["cost"]["cache_key"], cache_root))})
+            for e in prepared]
+    cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1)
+    pf = T.Prefetcher(lazy, cfg, 0)
+    try:
+        for update in range(2):
+            got = pf.get(update)
+            wanted = {lazy[i].task_id for i in T.batch_indices(len(lazy), update, cfg)}
+            assert set(got) == wanted
+    finally:
+        pf.close()
+    assert T.Prefetcher(prepared, cfg, 0).get(0) == {}  # in-memory examples need no reads
