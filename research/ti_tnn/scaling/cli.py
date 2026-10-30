@@ -538,8 +538,21 @@ def train_timing(args) -> None:
             prepared, skipped, costs = train.prepare_examples(train_ids, bb, lazy=lazy, log=None)
             prep = time.perf_counter() - t0
             torch.cuda.reset_peak_memory_stats()
+            profiler = None
+            if args.profile:
+                from torch.profiler import ProfilerActivity, profile, schedule
+                profiler = profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+                                   schedule=schedule(wait=2, warmup=1, active=3, repeat=1))
+                profiler.start()
+                train.PROFILER_STEP = profiler.step
             result = train.train_arm(args.arm, train_ids, bb, run_dir / mode, updates=args.updates,
                                      seed=C.SMOKE_TRAIN["seed"], device="cuda", prepared=prepared, log=None)
+            if profiler is not None:
+                profiler.stop()
+                train.PROFILER_STEP = None
+                for key in ("cpu_time_total", "cuda_time_total"):
+                    (run_dir / f"profile_{mode}_{key}.txt").write_text(
+                        profiler.key_averages().table(sort_by=key, row_limit=30))
             log = [json.loads(x) for x in Path(result["log"]).read_text().splitlines()]
             walls = [r["wall_seconds"] for r in log]
             rel = [abs(a["loss"] - b["loss"]) / max(abs(b["loss"]), 1e-12) for a, b in zip(log, ref)]
@@ -621,6 +634,7 @@ def main(argv=None) -> None:
     s = sub.add_parser("train-timing")
     s.add_argument("--arm", choices=["T4", "c4_params", "c4_active"], default="T4")
     s.add_argument("--updates", type=int, default=20)
+    s.add_argument("--profile", action="store_true", help="torch.profiler tables for updates 3-5 of each mode")
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=train_timing)

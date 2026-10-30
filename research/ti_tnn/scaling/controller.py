@@ -387,7 +387,9 @@ class Prepared:
             return self.tokens
         from safetensors import safe_open
         with safe_open(self.tokens_file, framework="pt") as f:
-            states = f.get_tensor("states")
+            # get_tensor maps the file; clone() reads it into ordinary memory here (on the prefetch thread). A mapped
+            # tensor copied to the GPU directly was read page by page during the copy: 5.3 s per update, measured.
+            states = f.get_tensor("states").clone()
         if states.shape[0] != self.n_tokens:
             raise RuntimeError(f"{self.task_id}: {self.tokens_file} holds {states.shape[0]} tokens, not {self.n_tokens}")
         return states
