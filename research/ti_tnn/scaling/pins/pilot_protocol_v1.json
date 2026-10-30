@@ -1,0 +1,7 @@
+{
+ "file": "research/ti_tnn/scaling/docs/PROTOCOL_pilot.md",
+ "sha256": "81427fdc798b38df2416eb3a6ace09b99338722055b069f25cdd54628aae6c71",
+ "frozen_at": "5bb852c4077cfcaec10c0a9f5e1dcb635087e1cb",
+ "frozen_on": "2026-10-30",
+ "review": "independent review of 3d42d4e and re-review of 45f871a (verdict: freeze); hardening fixed at 5bb852c4077cfcaec10c0a9f5e1dcb635087e1cb"
+}
