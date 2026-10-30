@@ -88,6 +88,20 @@ class ContextTooLong(RuntimeError):
     """Even the bare schema does not fit the token limit."""
 
 
+class CacheMiss(RuntimeError):
+    """`require_hit` was set and the cache has no entry for this backbone identity and context: nothing is computed."""
+
+
+class CacheCorrupt(RuntimeError):
+    """A cache entry's states do not hash to the sha256 recorded when it was written."""
+
+
+def states_sha256(states) -> str:
+    """sha256 of a state tensor's raw bytes (row-major, its own dtype)."""
+    import torch
+    return hashlib.sha256(states.contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
+
+
 # --- the context -----------------------------------------------------------------------------------------------------
 @dataclass(frozen=True)
 class Context:
@@ -300,8 +314,24 @@ class Backbone:
         material = json.dumps([self.identity(), list(map(int, token_ids))], sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(material.encode()).hexdigest()
 
+    @classmethod
+    def cache_reader(cls, identity: dict, tokenizer):
+        """A backbone with no model: it has `identity`'s cache keys, so it can read the entries that identity wrote
+        (on the CPU, with no GPU reservation). Any state it would have to compute raises."""
+        import torch
+        bb = cls.__new__(cls)
+        bb.model, bb.tokenizer, bb._torch = None, tokenizer, torch
+        bb.repo, bb.revision, bb.layer, bb.dtype = identity["repo"], identity["revision"], identity["layer"], identity["dtype"]
+        bb.hidden_size, bb.device = identity["hidden_size"], identity["device_type"]
+        bb.platform = {k: identity[k] for k in ("device_type", "device_name", "torch", "transformers", "linear_attention")}
+        if bb.identity() != identity:
+            raise ValueError("the identity does not describe a backbone of this encoder version")
+        return bb
+
     def states(self, token_ids: list):
         """[T, D] states of the chosen layer (backbone dtype, on CPU)."""
+        if self.model is None:
+            raise CacheMiss("a cache reader has no model: the states are not in the cache")
         torch = self._torch
         ids = torch.tensor([token_ids], dtype=torch.long, device=self.device)
         guard = reference_kernels(self.model) if not self.device.startswith("cuda") else contextlib.nullcontext()
@@ -338,12 +368,17 @@ def _write_once(path: Path, tensor, metadata: dict) -> int:
     return written
 
 
-def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None, use_cache: bool = True) -> tuple:
+def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None, use_cache: bool = True,
+                  require_hit: bool = False) -> tuple:
     """(states [T, D], cost dict). Reads the immutable cache entry, or computes and writes it once. With
-    `use_cache=False` it always computes and neither reads nor writes (a timed serving request pays its own forward)."""
-    from safetensors.torch import load_file
+    `use_cache=False` it always computes and neither reads nor writes (a timed serving request pays its own forward).
+    With `require_hit` a missing entry raises `CacheMiss` instead of being computed. An entry that records its
+    `states_sha256` (every entry written since encode-v2's pilot repair) is checked against it when read."""
+    from safetensors import safe_open
     key = backbone.cache_key(token_ids)
     path = cache_path(key, root)
+    if require_hit and not path.exists():
+        raise CacheMiss(f"no cache entry {path.name} for this backbone identity (require_hit)")
     t0 = time.perf_counter()
     if not use_cache:
         if backbone.device.startswith("cuda"):
@@ -354,10 +389,14 @@ def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = Non
         return states, {"cache_key": key, "cache_hit": False, "cache_used": False,
                         "forward_seconds": time.perf_counter() - t0, "bytes_written": 0, "bytes_read": 0}
     if path.exists():
-        states = load_file(str(path))["states"]
+        with safe_open(str(path), framework="pt") as f:
+            recorded = (f.metadata() or {}).get("states_sha256")
+            states = f.get_tensor("states").clone()
+        if recorded is not None and states_sha256(states) != recorded:
+            raise CacheCorrupt(f"{path}: the states do not hash to the sha256 recorded when it was written")
         if tuple(states.shape) != (len(token_ids), backbone.hidden_size):
             raise RuntimeError(f"cache entry {path} has shape {tuple(states.shape)}")
-        return states, {"cache_key": key, "cache_hit": True, "forward_seconds": 0.0,
+        return states, {"cache_key": key, "cache_hit": True, "forward_seconds": 0.0, "verified": recorded is not None,
                         "read_seconds": time.perf_counter() - t0, "bytes_written": 0,
                         "bytes_read": path.stat().st_size}
     if backbone.device.startswith("cuda"):
@@ -369,7 +408,8 @@ def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = Non
     forward = time.perf_counter() - t0
     import torch
     import transformers
-    meta = {**backbone.identity(), "tokens": len(token_ids), "torch": torch.__version__,
+    meta = {**backbone.identity(), "tokens": len(token_ids), "states_sha256": states_sha256(states),
+            "torch": torch.__version__,
             "transformers": transformers.__version__, "device": backbone.device,
             "device_name": torch.cuda.get_device_name(0) if backbone.device.startswith("cuda") else "cpu"}
     t1 = time.perf_counter()
@@ -428,13 +468,13 @@ def fit_context(task: C.Task, schema, examples, tokenizer, max_tokens: int) -> t
 
 
 def encode_request(backbone: Backbone, task: C.Task, schema, examples=(), *, max_tokens: "int | None" = None,
-                   cache_root: "Path | None" = None, use_cache: bool = True) -> Encoding:
+                   cache_root: "Path | None" = None, use_cache: bool = True, require_hit: bool = False) -> Encoding:
     """Build the context, tokenize, run (or read) the frozen backbone and locate items and spans."""
     t0 = time.perf_counter()
     max_tokens = max_tokens or C.Limits().max_context_tokens
     ctx, serialized, ids, offsets = fit_context(task, schema, examples, backbone.tokenizer, max_tokens)
     tok_seconds = time.perf_counter() - t0
-    states, cost = cached_states(backbone, ids, cache_root, use_cache=use_cache)
+    states, cost = cached_states(backbone, ids, cache_root, use_cache=use_cache, require_hit=require_hit)
     ranges = []
     for (a, b) in ctx.item_spans:
         r = token_range(offsets, a, b)

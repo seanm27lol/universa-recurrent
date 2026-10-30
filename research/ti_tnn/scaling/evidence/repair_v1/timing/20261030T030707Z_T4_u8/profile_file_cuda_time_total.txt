@@ -1,0 +1,36 @@
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                                   Name    Self CPU %      Self CPU   CPU total %     CPU total  CPU time avg     Self CUDA   Self CUDA %    CUDA total  CUDA time avg    # of Calls  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+                                          ProfilerStep*         0.00%       0.000us         0.00%       0.000us       0.000us        6.291s       394.66%        6.291s     419.389ms            15  
+                                          ProfilerStep*        24.68%     596.262ms        81.94%        1.980s     659.893ms       0.000us         0.00%     779.042ms     259.681ms             3  
+                                           aten::linear         0.03%     631.284us         0.69%      16.700ms      60.507us       0.000us         0.00%     358.060ms       1.297ms           276  
+                                            aten::addmm         0.31%       7.517ms         0.47%      11.297ms      42.791us     357.514ms        22.43%     357.514ms       1.354ms           264  
+void magma_sgemmEx_kernel<float, float, float, true,...         0.00%       0.000us         0.00%       0.000us       0.000us     355.569ms        22.31%     355.569ms       5.644ms            63  
+    autograd::engine::evaluate_function: AddmmBackward0         0.88%      21.143ms         2.93%      70.800ms     268.181us       0.000us         0.00%     302.083ms       1.144ms           264  
+                                               aten::mm         0.78%      18.884ms         1.19%      28.712ms      55.643us     272.679ms        17.11%     272.679ms     528.448us           516  
+                                         AddmmBackward0         0.23%       5.479ms         1.56%      37.596ms     142.407us       0.000us         0.00%     271.528ms       1.029ms           264  
+                                            aten::copy_         0.64%      15.553ms         6.14%     148.239ms      27.031us     267.387ms        16.77%     267.387ms      48.758us          5484  
+                                              aten::bmm         0.58%      14.118ms         0.69%      16.608ms      92.265us     205.364ms        12.88%     205.364ms       1.141ms           180  
+void cutlass::Kernel2<cutlass_80_simt_sgemm_128x128_...         0.00%       0.000us         0.00%       0.000us       0.000us     154.214ms         9.67%     154.214ms       3.352ms            46  
+      autograd::engine::evaluate_function: BmmBackward0         0.08%       1.832ms         0.78%      18.828ms     313.805us       0.000us         0.00%     138.664ms       2.311ms            60  
+                                           BmmBackward0         0.10%       2.380ms         0.70%      16.996ms     283.265us       0.000us         0.00%     138.664ms       2.311ms            60  
+                                            aten::clone         0.10%       2.431ms         0.87%      20.919ms      37.091us       0.000us         0.00%     133.564ms     236.815us           564  
+void at::native::vectorized_elementwise_kernel<4, at...         0.00%       0.000us         0.00%       0.000us       0.000us     120.329ms         7.55%     120.329ms     131.940us           912  
+void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us     117.029ms         7.34%     117.029ms     226.800us           516  
+                                          aten::reshape         0.14%       3.497ms         0.51%      12.334ms       7.238us       0.000us         0.00%     115.855ms      67.990us          1704  
+     autograd::engine::evaluate_function: ViewBackward0         0.24%       5.843ms         0.60%      14.489ms      34.498us       0.000us         0.00%     109.517ms     260.754us           420  
+                                               aten::to         0.08%       2.041ms         5.24%     126.501ms      44.154us       0.000us         0.00%     109.281ms      38.143us          2865  
+                                         aten::_to_copy         0.14%       3.284ms         5.15%     124.460ms      52.382us       0.000us         0.00%     109.281ms      45.994us          2376  
+                                             aten::add_         0.47%      11.384ms         0.97%      23.338ms      21.609us      95.282ms         5.98%      95.282ms      88.224us          1080  
+                                           aten::matmul         0.01%     264.834us         0.19%       4.530ms     125.823us       0.000us         0.00%      83.388ms       2.316ms            36  
+autograd::engine::evaluate_function: GatherBackward0...         0.06%       1.367ms         0.30%       7.201ms     150.027us       0.000us         0.00%      82.716ms       1.723ms            48  
+                                              aten::add         0.08%       1.876ms         0.13%       3.213ms      18.791us      80.880ms         5.07%      80.880ms     472.985us           171  
+void cutlass::Kernel2<cutlass_80_simt_sgemm_128x64_8...         0.00%       0.000us         0.00%       0.000us       0.000us      68.995ms         4.33%      68.995ms     733.988us            94  
+                                          ViewBackward0         0.04%     995.527us         0.30%       7.341ms      17.478us       0.000us         0.00%      64.533ms     153.649us           420  
+void at::native::unrolled_elementwise_kernel<at::nat...         0.00%       0.000us         0.00%       0.000us       0.000us      61.610ms         3.87%      61.610ms       4.107ms            15  
+void magma_sgemmEx_kernel<float, float, float, false...         0.00%       0.000us         0.00%       0.000us       0.000us      60.320ms         3.78%      60.320ms       1.058ms            57  
+void at::native::elementwise_kernel<128, 2, at::nati...         0.00%       0.000us         0.00%       0.000us       0.000us      55.731ms         3.50%      55.731ms     774.045us            72  
+                                            aten::fill_         0.29%       7.033ms         0.74%      17.859ms      15.148us      55.133ms         3.46%      55.133ms      46.763us          1179  
+-------------------------------------------------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  ------------  
+Self CPU time total: 2.416s
+Self CUDA time total: 1.594s

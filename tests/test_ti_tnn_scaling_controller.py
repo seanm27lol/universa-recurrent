@@ -338,3 +338,155 @@ def test_smoke_records_pass_the_common_record_checks(backbone, monkeypatch):
         recs.append(cli._controller_record(ev, "C4_params", "cfg", snap, score))
     summary = R.summarize(recs, list(tasks))
     assert summary["arm"] == "C4_params" and summary["requested"] == 3 and summary["tool_calls"] == 0
+
+
+# --- the training-throughput repair: BF16 storage, cached step tensors, device collate, length groups, file-backed
+def _old_step_tensors(examples):
+    """The dense steps as collate built them before the repair: every example at the batch's N and T."""
+    N = max(e.items.shape[0] for e in examples)
+    T = max(e.n_tokens for e in examples)
+    per = [K.step_tensors(e.steps, N, T) for e in examples]
+    S = max(p["valid"].shape[0] for p in per)
+    out = {}
+    for key in per[0]:
+        buf = torch.zeros((len(per), S) + tuple(per[0][key].shape[1:]), dtype=per[0][key].dtype)
+        for b, p in enumerate(per):
+            buf[b, :p[key].shape[0]] = p[key]
+        out[key] = buf
+    return out
+
+
+def test_cached_step_tensors_pad_to_the_same_batch(prepared):
+    new = K.collate(prepared).steps
+    old = _old_step_tensors(prepared)
+    assert new.keys() == old.keys() and all(torch.equal(new[k], old[k]) for k in old)
+
+
+def test_bf16_storage_gives_exactly_the_float32_losses(prepared):
+    model = models()["T4"]
+    as_bf16 = [K.Prepared(**{**e.__dict__, "tokens": e.tokens.to(torch.bfloat16)}) for e in prepared]
+    widened = [K.Prepared(**{**e.__dict__, "tokens": e.tokens.to(torch.bfloat16).float()}) for e in prepared]
+    a, b = model.losses(K.collate(as_bf16)), model.losses(K.collate(widened))
+    assert K.collate(as_bf16).tokens.dtype == torch.bfloat16
+    assert all(torch.equal(a[k], b[k]) for k in ("total", "family", "op", "pointer"))
+
+
+def test_file_backed_examples_train_exactly_like_in_memory_ones(prepared, backbone, cache_root, tmp_path):
+    lazy = []
+    for e in prepared:
+        key = e.meta["cost"]["cache_key"]
+        lazy.append(K.Prepared(**{**e.__dict__, "tokens": None,
+                                  "tokens_file": str(E.cache_path(key, cache_root))}))
+    assert all(torch.equal(x.token_states(), y.tokens) for x, y in zip(lazy, prepared))
+    cfg = T.TrainConfig(arm="T4", updates=3, effective_batch=2, micro_batch=1, checkpoint_every=0)
+    a = T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "memory", log=None)
+    b = T.fit(T.build_model("T4", 16, 100), lazy, cfg, tmp_path / "file", log=None)
+    for key in ("model_digest", "optimizer_digest"):
+        assert a["checkpoints"][-1][key] == b["checkpoints"][-1][key]
+
+
+def test_micro_batches_group_by_length_and_keep_the_update(prepared):
+    groups = T.micro_batches(prepared, [2, 0, 1], 2)
+    assert sorted(i for g in groups for i in g) == [0, 1, 2]
+    lengths = [prepared[i].n_tokens for g in groups for i in g]
+    assert lengths == sorted(lengths)
+
+
+def test_the_prefetcher_reads_the_files_of_the_update(prepared, cache_root):
+    lazy = [K.Prepared(**{**e.__dict__, "tokens": None,
+                          "tokens_file": str(E.cache_path(e.meta["cost"]["cache_key"], cache_root))})
+            for e in prepared]
+    cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1)
+    pf = T.Prefetcher(lazy, cfg, 0)
+    try:
+        for update in range(2):
+            got = pf.get(update)
+            wanted = {lazy[i].task_id for i in T.batch_indices(len(lazy), update, cfg)}
+            assert set(got) == wanted
+    finally:
+        pf.close()
+    assert T.Prefetcher(prepared, cfg, 0).get(0) == {}  # in-memory examples need no reads
+
+
+def test_the_matmul_precision_is_recorded_and_restored(prepared, tmp_path):
+    before = torch.get_float32_matmul_precision()
+    cfg = T.TrainConfig(arm="T4", updates=1, effective_batch=2, micro_batch=1, matmul_precision="high")
+    T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "run", log=None)
+    assert torch.get_float32_matmul_precision() == before
+    assert json.loads((tmp_path / "run" / "config.json").read_text())["train"]["matmul_precision"] == "high"
+
+
+# --- the review of cf1ad78: cache integrity, hit-only reads, dtype mixing, evaluation precision ------------------------
+def test_new_cache_entries_record_and_check_their_hash(backbone, tmp_path):
+    from safetensors import safe_open
+    from safetensors.torch import save_file
+    task = C.Task(task_id="h1", db_id="cinema", question="Who directed Alpha?", evidence="", split="dev")
+    first = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    path = E.cache_path(first.cost["cache_key"], tmp_path)
+    with safe_open(str(path), framework="pt") as f:
+        meta = f.metadata()
+    assert meta["states_sha256"] == E.states_sha256(first.states)
+    again = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    assert again.cost["cache_hit"] and again.cost["verified"]
+    path.unlink()  # the same size, one value changed, the recorded hash kept
+    bad = first.states.clone()
+    bad[0, 0] += 1
+    save_file({"states": bad}, str(path), metadata=meta)
+    with pytest.raises(E.CacheCorrupt):
+        E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+
+
+def test_require_hit_refuses_to_encode_and_a_cache_reader_reads_without_a_model(backbone, tmp_path):
+    task = C.Task(task_id="h2", db_id="cinema", question="How many movies?", evidence="", split="dev")
+    with pytest.raises(E.CacheMiss):
+        E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path, require_hit=True)
+    assert not any(tmp_path.rglob("*.safetensors"))
+    written = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    reader = E.Backbone.cache_reader(backbone.identity(), backbone.tokenizer)
+    read = E.encode_request(reader, task, SCHEMA, [], cache_root=tmp_path, require_hit=True)
+    assert torch.equal(read.states, written.states) and read.cost["cache_hit"]
+    other = C.Task(task_id="h3", db_id="cinema", question="Which director?", evidence="", split="dev")
+    with pytest.raises(E.CacheMiss):
+        E.encode_request(reader, other, SCHEMA, [], cache_root=tmp_path)  # no model to compute with
+
+
+def test_a_file_changed_after_prepare_is_refused(prepared, cache_root, tmp_path):
+    import shutil
+    from safetensors import safe_open
+    from safetensors.torch import save_file
+    e = prepared[0]
+    src = E.cache_path(e.meta["cost"]["cache_key"], cache_root)
+    copy = tmp_path / src.name
+    shutil.copy(src, copy)
+    enc_states = e.tokens
+    lazy = K.Prepared(**{**e.__dict__, "tokens": None, "tokens_file": str(copy), "tokens_crc32": K._crc32(enc_states)})
+    assert torch.equal(lazy.token_states(), enc_states)
+    with safe_open(str(copy), framework="pt") as f:
+        meta = f.metadata()
+    bad = enc_states.clone()
+    bad[-1, -1] += 1
+    save_file({"states": bad}, str(copy), metadata=meta)
+    with pytest.raises(RuntimeError, match="CRC32"):
+        lazy.token_states()
+
+
+def test_a_batch_cannot_mix_state_dtypes(prepared):
+    mixed = [prepared[0], K.Prepared(**{**prepared[1].__dict__, "tokens": prepared[1].tokens.to(torch.bfloat16)})]
+    with pytest.raises(ValueError, match="mixes state dtypes"):
+        K.collate(mixed)
+
+
+def test_evaluation_sets_and_restores_its_matmul_precision(backbone, monkeypatch):
+    from scaling import data, retrieval
+    tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e, split="dev")
+             for tid, q, e, _ in REQUESTS}
+    monkeypatch.setattr(data, "task", lambda tid: tasks[tid])
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    seen = []
+    real = I.decode_one
+    monkeypatch.setattr(I, "decode_one", lambda *a, **k: (seen.append(torch.get_float32_matmul_precision()),
+                                                         real(*a, **k))[1])
+    before = torch.get_float32_matmul_precision()
+    I.evaluate(models()["T4"], ["t1"], backbone, score=False, max_steps=20, matmul_precision="high", log=None)
+    assert seen == ["high"] and torch.get_float32_matmul_precision() == before

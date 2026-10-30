@@ -351,6 +351,17 @@ ungroundable literals. The 128 ids are in `pins/ir_coverage_v1.json` under `smok
 - one micro-batch of 8: about 0.55 s for both T4 and c4_params;
 - a full effective batch of 32 (4 x 8): about 2.2 to 2.4 s.
 
+**GPU time per update, after the throughput repair** (`REPAIR_training_throughput.md`): 0.52 s on the smoke's
+questions, against 1.78 s in the smoke. That is with the states read from the cache files and TF32 matmuls. The
+repair keeps:
+- the states in BF16 until they reach the GPU;
+- the dense step tensors built once per example;
+- the padded batch built on the GPU;
+- micro-batches grouped by context length.
+
+Training can also run without holding the states in memory: `prepare_examples(lazy=True)` plus a background
+prefetcher. The pilot's pool (about 126 GB of states) needs that.
+
 ## 6. Decoding (`infer_controller.py`)
 
 Decoding is greedy and legal at every step:
@@ -383,7 +394,7 @@ trunk, semantic and pointer, plus the per-request memory MACs. Batch-of-one deco
 **Evidence.** These CPU tests, all synthetic and data-free, run in CI:
 - `tests/test_ti_tnn_scaling_ir.py` (47);
 - `tests/test_ti_tnn_scaling_actions.py` (36);
-- `tests/test_ti_tnn_scaling_controller.py` (15).
+- `tests/test_ti_tnn_scaling_controller.py` (21).
 
 They establish:
 - SQL NULL, duplicate and ordering semantics through the compiler;

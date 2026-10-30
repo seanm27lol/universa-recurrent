@@ -1,0 +1,41 @@
+{
+ "config_identity": "9dc2946cbbc46869611cf0679c778a784d229230111349c1b17cba8bf07f4468",
+ "modes": {
+  "file": {
+   "cache_hits": 128,
+   "examples": 128,
+   "loss_max_relative_difference_from_reference": 1.779725592626207e-05,
+   "losses": [
+    4.639228312174479,
+    4.0630164169683685,
+    3.7413230363245225,
+    3.19895450749087,
+    2.795225649463887,
+    2.4511621335131974,
+    2.4540247300091913,
+    2.0990494848976673,
+    1.928413824487079,
+    1.8462626790572982,
+    1.6209355755581882,
+    1.646295571875999
+   ],
+   "peak_memory_bytes": 24854061568,
+   "prefetch_wait_seconds_mean": 0.014628414685527483,
+   "prepare_seconds": 7.438307007774711,
+   "same_examples_as_reference": true,
+   "update_seconds_after_first": 0.7975244136019186,
+   "update_seconds_mean": 0.8929756065675368,
+   "update_seconds_median": 0.7702068518847227
+  }
+ },
+ "reference": {
+  "log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/train_log.jsonl",
+  "update_seconds_mean": 1.7790806437066446
+ },
+ "reservation": {
+  "hours": 0.01951097802284898,
+  "id": "20261030T031126-53cd8dd3",
+  "projected_hours": 0.08
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/timing/20261030T031126Z_T4_u12_mb16_high"
+}

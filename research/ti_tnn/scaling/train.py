@@ -28,6 +28,12 @@ states, but pickle can lay the same objects out differently, so the verifier com
 `train_log.jsonl` keeps the lines before the resume point; later lines move to `train_log.superseded.jsonl`, so an
 abandoned stretch of training stays visible.
 
+**Throughput.** Each update's examples are grouped into micro-batches of similar context length. The states reach the
+GPU in their cached BF16 and are widened there. With `prepare_examples(lazy=True)` they are not held in memory at
+all: `Prefetcher` reads the next update's states from the cache files while the current one computes.
+`TrainConfig.matmul_precision` records whether matmuls ran in float32 ("highest", the smoke) or TF32 ("high").
+Measurements are in `docs/REPAIR_training_throughput.md`.
+
 **Limits.** This is supervised imitation of gold traversals only: no reinforcement, no execution feedback, no repair,
 no beam. The smoke run's 100 updates on 128 questions test the machinery; they say nothing about the comparison.
 """
@@ -71,6 +77,9 @@ class TrainConfig:
     loss_weights: dict = field(default_factory=lambda: {"family": 1.0, "op": 1.0, "pointer": 1.0})
     checkpoint_every: int = 0       # 0: the final update only
     device: str = "cpu"
+    # torch.set_float32_matmul_precision while fitting: "highest" (float32, as in the smoke) or "high" (TF32 tensor
+    # cores: float32 storage, inputs rounded to a 10-bit mantissa inside each product; BF16 states are exact in it)
+    matmul_precision: str = "highest"
     sampling: str = SAMPLING_RULE
     normalization: str = NORMALIZATION
     version: str = TRAIN_VERSION
@@ -218,6 +227,52 @@ def make_optimizer(model, cfg: TrainConfig):
                              weight_decay=cfg.weight_decay)
 
 
+class Prefetcher:
+    """Reads the next update's file-backed token states on a background thread while the current update computes.
+    In-memory examples need nothing. File reads release the GIL, so the read overlaps the GPU work."""
+
+    def __init__(self, examples: list, cfg: TrainConfig, start: int):
+        import concurrent.futures
+        self.examples, self.cfg = examples, cfg
+        self.lazy = any(e.tokens is None for e in examples)
+        self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1) if self.lazy else None
+        self.pending = {}
+        if self.lazy and start < cfg.updates:
+            self._submit(start)
+
+    def _load(self, update: int) -> dict:
+        idx = batch_indices(len(self.examples), update, self.cfg)
+        return {self.examples[i].task_id: self.examples[i].token_states() for i in idx
+                if self.examples[i].tokens is None}
+
+    def _submit(self, update: int) -> None:
+        self.pending[update] = self.pool.submit(self._load, update)
+
+    def get(self, update: int) -> dict:
+        """The states for `update` (blocking until read), after scheduling update + 1."""
+        if not self.lazy:
+            return {}
+        if update + 1 < self.cfg.updates:
+            self._submit(update + 1)
+        future = self.pending.pop(update, None) or self.pool.submit(self._load, update)
+        return future.result()
+
+    def close(self) -> None:
+        if self.pool is not None:
+            self.pool.shutdown(wait=True, cancel_futures=True)
+
+
+PROFILER_STEP = None  # set by `cli train-timing --profile`; called once per update
+
+
+def micro_batches(examples: list, idx: list, micro_batch: int) -> list:
+    """The update's examples in micro-batches of similar context length, so little is padded. The update's example set,
+    and so its summed loss and gradient, are those of `idx`; only the grouping (and with it the floating-point
+    summation order) changes."""
+    order = sorted(idx, key=lambda i: (examples[i].n_tokens, i))
+    return [order[m0:m0 + micro_batch] for m0 in range(0, len(order), micro_batch)]
+
+
 def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resume_from=None, extra_config=None,
         log=print) -> dict:
     """Train for cfg.updates updates (from 0, or after the update stored in `resume_from`)."""
@@ -249,17 +304,32 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
             log_path.write_text("".join(ln + "\n" for ln in keep))
     checkpoints = []
     n = len(examples)
+    prefetch = Prefetcher(examples, cfg, start)
+    previous = torch.get_float32_matmul_precision()
+    torch.set_float32_matmul_precision(cfg.matmul_precision)
+    try:
+        return _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_path, checkpoints, config,
+                         config_identity, device, log)
+    finally:
+        torch.set_float32_matmul_precision(previous)
+        prefetch.close()
+
+
+def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_path, checkpoints, config,
+              config_identity, device, log) -> dict:
     for update in range(start, cfg.updates):
         t0 = time.perf_counter()
         idx = batch_indices(n, update, cfg)
+        loaded = prefetch.get(update)
+        t_wait = time.perf_counter() - t0
         steps_total = sum(len(examples[i].steps) for i in idx)
         optimizer.zero_grad(set_to_none=True)
         sums = {"total": 0.0, "family": 0.0, "op": 0.0, "pointer": 0.0}
         counts = {"steps": 0, "op_steps": 0, "pointer_steps": 0}
         if hasattr(model.semantic, "calls"):
             model.semantic.calls.clear()
-        for m0 in range(0, len(idx), cfg.micro_batch):
-            batch = K.collate([examples[i] for i in idx[m0:m0 + cfg.micro_batch]]).to(device)
+        for group in micro_batches(examples, idx, cfg.micro_batch):
+            batch = K.collate([examples[i] for i in group], device=device, token_states=loaded)
             out = model.losses(batch, cfg.loss_weights)
             (out["total"] / steps_total).backward()
             for key in sums:
@@ -274,12 +344,15 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
                   "family": sums["family"] / steps_total, "op": sums["op"] / steps_total,
                   "pointer": sums["pointer"] / steps_total, **counts, "examples": [examples[i].task_id for i in idx],
                   "grad_norm": grad_norm, "lr": cfg.lr, "wall_seconds": time.perf_counter() - t0,
+                  "prefetch_wait_seconds": t_wait,
                   "head_calls": list(getattr(model.semantic, "calls", []))}
         with open(log_path, "a") as fh:
             fh.write(json.dumps(record) + "\n")
         if log and (update % 10 == 0 or update == cfg.updates - 1):
             log(f"{cfg.arm} update {update}: loss {record['loss']:.4f} (family {record['family']:.4f}, op "
                 f"{record['op']:.4f}, pointer {record['pointer']:.4f}), {record['wall_seconds']:.2f} s")
+        if PROFILER_STEP is not None:
+            PROFILER_STEP()
         last = update == cfg.updates - 1
         if last or (cfg.checkpoint_every and (update + 1) % cfg.checkpoint_every == 0):
             checkpoints.append(save_checkpoint(run_dir, model, optimizer, update, config))
@@ -300,9 +373,14 @@ def gold_steps(gold_sql: str, encoding) -> tuple:
         return None, f"not encodable: {e.reason}"
 
 
-def prepare_examples(task_ids, backbone, *, cache_root=None, log=print) -> tuple:
+def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, require_hit: bool = False,
+                     log=print) -> tuple:
     """Encode training tasks (frozen backbone, cached) and attach their gold teacher-forcing steps.
-    Returns (prepared, skipped {task_id: reason}, costs {task_id: cost})."""
+    Returns (prepared, skipped {task_id: reason}, costs {task_id: cost}). With `lazy`, each example keeps only the
+    path of its cache file and training reads the states per update (the prefetcher overlaps the reads); each read is
+    checked against the CRC32 of the states seen here. With `require_hit`, a missing cache entry raises
+    `encode.CacheMiss` instead of being encoded (the pilot prepares from `encode-pool`'s entries only, on the CPU,
+    with `encode.Backbone.cache_reader`)."""
     from . import data, encode, retrieval
     from . import schema as schema_mod
     prepared, skipped, costs = [], {}, {}
@@ -312,7 +390,7 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, log=print) -> tuple
             raise ValueError(f"{tid} is a {task.split} question; training reads the training pool only")
         try:
             enc = encode.encode_request(backbone, task, schema_mod.load_schema(task.db_id), retrieval.retrieve(task),
-                                        cache_root=cache_root)
+                                        cache_root=cache_root, require_hit=require_hit)
         except encode.ContextTooLong as e:
             skipped[tid] = f"context too long: {e}"
             continue
@@ -321,10 +399,67 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, log=print) -> tuple
         if steps is None:
             skipped[tid] = reason
             continue
-        prepared.append(K.prepare(enc, steps))
+        tokens_file = str(encode.cache_path(enc.cost["cache_key"], cache_root)) if lazy else None
+        prepared.append(K.prepare(enc, steps, tokens_file=tokens_file))
         if log and (n + 1) % 32 == 0:
             log(f"prepared {n + 1}/{len(task_ids)} ({len(skipped)} skipped)")
     return prepared, skipped, costs
+
+
+def supervisable(task_ids, tokenizer, log=None) -> tuple:
+    """(kept ids in the given order, {skipped id: reason}): training-pool questions whose gold SQL converts to tirel-1 and
+    traces through the action grammar, with literals grounded in this tokenizer's question/evidence tokens. CPU only:
+    tokenization, no backbone forward."""
+    from . import data, encode, retrieval
+    from . import schema as schema_mod
+    kept, skipped = [], {}
+    for n, tid in enumerate(task_ids):
+        task = data.task(tid)
+        if task.split != "train":
+            raise ValueError(f"{tid} is a {task.split} question; training reads the training pool only")
+        try:
+            ctx, serialized, _ids, offsets = encode.fit_context(task, schema_mod.load_schema(task.db_id),
+                                                                retrieval.retrieve(task), tokenizer,
+                                                                C.Limits().max_context_tokens)
+        except encode.ContextTooLong as e:
+            skipped[tid] = f"context too long: {e}"
+            continue
+
+        class _Enc:  # the parts of an Encoding that gold_steps reads
+            schema = A.SchemaItems(serialized.items)
+            spans = encode.span_index(ctx, offsets)
+
+        steps, reason = gold_steps(data.gold(tid).sql, _Enc)
+        if steps is None:
+            skipped[tid] = reason
+        else:
+            kept.append(tid)
+        if log and (n + 1) % 500 == 0:
+            log(f"checked {n + 1}/{len(task_ids)}: {len(kept)} supervisable")
+    return kept, skipped
+
+
+PILOT_TRAIN_PIN = "pilot_train_v1.json"
+
+
+def pilot_train_pin(tokenizer, rewrite: bool = False, log=print) -> dict:
+    """pins/pilot_train_v1.json: every supervisable training-pool question, in release order, under the current
+    grammar and the pinned tokenizer (the pilot's training set), with the reason for each one left out."""
+    from collections import Counter
+
+    from . import data
+    ids = [t.task_id for t in data.tasks("train")]
+    kept, skipped = supervisable(ids, tokenizer, log=log)
+    payload = {"version": "pilot_train_v1", "study": C.STUDY, "grammar": A.GRAMMAR_VERSION,
+               "tokenizer": {"repo": C.MODELS["B4"]["repo"], "revision": C.MODELS["B4"]["revision"]},
+               "rule": "every training-pool question, in release order, whose gold SQL converts to tirel-1 and traces "
+                       "through the action grammar with its literals grounded in the request's question/evidence "
+                       "tokens (train.supervisable)",
+               "split_pin_sha256": data.pin_digest(data.PIN_SPLIT), "training_pool_questions": len(ids),
+               "supervisable": len(kept), "skipped_reasons": dict(sorted(Counter(
+                   r.split(":")[0] for r in skipped.values()).items())),
+               "task_ids": kept, "skipped": dict(sorted(skipped.items()))}
+    return data.write_pin(C.PINS / PILOT_TRAIN_PIN, payload, rewrite=rewrite)
 
 
 def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tuple:
@@ -359,14 +494,16 @@ def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tupl
 
 def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_TRAIN["max_updates"],
               seed: int = C.SMOKE_TRAIN["seed"], device: "str | None" = None, micro_batch: int = 8,
-              cache_root=None, prepared=None, resume_from=None, log=print) -> dict:
+              cache_root=None, prepared=None, resume_from=None, lazy: bool = False,
+              matmul_precision: str = "highest", log=print) -> dict:
     """The CLI entry point: encode (or reuse `prepared`), build the arm under `seed`, fit, checkpoint."""
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     skipped, costs = {}, {}
     if prepared is None:
-        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, log=log)
-    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].tokens.shape[1], seed)
-    cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device)
+        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy, log=log)
+    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed)
+    cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device,
+                      matmul_precision=matmul_precision)
     extra = {"backbone": backbone.identity() if backbone is not None else None, "skipped": skipped,
              "requested_task_ids": list(task_ids)}
     result = fit(model, prepared, cfg, run_dir, resume_from=resume_from, extra_config=extra, log=log)
