@@ -42,6 +42,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import random
 import time
 from dataclasses import asdict, dataclass, field
@@ -380,7 +381,13 @@ def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_
             PROFILER_STEP()
         last = update == cfg.updates - 1
         if last or (cfg.checkpoint_every and (update + 1) % cfg.checkpoint_every == 0):
-            checkpoints.append(save_checkpoint(run_dir, model, optimizer, update, config))
+            entry = save_checkpoint(run_dir, model, optimizer, update, config)
+            checkpoints.append(entry)
+            # recorded the moment it exists, so a stop before the caller's summary loses no checkpoint
+            with open(Path(run_dir) / "checkpoints.jsonl", "a") as fh:
+                fh.write(json.dumps({**entry, "config_identity": config_identity}) + "\n")
+                fh.flush()
+                os.fsync(fh.fileno())
     return {"config_identity": config_identity, "run_dir": str(run_dir), "checkpoints": checkpoints,
             "log": str(log_path)}
 

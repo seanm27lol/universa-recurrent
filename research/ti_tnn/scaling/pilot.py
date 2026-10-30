@@ -51,25 +51,43 @@ def eval_ids() -> list:
     return data.inventory_ids(EVAL_SIZE)
 
 
-def load_anchors(root: Path = None) -> tuple:
-    """({task_id: anchor}, backbone identity) from every encoding run's entries.jsonl. Each anchor was written by the
-    run that created (or verified) the cache entry: {task_id, cache_key, states_sha256, tokens, ...}. Two anchors for
-    one task must agree, and every anchor must come from one backbone identity."""
+def load_anchors(root: Path = None, protocol_sha256: "str | None" = None) -> tuple:
+    """({task_id: anchor}, backbone identity) from every encoding run's entries.jsonl.
+
+    Each anchor was written by the run that created the cache entry, or that recomputed an existing entry
+    independently and found it equal: {task_id, cache_key, states_sha256, tokens, ...}. The rules:
+    - Two anchors for one task must agree.
+    - Every anchor must come from one backbone identity.
+    - With `protocol_sha256`, an anchor is accepted only from a run whose manifest names that frozen protocol and a
+      clean research tree.
+    - A half-written final line (a crash mid-append) is ignored and listed in the result's `ignored`. Its entry has
+      no anchor until a later encoding run recomputes it."""
     root = Path(root) if root is not None else ROOT / "encode"
-    anchors, identities = {}, set()
+    anchors, identities, ignored = {}, set(), []
     for entries in sorted(root.glob("*/entries.jsonl")):
-        identities.add(json.dumps(json.loads((entries.parent / "backbone.json").read_text()), sort_keys=True))
-        for line in entries.read_text().splitlines():
-            if not line.strip():
-                continue
+        run = entries.parent
+        if protocol_sha256 is not None:
+            manifest = json.loads((run / "manifest.json").read_text())
+            if manifest["git"]["research_tree_dirty"] or \
+                    (manifest["config"].get("protocol") or {}).get("sha256") != protocol_sha256:
+                raise ValueError(f"{run.name}: anchors from a dirty tree or another protocol are not accepted")
+        identities.add(json.dumps(json.loads((run / "backbone.json").read_text()), sort_keys=True))
+        text = entries.read_text()
+        lines = text.split("\n")
+        if lines and lines[-1] == "":
+            lines = lines[:-1]
+        elif lines:
+            ignored.append(f"{run.name}: a half-written final line")
+            lines = lines[:-1]
+        for line in lines:
             a = json.loads(line)
             old = anchors.get(a["task_id"])
             if old is not None and (old["cache_key"], old["states_sha256"]) != (a["cache_key"], a["states_sha256"]):
                 raise ValueError(f"{a['task_id']}: two encoding runs anchored different entries")
-            anchors[a["task_id"]] = a
+            anchors.setdefault(a["task_id"], a)
     if len(identities) > 1:
         raise ValueError(f"the anchors come from {len(identities)} backbone identities")
-    return anchors, (json.loads(identities.pop()) if identities else None)
+    return anchors, (json.loads(identities.pop()) if identities else None), ignored
 
 
 def feasibility_sample(ids: list, lengths: dict, n: int = 160) -> list:
