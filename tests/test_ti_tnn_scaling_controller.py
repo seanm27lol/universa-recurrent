@@ -406,3 +406,11 @@ def test_the_prefetcher_reads_the_files_of_the_update(prepared, cache_root):
     finally:
         pf.close()
     assert T.Prefetcher(prepared, cfg, 0).get(0) == {}  # in-memory examples need no reads
+
+
+def test_the_matmul_precision_is_recorded_and_restored(prepared, tmp_path):
+    before = torch.get_float32_matmul_precision()
+    cfg = T.TrainConfig(arm="T4", updates=1, effective_batch=2, micro_batch=1, matmul_precision="high")
+    T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "run", log=None)
+    assert torch.get_float32_matmul_precision() == before
+    assert json.loads((tmp_path / "run" / "config.json").read_text())["train"]["matmul_precision"] == "high"

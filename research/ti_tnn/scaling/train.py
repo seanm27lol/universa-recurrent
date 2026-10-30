@@ -71,6 +71,9 @@ class TrainConfig:
     loss_weights: dict = field(default_factory=lambda: {"family": 1.0, "op": 1.0, "pointer": 1.0})
     checkpoint_every: int = 0       # 0: the final update only
     device: str = "cpu"
+    # torch.set_float32_matmul_precision while fitting: "highest" (float32, as in the smoke) or "high" (TF32 tensor
+    # cores: float32 storage, inputs rounded to a 10-bit mantissa inside each product; BF16 states are exact in it)
+    matmul_precision: str = "highest"
     sampling: str = SAMPLING_RULE
     normalization: str = NORMALIZATION
     version: str = TRAIN_VERSION
@@ -296,10 +299,13 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
     checkpoints = []
     n = len(examples)
     prefetch = Prefetcher(examples, cfg, start)
+    previous = torch.get_float32_matmul_precision()
+    torch.set_float32_matmul_precision(cfg.matmul_precision)
     try:
         return _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_path, checkpoints, config,
                          config_identity, device, log)
     finally:
+        torch.set_float32_matmul_precision(previous)
         prefetch.close()
 
 
@@ -422,14 +428,16 @@ def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tupl
 
 def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_TRAIN["max_updates"],
               seed: int = C.SMOKE_TRAIN["seed"], device: "str | None" = None, micro_batch: int = 8,
-              cache_root=None, prepared=None, resume_from=None, lazy: bool = False, log=print) -> dict:
+              cache_root=None, prepared=None, resume_from=None, lazy: bool = False,
+              matmul_precision: str = "highest", log=print) -> dict:
     """The CLI entry point: encode (or reuse `prepared`), build the arm under `seed`, fit, checkpoint."""
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     skipped, costs = {}, {}
     if prepared is None:
         prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy, log=log)
     model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed)
-    cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device)
+    cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device,
+                      matmul_precision=matmul_precision)
     extra = {"backbone": backbone.identity() if backbone is not None else None, "skipped": skipped,
              "requested_task_ids": list(task_ids)}
     result = fit(model, prepared, cfg, run_dir, resume_from=resume_from, extra_config=extra, log=log)
