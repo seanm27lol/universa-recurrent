@@ -597,3 +597,49 @@ def test_a_checkpoint_resumes_only_its_own_configuration(prepared, tmp_path, mon
         T.fit(T.build_model(arm, 16, 100), examples, cfg, tmp_path / "b", resume_from=first, extra_config=extra,
               log=None)
     assert not (tmp_path / "b" / "config.json").exists()  # refused before anything was written
+
+
+def test_the_backbone_forward_ignores_the_decoding_precision(backbone, monkeypatch):
+    """The pilot's feasibility check (2026-10-30) found fresh evaluation states differing from their anchors: the
+    evaluation's TF32 setting had also covered the backbone's float32 matmuls. The forward now always runs at
+    'highest', and only the decoding uses the requested precision."""
+    from scaling import data, retrieval
+    monkeypatch.setattr(data, "task", lambda tid: C.Task(task_id=tid, db_id="cinema", question="Who directed Alpha?",
+                                                         evidence="", split="dev"))
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    seen = {"forward": [], "decode": []}
+    real_states, real_decode = E.Backbone.states, I.decode_one
+
+    def states(self, ids):
+        seen["forward"].append(torch.get_float32_matmul_precision())
+        return real_states(self, ids)
+
+    def decode(*a, **k):
+        seen["decode"].append(torch.get_float32_matmul_precision())
+        return real_decode(*a, **k)
+    monkeypatch.setattr(E.Backbone, "states", states)
+    monkeypatch.setattr(I, "decode_one", decode)
+    before = torch.get_float32_matmul_precision()
+    torch.set_float32_matmul_precision("high")  # even a caller's global setting does not reach the forward
+    try:
+        I.evaluate(models()["T4"], ["t1"], backbone, score=False, use_cache=False, max_steps=10,
+                   matmul_precision="high", log=None)
+        assert torch.get_float32_matmul_precision() == "high"
+    finally:
+        torch.set_float32_matmul_precision(before)
+    assert seen["decode"] == ["high"] and len(seen["forward"]) == 1  # decoding at the requested precision
+    precision_inside = []
+    monkeypatch.setattr(E.Backbone, "states", real_states)
+    real_model_forward = backbone.model.forward
+
+    def spy(*a, **k):
+        precision_inside.append(torch.get_float32_matmul_precision())
+        return real_model_forward(*a, **k)
+    monkeypatch.setattr(backbone.model, "forward", spy)
+    torch.set_float32_matmul_precision("high")
+    try:
+        backbone.states([1, 2, 3])
+    finally:
+        torch.set_float32_matmul_precision(before)
+    assert precision_inside == ["highest"]

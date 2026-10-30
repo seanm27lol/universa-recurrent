@@ -345,13 +345,20 @@ class Backbone:
         torch = self._torch
         ids = torch.tensor([token_ids], dtype=torch.long, device=self.device)
         guard = reference_kernels(self.model) if not self.device.startswith("cuda") else contextlib.nullcontext()
-        with torch.inference_mode(), guard:
-            if self.layer == -1:
-                out = self.model(input_ids=ids, use_cache=False)
-                h = out.last_hidden_state
-            else:
-                out = self.model(input_ids=ids, use_cache=False, output_hidden_states=True)
-                h = out.hidden_states[self.layer]
+        # float32 matmuls inside the BF16 model (the linear-attention reference functions, norms) always run at
+        # "highest", whatever a caller set: every cached state was computed so, and a fresh forward must equal them
+        previous = torch.get_float32_matmul_precision()
+        torch.set_float32_matmul_precision("highest")
+        try:
+            with torch.inference_mode(), guard:
+                if self.layer == -1:
+                    out = self.model(input_ids=ids, use_cache=False)
+                    h = out.last_hidden_state
+                else:
+                    out = self.model(input_ids=ids, use_cache=False, output_hidden_states=True)
+                    h = out.hidden_states[self.layer]
+        finally:
+            torch.set_float32_matmul_precision(previous)
         return h[0].detach().to("cpu").contiguous()
 
 
