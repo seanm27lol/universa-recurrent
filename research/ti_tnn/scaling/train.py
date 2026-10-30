@@ -373,10 +373,14 @@ def gold_steps(gold_sql: str, encoding) -> tuple:
         return None, f"not encodable: {e.reason}"
 
 
-def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, log=print) -> tuple:
+def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, require_hit: bool = False,
+                     log=print) -> tuple:
     """Encode training tasks (frozen backbone, cached) and attach their gold teacher-forcing steps.
     Returns (prepared, skipped {task_id: reason}, costs {task_id: cost}). With `lazy`, each example keeps only the
-    path of its cache file and training reads the states per update (the prefetcher overlaps the reads)."""
+    path of its cache file and training reads the states per update (the prefetcher overlaps the reads); each read is
+    checked against the CRC32 of the states seen here. With `require_hit`, a missing cache entry raises
+    `encode.CacheMiss` instead of being encoded (the pilot prepares from `encode-pool`'s entries only, on the CPU,
+    with `encode.Backbone.cache_reader`)."""
     from . import data, encode, retrieval
     from . import schema as schema_mod
     prepared, skipped, costs = [], {}, {}
@@ -386,7 +390,7 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False,
             raise ValueError(f"{tid} is a {task.split} question; training reads the training pool only")
         try:
             enc = encode.encode_request(backbone, task, schema_mod.load_schema(task.db_id), retrieval.retrieve(task),
-                                        cache_root=cache_root)
+                                        cache_root=cache_root, require_hit=require_hit)
         except encode.ContextTooLong as e:
             skipped[tid] = f"context too long: {e}"
             continue

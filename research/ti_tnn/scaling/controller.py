@@ -377,6 +377,7 @@ class Prepared:
     meta: dict = field(default_factory=dict)
     step_cache: "dict | None" = None
     tokens_file: "str | None" = None
+    tokens_crc32: "int | None" = None  # of the states as read at prepare time; every later read is checked against it
 
     @property
     def n_tokens(self) -> int:
@@ -392,12 +393,19 @@ class Prepared:
             states = f.get_tensor("states").clone()
         if states.shape[0] != self.n_tokens:
             raise RuntimeError(f"{self.task_id}: {self.tokens_file} holds {states.shape[0]} tokens, not {self.n_tokens}")
+        if self.tokens_crc32 is not None and _crc32(states) != self.tokens_crc32:
+            raise RuntimeError(f"{self.task_id}: {self.tokens_file} changed since it was prepared (CRC32 mismatch)")
         return states
 
     def steps_dense(self) -> dict:
         if self.step_cache is None:
             self.step_cache = step_tensors(self.steps, self.items.shape[0], self.n_tokens)
         return self.step_cache
+
+
+def _crc32(states: torch.Tensor) -> int:
+    import zlib
+    return zlib.crc32(states.contiguous().view(torch.uint8).numpy())
 
 
 def prepare(encoding, steps=None, tokens_file: "str | None" = None) -> Prepared:
@@ -408,8 +416,9 @@ def prepare(encoding, steps=None, tokens_file: "str | None" = None) -> Prepared:
     dense = step_tensors(steps, items.shape[0], states.shape[0]) if steps is not None else None
     return Prepared(task_id=encoding.task_id, tokens=None if tokens_file else states,
                     token_types=torch.tensor(encoding.token_types), items=items, item_kinds=kinds,
-                    summary=states[-1].float(), schema=encoding.schema, spans=encoding.spans, steps=steps,
-                    meta={"cost": dict(encoding.cost)}, step_cache=dense, tokens_file=tokens_file)
+                    summary=states[-1].float().clone(), schema=encoding.schema, spans=encoding.spans, steps=steps,
+                    meta={"cost": dict(encoding.cost)}, step_cache=dense, tokens_file=tokens_file,
+                    tokens_crc32=_crc32(states) if tokens_file else None)
 
 
 @dataclass
@@ -499,6 +508,8 @@ def collate(examples: list, device="cpu", token_states: "dict | None" = None) ->
     D = examples[0].items.shape[1]
     states = [(token_states or {}).get(e.task_id) for e in examples]
     states = [s if s is not None else e.token_states() for s, e in zip(states, examples)]
+    if len({s.dtype for s in states}) > 1:
+        raise ValueError(f"a batch mixes state dtypes {sorted(str(s.dtype) for s in states)}; widening would be lossy")
     tokens = torch.zeros(B, T, D, dtype=states[0].dtype, device=dev)
     token_types = torch.zeros(B, T, dtype=torch.long, device=dev)
     token_mask = torch.zeros(B, T, dtype=torch.bool, device=dev)
