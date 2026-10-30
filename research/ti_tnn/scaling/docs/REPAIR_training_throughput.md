@@ -59,6 +59,28 @@ the prefetch thread can keep ahead of training.
 **Not measured:** c4_params (in the smoke its updates took the same time as T4's, 1.77 against 1.78 s); and a full
 pilot-sized run reading cold files.
 
+## After the review of cf1ad78
+
+The reviewer confirmed every exactness claim above, and the prefetcher's thread safety and failure behaviour. A
+missing or truncated file fails within 0.2 s, and no thread is left behind. Two gaps were found and fixed:
+
+1. **A corrupted file of the right size trained silently.** Each new cache entry now records its states' sha256,
+   checked whenever the entry is read (and so once per run at preparation). A file-backed example also records the
+   CRC32 of the states it saw at preparation, and every later read is checked against it. CRC32 runs at 6.6 GB/s here,
+   where sha256 runs at 2.3 GB/s; sha256 on every read would make the prefetch thread nearly as slow as training.
+2. **A cache miss would have re-encoded silently.** The key includes the platform (GPU, torch, transformers,
+   kernels), so any change between encoding and training turns every lookup into a miss. That would re-encode about
+   2.6 GPU-hours of contexts. Now:
+   - `require_hit` raises `CacheMiss` instead;
+   - `Backbone.cache_reader` reads an identity's entries with no model, so the pilot can prepare on the CPU before
+     reserving the GPU;
+   - `evaluate` re-raises a cache miss rather than recording it as one request's abstention.
+
+**Low findings, also fixed:**
+- `collate` refuses a batch that mixes state dtypes;
+- the summary vector is copied, so it no longer keeps a float32 example's whole state tensor alive;
+- `evaluate` takes a `matmul_precision`, so the pilot can decode at its training precision.
+
 ## GPU accounting
 
 Four `train-timing` reservations: 0.055 + 0.025 + 0.019 + 0.020 = **0.119 h**. The ledger total is now 2.979 h,
