@@ -253,6 +253,9 @@ class Prefetcher:
             self.pool.shutdown(wait=True, cancel_futures=True)
 
 
+PROFILER_STEP = None  # set by `cli train-timing --profile`; called once per update
+
+
 def micro_batches(examples: list, idx: list, micro_batch: int) -> list:
     """The update's examples in micro-batches of similar context length, so little is padded. The update's example set,
     and so its summed loss and gradient, are those of `idx`; only the grouping (and with it the floating-point
@@ -336,6 +339,8 @@ def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_
         if log and (update % 10 == 0 or update == cfg.updates - 1):
             log(f"{cfg.arm} update {update}: loss {record['loss']:.4f} (family {record['family']:.4f}, op "
                 f"{record['op']:.4f}, pointer {record['pointer']:.4f}), {record['wall_seconds']:.2f} s")
+        if PROFILER_STEP is not None:
+            PROFILER_STEP()
         last = update == cfg.updates - 1
         if last or (cfg.checkpoint_every and (update + 1) % cfg.checkpoint_every == 0):
             checkpoints.append(save_checkpoint(run_dir, model, optimizer, update, config))
