@@ -1,0 +1,83 @@
+{
+ "config_identity": "0b23ca0cef5fb3c68021d345e0ccda1fa7144ec3e32239494eaa8d53ccdb366b",
+ "modes": {
+  "file": {
+   "cache_hits": 128,
+   "examples": 128,
+   "loss_max_relative_difference_from_reference": 1.168513519152972e-06,
+   "losses": [
+    4.639310709635416,
+    4.063073581602516,
+    3.741342175148221,
+    3.19897294772732,
+    2.7952515738351003,
+    2.451182866500596,
+    2.4540187342026654,
+    2.099052665602993,
+    1.9284231772983405,
+    1.8462403281550097,
+    1.6209281129263788,
+    1.6462908108216112,
+    1.5516235499347382,
+    1.3485127590367887,
+    1.4733517251490895,
+    1.3616447551001174,
+    1.2628106337327223,
+    1.1447038597823507,
+    1.2566570457554262,
+    1.2498219257083898
+   ],
+   "peak_memory_bytes": 17143560192,
+   "prefetch_wait_seconds_mean": 0.11346802413463593,
+   "prepare_seconds": 7.701633021235466,
+   "same_examples_as_reference": true,
+   "update_seconds_after_first": 5.343098519958164,
+   "update_seconds_mean": 5.313309382367879,
+   "update_seconds_median": 5.007443320006132
+  },
+  "memory": {
+   "cache_hits": 128,
+   "examples": 128,
+   "loss_max_relative_difference_from_reference": 1.399270184821548e-06,
+   "losses": [
+    4.639310709635416,
+    4.063073358303163,
+    3.74134201431777,
+    3.1989729071993276,
+    2.795251340282207,
+    2.4511825647731285,
+    2.4540187701056984,
+    2.0990524936729753,
+    1.928422774159924,
+    1.8462404453800216,
+    1.6209285715238644,
+    1.6462906547214673,
+    1.5516241780204865,
+    1.3485125756868532,
+    1.4733521635000748,
+    1.3616445914669906,
+    1.2628111227964745,
+    1.1447032275120856,
+    1.25665693934825,
+    1.249822090966033
+   ],
+   "peak_memory_bytes": 17140518400,
+   "prefetch_wait_seconds_mean": 0.0002234418410807848,
+   "prepare_seconds": 8.149517187848687,
+   "same_examples_as_reference": true,
+   "update_seconds_after_first": 0.8236176603424706,
+   "update_seconds_mean": 0.9261638335883617,
+   "update_seconds_median": 0.5837787333875895
+  }
+ },
+ "reference": {
+  "log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/train_log.jsonl",
+  "update_seconds_mean": 1.7423414786811917
+ },
+ "reservation": {
+  "hours": 0.05488265736338993,
+  "id": "20261030T030146-7094fcd6",
+  "projected_hours": 0.15
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/timing/20261030T030146Z_T4_u20"
+}

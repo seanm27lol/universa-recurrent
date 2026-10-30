@@ -1,4 +1,4 @@
-"""The development evidence bundle (research/ti_tnn/scaling/evidence/dev_v1): every file matches SHA256SUMS, and the
+"""The evidence bundles (research/ti_tnn/scaling/evidence/dev_v1 and repair_v1): every file matches SHA256SUMS, and the
 report's headline numbers rebuild from the bundle alone (no runs/ directory, no GPU)."""
 from __future__ import annotations
 
@@ -32,3 +32,10 @@ def test_a_changed_byte_is_refused(tmp_path, monkeypatch):
     monkeypatch.setattr(evidence, "BUNDLE", copy)
     with pytest.raises(SystemExit, match="gpu_ledger.jsonl"):
         evidence.tables()
+
+
+def test_the_repair_bundle_rebuilds_the_timing_table():
+    if not (evidence.REPAIR_BUNDLE / "SHA256SUMS").exists():
+        pytest.skip("no repair bundle")
+    text = evidence.timing_table()
+    assert "| file | 8 | high | 12 | 0.516 |" in text and "| file | 8 | highest | 20 | 5.343 |" in text

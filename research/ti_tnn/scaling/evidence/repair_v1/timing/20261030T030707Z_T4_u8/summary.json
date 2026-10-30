@@ -1,0 +1,59 @@
+{
+ "config_identity": "3d579ffb272892147f907532f51219e657438ffa49df4a29e2316d2d84e3bbaf",
+ "modes": {
+  "file": {
+   "cache_hits": 128,
+   "examples": 128,
+   "loss_max_relative_difference_from_reference": 3.341139525614106e-07,
+   "losses": [
+    4.639310709635416,
+    4.063073432736281,
+    3.7413419339025444,
+    3.1989730287833043,
+    2.795251418133171,
+    2.4511825216692045,
+    2.454018806008732,
+    2.099052751568002
+   ],
+   "peak_memory_bytes": 17143560192,
+   "prefetch_wait_seconds_mean": 0.016537939896807075,
+   "prepare_seconds": 7.43020246271044,
+   "same_examples_as_reference": true,
+   "update_seconds_after_first": 0.6491741918559585,
+   "update_seconds_mean": 0.6486035685520619,
+   "update_seconds_median": 0.6541939885355532
+  },
+  "memory": {
+   "cache_hits": 128,
+   "examples": 128,
+   "loss_max_relative_difference_from_reference": 2.9894406276089157e-07,
+   "losses": [
+    4.639310709635416,
+    4.063073432736281,
+    3.7413420947329956,
+    3.198972745087359,
+    2.795251262431242,
+    2.4511826078770524,
+    2.4540187342026654,
+    2.099052579637984
+   ],
+   "peak_memory_bytes": 17140518400,
+   "prefetch_wait_seconds_mean": 0.00038075598422437906,
+   "prepare_seconds": 7.247462145984173,
+   "same_examples_as_reference": true,
+   "update_seconds_after_first": 0.6859470180102757,
+   "update_seconds_mean": 0.7674354092450812,
+   "update_seconds_median": 0.6985214548185468
+  }
+ },
+ "reference": {
+  "log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/smoke/20261029T214506Z_T4-vs-c4_params_s100_u100/T4/train_log.jsonl",
+  "update_seconds_mean": 1.8388701647054404
+ },
+ "reservation": {
+  "hours": 0.024724749664310364,
+  "id": "20261030T030707-50b353cb",
+  "projected_hours": 0.1
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/timing/20261030T030707Z_T4_u8"
+}
