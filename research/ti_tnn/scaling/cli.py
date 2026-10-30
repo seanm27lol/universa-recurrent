@@ -9,6 +9,7 @@
     $PY -m scaling.cli profile --model B4 --projected-hours 0.4      # load, prefill/decode throughput, memory
     $PY -m scaling.cli baseline --arm B4 --subset 16 --mode nonthinking   # L, B4 or Q27 on the development subset
     $PY -m scaling.cli smoke --projected-hours 0.4    # one paired T4 / c4_params smoke (GPU reservation)
+    $PY -m scaling.cli train-timing --projected-hours 0.15   # training throughput, states in memory and from files
     $PY -m scaling.cli verify <run dir>               # the independent verifier
 
 **GPU discipline.**
@@ -506,6 +507,63 @@ def smoke(args) -> None:
                       for a, o in out["arms"].items()}, indent=1, default=str))
 
 
+def train_timing(args) -> None:
+    """Training throughput on the GPU, after the repair: the smoke's 128 questions and recipe (seed 100), `--updates`
+    updates from update 0, twice: states held in memory, then read from the encoding cache files by the prefetcher.
+    Each run's losses are compared with the smoke's training log for the same updates. The models are not kept."""
+    import statistics
+
+    import torch
+
+    from scaling import encode, train
+    train_ids = json.loads((C.PINS / "ir_coverage_v1.json").read_text())["smoke_train"]["task_ids"]
+    smoke_runs = sorted(p for p in (C.RUNS / "smoke").iterdir() if (p / "summary.json").exists())
+    reference = smoke_runs[-1] / args.arm / "train_log.jsonl"
+    ref = [json.loads(x) for x in reference.read_text().splitlines()][:args.updates]
+    run_dir = C.RUNS / "timing" / f"{_stamp()}_{args.arm}_u{args.updates}"
+    config = {"command": "train-timing", "arm": args.arm, "updates": args.updates, "seed": C.SMOKE_TRAIN["seed"],
+              "train_task_ids": train_ids, "reference_log": str(reference),
+              "reference_log_sha256": identity.sha256_file(reference), "backbone": C.MODELS["B4"]}
+    manifest = identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty,
+                                       extra={"model_identity": identity.model_identity("B4")})
+    out = {"run_dir": str(run_dir), "config_identity": manifest["config_identity"], "modes": {}}
+    with ledger.Reservation(f"train-timing {args.arm} u{args.updates}", projected_hours=args.projected_hours,
+                            extra={"run_dir": str(run_dir)}) as res:
+        from scaling.runtime import Runtime
+        rt = Runtime("B4")
+        bb = encode.Backbone.from_pinned(device="cuda", model=rt.model, tokenizer=rt.tokenizer)
+        for mode, lazy in (("memory", False), ("file", True)):
+            res.check()
+            t0 = time.perf_counter()
+            prepared, skipped, costs = train.prepare_examples(train_ids, bb, lazy=lazy, log=None)
+            prep = time.perf_counter() - t0
+            torch.cuda.reset_peak_memory_stats()
+            result = train.train_arm(args.arm, train_ids, bb, run_dir / mode, updates=args.updates,
+                                     seed=C.SMOKE_TRAIN["seed"], device="cuda", prepared=prepared, log=None)
+            log = [json.loads(x) for x in Path(result["log"]).read_text().splitlines()]
+            walls = [r["wall_seconds"] for r in log]
+            rel = [abs(a["loss"] - b["loss"]) / max(abs(b["loss"]), 1e-12) for a, b in zip(log, ref)]
+            out["modes"][mode] = {
+                "prepare_seconds": prep, "cache_hits": sum(c.get("cache_hit", False) for c in costs.values()),
+                "examples": len(prepared), "update_seconds_mean": statistics.mean(walls),
+                "update_seconds_median": statistics.median(walls), "update_seconds_after_first": statistics.mean(walls[1:]),
+                "prefetch_wait_seconds_mean": statistics.mean(r["prefetch_wait_seconds"] for r in log),
+                "peak_memory_bytes": torch.cuda.max_memory_allocated(),
+                "same_examples_as_reference": [r["examples"] for r in log] == [r["examples"] for r in ref],
+                "loss_max_relative_difference_from_reference": max(rel), "losses": [r["loss"] for r in log]}
+            print(json.dumps({mode: {k: v for k, v in out["modes"][mode].items() if k != "losses"}}, default=str),
+                  flush=True)
+            del prepared
+        out["reference"] = {"log": str(reference), "update_seconds_mean": statistics.mean(r["wall_seconds"] for r in ref)}
+        out["reservation"] = {"id": res.id, "hours": res.elapsed_hours(), "projected_hours": args.projected_hours}
+    for mode in ("memory", "file"):  # the models are measurements only; their checkpoints are not kept
+        for ckpt in (run_dir / mode / "checkpoints").glob("*.pt"):
+            ckpt.unlink()
+    _write(run_dir / "summary.json", out)
+    print(json.dumps({"reference_update_seconds": out["reference"]["update_seconds_mean"],
+                      **{m: round(o["update_seconds_mean"], 3) for m, o in out["modes"].items()}}, indent=1))
+
+
 def verify_cmd(args) -> None:
     from scaling import verify
     results = [verify.verify_run(d) for d in args.run_dirs]
@@ -560,6 +618,12 @@ def main(argv=None) -> None:
     s.add_argument("--projected-hours", type=float, default=None)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=baseline)
+    s = sub.add_parser("train-timing")
+    s.add_argument("--arm", choices=["T4", "c4_params", "c4_active"], default="T4")
+    s.add_argument("--updates", type=int, default=20)
+    s.add_argument("--projected-hours", type=float, required=True)
+    s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
+    s.set_defaults(fn=train_timing)
     s = sub.add_parser("verify")
     s.add_argument("run_dirs", nargs="+")
     s.set_defaults(fn=verify_cmd)

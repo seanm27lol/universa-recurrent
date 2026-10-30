@@ -81,14 +81,14 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
     model.eval()
     device = next(model.parameters()).device
     B = len(examples)
-    batch = K.collate([K.Prepared(**{**e.__dict__, "steps": None}) for e in examples]).to(device)
+    batch = K.collate([K.Prepared(**{**e.__dict__, "steps": None}) for e in examples], device=device)
     t_start = time.perf_counter()
     mem = model.trunk.memory(batch)
     machines = [A.Machine(e.schema, e.spans, max_steps=max_steps) for e in examples]
     results = [Decoded(task_id=e.task_id, actions=[]) for e in examples]
     for r, e in zip(results, examples):
         r.work = {"steps": 0, "families": [], "heads": [], "macs": {"trunk": 0, "semantic": 0, "pointer": 0},
-                  "request_macs": K.request_macs(model.cfg, e.tokens.shape[0], e.items.shape[0]),
+                  "request_macs": K.request_macs(model.cfg, e.n_tokens, e.items.shape[0]),
                   "arm": model.cfg.arm}
     active = [True] * B
     rows = []
@@ -198,7 +198,7 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
             res.work["steps"] += 1
             res.work["families"].append(A.FAMILIES[fam])
             res.work["heads"].append(A.FAMILIES[heads[k]] if isinstance(heads[k], int) else heads[k])
-            macs = K.step_macs(model.cfg, fam, examples[b].tokens.shape[0], examples[b].items.shape[0],
+            macs = K.step_macs(model.cfg, fam, examples[b].n_tokens, examples[b].items.shape[0],
                                A.POINTER_KIND[action.op])
             for key in ("trunk", "semantic", "pointer"):
                 res.work["macs"][key] += macs[key]

@@ -218,6 +218,49 @@ def make_optimizer(model, cfg: TrainConfig):
                              weight_decay=cfg.weight_decay)
 
 
+class Prefetcher:
+    """Reads the next update's file-backed token states on a background thread while the current update computes.
+    In-memory examples need nothing. File reads release the GIL, so the read overlaps the GPU work."""
+
+    def __init__(self, examples: list, cfg: TrainConfig, start: int):
+        import concurrent.futures
+        self.examples, self.cfg = examples, cfg
+        self.lazy = any(e.tokens is None for e in examples)
+        self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1) if self.lazy else None
+        self.pending = {}
+        if self.lazy and start < cfg.updates:
+            self._submit(start)
+
+    def _load(self, update: int) -> dict:
+        idx = batch_indices(len(self.examples), update, self.cfg)
+        return {self.examples[i].task_id: self.examples[i].token_states() for i in idx
+                if self.examples[i].tokens is None}
+
+    def _submit(self, update: int) -> None:
+        self.pending[update] = self.pool.submit(self._load, update)
+
+    def get(self, update: int) -> dict:
+        """The states for `update` (blocking until read), after scheduling update + 1."""
+        if not self.lazy:
+            return {}
+        if update + 1 < self.cfg.updates:
+            self._submit(update + 1)
+        future = self.pending.pop(update, None) or self.pool.submit(self._load, update)
+        return future.result()
+
+    def close(self) -> None:
+        if self.pool is not None:
+            self.pool.shutdown(wait=True, cancel_futures=True)
+
+
+def micro_batches(examples: list, idx: list, micro_batch: int) -> list:
+    """The update's examples in micro-batches of similar context length, so little is padded. The update's example set,
+    and so its summed loss and gradient, are those of `idx`; only the grouping (and with it the floating-point
+    summation order) changes."""
+    order = sorted(idx, key=lambda i: (examples[i].n_tokens, i))
+    return [order[m0:m0 + micro_batch] for m0 in range(0, len(order), micro_batch)]
+
+
 def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resume_from=None, extra_config=None,
         log=print) -> dict:
     """Train for cfg.updates updates (from 0, or after the update stored in `resume_from`)."""
@@ -249,17 +292,29 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
             log_path.write_text("".join(ln + "\n" for ln in keep))
     checkpoints = []
     n = len(examples)
+    prefetch = Prefetcher(examples, cfg, start)
+    try:
+        return _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_path, checkpoints, config,
+                         config_identity, device, log)
+    finally:
+        prefetch.close()
+
+
+def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_path, checkpoints, config,
+              config_identity, device, log) -> dict:
     for update in range(start, cfg.updates):
         t0 = time.perf_counter()
         idx = batch_indices(n, update, cfg)
+        loaded = prefetch.get(update)
+        t_wait = time.perf_counter() - t0
         steps_total = sum(len(examples[i].steps) for i in idx)
         optimizer.zero_grad(set_to_none=True)
         sums = {"total": 0.0, "family": 0.0, "op": 0.0, "pointer": 0.0}
         counts = {"steps": 0, "op_steps": 0, "pointer_steps": 0}
         if hasattr(model.semantic, "calls"):
             model.semantic.calls.clear()
-        for m0 in range(0, len(idx), cfg.micro_batch):
-            batch = K.collate([examples[i] for i in idx[m0:m0 + cfg.micro_batch]]).to(device)
+        for group in micro_batches(examples, idx, cfg.micro_batch):
+            batch = K.collate([examples[i] for i in group], device=device, token_states=loaded)
             out = model.losses(batch, cfg.loss_weights)
             (out["total"] / steps_total).backward()
             for key in sums:
@@ -274,6 +329,7 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
                   "family": sums["family"] / steps_total, "op": sums["op"] / steps_total,
                   "pointer": sums["pointer"] / steps_total, **counts, "examples": [examples[i].task_id for i in idx],
                   "grad_norm": grad_norm, "lr": cfg.lr, "wall_seconds": time.perf_counter() - t0,
+                  "prefetch_wait_seconds": t_wait,
                   "head_calls": list(getattr(model.semantic, "calls", []))}
         with open(log_path, "a") as fh:
             fh.write(json.dumps(record) + "\n")
@@ -300,9 +356,10 @@ def gold_steps(gold_sql: str, encoding) -> tuple:
         return None, f"not encodable: {e.reason}"
 
 
-def prepare_examples(task_ids, backbone, *, cache_root=None, log=print) -> tuple:
+def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, log=print) -> tuple:
     """Encode training tasks (frozen backbone, cached) and attach their gold teacher-forcing steps.
-    Returns (prepared, skipped {task_id: reason}, costs {task_id: cost})."""
+    Returns (prepared, skipped {task_id: reason}, costs {task_id: cost}). With `lazy`, each example keeps only the
+    path of its cache file and training reads the states per update (the prefetcher overlaps the reads)."""
     from . import data, encode, retrieval
     from . import schema as schema_mod
     prepared, skipped, costs = [], {}, {}
@@ -321,7 +378,8 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, log=print) -> tuple
         if steps is None:
             skipped[tid] = reason
             continue
-        prepared.append(K.prepare(enc, steps))
+        tokens_file = str(encode.cache_path(enc.cost["cache_key"], cache_root)) if lazy else None
+        prepared.append(K.prepare(enc, steps, tokens_file=tokens_file))
         if log and (n + 1) % 32 == 0:
             log(f"prepared {n + 1}/{len(task_ids)} ({len(skipped)} skipped)")
     return prepared, skipped, costs
@@ -359,13 +417,13 @@ def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tupl
 
 def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_TRAIN["max_updates"],
               seed: int = C.SMOKE_TRAIN["seed"], device: "str | None" = None, micro_batch: int = 8,
-              cache_root=None, prepared=None, resume_from=None, log=print) -> dict:
+              cache_root=None, prepared=None, resume_from=None, lazy: bool = False, log=print) -> dict:
     """The CLI entry point: encode (or reuse `prepared`), build the arm under `seed`, fit, checkpoint."""
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     skipped, costs = {}, {}
     if prepared is None:
-        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, log=log)
-    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].tokens.shape[1], seed)
+        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy, log=log)
+    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed)
     cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device)
     extra = {"backbone": backbone.identity() if backbone is not None else None, "skipped": skipped,
              "requested_task_ids": list(task_ids)}
