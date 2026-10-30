@@ -59,7 +59,7 @@ def load_anchors(root: Path = None, protocol_sha256: "str | None" = None) -> tup
     - Two anchors for one task must agree.
     - Every anchor must come from one backbone identity.
     - With `protocol_sha256`, an anchor is accepted only from a run whose manifest names that frozen protocol and a
-      clean research tree.
+      clean research tree; other runs are skipped and listed in `ignored`.
     - A half-written final line (a crash mid-append) is ignored and listed in the result's `ignored`. Its entry has
       no anchor until a later encoding run recomputes it."""
     root = Path(root) if root is not None else ROOT / "encode"
@@ -70,7 +70,9 @@ def load_anchors(root: Path = None, protocol_sha256: "str | None" = None) -> tup
             manifest = json.loads((run / "manifest.json").read_text())
             if manifest["git"]["research_tree_dirty"] or \
                     (manifest["config"].get("protocol") or {}).get("sha256") != protocol_sha256:
-                raise ValueError(f"{run.name}: anchors from a dirty tree or another protocol are not accepted")
+                ignored.append(f"{run.name}: not accepted (a dirty tree or another protocol); its entries are "
+                               f"recomputed before they are anchored")
+                continue
         identities.add(json.dumps(json.loads((run / "backbone.json").read_text()), sort_keys=True))
         text = entries.read_text()
         lines = text.split("\n")

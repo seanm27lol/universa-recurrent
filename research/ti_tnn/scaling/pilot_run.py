@@ -67,6 +67,18 @@ def _cli():
     return cli
 
 
+def _new_dir(parent: Path, name: str, prefix: str = "") -> Path:
+    """parent/<prefix><stamp>_name, made unique if a run of the same second exists (a manifest is never
+    overwritten)."""
+    stamp, k = prefix + _cli()._stamp(), 0
+    while True:
+        tag = stamp + (f".{k}" if k else "")
+        path = parent / (f"{tag}_{name}" if name else tag)
+        if not path.exists():
+            return path
+        k += 1
+
+
 def _tokenizer():
     from transformers import AutoTokenizer
     return AutoTokenizer.from_pretrained(identity.model_snapshot_dir("B4"), local_files_only=True)
@@ -191,7 +203,7 @@ def encode_cmd(args) -> None:
             raise PilotStop(f"--range must be one of the protocol's chunks {TRAIN_CHUNKS}")
         lo, hi = (int(x) for x in args.range.split(":"))
         ids, label = P.train_ids()[lo:hi], f"train_{lo}-{hi}"
-    run_dir = P.ROOT / "encode" / f"{cli._stamp()}_{label}"
+    run_dir = _new_dir(P.ROOT / "encode", label)
     config = {"command": "pilot-encode", "what": args.what, "range": args.range, "ids": ids,
               "cache_root": "PILOT_CACHE", "protocol": proto, "recheck_anchored": args.what == "dev"}
     identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty,
@@ -216,9 +228,17 @@ def _fit_and_time(arm, ids, prepared, ident, proto, run_dir, seed, updates, chec
     logs = [json.loads(x) for x in Path(result["log"]).read_text().splitlines()]
     walls = [r["wall_seconds"] for r in logs]
     saves = [c["save_seconds"] for c in result["checkpoints"]]
+    per_epoch = max(1, -(-len(ids) // 32))  # updates per pass over the sample (effective batch 32)
+    cold, warm = walls[1:per_epoch + 1], walls[per_epoch + 1:]
     return {"result": result, "total_seconds": total, "update_seconds": walls,
             "first_update_seconds": walls[0],
-            "update_seconds_after_first": statistics.mean(walls[1:]) if len(walls) > 1 else walls[0],
+            "cold_epoch_update_seconds": statistics.mean(cold) if cold else None,
+            "warm_update_seconds": statistics.mean(warm) if warm else None,
+            # the projection's update time: the larger of the cold first epoch and the warm rest (most pilot reads
+            # come from the disk, since its 126 GB of states exceed memory)
+            "update_seconds_after_first": max(x for x in (statistics.mean(cold) if cold else None,
+                                                          statistics.mean(warm) if warm else None,
+                                                          walls[0] if len(walls) == 1 else None) if x is not None),
             "checkpoint_save_seconds": saves,
             "fixed_seconds": total - sum(walls) - sum(saves),  # model build, CUDA set-up, the log and summaries
             "prefetch_wait_mean": statistics.mean(r["prefetch_wait_seconds"] for r in logs)}
@@ -254,7 +274,7 @@ def feasibility_cmd(args) -> None:
     length_seconds = time.perf_counter() - t0
     sample = P.feasibility_sample(pool, lengths, args.sample)
     dev = P.eval_ids()[:args.dev]
-    run_dir = P.ROOT / "feasibility" / cli._stamp()
+    run_dir = _new_dir(P.ROOT / "feasibility", "")
     enc_dir = P.ROOT / "encode" / f"{run_dir.name}_feasibility"
     config = {"command": "pilot-feasibility", "sample": sample, "dev": dev, "updates": args.updates,
               "checkpoint_every": args.checkpoint_every, "seed": args.seed, "protocol": proto,
@@ -265,7 +285,13 @@ def feasibility_cmd(args) -> None:
     identity.write_manifest(enc_dir, config={"command": "pilot-encode", "what": "feasibility",
                                              "ids": sample + dev, "protocol": proto},
                             require_clean=not args.allow_dirty, extra={"feasibility_run": str(run_dir)})
-    out = {"run_dir": str(run_dir), "context_lengths_seconds": length_seconds, "pool": config["pool_tokens"]}
+    known, _ident = anchors(proto)
+    written = [a["seconds"] for a in known.values() if a.get("how") == "written"]
+    if all(t in known for t in sample + dev) and not written:
+        raise PilotStop("everything to encode is already anchored and no encoding time was recorded; the encoding "
+                        "cost cannot be measured")
+    out = {"run_dir": str(run_dir), "context_lengths_seconds": length_seconds, "pool": config["pool_tokens"],
+           "recorded_seconds_per_new_context": statistics.mean(written) if written else None}
     try:
         with ledger.Reservation("pilot-feasibility", projected_hours=args.projected_hours,
                                 extra={"run_dir": str(run_dir)}) as res:
@@ -297,6 +323,8 @@ def feasibility_cmd(args) -> None:
                 smoke = _smoke_states(dev)
                 out["arms"][arm] = {
                     "update_seconds_after_first": m["update_seconds_after_first"],
+                    "cold_epoch_update_seconds": m["cold_epoch_update_seconds"],
+                    "warm_update_seconds": m["warm_update_seconds"],
                     "first_update_seconds": m["first_update_seconds"], "update_seconds_max": max(m["update_seconds"]),
                     "checkpoint_save_seconds_mean": statistics.mean(m["checkpoint_save_seconds"]),
                     "fixed_seconds": m["fixed_seconds"], "fit_total_seconds": m["total_seconds"],
@@ -324,9 +352,9 @@ def feasibility_cmd(args) -> None:
 def project(m: dict, n_pool: int, n_eval: int, n_sample: int, n_dev: int) -> dict:
     """The complete pilot's GPU hours from the measured unit costs, against the hours left under the 8-hour cap. The
     point projection must fit; the protocol requires no margin, and the slack is reported."""
-    per_ctx = m["encode"]["seconds_per_new_context"]
+    per_ctx = m["encode"]["seconds_per_new_context"] or m.get("recorded_seconds_per_new_context")
     if per_ctx is None:
-        raise PilotStop("no context was newly encoded in this feasibility run, so encoding cost was not measured")
+        raise PilotStop("no newly encoded context was measured, here or in any accepted encoding run")
     used = ledger.usage()["used_hours"]
     load = m["load_seconds"]
     remaining_contexts = (n_pool - n_sample) + (n_eval - n_dev)
@@ -377,7 +405,7 @@ def train_cmd(args) -> None:
         recorded = [json.loads(x) for x in (run_dir / "checkpoints.jsonl").read_text().splitlines()
                     if x.strip()] if (run_dir / "checkpoints.jsonl").exists() else []
         resume = recorded[-1]["path"] if (args.resume and recorded) else None
-        attempt = run_dir / "attempts" / cli._stamp()
+        attempt = _new_dir(run_dir / "attempts", "")
         identity.write_manifest(attempt, config={"command": "pilot-train", "arm": arm, "seed": args.seed,
                                                  "updates": P.UPDATES, "checkpoint_every": P.CHECKPOINT_EVERY,
                                                  "matmul_precision": P.MATMUL_PRECISION,
@@ -407,8 +435,9 @@ def final_checkpoint(run_dir: Path) -> tuple:
     appends to checkpoints.jsonl at save time. It stops on:
     - a training log that is not updates 0..1,499 exactly once;
     - no final checkpoint, or more than one;
-    - a checkpoint that is not recorded;
-    - a checkpoint that does not match its record."""
+    - a checkpoint that does not match its record.
+    A final checkpoint saved but not yet recorded is accepted on its own evidence: its bytes hash to the name, its
+    embedded configuration equals the run's, and its digests are recomputed."""
     from . import train
     if _train_log_updates(run_dir) != list(range(P.UPDATES)):
         raise PilotStop(f"{run_dir}: the training log does not hold updates 0..{P.UPDATES - 1} once each")
@@ -418,13 +447,21 @@ def final_checkpoint(run_dir: Path) -> tuple:
     records = [json.loads(x) for x in (run_dir / "checkpoints.jsonl").read_text().splitlines() if x.strip()] \
         if (run_dir / "checkpoints.jsonl").exists() else []
     recorded = [c for c in records if Path(c["path"]).name == finals[0].name]
-    if not recorded:
-        raise PilotStop(f"{run_dir}: the final checkpoint is not recorded in checkpoints.jsonl")
-    ckpt = train.load_checkpoint(finals[0])
-    if ckpt["update"] != P.UPDATES - 1 or train.tensor_digest(ckpt["model"]) != recorded[-1]["model_digest"] \
-            or train.optimizer_digest(ckpt["optimizer"]) != recorded[-1]["optimizer_digest"]:
-        raise PilotStop(f"{run_dir}: the final checkpoint does not match its record")
-    return finals[0], recorded[-1]
+    ckpt = train.load_checkpoint(finals[0])  # re-hashes the file against the hash in its name
+    if ckpt["update"] != P.UPDATES - 1:
+        raise PilotStop(f"{run_dir}: the final checkpoint holds update {ckpt['update']}")
+    digests = {"model_digest": train.tensor_digest(ckpt["model"]),
+               "optimizer_digest": train.optimizer_digest(ckpt["optimizer"])}
+    if recorded:
+        if any(recorded[-1][k] != v for k, v in digests.items()):
+            raise PilotStop(f"{run_dir}: the final checkpoint does not match its record")
+        return finals[0], recorded[-1]
+    # saved but not yet recorded (a stop between the write and the record): accepted on its own evidence
+    config = json.loads((run_dir / "config.json").read_text())
+    if train._canonical(ckpt["config"]) != train._canonical(config):
+        raise PilotStop(f"{run_dir}: the unrecorded final checkpoint was made under another configuration")
+    return finals[0], {"path": str(finals[0]), "sha256": ckpt["sha256"], "update": ckpt["update"], **digests,
+                       "recovered": "accepted on its own evidence: hash, configuration, recomputed digests"}
 
 
 def eval_passed(summary: dict) -> bool:
@@ -449,7 +486,7 @@ def eval_cmd(args) -> None:
     ids = P.eval_ids()
     if any(t not in known for t in ids):
         raise PilotStop("the evaluation questions are not all encoded and anchored")
-    run_dir = P.ROOT / "eval" / f"s{args.seed}_{cli._stamp()}"
+    run_dir = _new_dir(P.ROOT / "eval", "", prefix=f"s{args.seed}_")
     manifest = identity.write_manifest(run_dir, config={
         "command": "pilot-eval", "seed": args.seed, "ids": ids, "protocol": proto, "backbone": ident,
         "checkpoints": {a: {"path": str(p), **{k: c[k] for k in ("sha256", "model_digest", "update")}}
@@ -519,6 +556,14 @@ def eval_cmd(args) -> None:
         raise PilotStop("the evaluation's integrity checks failed; the pilot stops (see summary.json)")
 
 
+def _is_ancestor(ancestor: "str | None", commit: str) -> bool:
+    """Whether `commit` contains `ancestor` (the freeze commit) in its history."""
+    import subprocess
+    if not ancestor:
+        return False
+    return subprocess.run(["git", "merge-base", "--is-ancestor", ancestor, commit], cwd=C.REPO).returncode == 0
+
+
 def select_evaluations() -> tuple:
     """({seed: the one passing evaluation run}, [every evaluation run with its seed and pass/fail]). Stops unless
     each seed has exactly one passing run."""
@@ -555,6 +600,10 @@ def analyze_cmd(args) -> None:
     l_runs = sorted((C.RUNS / "baselines").glob(f"*_L_nonthinking_p0-{P.EVAL_SIZE}"))
     if len(l_runs) != 1:
         raise PilotStop(f"{len(l_runs)} L runs on the {P.EVAL_SIZE}; exactly one is required")
+    frozen_at = json.loads(PROTOCOL_PIN.read_text()).get("frozen_at") if PROTOCOL_PIN.exists() else None
+    l_commit = json.loads((l_runs[0] / "manifest.json").read_text())["git"]["commit"]
+    if not _is_ancestor(frozen_at, l_commit):
+        raise PilotStop("the L run on the 64 was not made after the protocol was frozen")
     l_check = verify.verify_run(l_runs[0])
     if l_check["problems"]:
         raise PilotStop(f"the L run fails verification: {l_check['problems'][:3]}")
@@ -578,7 +627,7 @@ def analyze_cmd(args) -> None:
                                                  "an exclusion rate for training, not an evaluation ceiling"}
     result["inputs"] = {"evaluations_counted": {str(s): str(d) for s, d in chosen.items()},
                         "evaluations_all": all_runs, "L": str(l_runs[0]), "protocol": proto}
-    run_dir = P.ROOT / "analysis" / cli._stamp()
+    run_dir = _new_dir(P.ROOT / "analysis", "")
     identity.write_manifest(run_dir, config={"command": "pilot-analyze", **result["inputs"]},
                             require_clean=not args.allow_dirty)
     cli._write(run_dir / "analysis.json", result)

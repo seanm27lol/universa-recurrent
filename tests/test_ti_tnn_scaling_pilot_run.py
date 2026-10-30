@@ -104,6 +104,7 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(R, "_tokenizer", lambda: bb.tokenizer)
     monkeypatch.setattr(R, "protocol_identity", lambda: PROTO)
     monkeypatch.setattr(P, "representability", lambda ids, tok: {t: "representable" for t in ids})
+    monkeypatch.setattr(R, "_is_ancestor", lambda ancestor, commit: True)
     return tmp_path, bb
 
 
@@ -115,6 +116,7 @@ def _l_run(tmp_path):
     from scaling import records
     d = C.RUNS / "baselines" / "20261030T000000Z_L_nonthinking_p0-64"
     d.mkdir(parents=True)
+    (d / "manifest.json").write_text(json.dumps({"git": {"commit": "c" * 40}}))
     for tid, *_ in DEV:
         rec = {"task_id": tid, "db_id": "cinema", "arm": "L", "config_identity": "c", "input_identity": "i",
                "snapshot_sha256": "0" * 64, "attempts": [], "final": {"kind": "abstain", "sql": None, "reason": "x"},
@@ -161,7 +163,11 @@ def test_a_lost_summary_does_not_strand_a_finished_run_and_resume_is_refused(wor
     for s in run_dir.glob("attempts/*/summary.json"):
         s.unlink()  # a stop after the final save, before the summary
     path, rec = R.final_checkpoint(run_dir)
-    assert rec["update"] == 3
+    assert rec["update"] == 3 and "recovered" not in rec
+    records = run_dir / "checkpoints.jsonl"
+    records.write_text("".join(x + "\n" for x in records.read_text().splitlines()[:-1]))  # saved, never recorded
+    path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == 3 and rec["recovered"].startswith("accepted on its own evidence")
     with pytest.raises(R.PilotStop, match="already complete"):
         R.train_cmd(_args(seed=100, arms=["T4"], resume=True))
     log = run_dir / "train_log.jsonl"
@@ -252,8 +258,14 @@ def test_the_pilot_refuses_what_the_protocol_forbids(world, monkeypatch):
     m = json.loads(manifest.read_text())
     m["config"]["protocol"]["sha256"] = "1" * 64
     manifest.write_text(json.dumps(m))
-    with pytest.raises(R.PilotStop, match="another protocol"):
+    found, _, ignored = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    assert not found and any("not accepted" in x for x in ignored)  # skipped and reported, not trusted
+    with pytest.raises(R.PilotStop, match="no encoding anchor"):
         R.train_cmd(_args(seed=100, arms=["T4"], resume=False))
+    R.encode_cmd(_args(what="train", range="0:2"))  # its entries are recomputed before they are anchored
+    newest = max((P.ROOT / "encode").glob("*_train_0-2"), key=lambda d: d.joinpath("manifest.json").stat().st_mtime_ns)
+    rerun = json.loads(newest.joinpath("summary.json").read_text())
+    assert rerun["rechecked"] == 2 and rerun["rechecked_equal"] == 2
 
 
 def test_the_projection_counts_every_remaining_step():
@@ -275,5 +287,28 @@ def test_the_projection_counts_every_remaining_step():
     assert items[0] == pytest.approx(enc) and items[1] == pytest.approx(2 * 2 * fit / 3600)
     assert items[2] == pytest.approx(ev) and out["remaining_hours"] == pytest.approx(5.0)
     assert out["fits"] == (enc + 4 * fit / 3600 + ev <= 5.0)
-    with pytest.raises(R.PilotStop, match="not measured"):
+    with pytest.raises(R.PilotStop, match="was measured"):
         R.project({**m, "encode": {"seconds_per_new_context": None}}, 4741, 64, 160, 8)
+
+
+def test_a_feasibility_rerun_projects_from_recorded_times(world, monkeypatch):
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    runs = sorted((P.ROOT / "feasibility").glob("*/summary.json"))
+    second = json.loads(runs[-1].read_text())
+    assert second["encode"]["encoded"] == 0 and second["recorded_seconds_per_new_context"] > 0
+    assert second["projection"]["needed_hours"] > 0
+    assert all(a["cold_epoch_update_seconds"] is not None for a in second["arms"].values())
+
+
+def test_an_l_run_from_before_the_freeze_is_refused(world, monkeypatch):
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    (C.RUNS / "baselines" / "20261030T000000Z_L_nonthinking_p0-64" / "manifest.json").write_text(
+        json.dumps({"git": {"commit": "a" * 40}}))
+    monkeypatch.setattr(R, "_is_ancestor", lambda ancestor, commit: False)
+    with pytest.raises(R.PilotStop, match="after the protocol was frozen"):
+        R.analyze_cmd(_args())
