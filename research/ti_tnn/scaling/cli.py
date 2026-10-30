@@ -579,6 +579,17 @@ def train_timing(args) -> None:
                       **{m: round(o["update_seconds_after_first"], 3) for m, o in out["modes"].items()}}, indent=1))
 
 
+def pilot_pin(args) -> None:
+    """Build (or check) pins/pilot_train_v1.json: the pilot's training set. CPU only."""
+    from transformers import AutoTokenizer
+
+    from scaling import train
+    tok = AutoTokenizer.from_pretrained(identity.model_snapshot_dir("B4"), local_files_only=True)
+    pin = train.pilot_train_pin(tok, rewrite=args.rewrite)
+    print(json.dumps({k: pin[k] for k in ("grammar", "training_pool_questions", "supervisable", "skipped_reasons")},
+                     indent=1))
+
+
 def verify_cmd(args) -> None:
     from scaling import verify
     results = [verify.verify_run(d) for d in args.run_dirs]
@@ -643,6 +654,9 @@ def main(argv=None) -> None:
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=train_timing)
+    s = sub.add_parser("pilot-pin")
+    s.add_argument("--rewrite", action="store_true", help="replace a differing committed pin (review the diff!)")
+    s.set_defaults(fn=pilot_pin)
     s = sub.add_parser("verify")
     s.add_argument("run_dirs", nargs="+")
     s.set_defaults(fn=verify_cmd)

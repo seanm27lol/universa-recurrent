@@ -30,48 +30,57 @@ from pathlib import Path
 from . import contracts as C
 
 BUNDLE = C.SCALING / "evidence" / "dev_v1"
+REPAIR_BUNDLE = C.SCALING / "evidence" / "repair_v1"  # the training-throughput repair's timing runs
 COPY = ("manifest.json", "summary.json", "records.jsonl", "profile.json")
 SMOKE_ARM_FILES = ("config.json", "train_log.jsonl", "train_log.superseded.jsonl", "records.jsonl")
+TIMING_FILES = ("profile_memory_cpu_time_total.txt", "profile_memory_cuda_time_total.txt",
+                "profile_file_cpu_time_total.txt", "profile_file_cuda_time_total.txt")
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def bundle(run_dirs, verification=None) -> list:
-    """Copy each run's evidence files into BUNDLE/<kind>/<run name>/; then the ledger; then SHA256SUMS."""
+def bundle(run_dirs, verification=None, root: Path = BUNDLE) -> list:
+    """Copy each run's evidence files into <root>/<kind>/<run name>/; then the ledger; then SHA256SUMS."""
     copied = []
     for d in map(Path, run_dirs):
-        kind = d.parent.name  # baselines | profiles | smoke
-        dest = BUNDLE / kind / d.name
+        kind = d.parent.name  # baselines | profiles | smoke | timing
+        dest = root / kind / d.name
         dest.mkdir(parents=True, exist_ok=True)
         for name in COPY:
             if (d / name).exists():
                 shutil.copy2(d / name, dest / name)
                 copied.append(dest / name)
-        if kind == "smoke":
+        if kind == "timing":
+            for name in TIMING_FILES:
+                if (d / name).exists():
+                    shutil.copy2(d / name, dest / name)
+                    copied.append(dest / name)
+        if kind in ("smoke", "timing"):
             for arm_dir in sorted(p for p in d.iterdir() if p.is_dir()):
                 for name in SMOKE_ARM_FILES:
                     if (arm_dir / name).exists():
                         (dest / arm_dir.name).mkdir(exist_ok=True)
                         shutil.copy2(arm_dir / name, dest / arm_dir.name / name)
                         copied.append(dest / arm_dir.name / name)
-    shutil.copy2(C.RUNS / "gpu_ledger.jsonl", BUNDLE / "gpu_ledger.jsonl")
+    shutil.copy2(C.RUNS / "gpu_ledger.jsonl", root / "gpu_ledger.jsonl")
     if verification is not None:
-        shutil.copy2(verification, BUNDLE / "verification.json")
-    files = sorted(p for p in BUNDLE.rglob("*") if p.is_file() and p.name != "SHA256SUMS")
-    (BUNDLE / "SHA256SUMS").write_text("".join(f"{_sha256(p)}  {p.relative_to(BUNDLE)}\n" for p in files))
+        shutil.copy2(verification, root / "verification.json")
+    files = sorted(p for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS")
+    (root / "SHA256SUMS").write_text("".join(f"{_sha256(p)}  {p.relative_to(root)}\n" for p in files))
     return copied
 
 
-def _checked() -> None:
-    sums = (BUNDLE / "SHA256SUMS").read_text().splitlines()
+def _checked(root: Path = None) -> None:
+    root = BUNDLE if root is None else root
+    sums = (root / "SHA256SUMS").read_text().splitlines()
     for line in sums:
         digest, rel = line.split("  ", 1)
-        if _sha256(BUNDLE / rel) != digest:
+        if _sha256(root / rel) != digest:
             raise SystemExit(f"{rel}: its sha256 differs from SHA256SUMS")
     listed = {line.split("  ", 1)[1] for line in sums}
-    present = {str(p.relative_to(BUNDLE)) for p in BUNDLE.rglob("*") if p.is_file() and p.name != "SHA256SUMS"}
+    present = {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file() and p.name != "SHA256SUMS"}
     if listed != present:
         raise SystemExit(f"files not in SHA256SUMS: {sorted(present - listed)}; missing: {sorted(listed - present)}")
 
@@ -150,17 +159,38 @@ def tables() -> str:
     return "\n".join(out)
 
 
+def timing_table(root: Path = REPAIR_BUNDLE) -> str:
+    """The repair's timing runs, from its bundle alone: seconds per update after the first, against the smoke's."""
+    _checked(root)
+    out = ["| timing run | states | micro-batch | matmul precision | updates | s per update (after the first) | "
+           "prefetch wait s | max relative loss difference from the smoke | peak GB | smoke s per update |",
+           "|" + "---|" * 10]
+    for d in sorted((root / "timing").iterdir()):
+        cfg = json.loads((d / "manifest.json").read_text())["config"]
+        s = json.loads((d / "summary.json").read_text())
+        for mode, o in s["modes"].items():
+            out.append(f"| {d.name} | {mode} | {cfg.get('micro_batch', 8)} | {cfg.get('matmul_precision', 'highest')} | "
+                       f"{cfg['updates']} | {o['update_seconds_after_first']:.3f} | {o['prefetch_wait_seconds_mean']:.3f} | "
+                       f"{o['loss_max_relative_difference_from_reference']:.1e} | {o['peak_memory_bytes'] / 1e9:.1f} | "
+                       f"{s['reference']['update_seconds_mean']:.3f} |")
+    return "\n".join(out)
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog="python -m scaling.evidence")
     sub = p.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("bundle")
     b.add_argument("run_dirs", nargs="+")
     b.add_argument("--verification")
+    b.add_argument("--repair", action="store_true", help="into evidence/repair_v1 instead of dev_v1")
     sub.add_parser("tables")
+    sub.add_parser("timing")
     args = p.parse_args(argv)
     if args.cmd == "bundle":
-        for path in bundle(args.run_dirs, args.verification):
+        for path in bundle(args.run_dirs, args.verification, REPAIR_BUNDLE if args.repair else BUNDLE):
             print(path)
+    elif args.cmd == "timing":
+        print(timing_table())
     else:
         print(tables())
     return 0

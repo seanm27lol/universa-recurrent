@@ -28,6 +28,12 @@ states, but pickle can lay the same objects out differently, so the verifier com
 `train_log.jsonl` keeps the lines before the resume point; later lines move to `train_log.superseded.jsonl`, so an
 abandoned stretch of training stays visible.
 
+**Throughput.** Each update's examples are grouped into micro-batches of similar context length. The states reach the
+GPU in their cached BF16 and are widened there. With `prepare_examples(lazy=True)` they are not held in memory at
+all: `Prefetcher` reads the next update's states from the cache files while the current one computes.
+`TrainConfig.matmul_precision` records whether matmuls ran in float32 ("highest", the smoke) or TF32 ("high").
+Measurements are in `docs/REPAIR_training_throughput.md`.
+
 **Limits.** This is supervised imitation of gold traversals only: no reinforcement, no execution feedback, no repair,
 no beam. The smoke run's 100 updates on 128 questions test the machinery; they say nothing about the comparison.
 """
@@ -394,6 +400,62 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False,
         if log and (n + 1) % 32 == 0:
             log(f"prepared {n + 1}/{len(task_ids)} ({len(skipped)} skipped)")
     return prepared, skipped, costs
+
+
+def supervisable(task_ids, tokenizer, log=None) -> tuple:
+    """(kept ids in the given order, {skipped id: reason}): training-pool questions whose gold SQL converts to tirel-1 and
+    traces through the action grammar, with literals grounded in this tokenizer's question/evidence tokens. CPU only:
+    tokenization, no backbone forward."""
+    from . import data, encode, retrieval
+    from . import schema as schema_mod
+    kept, skipped = [], {}
+    for n, tid in enumerate(task_ids):
+        task = data.task(tid)
+        if task.split != "train":
+            raise ValueError(f"{tid} is a {task.split} question; training reads the training pool only")
+        try:
+            ctx, serialized, _ids, offsets = encode.fit_context(task, schema_mod.load_schema(task.db_id),
+                                                                retrieval.retrieve(task), tokenizer,
+                                                                C.Limits().max_context_tokens)
+        except encode.ContextTooLong as e:
+            skipped[tid] = f"context too long: {e}"
+            continue
+
+        class _Enc:  # the parts of an Encoding that gold_steps reads
+            schema = A.SchemaItems(serialized.items)
+            spans = encode.span_index(ctx, offsets)
+
+        steps, reason = gold_steps(data.gold(tid).sql, _Enc)
+        if steps is None:
+            skipped[tid] = reason
+        else:
+            kept.append(tid)
+        if log and (n + 1) % 500 == 0:
+            log(f"checked {n + 1}/{len(task_ids)}: {len(kept)} supervisable")
+    return kept, skipped
+
+
+PILOT_TRAIN_PIN = "pilot_train_v1.json"
+
+
+def pilot_train_pin(tokenizer, rewrite: bool = False, log=print) -> dict:
+    """pins/pilot_train_v1.json: every supervisable training-pool question, in release order, under the current
+    grammar and the pinned tokenizer (the pilot's training set), with the reason for each one left out."""
+    from collections import Counter
+
+    from . import data
+    ids = [t.task_id for t in data.tasks("train")]
+    kept, skipped = supervisable(ids, tokenizer, log=log)
+    payload = {"version": "pilot_train_v1", "study": C.STUDY, "grammar": A.GRAMMAR_VERSION,
+               "tokenizer": {"repo": C.MODELS["B4"]["repo"], "revision": C.MODELS["B4"]["revision"]},
+               "rule": "every training-pool question, in release order, whose gold SQL converts to tirel-1 and traces "
+                       "through the action grammar with its literals grounded in the request's question/evidence "
+                       "tokens (train.supervisable)",
+               "split_pin_sha256": data.pin_digest(data.PIN_SPLIT), "training_pool_questions": len(ids),
+               "supervisable": len(kept), "skipped_reasons": dict(sorted(Counter(
+                   r.split(":")[0] for r in skipped.values()).items())),
+               "task_ids": kept, "skipped": dict(sorted(skipped.items()))}
+    return data.write_pin(C.PINS / PILOT_TRAIN_PIN, payload, rewrite=rewrite)
 
 
 def smoke_train_ids(tokenizer, n: int = C.SMOKE_TRAIN["size"], log=None) -> tuple:
