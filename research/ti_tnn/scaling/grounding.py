@@ -6,12 +6,13 @@ first FROM table is wrong at 49% of steps (17% on training questions), the joine
 at 42% (10%) and WHERE columns at 33% (10%). The predicted table set equals the gold one on only 16-21 of the 64, and
 when it does the join keys are almost always right. Two structural reasons:
 - the frozen backbone reads causally, and a table's name comes before its columns in the schema text, so a table's
-  state cannot see its own columns; the first-table pointer is right 76% of the time when the table and one of its
-  query's columns are both named in the question, and 52% when only the column is;
+  state cannot see its own columns; under teacher forcing the first-table pointer is right 76% of the time when the
+  table and one of the gold query's columns of it are both named in the question or evidence, and 52% when only the
+  column is;
 - nothing in the v1 controller represents the declared keys: which column references which, which tables a foreign
   key links, which columns are primary keys. The 42 pilot outputs with a same-reference join (`T1.x = T1.x`) are the
-  visible symptom: 39 of the 41 top-level ones joined a table the gold program does not use, and all six scorer
-  timeouts are among them.
+  visible symptom: in 40 of them the table set differs from the gold program's (in 24 the joined table is one the
+  gold program does not use), and all six scorer timeouts are among them.
 
 **What grounding v2 adds** (identical in T4 and C4_params; it is part of the shared trunk):
 1. **Item relations.** A relation-aware encoder (`controller.SchemaEncoder`) lets every schema item attend to every
