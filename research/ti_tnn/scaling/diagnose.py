@@ -304,9 +304,9 @@ def relations(db_id: str) -> dict:
 
 
 # --- the first divergence from the gold traversal -----------------------------------------------------------------------
-def first_divergence(pred: list, gold: list, schema, spans) -> dict:
+def first_divergence(pred: list, gold: list, schema, spans, grounding: str = "v1") -> dict:
     """Where a predicted action sequence first leaves the gold traversal, and what kind of decision that was."""
-    m = A.Machine(schema, spans)
+    m = A.Machine(schema, spans, grounding=grounding)
     for i, g in enumerate(gold):
         p = pred[i] if i < len(pred) else None
         if p is None or p != g:
@@ -375,10 +375,10 @@ def divergence_category(clause, slot, g, p, decision, parent_op, operand) -> str
     return clause
 
 
-def step_labels(gold: list, schema, spans) -> list:
+def step_labels(gold: list, schema, spans, grounding: str = "v1") -> list:
     """For every step of a gold traversal (STOP included), the decision's category: clause, slot and the role of its
     operator and pointer (e.g. "FROM table", "join: add table", "ON column (operand 1)", "WHERE literal span")."""
-    m = A.Machine(schema, spans)
+    m = A.Machine(schema, spans, grounding=grounding)
     out = []
     for g in gold:
         top = m.top
@@ -574,14 +574,14 @@ def _encoding(task_id: str, reader, cache_root, anchors: dict):
     return enc
 
 
-def diagnose_request(rec: dict, enc, gold_plan, gold_actions, rel: dict) -> dict:
+def diagnose_request(rec: dict, enc, gold_plan, gold_actions, rel: dict, grounding: str = "v1") -> dict:
     """One saved evaluation record against its gold program."""
     attempt = rec["attempts"][0]
     pred_actions = [A.Action.from_json(a) for a in attempt.get("actions") or []]
     pred_plan = ir.from_json(attempt["plan"]) if attempt.get("plan") else None
     if pred_plan is None and pred_actions:
         try:
-            pred_plan = A.decode(pred_actions, enc.schema, enc.spans)
+            pred_plan = A.decode(pred_actions, enc.schema, enc.spans, grounding)
         except A.IllegalAction:
             pred_plan = None
     score = rec["score"]
@@ -591,7 +591,7 @@ def diagnose_request(rec: dict, enc, gold_plan, gold_actions, rel: dict) -> dict
            "predicted_seconds": score["predicted"]["elapsed_seconds"],
            "predicted_rows": score["predicted"].get("row_count"), "gold_rows": score["gold"].get("row_count"),
            "representable": gold_actions is not None, "steps": len(pred_actions)}
-    out["divergence"] = first_divergence(pred_actions, gold_actions, enc.schema, enc.spans) \
+    out["divergence"] = first_divergence(pred_actions, gold_actions, enc.schema, enc.spans, grounding) \
         if gold_actions is not None else {"category": "gold not representable"}
     out["plans"] = compare_plans(pred_plan, gold_plan)
     out["joins"] = join_semantics(pred_plan, gold_plan, rel)
@@ -673,7 +673,7 @@ def teacher_forced(model, example) -> dict:
         op_ok[idx] = op_logits.argmax(-1) == st["union"][0, idx]
         queries = state.new_zeros((1, state.shape[1], K.N_POINTERS, model.cfg.d_model))
         queries[0, idx] = q_rows
-        items, start, end = model.trunk.pointer_scores(mem, queries, st["ptr_target"])
+        items, start, end = model.trunk.pointer_scores(mem, queries, st["ptr_target"], st.get("ptr_rel"))
         kind = st["ptr_kind"][0]
         ptr_ok = torch.ones_like(fam_ok)
         for k, slot in ((1, 0), (2, 1)):
@@ -689,7 +689,7 @@ def teacher_forced(model, example) -> dict:
         step_ok = (fam_ok & op_ok & ptr_ok)[valid]
         first_wrong = int((~step_ok).nonzero()[0]) if (~step_ok).any() else None
     n = int(losses["steps"])
-    labels = step_labels([s.action for s in example.steps[:-1]], example.schema, example.spans)
+    labels = step_labels([s.action for s in example.steps[:-1]], example.schema, example.spans, example.grounding)
     per_step = [{"label": labels[t], "family_ok": bool(fam_ok[t]), "op_ok": bool(op_ok[t]),
                  "pointer": int(kind[t]) if t < len(kind) else 0, "pointer_ok": bool(ptr_ok[t])}
                 for t in range(n)]
@@ -958,6 +958,56 @@ def table_mentions(args) -> dict:
     return out
 
 
+def perf_diagnosis(args) -> dict:
+    """After the performance study's evaluations (CPU, descriptive): every fit's requests diagnosed against the gold
+    programs, per population, and teacher-forced error by decision on the representable questions, each fit under
+    its own grounding. Reads the counted evaluation per seed and the final checkpoints."""
+    import torch
+
+    from . import controller as K
+    from . import data, encode, perf, sql_to_ir, train
+    torch.set_num_threads(args.threads)
+    from . import pilot_run
+    tok = pilot_run._tokenizer()
+    anchors, ident = perf.anchors()
+    reader = encode.Backbone.cache_reader(ident, tok)
+    chosen, _runs = perf.select_evaluations()
+    encs = {}
+    for tid in perf.eval_ids():
+        enc = _encoding(tid, reader, encode.PILOT_CACHE, anchors)
+        gold_plan, err = sql_to_ir.try_convert(data.gold(tid).sql, enc.schema.index)
+        encs[tid] = {"enc": enc, "gold_plan": gold_plan if err is None else None, "rel": relations(data.task(tid).db_id),
+                     "steps": {g: train.gold_steps(data.gold(tid).sql, enc, g)[0] for g in ("v1", "v2")}}
+    out = {"evaluations": {str(s): d.name for s, d in chosen.items()}, "requests": {}, "summary": {},
+           "teacher_forced": {}}
+    for seed, d in sorted(chosen.items()):
+        for arm, g in perf.ARMS:
+            name = perf.label(arm, g)
+            recs = {json.loads(x)["task_id"]: json.loads(x) for x in (d / name / "records.jsonl").read_text()
+                    .splitlines() if x.strip()}
+            path, _ = perf.final_checkpoint(perf.run_dir_of(arm, g, seed))
+            model = train.model_from_checkpoint(train.load_checkpoint(path), "cpu").eval()
+            for pop in perf.POPULATIONS:
+                rows, tf = [], []
+                for tid in perf.eval_ids(pop):
+                    e = encs[tid]
+                    steps = e["steps"][g]
+                    gold_actions = [s.action for s in steps[:-1]] if steps else None
+                    rows.append(diagnose_request(recs[tid], e["enc"], e["gold_plan"], gold_actions, e["rel"],
+                                                 grounding=g))
+                    if steps:
+                        tf.append(teacher_forced(model, K.prepare(e["enc"], steps, grounding=g)))
+                key = f"{name}/{seed}/{pop}"
+                out["requests"][key] = rows
+                out["summary"][key] = summarize(rows)
+                out["teacher_forced"][key] = {"representable": len(tf), "by_decision": by_label(tf),
+                                              "mean_step_accuracy": statistics.mean(x["step_accuracy"] for x in tf)}
+                log(f"{key}: {out['summary'][key]['correct']} correct")
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    (Path(args.out) / "perf_diagnosis.json").write_text(json.dumps(out, indent=1, sort_keys=True, default=str) + "\n")
+    return out
+
+
 def suspicious_correct(rows: list) -> list:
     """EX-correct requests whose program differs from the gold program in a way EX does not see: a same-reference
     predicate, a table the gold program does not use or lacks, a different join key, or different WHERE conjuncts."""
@@ -1044,7 +1094,7 @@ def log(msg: str) -> None:
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("what", nargs="?", default="run", choices=("run", "table-mentions", "tables"))
+    ap.add_argument("what", nargs="?", default="run", choices=("run", "table-mentions", "tables", "perf"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--workers", type=int, default=8)
@@ -1052,6 +1102,10 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     if args.what == "tables":
         print(tables(args))
+        return
+    if args.what == "perf":
+        res = perf_diagnosis(args)
+        print(json.dumps(res["summary"], indent=1, default=str)[:20000])
         return
     if args.what == "table-mentions":
         print(json.dumps(table_mentions(args), indent=1))
