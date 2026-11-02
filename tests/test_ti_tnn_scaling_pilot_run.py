@@ -9,11 +9,15 @@ downloaded data, no GPU, no ledger):
 - a missing anchor;
 - anchors from a dirty tree or another protocol;
 - a torn last anchor line;
-- a run directory without `--resume`, and `--resume` on a completed run;
+- a run directory without `--resume`, and `--resume` on a completed run (a complete log AND a sound final
+  checkpoint);
+- a complete log whose final checkpoint is missing, or damaged, resumes instead of being refused;
+- a moved runs root still resumes from its own checkpoints;
 - a training log that is not complete;
 - a final checkpoint whose attempt summary was lost (recovered from `checkpoints.jsonl`);
 - a recomputed development context that differs;
 - a fresh-vs-anchor mismatch, and a cross-arm states mismatch, at evaluation;
+- an evaluation whose reconstruction inventory holds a false entry while its summary still says passed;
 - an analysis with two passing evaluations for one seed."""
 from __future__ import annotations
 
@@ -155,6 +159,9 @@ def test_the_pilot_runs_end_to_end_and_reconstructs(world, monkeypatch):
     out = json.loads(sorted((P.ROOT / "analysis").glob("*/analysis.json"))[-1].read_text())
     assert out["counts"]["questions"] == len(DEV) and out["rule"][:2] in ("A1", "A2", "A3")
     assert set(out["inputs"]["evaluations_counted"]) == {"100", "101"} and len(out["inputs"]["evaluations_all"]) == 2
+    # runs are recorded by their reference relative to the runs root, not by absolute path
+    assert all(v.startswith("pilot/eval/s") for v in out["inputs"]["evaluations_counted"].values())
+    assert out["inputs"]["L"] == "baselines/20261030T000000Z_L_nonthinking_p0-64"
 
 
 def test_a_lost_summary_does_not_strand_a_finished_run_and_resume_is_refused(world, monkeypatch):
@@ -211,7 +218,7 @@ def test_analysis_counts_exactly_one_passing_evaluation_per_seed(world, monkeypa
     rerun.write_text(json.dumps(s))  # a failed rerun is reported but not counted
     R.analyze_cmd(_args())
     out = json.loads(sorted((P.ROOT / "analysis").glob("*/analysis.json"))[-1].read_text())
-    assert out["inputs"]["evaluations_counted"]["100"] == str(first)
+    assert out["inputs"]["evaluations_counted"]["100"] == f"pilot/eval/{first.name}"
     assert sum(not r["passed"] for r in out["inputs"]["evaluations_all"]) == 1
 
 
@@ -356,4 +363,91 @@ def test_resume_skips_a_checkpoint_a_crash_damaged(world, monkeypatch):
     assert rec["update"] == 3 and list((run_dir / "checkpoints").glob("*.damaged-*"))
     attempt = sorted((run_dir / "attempts").glob("*/manifest.json"))[-1]
     cfg = json.loads(attempt.read_text())["config"]
-    assert cfg["resume_from"] == records[0]["path"] and cfg["resume_skipped"][0]["path"] == str(last)
+    assert Path(cfg["resume_from"]).name == Path(records[0]["path"]).name
+    assert Path(cfg["resume_skipped"][0]["path"]).name == last.name
+
+
+def _drop_last_record(run_dir):
+    records = run_dir / "checkpoints.jsonl"
+    records.write_text("".join(x + "\n" for x in records.read_text().splitlines()[:-1]))
+
+
+def _resumes_to_a_sound_final(run_dir, seed=100):
+    """Resume, then: a sound final checkpoint; the log holds every update once, the replayed ones superseded; and a
+    second resume is refused, since the run is now complete."""
+    R.train_cmd(_args(seed=seed, arms=["T4"], resume=True))
+    _path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == P.UPDATES - 1 and R.completed(run_dir) is None
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    superseded = [json.loads(x)["update"] for x in (run_dir / "train_log.superseded.jsonl").read_text().splitlines()]
+    assert superseded == list(range(P.CHECKPOINT_EVERY, P.UPDATES))  # replayed after the update-1 checkpoint
+    with pytest.raises(R.PilotStop, match="already complete"):
+        R.train_cmd(_args(seed=seed, arms=["T4"], resume=True))
+    return json.loads(sorted((run_dir / "attempts").glob("*/manifest.json"))[-1].read_text())["config"]
+
+
+def test_a_complete_log_with_a_missing_final_checkpoint_resumes(world, monkeypatch):
+    """A stop after the last log line but before the final save: the log is complete and the final checkpoint does
+    not exist. That run is not complete; it resumes from its newest sound checkpoint."""
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.unlink()
+    _drop_last_record(run_dir)  # never saved, so never recorded
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    assert "final checkpoint is not usable" in R.completed(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert Path(cfg["resume_from"]).name.startswith("ckpt_u000001_")
+
+
+def test_a_complete_log_with_a_damaged_final_checkpoint_resumes(world, monkeypatch):
+    """The final checkpoint is recorded and full size, but its bytes were lost: the log is complete, the run is not.
+    The damaged file is set aside (kept), and the run resumes from its newest sound checkpoint."""
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.write_bytes(b"\0" * final.stat().st_size)
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    assert "final checkpoint is not usable" in R.completed(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert Path(cfg["resume_skipped"][0]["path"]).name == final.name
+    assert [p.name.split(".damaged-")[0] for p in (run_dir / "checkpoints").glob("*.damaged-*")] == [final.name]
+
+
+def test_resume_finds_its_checkpoints_after_the_runs_root_moved(world, monkeypatch):
+    """checkpoints.jsonl records absolute paths; resume looks each checkpoint up by name in the run's own
+    checkpoints/ directory, so a moved runs root resumes from the same checkpoint rather than from scratch."""
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    moved = tmp_path / "moved" / "pilot"
+    shutil.move(str(P.ROOT), str(moved))
+    monkeypatch.setattr(P, "ROOT", moved)
+    run_dir = moved / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.unlink()
+    _drop_last_record(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert cfg["resume_from"].startswith(str(run_dir)) and Path(cfg["resume_from"]).name.startswith("ckpt_u000001_")
+
+
+def test_an_evaluation_with_a_false_reconstruction_entry_is_not_counted(world, monkeypatch):
+    """Eligibility comes from the complete reconstruction inventory: one false entry rejects the run, even though
+    its summary still records passed and its aggregate flags are all true."""
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    path = sorted((P.ROOT / "eval").glob("s100_*"))[0] / "summary.json"
+    s = json.loads(path.read_text())
+    s["arms"]["c4_params"]["reconstruction"][1]["same_actions"] = False
+    assert s["passed"] is True and s["arms"]["c4_params"]["reconstruction_all_equal"] is True
+    path.write_text(json.dumps(s))
+    failures = R.eval_failures(s, P.eval_ids())
+    assert any("1 reconstruction entries are not true" in f for f in failures)
+    assert any("reconstruction_all_equal is recorded True; the inventory gives False" in f for f in failures)
+    with pytest.raises(R.PilotStop, match="seed 100: 0 passing"):
+        R.analyze_cmd(_args())
+    s["arms"]["c4_params"]["reconstruction"] = s["arms"]["c4_params"]["reconstruction"][:-1]  # an incomplete one
+    s["arms"]["c4_params"]["reconstruction"][1]["same_actions"] = True
+    assert any("once each" in f for f in R.eval_failures(s, P.eval_ids()))

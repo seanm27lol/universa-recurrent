@@ -63,3 +63,16 @@ def test_the_feasibility_sample_spans_the_lengths():
     s = P.feasibility_sample(ids, lengths, 5)
     got = sorted(lengths[t] for t in s)
     assert got[0] == min(lengths.values()) and got[-1] == max(lengths.values()) and len(set(s)) == 5
+
+
+def test_run_references_do_not_depend_on_where_the_runs_root_lives():
+    """Runs are compared by their path relative to the runs root, so evidence moved to another machine, checkout or
+    directory still names the same runs."""
+    from scaling import identity
+    here = "/home/a/repo/runs/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z"
+    there = "/mnt/copy/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z"
+    assert identity.run_ref(here) == identity.run_ref(there) == "pilot/eval/s100_20261102T044302Z"
+    assert identity.run_ref("/r/baselines/x_L_nonthinking_p0-64", root="/r") == "baselines/x_L_nonthinking_p0-64"
+    assert identity.run_ref("pilot/eval/s101_x") == "pilot/eval/s101_x"
+    with pytest.raises(identity.IdentityError):
+        identity.run_ref("/tmp/somewhere/else")  # never compared by its absolute form

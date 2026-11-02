@@ -100,9 +100,16 @@ def bundle_pilot(root: Path = None, l_runs=(), dest: Path = PILOT_BUNDLE) -> lis
                 shutil.copy2(d / name, target)
                 copied.append(target)
     shutil.copy2(C.RUNS / "gpu_ledger.jsonl", dest / "gpu_ledger.jsonl")
-    files = sorted(q for q in dest.rglob("*") if q.is_file() and q.name != "SHA256SUMS")
-    (dest / "SHA256SUMS").write_text("".join(f"{_sha256(q)}  {q.relative_to(dest)}\n" for q in files))
+    write_sums(dest)
     return copied
+
+
+def write_sums(dest: Path) -> str:
+    """(Re)write dest/SHA256SUMS over every file in dest; returns the new SHA256SUMS's own sha256."""
+    dest = Path(dest)
+    files = sorted(q for q in dest.rglob("*") if q.is_file() and q.name != "SHA256SUMS")
+    (dest / "SHA256SUMS").write_text("".join(f"{_sha256(q)}  {q.relative_to(dest).as_posix()}\n" for q in files))
+    return _sha256(dest / "SHA256SUMS")
 
 
 def _checked(root: Path = None) -> None:

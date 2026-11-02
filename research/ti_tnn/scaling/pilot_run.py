@@ -429,6 +429,26 @@ def _train_log_updates(run_dir: Path) -> list:
     return [json.loads(x)["update"] for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
 
 
+def _recorded_checkpoint(run_dir: Path, entry: dict) -> Path:
+    """A checkpoint named in checkpoints.jsonl, found by its file name in this run's checkpoints/ directory (the
+    recorded absolute path is not used, so a moved runs root still resumes)."""
+    return run_dir / "checkpoints" / Path(entry["path"]).name
+
+
+def completed(run_dir: Path) -> "str | None":
+    """Why a training run is not complete (None: it is). A run is complete only if its log holds updates
+    0..1,499 once each AND its final checkpoint passes `final_checkpoint`. A complete log alone is not enough: a
+    stop between the last log line and the final save, or a final checkpoint whose bytes were lost, leaves a run
+    that must resume from its newest sound checkpoint."""
+    if _train_log_updates(run_dir) != list(range(P.UPDATES)):
+        return "the training log is not complete"
+    try:
+        final_checkpoint(run_dir)
+    except Exception as e:  # missing, damaged, unrecorded under another configuration, or not matching its record
+        return f"the log is complete but the final checkpoint is not usable: {type(e).__name__}: {e}"[:300]
+    return None
+
+
 def train_cmd(args) -> None:
     cli = _cli()
     proto = protocol_identity()
@@ -438,8 +458,12 @@ def train_cmd(args) -> None:
         run_dir = P.ROOT / "train" / f"{arm}_s{args.seed}"
         if run_dir.exists() and not args.resume:
             raise PilotStop(f"{run_dir} exists; pass --resume to continue it from its last checkpoint")
-        if _train_log_updates(run_dir) == list(range(P.UPDATES)):
-            raise PilotStop(f"{run_dir} is already complete (updates 0..{P.UPDATES - 1}); nothing to resume")
+        if run_dir.exists():
+            why = completed(run_dir)
+            if why is None:
+                raise PilotStop(f"{run_dir} is already complete (updates 0..{P.UPDATES - 1} and a sound final "
+                                f"checkpoint); nothing to resume")
+            print(json.dumps({"resume": str(run_dir), "because": why}), flush=True)
     tok = _tokenizer()
     ids = P.train_ids()
     prepared, ident, prep_seconds = prepare(ids, tok, proto)
@@ -452,17 +476,18 @@ def train_cmd(args) -> None:
         if args.resume:  # the newest recorded checkpoint that still verifies (its bytes hash to its name)
             from . import train as _train
             for entry in reversed(recorded):
+                path = _recorded_checkpoint(run_dir, entry)
                 try:
-                    _train.load_checkpoint(entry["path"])
+                    _train.load_checkpoint(path)
                 except Exception as e:
                     aside = None
-                    if Path(entry["path"]).exists():  # kept, renamed so it is never taken for a checkpoint
-                        aside = f"{entry['path']}.damaged-{time.time_ns()}"
-                        Path(entry["path"]).rename(aside)
-                    unusable.append({"path": entry["path"], "error": f"{type(e).__name__}: {e}"[:200],
+                    if path.exists():  # kept, renamed so it is never taken for a checkpoint
+                        aside = f"{path}.damaged-{time.time_ns()}"
+                        path.rename(aside)
+                    unusable.append({"path": str(path), "error": f"{type(e).__name__}: {e}"[:200],
                                      "set_aside_as": aside})
                     continue
-                resume = entry["path"]
+                resume = str(path)
                 break
             if unusable:
                 print(json.dumps({"resume_skipped_unverifiable_checkpoints": unusable}), flush=True)
@@ -527,12 +552,46 @@ def final_checkpoint(run_dir: Path) -> tuple:
                        "recovered": "accepted on its own evidence: hash, configuration, recomputed digests"}
 
 
-def eval_passed(summary: dict) -> bool:
-    """Every integrity check of one evaluation run passed."""
+RECONSTRUCTION_KEYS = ("same_actions", "same_final", "fresh_states_equal_anchor")
+
+
+def eval_failures(summary: dict, ids: list) -> list:
+    """Why one evaluation run fails its integrity checks (empty: it passed). Derived from the complete reconstruction
+    inventory, not from the aggregate flags alone:
+    - both arms, each with a summary and no record errors;
+    - each arm's inventory lists every evaluation question exactly once, in order, with the same actions, the same
+      final SQL, and fresh states equal to the anchor;
+    - each arm's aggregate flags equal what its inventory shows;
+    - the fresh states are identical across the arms.
+    A single false entry fails the run even if every aggregate says otherwise."""
     arms = summary.get("arms", {})
-    return set(arms) == set(P.ARMS) and not summary.get("states_differ_across_arms") and all(
-        o.get("reconstruction_all_equal") and o.get("fresh_states_all_equal_anchor") and not o.get("record_errors")
-        and "summary" in o and "summary_error" not in o for o in arms.values())
+    out = [] if set(arms) == set(P.ARMS) else [f"arms {sorted(arms)}, expected {sorted(P.ARMS)}"]
+    if summary.get("states_differ_across_arms"):
+        out.append(f"states differ across the arms: {summary['states_differ_across_arms'][:3]}")
+    for arm, o in sorted(arms.items()):
+        inventory = o.get("reconstruction") or []
+        if [r.get("task_id") for r in inventory] != list(ids):
+            out.append(f"{arm}: the reconstruction inventory does not list the {len(ids)} questions once each")
+        false = [(r.get("task_id"), k) for r in inventory for k in RECONSTRUCTION_KEYS if r.get(k) is not True]
+        if false:
+            out.append(f"{arm}: {len(false)} reconstruction entries are not true, first {false[:3]}")
+        derived = {"reconstruction_all_equal": all(r.get("same_actions") is True and r.get("same_final") is True
+                                                   for r in inventory) and bool(inventory),
+                   "fresh_states_all_equal_anchor": all(r.get("fresh_states_equal_anchor") is True
+                                                        for r in inventory) and bool(inventory)}
+        for key, value in derived.items():
+            if o.get(key) is not value:
+                out.append(f"{arm}: {key} is recorded {o.get(key)!r}; the inventory gives {value}")
+        if o.get("record_errors"):
+            out.append(f"{arm}: record errors {o['record_errors'][:2]}")
+        if "summary" not in o or "summary_error" in o:
+            out.append(f"{arm}: no summary ({o.get('summary_error')})")
+    return out
+
+
+def eval_passed(summary: dict, ids: list) -> bool:
+    """Every integrity check of one evaluation run passed (`eval_failures` is empty)."""
+    return not eval_failures(summary, ids)
 
 
 def eval_cmd(args) -> None:
@@ -610,7 +669,7 @@ def eval_cmd(args) -> None:
             arm_out["summary_error"] = str(e)
         out["arms"][arm] = arm_out
     out["states_differ_across_arms"] = states_cross
-    out["passed"] = eval_passed(out)
+    out["passed"] = eval_passed(out, ids)
     cli._write(run_dir / "summary.json", out)
     print(json.dumps({a: {k: o[k] for k in ("reconstruction_all_equal", "fresh_states_all_equal_anchor")}
                       for a, o in out["arms"].items()} | {"states_differ_across_arms": states_cross,
@@ -628,19 +687,23 @@ def _is_ancestor(ancestor: "str | None", commit: str) -> bool:
 
 
 def select_evaluations() -> tuple:
-    """({seed: the one passing evaluation run}, [every evaluation run with its seed and pass/fail]). Stops unless
-    each seed has exactly one passing run."""
-    runs = []
+    """({seed: the one passing evaluation run's directory}, [every evaluation run: its reference relative to the runs
+    root, seed and pass/fail]). A run passes only if `eval_failures` finds nothing in its complete reconstruction
+    inventory and its summary also records `passed`. Stops unless each seed has exactly one passing run."""
+    runs, dirs = [], {}
     for d in sorted((P.ROOT / "eval").glob("s*_*")):
-        seed = json.loads((d / "manifest.json").read_text())["config"]["seed"]
+        config = json.loads((d / "manifest.json").read_text())["config"]
         summary = json.loads((d / "summary.json").read_text()) if (d / "summary.json").exists() else {}
-        runs.append({"run": str(d), "seed": seed, "passed": eval_passed(summary)})
+        ref = identity.run_ref(d)
+        dirs[ref] = d
+        runs.append({"run": ref, "seed": config["seed"],
+                     "passed": summary.get("passed") is True and eval_passed(summary, config["ids"])})
     chosen = {}
     for seed in P.SEEDS:
         passing = [r for r in runs if r["seed"] == seed and r["passed"]]
         if len(passing) != 1:
             raise PilotStop(f"seed {seed}: {len(passing)} passing evaluations; exactly one is required")
-        chosen[seed] = Path(passing[0]["run"])
+        chosen[seed] = dirs[passing[0]["run"]]
     return chosen, runs
 
 
@@ -688,8 +751,10 @@ def analyze_cmd(args) -> None:
                                          "rate": excluded / pin["training_pool_questions"],
                                          "note": "training-pool questions without a supervisable gold program; "
                                                  "an exclusion rate for training, not an evaluation ceiling"}
-    result["inputs"] = {"evaluations_counted": {str(s): str(d) for s, d in chosen.items()},
-                        "evaluations_all": all_runs, "L": str(l_runs[0]), "protocol": proto}
+    # runs are named by their references relative to the runs root (the frozen analysis of 2026-11-02 recorded
+    # absolute paths; `identity.run_ref` reads both)
+    result["inputs"] = {"evaluations_counted": {str(s): identity.run_ref(d) for s, d in chosen.items()},
+                        "evaluations_all": all_runs, "L": identity.run_ref(l_runs[0]), "protocol": proto}
     run_dir = _new_dir(P.ROOT / "analysis", "")
     identity.write_manifest(run_dir, config={"command": "pilot-analyze", **result["inputs"]},
                             require_clean=not args.allow_dirty)
