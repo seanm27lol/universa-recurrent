@@ -893,17 +893,169 @@ def run(args) -> dict:
     return result
 
 
+# --- table choice against name mentions ----------------------------------------------------------------------------
+def mention(name: str, words: set, text: str) -> str:
+    """'exact' if the identifier (split into words) is named in the text, 'partial' if one of its words is, else
+    'none' (the rule `grounding.item_features` uses)."""
+    from . import grounding as G
+    if G._mentions(name, text):
+        return "exact"
+    if any(w in words for w in G.name_tokens(name) if w not in G._STOP and len(w) >= 3):
+        return "partial"
+    return "none"
+
+
+def table_mentions(args) -> dict:
+    """Teacher-forced accuracy of the FROM-table and joined-table pointers on the representable historical questions,
+    by whether the gold table's name, and the best-named of the gold query's columns of that table, are named in the
+    question or evidence."""
+    import torch
+
+    from . import controller as K
+    from . import data, encode, grounding, pilot, pilot_run, sql_to_ir, train
+    torch.set_num_threads(args.threads)
+    tok = pilot_run._tokenizer()
+    proto = pilot_run.protocol_identity()
+    anchors, ident = pilot_run.anchors(proto)
+    reader = encode.Backbone.cache_reader(ident, tok)
+    examples = {}
+    for tid in pilot.eval_ids():
+        enc = _encoding(tid, reader, encode.PILOT_CACHE, anchors)
+        steps, _ = train.gold_steps(data.gold(tid).sql, enc)
+        if steps:
+            examples[tid] = (K.prepare(enc, steps), enc)
+    rank = ("none", "partial", "exact")
+    acc: dict = {}
+    for arm in ARMS:
+        for seed in SEEDS:
+            path, _ = pilot_run.final_checkpoint(pilot.ROOT / "train" / f"{arm}_s{seed}")
+            model = train.model_from_checkpoint(train.load_checkpoint(path), "cpu").eval()
+            for tid, (ex, enc) in examples.items():
+                t = data.task(tid)
+                text = t.question + " " + t.evidence
+                words = set(grounding.name_tokens(text))
+                gold = sql_to_ir.try_convert(data.gold(tid).sql, enc.schema.index)[0]
+                cols: dict = {}
+                for sel, outer, _path in all_selects(gold):
+                    for c in select_features(sel, outer)["columns"]:
+                        tb, cn = c.split(".", 1)
+                        cols.setdefault(tb, set()).add(cn)
+                tf = teacher_forced(model, ex)
+                for st, step in zip(tf["per_step"], ex.steps):
+                    if st["label"] not in ("FROM table", "join: add table"):
+                        continue
+                    table = ex.schema.items[step.target].table
+                    best = max((mention(c, words, text) for c in cols.get(table.lower(), ())), key=rank.index,
+                               default="none")
+                    for key in (f"{st['label']}, all", f"{st['label']}, table name {mention(table, words, text)}"
+                                f", best column {best}"):
+                        a = acc.setdefault(key, [0, 0])
+                        a[0] += st["pointer_ok"]
+                        a[1] += 1
+    out = {k: {"correct": v[0], "steps": v[1], "accuracy": v[0] / v[1]} for k, v in sorted(acc.items())}
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    (Path(args.out) / "table_mentions.json").write_text(json.dumps(out, indent=1) + "\n")
+    return out
+
+
+def suspicious_correct(rows: list) -> list:
+    """EX-correct requests whose program differs from the gold program in a way EX does not see: a same-reference
+    predicate, a table the gold program does not use or lacks, a different join key, or different WHERE conjuncts."""
+    out = []
+    for r in rows:
+        if not r["correct"]:
+            continue
+        p = r["plans"]
+        why = []
+        if r.get("same_reference_predicates"):
+            why.append("same-reference predicate")
+        if p.get("comparable") and not p["exact_plan"]:
+            if p["extra_tables"]:
+                why.append(f"extra tables {p['extra_tables']}")
+            if p["missing_tables"]:
+                why.append(f"missing tables {p['missing_tables']}")
+            if p["tables_equal"] and not p["join_keys_equal"]:
+                why.append("other join key")
+            if p["missing_where"] or p["extra_where"]:
+                why.append(f"WHERE differs (missing {len(p['missing_where'])}, extra {len(p['extra_where'])})")
+        if why:
+            out.append({"task_id": r["task_id"], "db_id": r["db_id"], "why": why})
+    return out
+
+
+def tables(args) -> str:
+    """Markdown tables of a saved diagnosis (diagnosis.json, dev_requests.json, table_mentions.json)."""
+    d = Path(args.out)
+    diag = json.loads((d / "diagnosis.json").read_text())
+    dev = json.loads((d / "dev_requests.json").read_text())
+    fits = list(diag["dev"])
+    lines = ["| category (64 historical questions) | " + " | ".join(fits) + " |", "|---|" + "---|" * len(fits)]
+    cats = sorted({c for f in fits for c in diag["dev"][f]["categories"]},
+                  key=lambda c: -sum(diag["dev"][f]["categories"].get(c, 0) for f in fits))
+    for c in cats:
+        lines.append(f"| {c} | " + " | ".join(str(diag["dev"][f]["categories"].get(c, 0)) for f in fits) + " |")
+    lines += ["", "| first divergence from the gold traversal | " + " | ".join(fits) + " |",
+              "|---|" + "---|" * len(fits)]
+    divs = sorted({c for f in fits for c in diag["dev"][f]["first_divergence"]},
+                  key=lambda c: -sum(diag["dev"][f]["first_divergence"].get(c, 0) for f in fits))
+    for c in divs:
+        lines.append(f"| {c} | " + " | ".join(str(diag["dev"][f]["first_divergence"].get(c, 0)) for f in fits) + " |")
+    lines += ["", "| teacher-forced decision (all four fits) | dev steps | dev wrong | dev error | train steps | "
+                  "train wrong | train error |", "|---|---|---|---|---|---|---|"]
+    labels = {lab for f in fits for lab in diag["dev_teacher_forced"][f]["by_decision"]}
+    rows = []
+    for lab in labels:
+        dv = [diag["dev_teacher_forced"][f]["by_decision"].get(lab) for f in fits]
+        tr = [diag["train"][f]["by_decision"].get(lab) for f in fits]
+        ds, dw = sum(x["steps"] for x in dv if x), sum(x["any_wrong"] for x in dv if x)
+        ts, tw = sum(x["steps"] for x in tr if x), sum(x["any_wrong"] for x in tr if x)
+        rows.append((dw, f"| {lab} | {ds} | {dw} | {dw / ds:.2f} | {ts} | {tw} | {tw / max(1, ts):.3f} |"))
+    lines += [r for _w, r in sorted(rows, reverse=True)]
+    lines += ["", "| fit | train sample | TF loss | TF step accuracy | TF all steps right | free decoding: exact | "
+                  "EX-correct | table set right | dev EX-correct |", "|---|---|---|---|---|---|---|---|---|"]
+    for f in fits:
+        t = diag["train"][f]
+        lines.append(f"| {f} | {t['sample']} | {t['mean_tf_loss']:.3f} | {t['mean_tf_step_accuracy']:.3f} | "
+                     f"{t['tf_all_steps_correct']} | {t['free_exact_actions']} | {t['free_ex_correct']} | "
+                     f"{t['table_set_equal']} | {diag['dev'][f]['correct']} |")
+    se = [(f, r, j) for f in fits for r in dev[f] for j in r["joins"] if j["kind"] == "same_reference"]
+    reqs = {(f, r["task_id"]) for f, r, _j in se}
+    effect = Counter(j["result_set_effect"].split(":")[0].split(" (")[0] for _f, _r, j in se)
+    timeouts = [(f, r["task_id"]) for f in fits for r in dev[f] if r["predicted_status"] == "timeout"]
+    lines += ["", f"Same-reference ON equalities: {len(se)} in {len(reqs)} outputs; scorer timeouts among those "
+                  f"outputs: {sum(t in reqs for t in timeouts)} of {len(timeouts)}.", "",
+              "| effect on the result set | equalities |", "|---|---|"]
+    lines += [f"| {k} | {v} |" for k, v in effect.most_common()]
+    sus = {f: suspicious_correct(dev[f]) for f in fits}
+    lines += ["", "| fit | EX-correct | of which the program is suspicious |", "|---|---|---|"]
+    for f in fits:
+        lines.append(f"| {f} | {diag['dev'][f]['correct']} | {len(sus[f])}: "
+                     + "; ".join(f"{x['task_id']} ({', '.join(x['why'])})" for x in sus[f]) + " |")
+    if (d / "table_mentions.json").exists():
+        tm = json.loads((d / "table_mentions.json").read_text())
+        lines += ["", "| table pointer (teacher forced) | right | steps | accuracy |", "|---|---|---|---|"]
+        lines += [f"| {k} | {v['correct']} | {v['steps']} | {v['accuracy']:.2f} |" for k, v in tm.items()]
+    return "\n".join(lines)
+
+
 def log(msg: str) -> None:
     print(msg, flush=True)
 
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("what", nargs="?", default="run", choices=("run", "table-mentions", "tables"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--train-sample", type=int, default=TRAIN_SAMPLE_SIZE)
     args = ap.parse_args(argv)
+    if args.what == "tables":
+        print(tables(args))
+        return
+    if args.what == "table-mentions":
+        print(json.dumps(table_mentions(args), indent=1))
+        return
     res = run(args)
     print(json.dumps({k: res[k] for k in ("dev", "train")}, indent=1, default=str)[:20000])
 
