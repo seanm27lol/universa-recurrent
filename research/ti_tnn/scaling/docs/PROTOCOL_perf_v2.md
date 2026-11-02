@@ -35,7 +35,15 @@ The intervention is **relational grounding** (`grounding.py`), one mechanism wit
 T4 and C4_params share: a relation-aware schema encoder (tables see their columns and key-linked tables), item
 features (keys, name mentions), plan-relative pointer relations (including the second join operand scored against
 the first), and the constraint that an ON comparison may not compare one column reference with itself. The
-comparison tests the mechanism as a whole, not its parts.
+comparison tests the mechanism as a whole, not its parts. In particular the v2 trunk has 4,218,064 more parameters
+(the two encoder layers, 15,735,765 against 11,517,701), and there is no capacity-matched v1 control, so an
+improvement cannot be split between the relations and the added capacity.
+
+**Independent review before the freeze** (2026-11-02, of 1f950ec): no defect invalidating training or the
+comparison. Fixed before the freeze: the "already referenced" pointer bit read enclosing and nested SELECTs (1.5% of
+training column-pointer steps), and bits 5 and 6 now follow the chosen occurrence of a self-joined table; the
+projection now applies the update rule's contingency; a second evaluation of a seed is refused; the decodes are
+written before scoring; the decoding relation bits are built on the CPU and copied once.
 
 ## Fixed in advance
 
@@ -77,7 +85,11 @@ fit, recorded in an amendment before training. Below 1,500 the study stops and r
 
 **If the budget stops training,** only seeds with all four arms complete enter the comparisons (a symmetric
 reduction), and the report says so before interpreting anything. An arm is never trained longer than its
-counterparts, and no arm is shortened alone.
+counterparts, and no arm is shortened alone. With fewer than three seeds the threshold below keeps its share
+(10 x seeds / 3, rounded up).
+
+**The code is frozen with this protocol.** Every fit and evaluation runs from the run worktree at the freeze commit,
+so a resumed fit matches its recorded source hashes.
 
 ## Outcomes and how they are read
 

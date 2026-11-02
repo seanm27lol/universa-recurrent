@@ -408,6 +408,9 @@ def eval_cmd(args) -> None:
     if args.seed not in SEEDS:
         raise PerfStop(f"seed {args.seed} is not one of the protocol's {SEEDS}")
     finals = {a: final_checkpoint(run_dir_of(*a, args.seed)) for a in ARMS}
+    _chosen, runs = select_evaluations()
+    if any(r["seed"] == args.seed and r["passed"] for r in runs):
+        raise PerfStop(f"seed {args.seed} already has a passing evaluation; exactly one counts")
     known, ident = anchors()
     ids = eval_ids()
     if any(t not in known for t in ids):
@@ -442,6 +445,9 @@ def eval_cmd(args) -> None:
                                               matmul_precision=MATMUL_PRECISION, log=None)
             evals[a] = (timed, again, peak)
         out["reservation"] = {"id": res.id, "hours": res.elapsed_hours(), "projected_hours": args.projected_hours}
+    # paid for: the timed and reconstruction decodes are on disk before any scoring
+    cli._write(run_dir / "decodes.json", {label(*a): {"timed": t, "reconstruction": r, "peak_memory_bytes": pk}
+                                          for a, (t, r, pk) in evals.items()})
     first = evals[ARMS[0]][0]
     states_cross = sorted({t for a in ARMS[1:] for t, x, y in zip(ids, first, evals[a][0])
                            if x["states_sha256"] != y["states_sha256"]})
@@ -589,7 +595,7 @@ def feasibility_cmd(args) -> None:
                     "reconstruction_seconds_per_request": (t4 - t3) / len(decode_ids),
                     "reconstruction_equal": all(x.get("actions") == y.get("actions") and x["final"] == y["final"]
                                                 for x, y in zip(timed, again)),
-                    "fresh_states_equal_anchor": sum(
+                    "timed_states_equal_reconstruction_states": sum(
                         x["states_sha256"] == y["states_sha256"] for x, y in zip(timed, again)),
                     "decoded_sql": sum(e["final"]["kind"] == "sql" for e in timed),
                     "training_requests_ex_correct": sum(s["correct"] for s in ex), "decoded": len(timed),
@@ -605,30 +611,48 @@ def feasibility_cmd(args) -> None:
     print(json.dumps({k: out.get(k) for k in ("arms", "projection")}, indent=1, default=str))
     bad = [n for n, a in out["arms"].items() if not (a["grad_norm_finite"] and a["checkpoint_reload_digest_equal"]
                                                       and a["reconstruction_equal"]
+                                                      and a["timed_states_equal_reconstruction_states"] == a["decoded"]
                                                       and a["loss_first_last"][1] < a["loss_first_last"][0])]
     if bad:
         raise PerfStop(f"the paired smoke failed for {bad}")
+    if out["projection"]["stop"]:
+        raise PerfStop(f"not even {MIN_UPDATES} updates per fit fit the hours left minus the contingency")
+
+
+CONTINGENCY_HOURS = 4.6
+MIN_UPDATES = 1500
 
 
 def project(m: dict, n_pool: int, n_eval: int) -> dict:
-    """The remaining controller plan's GPU hours from the measured unit costs (each arm at its own measured costs),
-    and the baselines' projections, against the hours left under the cap."""
-    U = updates()
+    """The protocol's update rule: training and evaluating all twelve fits, each arm at its own measured costs, must
+    fit in the hours left minus the 4.6 h contingency. U is 3,000 if it does, otherwise the largest multiple of 500
+    that does (the same for every fit); below 1,500 the study stops."""
     load = m["load_seconds"]
-    fit = {n: (U - 1) * a["update_seconds_after_first"] + a["first_update_seconds"]
-           + (U // CHECKPOINT_EVERY) * a["checkpoint_save_seconds_mean"] + a["fixed_seconds"]
-           for n, a in m["arms"].items()}
-    items = {
-        f"train {len(SEEDS)} seeds x 4 arms x {U} updates": len(SEEDS) * sum(fit.values()) / 3600,
-        f"evaluate and reconstruct 12 final checkpoints on the {n_eval}, with {len(SEEDS)} loads": (
-            len(SEEDS) * load + len(SEEDS) * sum(n_eval * (a["eval_seconds_per_request"]
-                                                           + a["reconstruction_seconds_per_request"])
-                                                 for a in m["arms"].values())) / 3600,
-    }
-    needed = sum(items.values())
     remaining = ledger.CAP_HOURS - ledger.usage()["used_hours"]
-    return {"per_fit_hours": {n: f / 3600 for n, f in fit.items()}, "items_hours": items, "needed_hours": needed,
-            "remaining_hours": remaining, "fits": needed <= remaining, "slack_hours": remaining - needed}
+    available = remaining - CONTINGENCY_HOURS
+    evaluation = (len(SEEDS) * load + len(SEEDS) * sum(n_eval * (a["eval_seconds_per_request"]
+                                                                 + a["reconstruction_seconds_per_request"])
+                                                       for a in m["arms"].values())) / 3600
+
+    def needed(u: int) -> tuple:
+        fit = {n: (u - 1) * a["update_seconds_after_first"] + a["first_update_seconds"]
+               + (u // CHECKPOINT_EVERY) * a["checkpoint_save_seconds_mean"] + a["fixed_seconds"]
+               for n, a in m["arms"].items()}
+        return len(SEEDS) * sum(fit.values()) / 3600 + evaluation, fit
+
+    chosen = None
+    for u in range(UPDATES, MIN_UPDATES - 1, -500):
+        if needed(u)[0] <= available:
+            chosen = u
+            break
+    total, fit = needed(chosen or UPDATES)
+    return {"updates_rule": chosen, "fits_at_3000": needed(UPDATES)[0] <= available,
+            "per_fit_hours": {n: f / 3600 for n, f in fit.items()}, "evaluation_hours": evaluation,
+            "needed_hours": total, "remaining_hours": remaining, "contingency_hours": CONTINGENCY_HOURS,
+            "available_hours": available, "slack_hours": available - total,
+            "stop": chosen is None,
+            "basis": "measured per-arm update, save and fixed costs on the frozen code; evaluation per request "
+                     "measured on training-pool requests; the 4.6 h contingency held back"}
 
 
 # --- the analysis -----------------------------------------------------------------------------------------------------

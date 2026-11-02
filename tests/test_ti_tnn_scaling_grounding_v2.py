@@ -228,9 +228,44 @@ def test_the_second_operand_is_scored_against_the_first():
     mm = _col(items, "movies", "movie_id")
     assert rel[mm] & bit["column is a declared foreign-key partner of the comparison's first operand"]
     assert rel[mm] & bit["column has the first operand's name, on another table"]
-    assert rel[mm] & bit["column belongs to the source this ON clause joins"]
-    assert rel[_col(items, "movies", "title")] == bit["column belongs to the source this ON clause joins"]
+    assert rel[mm] & bit["column (at the chosen occurrence) belongs to the source this ON clause joins"]
+    assert rel[_col(items, "movies", "title")] == bit["column (at the chosen occurrence) belongs to the source this ON clause joins"]
     assert _col(items, "ratings", "movie_id") not in m.options()["COL0"][1]     # excluded, so never scored
+
+
+def test_the_referenced_bit_reads_only_this_select_and_the_chosen_occurrence(encodings):
+    """From the review: a nested subquery's own columns are not 'already referenced' because of the enclosing
+    SELECT's operands, and a self-joined table's other occurrence is not marked."""
+    enc = encodings[0]
+    items = enc.schema
+    bit = {r: 1 << k for k, r in enumerate(A.POINTER_RELATIONS)}
+    used = bit["column (at the chosen occurrence) already referenced in this SELECT"]
+    joined = bit["column (at the chosen occurrence) belongs to the source this ON clause joins"]
+    plan = X.convert("SELECT T1.title FROM movies AS T1 WHERE T1.director = (SELECT T2.director FROM movies AS T2 "
+                     "WHERE T2.year = 5)", items.index)
+    steps = A.trace(plan, items, enc.spans, "v2")
+    director = _col(items, "movies", "director")
+    inner = [s for s in steps if s.op == "COL0" and s.target == director][1]   # T2.director inside the subquery
+    assert not inner.relations.get(director, 0) & used
+    outer_where = [s for s in steps if s.op == "COL0" and s.target == _col(items, "movies", "year")][0]
+    assert not outer_where.relations.get(director, 0) & used                   # the outer operand is not inner
+    plan = X.convert("SELECT T2.name FROM people AS T1 INNER JOIN people AS T2 ON T1.mentor_id = T2.person_id "
+                     "WHERE T1.name = T2.name", items.index)
+    steps = A.trace(plan, items, enc.spans, "v2")
+    on_second = [s for s in steps if s.op == "COL1"][0]                        # T2.person_id: the joined occurrence
+    assert on_second.relations[on_second.target] & joined
+    m = A.Machine(items, None, grounding="v2")
+    for a in steps[:[i for i, s in enumerate(steps) if s.op == "COL1"][0]]:
+        m.apply(a.action)
+    as_t1 = m.pointer_relations("COL0")                                        # the same columns at occurrence T1
+    assert all(not v & joined for v in as_t1.values())
+    t2_name = [s for s in steps if s.op == "COL1" and s.target == _col(items, "people", "name")]  # WHERE, SELECT
+    assert len(t2_name) == 2
+    assert t2_name[0].relations[_col(items, "people", "person_id")] & used       # T2.person_id, read in ON
+    assert not t2_name[0].relations.get(t2_name[0].target, 0) & used             # T2.name: not yet (WHERE first)
+    assert t2_name[1].relations[t2_name[1].target] & used                        # in SELECT, after the WHERE
+    where_t1 = [s for s in steps if s.op == "COL0" and s.target == _col(items, "people", "name")]
+    assert where_t1 and not where_t1[0].relations.get(where_t1[0].target, 0) & used  # T1.name is not
 
 
 def test_gold_steps_carry_their_relations(prepared):

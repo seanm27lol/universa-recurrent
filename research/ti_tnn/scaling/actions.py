@@ -101,8 +101,8 @@ POINTER_RELATIONS = (
     "table shares a column name with a source of this SELECT (no declared key)",
     "column is a declared foreign-key partner of the comparison's first operand",
     "column has the first operand's name, on another table",
-    "column belongs to the source this ON clause joins",
-    "column already referenced in this SELECT",
+    "column (at the chosen occurrence) belongs to the source this ON clause joins",
+    "column (at the chosen occurrence) already referenced in this SELECT",
 )
 N_POINTER_RELATIONS = len(POINTER_RELATIONS)
 
@@ -1103,6 +1103,15 @@ class _NodeFrame(_Frame):
         self.value, self.done = node, True
 
 
+def _same_select_nodes(node):
+    """The nodes of an expression, without entering subqueries (their columns belong to another SELECT)."""
+    if node is None or isinstance(node, (ir.Select, ir.Compound)):
+        return
+    yield node
+    for child in ir.children(node):
+        yield from _same_select_nodes(child)
+
+
 class Machine:
     """The grammar state: the partial plan and the stack of unfinished subproblems.
 
@@ -1219,58 +1228,51 @@ class Machine:
             return out
         top = self.top
         first = getattr(top, "first", None)
+        tables, _ = _visible(top.ctx)
         first_item = None
         if first is not None:
-            tables, _ = _visible(top.ctx)
             for t, occ in tables.items():
                 if (first.level, first.source) in occ:
                     first_item = self.schema.column_item.get((t, first.name))
+        k = int(op[3:])  # COLk: the candidate's k-th visible occurrence of its table is the source it would read
         joined = None
-        if top.ctx.clause == "ON" and isinstance(select, _SelectFrame) and select.current_on is not None:
-            joined = select.sources[select.current_on].table
+        if top.ctx.clause == "ON" and isinstance(select, _SelectFrame) and select.current_on is not None and \
+                top.ctx.scope and top.ctx.scope[-1].select is select:
+            joined = (0, select.current_on)
         used = self._referenced_columns(select)
         partners = keys.partners(first_item) if keys is not None and first_item is not None else set()
         for i in targets:
+            ref = tables[items[i].table][k]  # (level, source)
             bits = 0
             if i in partners:
                 bits |= 1 << 3
             if first_item is not None and i != first_item and items[i].column.lower() == \
                     items[first_item].column.lower() and items[i].table != items[first_item].table:
                 bits |= 1 << 4
-            if joined is not None and items[i].table == joined:
+            if joined is not None and ref == joined:
                 bits |= 1 << 5
-            if i in used:
+            if ref[0] == 0 and (ref[1], items[i].column.lower()) in used:
                 bits |= 1 << 6
             if bits:
                 out[i] = bits
         return out
 
     def _referenced_columns(self, select) -> set:
-        """Column items this SELECT's finished clauses already reference (its own sources only)."""
+        """(source, column name) pairs of this SELECT's own sources that its finished clauses, and the unfinished
+        operators of this SELECT on the stack, already reference. Subqueries are not entered, and an enclosing or
+        nested SELECT's operators are not read."""
         if not isinstance(select, _SelectFrame):
             return set()
         parts = [o for o in select.ons if o is not None] + [select.where, select.having] + list(select.group) + \
             [i for i in select.items if not isinstance(i, ir.Star)] + [o.expr for o in select.order]
+        for frame in self.stack:  # the operands of unfinished operators of this SELECT
+            if isinstance(frame, _NodeFrame) and frame.ctx.scope and frame.ctx.scope[-1].select is select:
+                parts.extend(frame.children)
         out = set()
         for part in parts:
-            if part is None:
-                continue
-            for n in ir.walk(part):
+            for n in _same_select_nodes(part):
                 if isinstance(n, ir.Column) and n.level == 0 and n.source < len(select.sources):
-                    t = select.sources[n.source].table
-                    i = self.schema.column_item.get((t, n.name)) if t is not None else None
-                    if i is not None:
-                        out.add(i)
-        # the operands of unfinished comparisons above the current slot
-        for frame in self.stack:
-            if isinstance(frame, _NodeFrame):
-                for c in frame.children:
-                    for n in ir.walk(c):
-                        if isinstance(n, ir.Column) and n.level == 0 and n.source < len(select.sources):
-                            t = select.sources[n.source].table
-                            i = self.schema.column_item.get((t, n.name)) if t is not None else None
-                            if i is not None:
-                                out.add(i)
+                    out.add((n.source, n.name.lower()))
         return out
 
     def is_legal(self, action: Action) -> bool:

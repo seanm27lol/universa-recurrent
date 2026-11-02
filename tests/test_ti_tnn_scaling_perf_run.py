@@ -185,6 +185,10 @@ def test_a_false_reconstruction_entry_fails_the_evaluation_and_two_passing_runs_
     tampered = json.loads(json.dumps(summary))
     tampered["arms"]["C4-v2"]["reconstruction"][3]["same_actions"] = False
     assert any("not true" in f for f in PF.eval_failures(tampered, ids))
-    PF.eval_cmd(_args(seed=100))
+    with pytest.raises(PF.PerfStop, match="already has a passing evaluation"):
+        PF.eval_cmd(_args(seed=100))                                # a second evaluation is refused before the GPU
+    import shutil
+    shutil.copytree(run, run.with_name(run.name + ".copy"))         # a second passing run, however it got there
     with pytest.raises(PF.PerfStop, match="2 passing"):
         PF.select_evaluations()
+    assert json.loads((run / "decodes.json").read_text()).keys() == {PF.label(*a) for a in PF.ARMS}

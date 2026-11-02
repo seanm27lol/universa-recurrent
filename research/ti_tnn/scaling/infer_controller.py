@@ -140,13 +140,13 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
         starts = torch.zeros((B, 1), dtype=torch.long, device=device)
         relations = None
         if grounding == "v2":  # each row's plan-relative relation bits for its chosen table or column operator
-            relations = torch.zeros((B, 1, mem["items"].shape[1], A.N_POINTER_RELATIONS), dtype=torch.bool,
-                                    device=device)
+            rel = torch.zeros((B, 1, mem["items"].shape[1], A.N_POINTER_RELATIONS), dtype=torch.bool)
             for b, op in chosen.items():
                 for i, bits in machines[b].pointer_relations(op).items():
                     for r in range(A.N_POINTER_RELATIONS):
                         if bits >> r & 1:
-                            relations[b, 0, i, r] = True
+                            rel[b, 0, i, r] = True
+            relations = rel.to(device)  # built on the CPU, copied once
         items, start, _ = model.trunk.pointer_scores(mem, queries, relations=relations)
         args = {}
         dead = set()

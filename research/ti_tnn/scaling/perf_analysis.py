@@ -16,7 +16,12 @@ from collections import Counter
 
 from . import pilot as P
 
-THRESHOLD = 10
+THRESHOLD = 10          # with three seeds (192 question-seed pairs)
+
+
+def threshold(n_seeds: int) -> int:
+    """10 of 192 pairs with three seeds; the same share, rounded up, if a symmetric reduction leaves fewer."""
+    return -(-THRESHOLD * n_seeds // 3)
 
 
 def counts(correct: dict, ids: list) -> dict:
@@ -35,10 +40,11 @@ def paired(correct: dict, a: str, b: str, seeds, ids: list, db_of: dict) -> dict
     loo = {db: pooled - v for db, v in sorted(by_db.items())}
     per_question = Counter(sum(correct[(a, s)][t] - correct[(b, s)][t] for s in seeds) for t in ids)
     sign = 1 if pooled > 0 else -1 if pooled < 0 else 0
-    conditions = {"pooled_at_least_threshold": abs(pooled) >= THRESHOLD,
+    conditions = {"pooled_at_least_threshold": abs(pooled) >= threshold(len(list(seeds))),
                   "same_sign_every_seed": sign != 0 and all(d * sign > 0 for d in per_seed.values()),
                   "same_sign_without_any_one_database": sign != 0 and all(v * sign > 0 for v in loo.values())}
     return {"a": a, "b": b, "per_seed": {str(s): d for s, d in per_seed.items()}, "pooled": pooled,
+            "threshold": threshold(len(per_seed)),
             "pooled_out_of": len(ids) * len(seeds), "sign": sign, "conditions": conditions,
             "all_conditions": all(conditions.values()), "per_database": dict(sorted(by_db.items())),
             "leave_one_database_out": loo,
@@ -68,9 +74,12 @@ def reading(q1: dict, q2: str) -> str:
     if q2.startswith("A1"):
         return ("T4-v2 has a consistent advantage over C4-v2 on the new population: propose a separately frozen "
                 "confirmation on fresh data; nothing is confirmed here")
-    if t4 == c4 == "I1":
+    if t4 == c4 == "I1" and q2.startswith("A3"):
         return ("both architectures improved materially and they do not differ consistently: an engineering gain of "
                 "the intervention, not attributable to specialization")
+    if t4 == c4 == "I1" and q2.startswith("A2"):
+        return ("both architectures improved materially, and C4-v2 is consistently ahead of T4-v2: the gain is the "
+                "intervention's, and the shared organization did better")
     if t4 == c4 == "I3":
         return "neither architecture improved materially: diagnose why and recommend a distinct next experiment"
     return f"mixed: T4 {t4}, C4 {c4}, architectures {q2.split(':')[0]}; read descriptively"
