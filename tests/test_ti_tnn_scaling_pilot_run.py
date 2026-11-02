@@ -312,3 +312,32 @@ def test_an_l_run_from_before_the_freeze_is_refused(world, monkeypatch):
     monkeypatch.setattr(R, "_is_ancestor", lambda ancestor, commit: False)
     with pytest.raises(R.PilotStop, match="after the protocol was frozen"):
         R.analyze_cmd(_args())
+
+
+def test_a_damaged_entry_is_quarantined_and_must_recompute_to_its_original_anchor(world, monkeypatch):
+    R.encode_cmd(_args(what="train", range="0:2"))
+    known, _, _ = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    path = E.cache_path(known["tr1"]["cache_key"], E.PILOT_CACHE)
+    with pytest.raises(R.PilotStop, match="not damaged"):
+        R.quarantine_cmd(argparse.Namespace(task_ids=["tr1"], reason="test"))  # a sound entry is refused
+    size = path.stat().st_size
+    path.write_bytes(b"\0" * size)  # what the host crash left: full size, no data
+    R.quarantine_cmd(argparse.Namespace(task_ids=["tr1"], reason="host crash"))
+    rec = json.loads(sorted((P.ROOT / "quarantine").glob("*/quarantine.json"))[-1].read_text())
+    assert rec["entries"][0]["task_id"] == "tr1" and not path.exists()
+    R.encode_cmd(_args(what="train", range="0:2"))  # recomputed, and equal to the original anchor
+    assert path.exists() and E.states_sha256(__import__("safetensors.torch", fromlist=["x"]).load_file(
+        str(path))["states"]) == known["tr1"]["states_sha256"]
+    path.unlink()  # a recomputation that differed from the anchor would stop the pilot
+    real = E.encode_request
+
+    def drifting(bb, task, *a, use_cache=True, **k):
+        enc = real(bb, task, *a, use_cache=False, **k) if task.task_id == "tr1" else real(bb, task, *a, use_cache=use_cache, **k)
+        if task.task_id == "tr1":
+            enc.states = enc.states + 1e-3
+            enc.cost["states_sha256"] = E.states_sha256(enc.states)
+            enc.cost["cache_hit"] = False
+        return enc
+    monkeypatch.setattr(E, "encode_request", drifting)
+    with pytest.raises(R.PilotStop, match="differs from its anchor"):
+        R.encode_cmd(_args(what="train", range="0:2"))

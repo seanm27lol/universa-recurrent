@@ -375,6 +375,10 @@ def _write_once(path: Path, tensor, metadata: dict) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
     save_file({"states": tensor}, str(tmp), metadata={k: str(v) for k, v in metadata.items()})
+    # Durable before it is visible: the data reaches the disk before the entry is linked into place (and so before
+    # any caller can anchor it), and the directory entry right after. A host crash on 2026-10-30 left two pilot
+    # entries linked and anchored but with their data never written.
+    _fsync_path(tmp)
     try:
         os.link(tmp, path)  # atomic and never overwrites: fails if another writer won
         written = path.stat().st_size
@@ -382,7 +386,16 @@ def _write_once(path: Path, tensor, metadata: dict) -> int:
         written = 0
     finally:
         tmp.unlink(missing_ok=True)
+    _fsync_path(path.parent)
     return written
+
+
+def _fsync_path(path: Path) -> None:
+    fd = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 
 
 def cached_states(backbone: Backbone, token_ids: list, root: "Path | None" = None, use_cache: bool = True,

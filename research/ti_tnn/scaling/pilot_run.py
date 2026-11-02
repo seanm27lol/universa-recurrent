@@ -380,6 +380,47 @@ def project(m: dict, n_pool: int, n_eval: int, n_sample: int, n_dev: int) -> dic
                      "preparation runs on the CPU outside reservations; no margin is required"}
 
 
+def quarantine_cmd(args) -> None:
+    """Move damaged pilot-cache entries aside (kept, with a record). An entry qualifies only if it fails to read or
+    to verify against its recorded sha256; a sound entry is refused. Afterwards the next encoding run finds no entry
+    for that context, recomputes it, and `_encode` requires the recomputed sha256 to equal the entry's original
+    anchor, written before the damage."""
+    import shutil
+
+    from safetensors import safe_open
+
+    from . import encode
+    cli = _cli()
+    proto = protocol_identity()
+    known, _ident = anchors(proto)
+    run_dir = _new_dir(P.ROOT / "quarantine", "")
+    record = {"protocol": proto, "reason": args.reason, "entries": []}
+    for tid in args.task_ids:
+        a = known.get(tid)
+        if a is None:
+            raise PilotStop(f"{tid} has no accepted anchor")
+        path = encode.cache_path(a["cache_key"], encode.PILOT_CACHE)
+        error = None
+        try:
+            with safe_open(str(path), framework="pt") as f:
+                states = f.get_tensor("states").clone()
+            if encode.states_sha256(states) != a["states_sha256"]:
+                error = "the states do not hash to the anchor"
+        except Exception as e:
+            error = f"{type(e).__name__}: {e}"[:300]
+        if error is None:
+            raise PilotStop(f"{tid}: the entry reads and verifies; it is not damaged and is not moved")
+        raw = identity.sha256_file(path)
+        size = path.stat().st_size
+        run_dir.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(path), str(run_dir / path.name))
+        record["entries"].append({"task_id": tid, "cache_key": a["cache_key"], "anchor_states_sha256": a["states_sha256"],
+                                  "file_bytes": size, "file_sha256": raw, "error": error,
+                                  "moved_to": str(run_dir / path.name)})
+    cli._write(run_dir / "quarantine.json", record)
+    print(json.dumps(record, indent=1))
+
+
 def _train_log_updates(run_dir: Path) -> list:
     path = run_dir / "train_log.jsonl"
     return [json.loads(x)["update"] for x in path.read_text().splitlines() if x.strip()] if path.exists() else []

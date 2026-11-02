@@ -643,3 +643,20 @@ def test_the_backbone_forward_ignores_the_decoding_precision(backbone, monkeypat
     finally:
         torch.set_float32_matmul_precision(before)
     assert precision_inside == ["highest"]
+
+
+def test_a_cache_entry_is_on_disk_before_it_is_linked(backbone, tmp_path, monkeypatch):
+    """A host crash (2026-10-30) left two entries linked and anchored with their data never written. The writer now
+    fsyncs the file before linking it into place, and the directory after."""
+    import os
+    events = []
+    real_fsync, real_link = os.fsync, os.link
+    monkeypatch.setattr(os, "fsync", lambda fd: (events.append(("fsync", os.readlink(f"/proc/self/fd/{fd}"))),
+                                                 real_fsync(fd))[1])
+    monkeypatch.setattr(os, "link", lambda a, b: (events.append(("link", str(b))), real_link(a, b))[1])
+    task = C.Task(task_id="d1", db_id="cinema", question="Which director?", evidence="", split="dev")
+    enc = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    path = str(E.cache_path(enc.cost["cache_key"], tmp_path))
+    kinds = [k for k, _ in events]
+    assert kinds == ["fsync", "link", "fsync"]
+    assert events[0][1].endswith(".tmp") and events[1][1] == path and events[2][1] == str(Path(path).parent)
