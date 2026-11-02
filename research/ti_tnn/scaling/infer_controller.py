@@ -84,12 +84,14 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
     batch = K.collate([K.Prepared(**{**e.__dict__, "steps": None}) for e in examples], device=device)
     t_start = time.perf_counter()
     mem = model.trunk.memory(batch)
-    machines = [A.Machine(e.schema, e.spans, max_steps=max_steps) for e in examples]
+    grounding = model.cfg.grounding
+    machines = [A.Machine(e.schema, e.spans, max_steps=max_steps, grounding=grounding) for e in examples]
     results = [Decoded(task_id=e.task_id, actions=[]) for e in examples]
     for r, e in zip(results, examples):
+        n_qe = int(e.qe_index.shape[0]) if e.qe_index is not None else 0
         r.work = {"steps": 0, "families": [], "heads": [], "macs": {"trunk": 0, "semantic": 0, "pointer": 0},
-                  "request_macs": K.request_macs(model.cfg, e.n_tokens, e.items.shape[0]),
-                  "arm": model.cfg.arm}
+                  "request_macs": K.request_macs(model.cfg, e.n_tokens, e.items.shape[0], n_qe),
+                  "arm": model.cfg.arm, "grounding": grounding}
     active = [True] * B
     rows = []
     for m in machines:
@@ -136,7 +138,16 @@ def decode_batch(model: K.Controller, examples: list, *, max_steps: int = DEFAUL
                 raise RuntimeError("operator outside the chosen family")
             chosen[b] = op
         starts = torch.zeros((B, 1), dtype=torch.long, device=device)
-        items, start, _ = model.trunk.pointer_scores(mem, queries)
+        relations = None
+        if grounding == "v2":  # each row's plan-relative relation bits for its chosen table or column operator
+            relations = torch.zeros((B, 1, mem["items"].shape[1], A.N_POINTER_RELATIONS), dtype=torch.bool,
+                                    device=device)
+            for b, op in chosen.items():
+                for i, bits in machines[b].pointer_relations(op).items():
+                    for r in range(A.N_POINTER_RELATIONS):
+                        if bits >> r & 1:
+                            relations[b, 0, i, r] = True
+        items, start, _ = model.trunk.pointer_scores(mem, queries, relations=relations)
         args = {}
         dead = set()
         for b, op in chosen.items():
@@ -296,7 +307,7 @@ def _evaluate(model: K.Controller, task_ids, backbone, *, score: bool, max_steps
                           error=f"{type(error).__name__}: {error}"[:1000])
         else:
             try:
-                dec = _decode_at(matmul_precision, model, K.prepare(enc), max_steps)
+                dec = _decode_at(matmul_precision, model, K.prepare(enc, grounding=model.cfg.grounding), max_steps)
             except Exception as error:
                 record.update(final={"kind": "abstain", "sql": None, "reason": f"error: {type(error).__name__}",
                                      "detail": str(error)[:300]}, controller_work=None,

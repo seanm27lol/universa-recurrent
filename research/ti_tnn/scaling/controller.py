@@ -52,6 +52,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from . import actions as A
+from . import grounding as G
 from .encode import REGIONS
 
 ARMS = ("T4", "c4_active", "c4_params")
@@ -81,6 +82,11 @@ class ControllerConfig:
     head_hidden: int = 512      # T4 specialists and c4_active
     c4_params_hidden: "int | None" = None  # set by `matched_config`
     grammar: str = A.GRAMMAR_VERSION
+    # "v1": the pilot's controller, unchanged (its state dict and losses are the pilot's). "v2": relational grounding
+    # (`grounding.py`): the schema encoder, item features and plan-relative pointer relations, all in the trunk.
+    grounding: str = "v1"
+    encoder_layers: int = 2     # grounding v2 only
+    encoder_ff: int = 1024      # grounding v2 only
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -125,6 +131,52 @@ class CrossAttention(nn.Module):
         return self.o((weights @ v).transpose(1, 2).reshape(B, S, d))
 
 
+class RelationLayer(nn.Module):
+    """One pre-norm relation-aware attention layer: schema items attend to items and to question/evidence tokens,
+    with a learned bias per head for the relation of each (query, key) pair; then a feed-forward block."""
+
+    def __init__(self, d: int, heads: int, ff: int, n_relations: int):
+        super().__init__()
+        self.heads = heads
+        self.norm = nn.LayerNorm(d)
+        self.q, self.k, self.v, self.o = (nn.Linear(d, d) for _ in range(4))
+        self.relation_bias = nn.Embedding(n_relations, heads)
+        nn.init.zeros_(self.relation_bias.weight)
+        self.ff_norm = nn.LayerNorm(d)
+        self.ff = MLP(d, ff, d)
+
+    def forward(self, items, tokens, relations, pad):
+        """items [B, N, d]; tokens [B, Tq, d] (keys only); relations [B, N, N + Tq] long; pad [B, N + Tq] bool."""
+        B, N, d = items.shape
+        h = self.heads
+        x = self.norm(items)
+        keys_in = torch.cat([x, tokens], dim=1)
+        L = keys_in.shape[1]
+        q = self.q(x).view(B, N, h, d // h).transpose(1, 2)
+        k = self.k(keys_in).view(B, L, h, d // h).transpose(1, 2)
+        v = self.v(keys_in).view(B, L, h, d // h).transpose(1, 2)
+        scores = (q @ k.transpose(-1, -2)) / math.sqrt(d // h) + self.relation_bias(relations).permute(0, 3, 1, 2)
+        weights = scores.masked_fill(pad[:, None, None, :], NEG).softmax(-1)
+        items = items + self.o((weights @ v).transpose(1, 2).reshape(B, N, d))
+        return items + self.ff(self.ff_norm(items))
+
+
+class SchemaEncoder(nn.Module):
+    """Grounding v2: relation-aware layers over the schema items (see `grounding.py`), then a final LayerNorm."""
+
+    def __init__(self, cfg: "ControllerConfig"):
+        super().__init__()
+        self.layers = nn.ModuleList(RelationLayer(cfg.d_model, cfg.attention_heads, cfg.encoder_ff, G.N_RELATIONS)
+                                    for _ in range(cfg.encoder_layers))
+        self.norm = nn.LayerNorm(cfg.d_model)
+
+    def forward(self, items, item_mask, tokens, token_mask, relations):
+        pad = torch.cat([~item_mask, ~token_mask], dim=1)
+        for layer in self.layers:
+            items = layer(items, tokens, relations, pad)
+        return self.norm(items)
+
+
 class Trunk(nn.Module):
     """The shared controller trunk (identical code and configuration for C4 and T4)."""
 
@@ -154,6 +206,19 @@ class Trunk(nn.Module):
         self.state_norm = nn.LayerNorm(d)
         self.family_head = nn.Linear(d, A.N_CLASSES)
         self.end_condition = nn.Linear(d, d)
+        if cfg.grounding == "v2":
+            # drawn from a generator forked off the seed, so the main stream is untouched: under one seed the v1 and
+            # v2 controllers share every common initialization (trunk and semantic module), and the v2 parts are
+            # identical across the arms
+            seed = torch.initial_seed()
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed((seed * 1_000_003 + 2) % (2 ** 63))
+                self.item_features = nn.Linear(G.N_ITEM_FEATURES, d)
+                self.schema_encoder = SchemaEncoder(cfg)
+            # one embedding per (pointer: table, column) and relation bit; the bias is (W_r^T q) . bits
+            self.pointer_relation = nn.Parameter(torch.zeros(2, A.N_POINTER_RELATIONS, d))
+        elif cfg.grounding != "v1":
+            raise ValueError(f"grounding must be one of {A.GROUNDINGS}")
 
     # memory: once per request
     def memory(self, batch: "Batch") -> dict:
@@ -161,7 +226,15 @@ class Trunk(nn.Module):
         # and four times less host-to-device traffic than widening first
         tok = self.token_proj(batch.tokens.float()) + self.region_embed(batch.token_types)
         itm = self.item_proj(batch.items) + self.kind_embed(batch.item_kinds)
+        if self.cfg.grounding == "v2":
+            itm = itm + self.item_features(batch.item_features)
         tok, itm = self.memory_norm(tok), self.memory_norm(itm)
+        if self.cfg.grounding == "v2":
+            d = self.cfg.d_model
+            qe = tok.gather(1, batch.qe_index.unsqueeze(-1).expand(-1, -1, d))
+            relations = torch.cat([batch.item_relations, batch.qe_relations.unsqueeze(1).expand(
+                -1, itm.shape[1], -1)], dim=2)
+            itm = self.schema_encoder(itm, batch.item_mask, qe, batch.qe_mask, relations)
         memory = torch.cat([tok, itm], dim=1)
         pad = torch.cat([~batch.token_mask, ~batch.item_mask], dim=1)
         h0 = torch.tanh(self.init_state(batch.summary)).view(-1, self.cfg.gru_layers, self.cfg.d_model)
@@ -197,11 +270,16 @@ class Trunk(nn.Module):
         c = self.attention(h, mem["keys"], mem["values"], mem["pad"])
         return self.state_norm(self.state_proj(torch.cat([h, c], dim=-1))), hidden
 
-    def pointer_scores(self, mem: dict, queries, start_index=None):
+    def pointer_scores(self, mem: dict, queries, start_index=None, relations=None):
         """queries [B, S, 4, d] -> (item scores for the table and column queries [B, S, 2, N], start [B, S, T],
-        end [B, S, T]). The end query adds W_e K_tok[start] (the gold start in training, the chosen one decoding)."""
+        end [B, S, T]). The end query adds W_e K_tok[start] (the gold start in training, the chosen one decoding).
+        Grounding v2: `relations` [B, S, N, R] (0/1, the step's plan-relative pointer relations) add
+        (W_r^T q) . bits to each item's score."""
         scale = 1.0 / math.sqrt(self.cfg.d_model)
         items = torch.einsum("bspd,bnd->bspn", queries[:, :, :2], mem["key_item"]) * scale
+        if self.cfg.grounding == "v2" and relations is not None:
+            qr = torch.einsum("bspd,prd->bspr", queries[:, :, :2], self.pointer_relation) * scale
+            items = items + torch.einsum("bspr,bsnr->bspn", qr, relations.float())
         start = torch.einsum("bsd,btd->bst", queries[:, :, PTR_START], mem["key_token"]) * scale
         end = None
         if start_index is not None:
@@ -333,7 +411,7 @@ class Controller(nn.Module):
         B, S = valid.shape
         queries = state.new_zeros((B, S, N_POINTERS, self.cfg.d_model))
         queries[b_idx, s_idx] = q_rows
-        items, start, end = self.trunk.pointer_scores(mem, queries, st["ptr_target"])
+        items, start, end = self.trunk.pointer_scores(mem, queries, st["ptr_target"], st.get("ptr_rel"))
         kind = st["ptr_kind"]
         ptr_loss = state.new_zeros(())
         n_ptr = 0
@@ -379,6 +457,11 @@ class Prepared:
     tokens_file: "str | None" = None
     tokens_crc32: "int | None" = None  # of the states as read at prepare time; every later read is checked against it
     tokens_dtype: "str | None" = None  # the states' dtype at prepare time; every later read must match it and the shape
+    grounding: str = "v1"
+    item_features: "torch.Tensor | None" = None   # v2: [N, F] 0/1
+    item_relations: "torch.Tensor | None" = None  # v2: [N, N] relation ids (uint8)
+    qe_index: "torch.Tensor | None" = None        # v2: [Tq] indices of the question and evidence tokens
+    qe_relations: "torch.Tensor | None" = None    # v2: [Tq] their relation ids (question or evidence token)
 
     @property
     def n_tokens(self) -> int:
@@ -402,7 +485,7 @@ class Prepared:
 
     def steps_dense(self) -> dict:
         if self.step_cache is None:
-            self.step_cache = step_tensors(self.steps, self.items.shape[0], self.n_tokens)
+            self.step_cache = step_tensors(self.steps, self.items.shape[0], self.n_tokens, self.grounding)
         return self.step_cache
 
 
@@ -411,17 +494,43 @@ def _crc32(states: torch.Tensor) -> int:
     return zlib.crc32(states.contiguous().view(torch.uint8).numpy())
 
 
-def prepare(encoding, steps=None, tokens_file: "str | None" = None) -> Prepared:
-    """With `tokens_file` (the encoding's cache file), the token states are not kept; they are read per batch."""
+def grounding_fields(encoding) -> dict:
+    """Grounding v2's per-request inputs: item features and relations, and the question/evidence token keys."""
+    ctx = encoding.context
+    question = ctx.text[slice(*ctx.regions["question"])]
+    evidence = ctx.text[slice(*ctx.regions["evidence"])]
+    qe, qe_rel = G.question_evidence_tokens(encoding.token_types)
+    return {"item_features": torch.tensor(G.item_features(encoding.schema, question, evidence)),
+            "item_relations": torch.tensor(G.item_relations(encoding.schema), dtype=torch.uint8),
+            "qe_index": torch.tensor(qe, dtype=torch.long), "qe_relations": torch.tensor(qe_rel, dtype=torch.long)}
+
+
+def as_grounding(example: Prepared, encoding, steps, grounding: str) -> Prepared:
+    """The same request prepared for another grounding, sharing its state tensors (no second read of the states)."""
+    import dataclasses
+    extra = grounding_fields(encoding) if grounding == "v2" else {
+        k: None for k in ("item_features", "item_relations", "qe_index", "qe_relations")}
+    return dataclasses.replace(example, steps=steps, step_cache=None, grounding=grounding, **extra)
+
+
+def prepare(encoding, steps=None, tokens_file: "str | None" = None, grounding: str = "v1") -> Prepared:
+    """With `tokens_file` (the encoding's cache file), the token states are not kept; they are read per batch.
+    Grounding v2 also derives the item relations and features (`grounding.py`) from the schema and the question."""
     states = encoding.states
     kinds = torch.tensor([0 if it.kind == "table" else 1 for it in encoding.schema.items], dtype=torch.long)
     items = encoding.item_vectors()
-    dense = step_tensors(steps, items.shape[0], states.shape[0]) if steps is not None else None
+    dense = step_tensors(steps, items.shape[0], states.shape[0], grounding) if steps is not None else None
+    extra = {}
+    if grounding == "v2":
+        extra = grounding_fields(encoding)
+    elif grounding != "v1":
+        raise ValueError(grounding)
     return Prepared(task_id=encoding.task_id, tokens=None if tokens_file else states,
                     token_types=torch.tensor(encoding.token_types), items=items, item_kinds=kinds,
                     summary=states[-1].float().clone(), schema=encoding.schema, spans=encoding.spans, steps=steps,
                     meta={"cost": dict(encoding.cost)}, step_cache=dense, tokens_file=tokens_file,
-                    tokens_crc32=_crc32(states) if tokens_file else None, tokens_dtype=str(states.dtype))
+                    tokens_crc32=_crc32(states) if tokens_file else None, tokens_dtype=str(states.dtype),
+                    grounding=grounding, **extra)
 
 
 @dataclass
@@ -435,6 +544,11 @@ class Batch:
     item_mask: torch.Tensor
     summary: torch.Tensor
     steps: "dict | None" = None
+    item_features: "torch.Tensor | None" = None   # grounding v2 (see Prepared)
+    item_relations: "torch.Tensor | None" = None  # [B, N, N] long
+    qe_index: "torch.Tensor | None" = None        # [B, Tq] long (padding points at token 0, masked)
+    qe_relations: "torch.Tensor | None" = None    # [B, Tq] long
+    qe_mask: "torch.Tensor | None" = None         # [B, Tq] bool
 
     def to(self, device):
         moved = {k: (v.to(device) if torch.is_tensor(v) else v) for k, v in self.__dict__.items() if k != "steps"}
@@ -451,8 +565,9 @@ def _arg_fields(action: "A.Action | None"):
     return kind, action.arg, 0
 
 
-def step_tensors(steps: list, n_items: int, n_tokens: int) -> dict:
-    """Dense teacher-forcing tensors for one example (S steps)."""
+def step_tensors(steps: list, n_items: int, n_tokens: int, grounding: str = "v1") -> dict:
+    """Dense teacher-forcing tensors for one example (S steps). Grounding v2 adds `ptr_rel` [S, N, R]: each pointer
+    step's plan-relative relation bits for every candidate item."""
     S = len(steps)
     out = {
         "prev_op": torch.full((S,), BOS_OP, dtype=torch.long), "prev_family": torch.full((S,), BOS_FAMILY,
@@ -493,10 +608,24 @@ def step_tensors(steps: list, n_items: int, n_tokens: int) -> dict:
             out["span_start"][t, list(st.pointer_legal)] = True
             out["span_end"][t, list(st.end_legal)] = True
         prev = st.action
+    if grounding == "v2":
+        out["ptr_rel"] = relation_bits(steps, n_items)
     return out
 
 
-# dense teacher-forcing tensors whose trailing axis is the example's item or token count (padded per batch)
+def relation_bits(steps: list, n_items: int) -> torch.Tensor:
+    """[S, N, R] bool from each step's `relations` {item: bitmask}."""
+    rel = torch.zeros(len(steps), n_items, A.N_POINTER_RELATIONS, dtype=torch.bool)
+    for t, st in enumerate(steps):
+        for i, bits in (getattr(st, "relations", None) or {}).items():
+            for r in range(A.N_POINTER_RELATIONS):
+                if bits >> r & 1:
+                    rel[t, i, r] = True
+    return rel
+
+
+# dense teacher-forcing tensors whose trailing axis is the example's item or token count (padded per batch); `ptr_rel`
+# has the item axis second to last
 _ITEM_AXIS, _TOKEN_AXIS = ("ptr_items",), ("span_start", "span_end")
 
 
@@ -535,16 +664,35 @@ def collate(examples: list, device="cpu", token_states: "dict | None" = None) ->
         S = max(p["valid"].shape[0] for p in per)
         steps = {}
         for key in per[0]:
-            tail = (N,) if key in _ITEM_AXIS else (T,) if key in _TOKEN_AXIS else tuple(per[0][key].shape[1:])
+            tail = (N,) if key in _ITEM_AXIS else (T,) if key in _TOKEN_AXIS else \
+                (N, A.N_POINTER_RELATIONS) if key == "ptr_rel" else tuple(per[0][key].shape[1:])
             buf = torch.zeros((B, S) + tail, dtype=per[0][key].dtype, device=dev)
             for b, p in enumerate(per):
                 v = p[key]
                 index = (b, slice(0, v.shape[0])) + tuple(slice(0, k) for k in v.shape[1:])
                 buf[index] = v.to(dev)
             steps[key] = buf
+    extra = {}
+    if len({e.grounding for e in examples}) > 1:
+        raise ValueError("a batch mixes grounding versions")
+    if examples[0].grounding == "v2":
+        Q = max(1, max(e.qe_index.shape[0] for e in examples))
+        F = examples[0].item_features.shape[1]
+        extra = {"item_features": torch.zeros(B, N, F, device=dev),
+                 "item_relations": torch.zeros(B, N, N, dtype=torch.long, device=dev),
+                 "qe_index": torch.zeros(B, Q, dtype=torch.long, device=dev),
+                 "qe_relations": torch.zeros(B, Q, dtype=torch.long, device=dev),
+                 "qe_mask": torch.zeros(B, Q, dtype=torch.bool, device=dev)}
+        for b, e in enumerate(examples):
+            n, q = e.items.shape[0], e.qe_index.shape[0]
+            extra["item_features"][b, :n] = e.item_features.to(dev)
+            extra["item_relations"][b, :n, :n] = e.item_relations.to(dev).long()
+            extra["qe_index"][b, :q] = e.qe_index.to(dev)
+            extra["qe_relations"][b, :q] = e.qe_relations.to(dev)
+            extra["qe_mask"][b, :q] = True
     return Batch(task_ids=[e.task_id for e in examples], tokens=tokens, token_types=token_types,
                  token_mask=token_mask, items=items, item_kinds=item_kinds, item_mask=item_mask, summary=summary,
-                 steps=steps)
+                 steps=steps, **extra)
 
 
 # --- parameters and compute -------------------------------------------------------------------------------------------
@@ -585,11 +733,20 @@ def step_macs(cfg: ControllerConfig, family: int, n_tokens: int, n_items: int, p
              + 2 * d * d + d * A.N_CLASSES)                                              # state, family classifier
     semantic = semantic_step_macs(cfg, cfg.arm, family) if family < 4 else 0
     ptr = {None: 0, "table": n_items * d, "column": n_items * d, "span": 2 * n_tokens * d + d * d}[pointer]
+    if cfg.grounding == "v2" and pointer in ("table", "column"):
+        ptr += A.N_POINTER_RELATIONS * d + n_items * A.N_POINTER_RELATIONS  # (W_r^T q), then . bits per item
     return {"trunk": trunk, "semantic": semantic, "pointer": ptr, "total": trunk + semantic + ptr}
 
 
-def request_macs(cfg: ControllerConfig, n_tokens: int, n_items: int) -> int:
-    """Once per request: memory projections, pointer keys, attention keys and values, initial state."""
+def request_macs(cfg: ControllerConfig, n_tokens: int, n_items: int, n_qe: int = 0) -> int:
+    """Once per request: memory projections, pointer keys, attention keys and values, initial state; for grounding
+    v2 also the item features and the schema encoder over the items and the n_qe question/evidence tokens."""
     d, D = cfg.d_model, cfg.backbone_width
     L = n_tokens + n_items
-    return (n_tokens + n_items) * D * d + (n_tokens + n_items) * d * d + 2 * L * d * d + D * cfg.gru_layers * d
+    total = (n_tokens + n_items) * D * d + (n_tokens + n_items) * d * d + 2 * L * d * d + D * cfg.gru_layers * d
+    if cfg.grounding == "v2":
+        keys = n_items + n_qe
+        per_layer = (n_items * d * d + 2 * keys * d * d + 2 * n_items * keys * d + n_items * d * d
+                     + 2 * n_items * d * cfg.encoder_ff)
+        total += n_items * G.N_ITEM_FEATURES * d + cfg.encoder_layers * per_layer
+    return total

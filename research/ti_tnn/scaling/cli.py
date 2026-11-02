@@ -701,6 +701,8 @@ def main(argv=None) -> None:
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true", help="development only: skip the clean-tree requirement")
     s.set_defaults(fn=smoke)
+    from scaling import perf
+    perf.register(sub)  # the performance study v2's commands (perf-pin, perf-encode, perf-feasibility, ...)
     args = p.parse_args(argv)
     if getattr(args, "projected_hours", None) is not None and not (math.isfinite(args.projected_hours)
                                                                    and args.projected_hours > 0):

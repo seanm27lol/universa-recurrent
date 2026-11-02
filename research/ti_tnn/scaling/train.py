@@ -223,13 +223,13 @@ def model_from_checkpoint(ckpt: dict, device: str = "cpu") -> K.Controller:
 
 
 # --- fitting -----------------------------------------------------------------------------------------------------------
-def build_model(arm: str, backbone_width: int, seed: int) -> K.Controller:
+def build_model(arm: str, backbone_width: int, seed: int, grounding: str = "v1") -> K.Controller:
     """The arm's controller, initialized under `seed` (the trunk first, so equal seeds give equal trunks). Python's and
     NumPy's generators are seeded too, so the RNG state a checkpoint saves is the same in every process."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    return K.Controller(K.matched_config(arm, backbone_width))
+    return K.Controller(K.matched_config(arm, backbone_width, grounding=grounding))
 
 
 def make_optimizer(model, cfg: TrainConfig):
@@ -313,9 +313,14 @@ def fit(model: K.Controller, examples: list, cfg: TrainConfig, run_dir, *, resum
     if any(e.steps is None for e in examples):
         raise ValueError("every training example needs teacher-forcing steps")
     from . import identity
+    grammar = A.vocabulary_summary()
+    if model.cfg.grounding != "v1":  # a v1 run records the pilot's grammar summary
+        grammar["grounding"] = A.GROUNDING_GRAMMAR[model.cfg.grounding]
+    if any(e.grounding != model.cfg.grounding for e in examples):
+        raise ValueError("the examples were prepared for another grounding than the model's")
     config = {"train": cfg.as_dict(), "controller": model.cfg.as_dict(),
               "parameters": K.parameter_report(model), "examples": [e.task_id for e in examples],
-              "grammar": A.vocabulary_summary(), "sources": identity.source_hashes(), **(extra_config or {})}
+              "grammar": grammar, "sources": identity.source_hashes(), **(extra_config or {})}
     resume_ckpt = load_checkpoint(resume_from) if resume_from is not None else None
     if resume_ckpt is not None:
         check_resumable(resume_ckpt, config)
@@ -402,20 +407,21 @@ def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_
 
 
 # --- data: training examples from task ids -----------------------------------------------------------------------------
-def gold_steps(gold_sql: str, encoding) -> tuple:
+def gold_steps(gold_sql: str, encoding, grounding: str = "v1") -> tuple:
     """(steps, None) for a supervisable gold query, or (None, reason)."""
     from . import sql_to_ir
     plan, error = sql_to_ir.try_convert(gold_sql, encoding.schema.index)
     if error is not None:
         return None, f"unsupported: {error.reason}"
     try:
-        return A.trace(plan, encoding.schema, encoding.spans), None
+        return A.trace(plan, encoding.schema, encoding.spans, grounding), None
     except A.NotEncodable as e:
         return None, f"not encodable: {e.reason}"
 
 
 def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False, require_hit: bool = False,
-                     require_verified: bool = False, anchors: "dict | None" = None, log=print) -> tuple:
+                     require_verified: bool = False, anchors: "dict | None" = None, grounding: str = "v1",
+                     log=print) -> tuple:
     """Encode training tasks (frozen backbone, cached) and attach their gold teacher-forcing steps.
     Returns (prepared, skipped {task_id: reason}, costs {task_id: cost}). With `lazy`, each example keeps only the
     path of its cache file and training reads the states per update (the prefetcher overlaps the reads); each read is
@@ -447,12 +453,12 @@ def prepare_examples(task_ids, backbone, *, cache_root=None, lazy: bool = False,
                                           f"({anchor and anchor['states_sha256'][:12]} vs "
                                           f"{str(enc.cost.get('states_sha256'))[:12]})")
         costs[tid] = enc.cost
-        steps, reason = gold_steps(data.gold(tid).sql, enc)
+        steps, reason = gold_steps(data.gold(tid).sql, enc, grounding)
         if steps is None:
             skipped[tid] = reason
             continue
         tokens_file = str(encode.cache_path(enc.cost["cache_key"], cache_root)) if lazy else None
-        prepared.append(K.prepare(enc, steps, tokens_file=tokens_file))
+        prepared.append(K.prepare(enc, steps, tokens_file=tokens_file, grounding=grounding))
         if log and (n + 1) % 32 == 0:
             log(f"prepared {n + 1}/{len(task_ids)} ({len(skipped)} skipped)")
     return prepared, skipped, costs
@@ -548,13 +554,17 @@ def train_arm(arm: str, task_ids, backbone, run_dir, *, updates: int = C.SMOKE_T
               seed: int = C.SMOKE_TRAIN["seed"], device: "str | None" = None, micro_batch: int = 8,
               cache_root=None, prepared=None, resume_from=None, lazy: bool = False,
               matmul_precision: str = "highest", checkpoint_every: int = 0, extra_config: "dict | None" = None,
-              log=print) -> dict:
+              grounding: str = "v1", log=print) -> dict:
     """The CLI entry point: encode (or reuse `prepared`), build the arm under `seed`, fit, checkpoint."""
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     skipped, costs = {}, {}
     if prepared is None:
-        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy, log=log)
-    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed)
+        prepared, skipped, costs = prepare_examples(task_ids, backbone, cache_root=cache_root, lazy=lazy,
+                                                    grounding=grounding, log=log)
+    if any(e.grounding != grounding for e in prepared):
+        raise ValueError(f"the prepared examples are not grounding {grounding}")
+    model = build_model(arm, backbone.hidden_size if backbone is not None else prepared[0].items.shape[1], seed,
+                        grounding)
     cfg = TrainConfig(arm=arm, seed=seed, updates=updates, micro_batch=micro_batch, device=device,
                       matmul_precision=matmul_precision, checkpoint_every=checkpoint_every)
     extra = {"backbone": backbone.identity() if backbone is not None else None, "skipped": skipped,
