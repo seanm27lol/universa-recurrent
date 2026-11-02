@@ -42,8 +42,11 @@ PERF_PROTO = {"file": "PROTOCOL_perf_v2.md", "sha256": "e" * 64, "updates": 4}
 
 @pytest.fixture()
 def perf_world(world, monkeypatch):
-    from scaling import data
+    from scaling import data, scorer
     tmp_path, bb = world
+    monkeypatch.setattr(scorer, "score", lambda snap, sql, gold: {
+        "correct": int(bool(sql) and "director" in sql), "status": "scored",
+        "predicted": {"status": "ok" if sql else "abstain", "elapsed_seconds": 0.001}})
     tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e,
                          split="train" if tid.startswith("tr") else "dev")
              for tid, q, e, _ in TP.TRAIN + TP.DEV + NEW}
@@ -121,6 +124,29 @@ def test_the_study_runs_end_to_end_with_identical_supervision(perf_world, monkey
         assert a["grad_norm_finite"] and a["checkpoint_reload_digest_equal"] and a["reconstruction_equal"]
     p = {n: a["parameters"] for n, a in feas["arms"].items()}
     assert p["T4-v1"]["trunk"] == p["C4-v1"]["trunk"] < p["T4-v2"]["trunk"] == p["C4-v2"]["trunk"]
+    # the analysis: the rules over complete seeds, every count recomputable from the records
+    monkeypatch.setattr(R, "select_evaluations", lambda: ({}, []))
+    l_dir = TP._l_run(perf_world[0])
+    recs = [json.loads(x) for x in (l_dir / "records.jsonl").read_text().splitlines()]
+    for r in recs:  # the scorer's record of the (abstained) submission, as the real L records carry it
+        r["score"]["predicted"] = {"status": "abstain", "elapsed_seconds": 0.0}
+    (l_dir / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in recs))
+    PF.analyze_cmd(_args())
+    (analysis,) = sorted((PF.ROOT / "analysis").glob("*/analysis.json"))
+    a = json.loads(analysis.read_text())
+    assert a["seeds"] == [100] and set(a["populations"]) == {"historical", "new"}
+    for pop, o in a["populations"].items():
+        ids = PF.eval_ids(pop)
+        for n in o["serving"]:
+            lab, seed = n.split("/")
+            recs = {json.loads(x)["task_id"]: json.loads(x) for x in
+                    (chosen[100] / lab / "records.jsonl").read_text().splitlines()}
+            assert o["counts"][n] == sum(recs[t]["score"]["correct"] for t in ids)
+        assert o["q1"]["T4"]["pooled"] == o["counts"]["T4-v2/100"] - o["counts"]["T4-v1/100"]
+        assert o["q2"]["rule"].startswith(("A1", "A2", "A3")) and o["reading"]
+        assert o["baselines"]["B4"] is None and o["baselines"]["Q27"] is None   # not run here
+    assert a["populations"]["historical"]["baselines"]["L"]["correct"] == 0
+    assert a["populations"]["new"]["baselines"]["L"] is None
 
 
 def test_refusals(perf_world, monkeypatch):

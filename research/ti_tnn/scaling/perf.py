@@ -25,6 +25,7 @@ from __future__ import annotations
 import json
 import statistics
 import time
+from collections import Counter
 from pathlib import Path
 
 from . import contracts as C
@@ -630,6 +631,136 @@ def project(m: dict, n_pool: int, n_eval: int) -> dict:
             "remaining_hours": remaining, "fits": needed <= remaining, "slack_hours": remaining - needed}
 
 
+# --- the analysis -----------------------------------------------------------------------------------------------------
+BASELINE_RUNS = {  # (arm, population) -> the run tags whose records together cover the population
+    ("L", "historical"): ("L_nonthinking_p0-64",), ("L", "new"): ("L_nonthinking_p64-128",),
+    ("B4", "historical"): ("B4_thinking_p0-16", "B4_thinking_p16-64"), ("B4", "new"): ("B4_thinking_p64-128",),
+    ("Q27", "historical"): ("Q27_thinking_low_p0-16", "Q27_thinking_low_p16-64"),
+    ("Q27", "new"): ("Q27_thinking_low_p64-128",)}
+
+
+def baseline_records(arm: str, population: str) -> "tuple | None":
+    """(records covering the population in pin order, [run references]) for a baseline, or None if any of its runs
+    is missing. Each tag must name exactly one run, and every run must pass `verify`."""
+    from . import records as R
+    from . import verify
+    recs, refs = {}, []
+    for tag in BASELINE_RUNS[(arm, population)]:
+        runs = sorted((C.RUNS / "baselines").glob(f"*_{tag}"))
+        if not runs:
+            return None
+        if len(runs) != 1:
+            raise PerfStop(f"{len(runs)} runs tagged {tag}; exactly one is required")
+        problems = verify.verify_run(runs[0])["problems"]
+        if problems:
+            raise PerfStop(f"{runs[0].name} fails verification: {problems[:3]}")
+        refs.append(identity.run_ref(runs[0]))
+        for r in R.load(runs[0] / "records.jsonl"):
+            recs[r["task_id"]] = r
+    ids = eval_ids(population)
+    if sorted(recs) != sorted(ids):
+        raise PerfStop(f"{arm} on the {population} population: the runs cover {len(recs)} of {len(ids)} questions")
+    return [recs[t] for t in ids], refs
+
+
+def _fit_stats(arm: str, g: str, seed: int) -> dict:
+    rd = run_dir_of(arm, g, seed)
+    logs = [json.loads(x) for x in (rd / "train_log.jsonl").read_text().splitlines() if x.strip()]
+    attempts = [json.loads((a / "summary.json").read_text()) for a in sorted((rd / "attempts").glob("*"))
+                if (a / "summary.json").exists()]
+    config = json.loads((rd / "config.json").read_text())
+    return {"updates": len(logs), "loss_first_last": [logs[0]["loss"], logs[-1]["loss"]],
+            "seconds_per_update_mean": statistics.mean(r["wall_seconds"] for r in logs),
+            "reservation_hours": sum(a["reservation"]["hours"] for a in attempts), "attempts": len(attempts),
+            "peak_memory_bytes": max((a.get("peak_memory_bytes") or 0) for a in attempts) if attempts else None,
+            "parameters": config["parameters"]}
+
+
+def _macs(records: list) -> dict:
+    per = [r["controller_work"]["request_macs"] + sum(r["controller_work"]["macs"].values()) for r in records
+           if r.get("controller_work") and "macs" in r["controller_work"]]
+    steps = [r["controller_work"]["steps"] for r in records if r.get("controller_work")]
+    return {"active_macs_per_request_mean": statistics.mean(per) if per else None,
+            "decode_steps_mean": statistics.mean(steps) if steps else None}
+
+
+def analyze_cmd(args) -> None:
+    from . import data, ir, sql_to_ir
+    from . import perf_analysis as A
+    from . import records as R
+    from . import schema as schema_mod
+    cli = PR._cli()
+    proto = protocol_identity()
+    chosen, all_runs = select_evaluations()
+    seeds = sorted(chosen)
+    complete = [s for s in seeds if all(completed(run_dir_of(*a, s)) is None for a in ARMS)]
+    if seeds != complete or not seeds:
+        raise PerfStop(f"evaluated seeds {seeds}, complete seeds {complete}: the comparison needs complete seeds")
+    labels = [label(*a) for a in ARMS]
+    correct, records = {}, {}
+    for s, d in chosen.items():
+        for lab in labels:
+            recs = R.load(d / lab / "records.jsonl")
+            R.summarize(recs, eval_ids())
+            records[(lab, s)] = {r["task_id"]: r for r in recs}
+            correct[(lab, s)] = {r["task_id"]: r["score"]["correct"] for r in recs}
+    db_of = {t: data.task(t).db_id for t in eval_ids()}
+    result = {"protocol": proto, "seeds": seeds, "threshold": A.THRESHOLD, "populations": {},
+              "inputs": {"evaluations_counted": {str(s): identity.run_ref(d) for s, d in chosen.items()},
+                         "evaluations_all": all_runs}}
+    strata_of = {}
+    for t in eval_ids():
+        index = ir.SchemaIndex.from_schema(schema_mod.load_schema(data.task(t).db_id))
+        plan, err = sql_to_ir.try_convert(data.gold(t).sql, index)
+        strata_of[t] = A.strata(plan if err is None else None)
+    for pop in POPULATIONS:
+        ids = eval_ids(pop)
+        q1 = {arch: A.paired(correct, f"{arch}-v2", f"{arch}-v1", seeds, ids, db_of) for arch in ("T4", "C4")}
+        q2 = A.paired(correct, "T4-v2", "C4-v2", seeds, ids, db_of)
+        q2_v1 = A.paired(correct, "T4-v1", "C4-v1", seeds, ids, db_of)
+        out = {"questions": len(ids), "counts": A.counts(correct, ids),
+               "q1": {arch: {**d, "rule": A.rule_q1(d)} for arch, d in q1.items()},
+               "q2": {**q2, "rule": A.rule_q2(q2)}, "q2_v1_descriptive": {**q2_v1, "rule": A.rule_q2(q2_v1)},
+               "per_question": {t: {f"{lab}/{s}": correct[(lab, s)][t] for lab in labels for s in seeds}
+                                for t in ids},
+               "serving": {f"{lab}/{s}": A.serving([records[(lab, s)][t] for t in ids])
+                           for lab in labels for s in seeds},
+               "serving_pooled": {lab: A.serving([records[(lab, s)][t] for s in seeds for t in ids])
+                                  for lab in labels},
+               "macs": {lab: _macs([records[(lab, s)][t] for s in seeds for t in ids]) for lab in labels},
+               "strata": A.by_stratum(correct, labels, seeds, ids, strata_of),
+               "baselines": {}}
+        out["reading"] = A.reading({k: v["rule"] for k, v in out["q1"].items()}, out["q2"]["rule"])
+        for arm in ("L", "B4", "Q27"):
+            got = baseline_records(arm, pop)
+            if got is None:
+                out["baselines"][arm] = None
+                continue
+            recs, refs = got
+            out["baselines"][arm] = {"runs": refs, "correct": sum(r["score"]["correct"] for r in recs),
+                                     "per_question": {r["task_id"]: r["score"]["correct"] for r in recs},
+                                     "serving": A.serving(recs),
+                                     "tool_calls": sum(r["tool_calls"] for r in recs),
+                                     "repairs": sum(r["repairs"] for r in recs),
+                                     "abstention_reasons": dict(Counter(r["final"]["reason"] for r in recs
+                                                                        if r["final"]["kind"] == "abstain"))}
+        result["populations"][pop] = out
+    pilot_chosen, _ = PR.select_evaluations()
+    hist = eval_ids("historical")
+    result["pilot_1500_updates_historical"] = {
+        f"{P.LABELS[arm]}/{s}": sum(r["score"]["correct"] for r in R.load(d / arm / "records.jsonl") if r["task_id"]
+                                    in hist) for s, d in pilot_chosen.items() for arm in P.ARMS}
+    result["training"] = {f"{label(*a)}/{s}": _fit_stats(*a, s) for a in ARMS for s in seeds}
+    result["ledger"] = {k: v for k, v in ledger.usage().items() if k != "reservations"}
+    run_dir = PR._new_dir(ROOT / "analysis", "")
+    identity.write_manifest(run_dir, config={"command": "perf-analyze", **result["inputs"]},
+                            require_clean=not args.allow_dirty)
+    cli._write(run_dir / "analysis.json", result)
+    print(json.dumps({pop: {"counts": o["counts"], "q1": {k: v["rule"] for k, v in o["q1"].items()},
+                            "q2": o["q2"]["rule"], "reading": o["reading"]}
+                      for pop, o in result["populations"].items()}, indent=1, default=str))
+
+
 # --- the CLI ------------------------------------------------------------------------------------------------------------
 def register(sub) -> None:
     s = sub.add_parser("perf-pin")
@@ -659,4 +790,7 @@ def register(sub) -> None:
     s.add_argument("--projected-hours", type=float, required=True)
     s.add_argument("--allow-dirty", action="store_true")
     s.set_defaults(fn=eval_cmd)
+    s = sub.add_parser("perf-analyze")
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=analyze_cmd)
 
