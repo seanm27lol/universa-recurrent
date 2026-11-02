@@ -660,3 +660,37 @@ def test_a_cache_entry_is_on_disk_before_it_is_linked(backbone, tmp_path, monkey
     kinds = [k for k, _ in events]
     assert kinds == ["fsync", "link", "fsync"]
     assert events[0][1].endswith(".tmp") and events[1][1] == path and events[2][1] == str(Path(path).parent)
+
+
+def test_checkpoints_and_the_train_log_are_on_disk_before_they_are_recorded(prepared, tmp_path, monkeypatch):
+    import os
+    events = []
+    real_fsync, real_replace = os.fsync, os.replace
+    monkeypatch.setattr(os, "fsync", lambda fd: (events.append(("fsync", os.readlink(f"/proc/self/fd/{fd}"))),
+                                                 real_fsync(fd))[1])
+    monkeypatch.setattr(os, "replace", lambda a, b: (events.append(("replace", str(b))), real_replace(a, b))[1])
+    cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1)
+    T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "run", log=None)
+    names = [Path(p).name for _, p in events]
+    log_syncs = [i for i, (k, p) in enumerate(events) if k == "fsync" and p.endswith("train_log.jsonl")]
+    ckpts = [i for i, (k, p) in enumerate(events) if k == "replace" and p.endswith(".pt")]
+    assert len(log_syncs) == 2 and len(ckpts) == 2
+    for i in ckpts:  # the data was synced before the rename, and the directory after
+        assert events[i - 1][0] == "fsync" and names[i - 1].endswith(".pt.tmp")
+        assert events[i + 1] == ("fsync", str(Path(events[i][1]).parent))
+    record_syncs = [i for i, (k, p) in enumerate(events) if k == "fsync" and p.endswith("checkpoints.jsonl")]
+    assert all(r > c for r, c in zip(record_syncs, ckpts))  # each record after its checkpoint is durable
+
+
+def test_a_damaged_checkpoint_is_set_aside_and_rewritten(tmp_path):
+    cfg = T.TrainConfig(arm="T4", updates=1, effective_batch=2, micro_batch=1)
+    model = T.build_model("T4", 16, 100)
+    optimizer = T.make_optimizer(model, cfg)
+    first = T.save_checkpoint(tmp_path, model, optimizer, 0, {"x": 1})
+    path = Path(first["path"])
+    path.write_bytes(b"\0" * path.stat().st_size)  # full size, no data: what the host crash left
+    with pytest.raises(ValueError):
+        T.load_checkpoint(path)
+    again = T.save_checkpoint(tmp_path, model, optimizer, 0, {"x": 1})  # the same content, so the same name
+    assert again["path"] == first["path"] and T.load_checkpoint(path)["update"] == 0
+    assert len(list((tmp_path / "checkpoints").glob("*.damaged-*"))) == 1  # kept aside, never overwritten

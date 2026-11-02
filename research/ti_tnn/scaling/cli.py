@@ -45,8 +45,7 @@ def _stamp() -> str:
 
 
 def _write(path: Path, obj) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(obj, indent=1, sort_keys=True, default=str) + "\n")
+    identity.write_durable(path, json.dumps(obj, indent=1, sort_keys=True, default=str) + "\n")
 
 
 def _append(path: Path, obj: dict) -> None:

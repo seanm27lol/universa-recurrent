@@ -44,6 +44,29 @@ def sha256_file(path, chunk: int = 1 << 22) -> str:
     return h.hexdigest()
 
 
+def write_durable(path, data) -> None:
+    """Write `data` (str or bytes) so that it is on disk before it is visible: a temporary file in the same
+    directory, fsync, an atomic rename, then fsync of the directory. A host crash (2026-10-30) left files whose sizes
+    reached the disk but whose data did not."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    with open(tmp, "wb") as f:
+        f.write(data.encode() if isinstance(data, str) else data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+    fsync_dir(path.parent)
+
+
+def fsync_dir(directory) -> None:
+    fd = os.open(directory, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
 def _canon(obj):
     """A strictly JSON-shaped copy: string keys only; tuples and lists as lists; sets as sorted lists; dataclasses as
     dicts; paths as strings. Anything else raises, so an identity can never depend on a repr or on hash order."""
@@ -186,5 +209,5 @@ def write_manifest(run_dir: Path, *, config: dict, extra: dict | None = None, re
                 "config": _canon(config), "config_identity": content_identity(config), "environment": environment(),
                 **_canon(extra or {})}
     run_dir.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n")
+    write_durable(path, json.dumps(manifest, indent=1, sort_keys=True) + "\n")
     return manifest

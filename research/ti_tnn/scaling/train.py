@@ -119,7 +119,8 @@ def write_config(run_dir: Path, payload: dict) -> str:
         if path.read_text() != text:
             raise FileExistsError(f"{path} exists with a different configuration")
     else:
-        path.write_text(text)
+        from . import identity
+        identity.write_durable(path, text)
     return identity_of(payload)
 
 
@@ -175,13 +176,19 @@ def save_checkpoint(run_dir: Path, model, optimizer, update: int, config: dict) 
     digest = hashlib.sha256(data).hexdigest()
     path = Path(run_dir) / "checkpoints" / f"ckpt_u{update:06d}_{digest[:16]}.pt"
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists():
-        if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
-            raise FileExistsError(f"{path} exists with different content")
-    else:
+    if path.exists() and hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+        # a file whose bytes do not hash to its own name is damaged (e.g. its data was lost in a host crash); it is
+        # kept aside, never overwritten, and the checkpoint is written again
+        path.rename(path.with_name(f"{path.name}.damaged-{time.time_ns()}"))
+    if not path.exists():
         tmp = path.with_name(path.name + ".tmp")
-        tmp.write_bytes(data)
+        with open(tmp, "wb") as fh:  # on disk before it is renamed into place and recorded
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
         tmp.replace(path)
+        from . import identity
+        identity.fsync_dir(path.parent)
     return {"path": str(path), "sha256": digest, "update": update, "bytes": len(data),
             "model_digest": tensor_digest(model.state_dict()), "optimizer_digest": optimizer_digest(optimizer.state_dict()),
             "save_seconds": time.perf_counter() - t0}
@@ -374,6 +381,8 @@ def _fit_loop(model, examples, cfg, run_dir, optimizer, start, n, prefetch, log_
                   "head_calls": list(getattr(model.semantic, "calls", []))}
         with open(log_path, "a") as fh:
             fh.write(json.dumps(record) + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
         if log and (update % 10 == 0 or update == cfg.updates - 1):
             log(f"{cfg.arm} update {update}: loss {record['loss']:.4f} (family {record['family']:.4f}, op "
                 f"{record['op']:.4f}, pointer {record['pointer']:.4f}), {record['wall_seconds']:.2f} s")

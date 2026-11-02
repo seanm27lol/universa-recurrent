@@ -395,7 +395,8 @@ def quarantine_cmd(args) -> None:
     known, _ident = anchors(proto)
     run_dir = _new_dir(P.ROOT / "quarantine", "")
     record = {"protocol": proto, "reason": args.reason, "entries": []}
-    for tid in args.task_ids:
+    damaged = []
+    for tid in args.task_ids:  # every id is checked before any file is moved
         a = known.get(tid)
         if a is None:
             raise PilotStop(f"{tid} has no accepted anchor")
@@ -409,15 +410,17 @@ def quarantine_cmd(args) -> None:
         except Exception as e:
             error = f"{type(e).__name__}: {e}"[:300]
         if error is None:
-            raise PilotStop(f"{tid}: the entry reads and verifies; it is not damaged and is not moved")
-        raw = identity.sha256_file(path)
-        size = path.stat().st_size
-        run_dir.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(path), str(run_dir / path.name))
+            raise PilotStop(f"{tid}: the entry reads and verifies; it is not damaged, and nothing was moved")
+        damaged.append((tid, a, path, error))
+    for tid, a, path, error in damaged:
         record["entries"].append({"task_id": tid, "cache_key": a["cache_key"], "anchor_states_sha256": a["states_sha256"],
-                                  "file_bytes": size, "file_sha256": raw, "error": error,
-                                  "moved_to": str(run_dir / path.name)})
-    cli._write(run_dir / "quarantine.json", record)
+                                  "file_bytes": path.stat().st_size, "file_sha256": identity.sha256_file(path),
+                                  "error": error, "moved_to": str(run_dir / path.name)})
+    cli._write(run_dir / "quarantine.json", record)  # the record first, then the moves
+    for _tid, _a, path, _e in damaged:
+        shutil.move(str(path), str(run_dir / path.name))
+    identity.fsync_dir(run_dir)
+    identity.fsync_dir(path.parent)
     print(json.dumps(record, indent=1))
 
 
@@ -445,14 +448,33 @@ def train_cmd(args) -> None:
         run_dir = P.ROOT / "train" / f"{arm}_s{args.seed}"
         recorded = [json.loads(x) for x in (run_dir / "checkpoints.jsonl").read_text().splitlines()
                     if x.strip()] if (run_dir / "checkpoints.jsonl").exists() else []
-        resume = recorded[-1]["path"] if (args.resume and recorded) else None
+        resume, unusable = None, []
+        if args.resume:  # the newest recorded checkpoint that still verifies (its bytes hash to its name)
+            from . import train as _train
+            for entry in reversed(recorded):
+                try:
+                    _train.load_checkpoint(entry["path"])
+                except Exception as e:
+                    aside = None
+                    if Path(entry["path"]).exists():  # kept, renamed so it is never taken for a checkpoint
+                        aside = f"{entry['path']}.damaged-{time.time_ns()}"
+                        Path(entry["path"]).rename(aside)
+                    unusable.append({"path": entry["path"], "error": f"{type(e).__name__}: {e}"[:200],
+                                     "set_aside_as": aside})
+                    continue
+                resume = entry["path"]
+                break
+            if unusable:
+                print(json.dumps({"resume_skipped_unverifiable_checkpoints": unusable}), flush=True)
         attempt = _new_dir(run_dir / "attempts", "")
         identity.write_manifest(attempt, config={"command": "pilot-train", "arm": arm, "seed": args.seed,
                                                  "updates": P.UPDATES, "checkpoint_every": P.CHECKPOINT_EVERY,
                                                  "matmul_precision": P.MATMUL_PRECISION,
                                                  "train_pin_sha256": identity.sha256_file(C.PINS / "pilot_train_v1.json"),
                                                  "ids_sha256": identity.content_identity(ids),
-                                                 "resume_from": resume, "protocol": proto, "backbone": ident},
+                                                 "resume_from": resume,
+                                                 "resume_skipped": unusable if args.resume else [],
+                                                 "protocol": proto, "backbone": ident},
                                 require_clean=not args.allow_dirty)
         with ledger.Reservation(f"pilot-train {arm} s{args.seed}", projected_hours=args.projected_hours,
                                 extra={"run_dir": str(run_dir), "attempt": str(attempt)}) as res:

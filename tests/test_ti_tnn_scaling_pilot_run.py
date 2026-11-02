@@ -341,3 +341,19 @@ def test_a_damaged_entry_is_quarantined_and_must_recompute_to_its_original_ancho
     monkeypatch.setattr(E, "encode_request", drifting)
     with pytest.raises(R.PilotStop, match="differs from its anchor"):
         R.encode_cmd(_args(what="train", range="0:2"))
+
+
+def test_resume_skips_a_checkpoint_a_crash_damaged(world, monkeypatch):
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    records = [json.loads(x) for x in (run_dir / "checkpoints.jsonl").read_text().splitlines()]
+    last = Path(records[-1]["path"])
+    last.write_bytes(b"\0" * last.stat().st_size)  # the final checkpoint's data never reached the disk
+    log = run_dir / "train_log.jsonl"
+    log.write_text("".join(x + "\n" for x in log.read_text().splitlines()[:2]))  # the crash came after update 1
+    R.train_cmd(_args(seed=100, arms=["T4"], resume=True))
+    path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == 3 and list((run_dir / "checkpoints").glob("*.damaged-*"))
+    attempt = sorted((run_dir / "attempts").glob("*/manifest.json"))[-1]
+    cfg = json.loads(attempt.read_text())["config"]
+    assert cfg["resume_from"] == records[0]["path"] and cfg["resume_skipped"][0]["path"] == str(last)
