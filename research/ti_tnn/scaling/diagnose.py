@@ -218,9 +218,12 @@ def select_features(s: ir.Select, outer: Scope) -> dict:
                 if kind == "cross_source":
                     join_keys.append(key)
         refs = _references(item.on, scope) if item.on is not None else set()
+        # the join links its new source k to an earlier one only if one conjunct reads both
+        links = any(k in r and any(j < k for j in r)
+                    for r in (_references(c, scope) for c in conjuncts(item.on)))
         joins.append({"position": k, "join": item.join,
                       "table": scope.frames[-1][k][0], "on": rr(item.on), "equalities": eqs,
-                      "constrains_new_source": k in refs, "on_references": sorted(refs)})
+                      "constrains_new_source": links, "on_references": sorted(refs)})
     aggs = Counter()
     for part in list(s.items) + [s.having] + [o.expr for o in s.order_by]:
         if part is None or isinstance(part, ir.Star):
@@ -449,20 +452,64 @@ def compare_plans(pred, gold) -> dict:
     return out
 
 
+def all_selects(plan, scope: "Scope | None" = None, path: str = "top"):
+    """Every SELECT of a plan with the scope it is resolved in: the top one, compound members, derived tables and
+    subqueries in expressions (pre-order)."""
+    scope = scope or Scope()
+    if plan is None:
+        return
+    if isinstance(plan, ir.Compound):
+        yield from all_selects(plan.left, scope, path + "/left")
+        yield from all_selects(plan.right, scope, path + "/right")
+        return
+    yield plan, scope, path
+    inner = scope.push(plan)
+    for k, item in enumerate(plan.from_):
+        if isinstance(item.source, ir.DerivedSource):
+            yield from all_selects(item.source.query, scope, f"{path}/from{k}")
+    parts = [i.on for i in plan.from_] + [plan.where, plan.having] + list(plan.group_by) + list(plan.items) + \
+        [o.expr for o in plan.order_by]
+    for part in parts:
+        if part is None or isinstance(part, ir.Star):
+            continue
+        for n in _walk_same_select(part):
+            if isinstance(n, (ir.InQuery, ir.Exists, ir.ScalarQuery)):
+                yield from all_selects(n.query, inner, path + "/sub")
+
+
+def same_reference_predicates(plan) -> list:
+    """Equalities `X = X` of one column reference with itself, anywhere in the plan, with their clause."""
+    out = []
+    for s, outer, path in all_selects(plan):
+        scope = outer.push(s)
+        for clause, expr in [(f"ON{k}", i.on) for k, i in enumerate(s.from_)] + [("WHERE", s.where),
+                                                                                  ("HAVING", s.having)]:
+            for c in conjuncts(expr):
+                if isinstance(c, ir.Compare) and c.op == "=" and isinstance(c.left, ir.Column) and c.left == c.right:
+                    out.append({"select": path, "clause": clause, "column": render(c.left, scope, True)})
+    return out
+
+
 def join_semantics(pred, gold, rel: dict) -> list:
-    """Every join equality of the predicted top SELECT, with its semantics and the gold program's join at that
-    position. A same-reference equality `X = X` is `X IS NOT NULL`; it constrains no join."""
+    """Every join equality of every predicted SELECT, with its semantics and whether the gold program joins the same
+    key. A same-reference equality `X = X` is `X IS NOT NULL`; it relates no two sources."""
     if pred is None:
         return []
-    ps = top_select(pred)
-    pf = select_features(ps, Scope())
-    gf = select_features(top_select(gold), Scope()) if gold is not None else None
-    gold_keys = set(map(tuple, gf["join_keys"])) if gf else set()
+    gold_keys = set()
+    for gs, gscope, _path in all_selects(gold):
+        gold_keys |= set(map(tuple, select_features(gs, gscope)["join_keys"]))
+    out = []
+    for ps, pscope, path in all_selects(pred):
+        out += _join_semantics(ps, select_features(ps, pscope), gold_keys, rel, path)
+    return out
+
+
+def _join_semantics(ps, pf, gold_keys, rel, path) -> list:
     out = []
     for j in pf["joins"]:
         for eq in j["equalities"]:
             key = tuple(eq["key"])
-            entry = {"position": j["position"], "joined_table": j["table"], "kind": eq["kind"],
+            entry = {"select": path, "position": j["position"], "joined_table": j["table"], "kind": eq["kind"],
                      "left": eq["left"], "right": eq["right"], "key": list(key),
                      "declared_fk": key in rel["fk"], "in_gold": key in gold_keys,
                      "join_constrains_new_source": j["constrains_new_source"]}
@@ -470,13 +517,14 @@ def join_semantics(pred, gold, rel: dict) -> list:
                 col = key[0]
                 partners = sorted({k[1] if k[0] == col else k[0] for k in gold_keys if col in k})
                 fk_partners = sorted({k[1] if k[0] == col else k[0] for k in rel["fk"] if col in k})
-                other_sources = [i for i in range(len(ps.from_)) if i not in {s for _lv, s in eq["sources"]}]
+                # the join's new source is a cross product unless another conjunct links it to an earlier source
+                other_sources = [] if j["constrains_new_source"] else [j["position"]]
                 used_elsewhere = _sources_used_outside_on(ps, set(other_sources))
                 aggs = [a for a in pf["aggregates"] if a.split("_")[0] in MULTIPLICITY_SENSITIVE
                         and not a.endswith("_DISTINCT")]
                 entry.update({
                     "column": col, "gold_partners_of_this_column": partners, "fk_partners_of_this_column": fk_partners,
-                    "unconstrained_sources": other_sources if not j["constrains_new_source"] else [],
+                    "unconstrained_sources": other_sources,
                     "unconstrained_sources_read_elsewhere": sorted(used_elsewhere),
                     "multiplicity_sensitive_aggregates": aggs,
                     "limit": ps.limit,
@@ -547,6 +595,7 @@ def diagnose_request(rec: dict, enc, gold_plan, gold_actions, rel: dict) -> dict
         if gold_actions is not None else {"category": "gold not representable"}
     out["plans"] = compare_plans(pred_plan, gold_plan)
     out["joins"] = join_semantics(pred_plan, gold_plan, rel)
+    out["same_reference_predicates"] = same_reference_predicates(pred_plan)
     out["categories"] = categories(out)
     return out
 
@@ -567,6 +616,8 @@ def categories(d: dict) -> list:
         return cats
     if any(j["kind"] == "same_reference" for j in d["joins"]):
         cats.append("join: same-reference equality")
+    if any(not x["clause"].startswith("ON") for x in d.get("same_reference_predicates", [])):
+        cats.append("predicate: same-reference equality")
     if not p["tables_equal"]:
         cats.append("table grounding")
     if p["tables_equal"] and not p["join_keys_equal"]:
