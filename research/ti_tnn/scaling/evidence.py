@@ -72,6 +72,38 @@ def bundle(run_dirs, verification=None, root: Path = BUNDLE) -> list:
     return copied
 
 
+PILOT_BUNDLE = C.SCALING / "evidence" / "pilot_v1"
+PILOT_FILES = ("manifest.json", "summary.json", "measurements.json", "entries.jsonl", "backbone.json", "config.json",
+               "train_log.jsonl", "train_log.superseded.jsonl", "checkpoints.jsonl", "analysis.json", "records.jsonl")
+
+
+def bundle_pilot(root: Path = None, l_runs=(), dest: Path = PILOT_BUNDLE) -> list:
+    """Copy every pilot run's evidence files (weight-free) into dest, keeping the run layout:
+    - encode, feasibility, train (with every attempt), eval and analysis runs, failed and superseded ones included;
+    - the L run(s) on the 64;
+    - the ledger.
+    Then write SHA256SUMS."""
+    root = Path(root) if root is not None else C.RUNS / "pilot"
+    copied = []
+    for f in sorted(root.rglob("*")):
+        if f.is_file() and f.name in PILOT_FILES:
+            target = dest / f.relative_to(root)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, target)
+            copied.append(target)
+    for d in map(Path, l_runs):
+        for name in ("manifest.json", "summary.json", "records.jsonl"):
+            if (d / name).exists():
+                target = dest / "L" / d.name / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(d / name, target)
+                copied.append(target)
+    shutil.copy2(C.RUNS / "gpu_ledger.jsonl", dest / "gpu_ledger.jsonl")
+    files = sorted(q for q in dest.rglob("*") if q.is_file() and q.name != "SHA256SUMS")
+    (dest / "SHA256SUMS").write_text("".join(f"{_sha256(q)}  {q.relative_to(dest)}\n" for q in files))
+    return copied
+
+
 def _checked(root: Path = None) -> None:
     root = BUNDLE if root is None else root
     sums = (root / "SHA256SUMS").read_text().splitlines()
