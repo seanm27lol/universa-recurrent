@@ -1,0 +1,10 @@
+{
+ "file": "research/ti_tnn/scaling/docs/PROTOCOL_perf_v2.md",
+ "sha256": "ba696dfd39b731c652c2ea79961df0011a7930c7ff358ab282a1a6968014a75e",
+ "frozen_at": "01e3e28d6937006a8c96dfa6a19542fdeeaadeff",
+ "frozen_on": "2026-11-02",
+ "train_pin_sha256": "9ba313926af659adf07d4ef7ab6728e38fdd721aac015c8f4acd71fc1aa8ff14",
+ "eval_pin_sha256": "21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8",
+ "updates": 3000,
+ "review": "independent review of 1f950ec (no defect invalidating training or the comparison); its fixes at 01e3e28d6937006a8c96dfa6a19542fdeeaadeff"
+}
