@@ -1,0 +1,79 @@
+{
+ "arms": {
+  "T4": {
+   "checkpoint_save_seconds_mean": 0.5909062244463712,
+   "cold_epoch_update_seconds": 0.4993924118578434,
+   "eval_seconds_per_request": 1.782926046405919,
+   "first_update_seconds": 1.6501499274745584,
+   "fit_total_seconds": 23.64951343741268,
+   "fixed_seconds": 0.24439959321171045,
+   "fresh_states_equal_anchor_same_process": 8,
+   "fresh_states_equal_smoke_other_process": 8,
+   "prefetch_wait_mean": 0.014137579360976815,
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.1443407095503062,
+   "smoke_states_available": 8,
+   "update_seconds_after_first": 0.4993924118578434,
+   "update_seconds_max": 1.6501499274745584,
+   "updates": 40,
+   "warm_update_seconds": 0.49689343998975616
+  },
+  "c4_params": {
+   "checkpoint_save_seconds_mean": 0.6864328470546752,
+   "cold_epoch_update_seconds": 0.46906101815402507,
+   "eval_seconds_per_request": 1.7295403787866235,
+   "first_update_seconds": 0.8124212780967355,
+   "fit_total_seconds": 22.963307960890234,
+   "fixed_seconds": 0.22603739239275455,
+   "fresh_states_equal_anchor_same_process": 8,
+   "fresh_states_equal_smoke_other_process": 8,
+   "prefetch_wait_mean": 0.01753738906700164,
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.14993180555757135,
+   "smoke_states_available": 8,
+   "update_seconds_after_first": 0.4951121415121152,
+   "update_seconds_max": 0.8124212780967355,
+   "updates": 40,
+   "warm_update_seconds": 0.4951121415121152
+  }
+ },
+ "context_lengths_seconds": 40.60367330536246,
+ "encode": {
+  "already_present": 168,
+  "encoded": 0,
+  "rechecked": 0,
+  "rechecked_equal": 0,
+  "requested": 168,
+  "seconds_per_new_context": null,
+  "seconds_total_new": 0
+ },
+ "load_seconds": 51.166314936243,
+ "pool": {
+  "max": 26751,
+  "mean": 4624.644800674963,
+  "sample_mean": 4637.34375
+ },
+ "prepare_seconds_per_example": 0.07455136248026975,
+ "projection": {
+  "basis": "measured on the final code; each arm at its own measured update, save and fixed costs; preparation runs on the CPU outside reservations; no margin is required",
+  "cap_hours": 8.0,
+  "fits": true,
+  "items_hours": {
+   "encode the remaining contexts, with their backbone loads and the determinism recheck": 2.504198252407949,
+   "evaluate and reconstruct 4 final checkpoints, with 2 backbone loads": 0.16377644839748326,
+   "train 2 seeds x 2 arms (each arm at its own measured update time)": 0.8340885378454166
+  },
+  "needed_hours": 3.5020632386508486,
+  "remaining_hours": 4.849602703140894,
+  "shortfall_hours": 0.0,
+  "slack_hours": 1.3475394644900454,
+  "used_hours": 3.1503972968591065
+ },
+ "recorded_seconds_per_new_context": 1.8857442699649947,
+ "reservation": {
+  "hours": 0.04152486432654162,
+  "id": "20261030T175558-20cf33bf",
+  "projected_hours": 0.3
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/feasibility/20261030T175558Z"
+}

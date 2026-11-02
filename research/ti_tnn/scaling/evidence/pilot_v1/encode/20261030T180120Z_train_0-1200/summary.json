@@ -1,0 +1,14 @@
+{
+ "already_present": 37,
+ "encoded": 1163,
+ "rechecked": 0,
+ "rechecked_equal": 0,
+ "requested": 1200,
+ "reservation": {
+  "hours": 0.312973201486489,
+  "id": "20261030T180120-593ff07b",
+  "projected_hours": 0.75
+ },
+ "seconds_per_new_context": 0.9063380701284814,
+ "seconds_total_new": 1054.0711755594239
+}

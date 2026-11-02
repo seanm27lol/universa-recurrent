@@ -39,3 +39,14 @@ def test_the_repair_bundle_rebuilds_the_timing_table():
         pytest.skip("no repair bundle")
     text = evidence.timing_table()
     assert "| file | 8 | high | 12 | 0.516 |" in text and "| file | 8 | highest | 20 | 5.343 |" in text
+
+
+def test_the_pilot_bundle_rebuilds_the_pilot_report():
+    if not (evidence.PILOT_BUNDLE / "SHA256SUMS").exists():
+        pytest.skip("no pilot bundle")
+    from scaling import pilot_report
+    text = pilot_report.tables()
+    for row in ("| T4 | 9 | 9 | 18 |", "| C4_params | 4 | 10 | 14 |", "| L (deterministic, no fit) | 4 | 4 | 8 |",
+                "**A3: no pilot difference by the pre-set rule**", "two-sided p = 0.3594",
+                "| representable | 58 |", "6.878 of 8 (pilot: 3.899)"):
+        assert row in text, row

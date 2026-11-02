@@ -74,7 +74,8 @@ def bundle(run_dirs, verification=None, root: Path = BUNDLE) -> list:
 
 PILOT_BUNDLE = C.SCALING / "evidence" / "pilot_v1"
 PILOT_FILES = ("manifest.json", "summary.json", "measurements.json", "entries.jsonl", "backbone.json", "config.json",
-               "train_log.jsonl", "train_log.superseded.jsonl", "checkpoints.jsonl", "analysis.json", "records.jsonl")
+               "train_log.jsonl", "train_log.superseded.jsonl", "checkpoints.jsonl", "analysis.json", "records.jsonl",
+               "quarantine.json")
 
 
 def bundle_pilot(root: Path = None, l_runs=(), dest: Path = PILOT_BUNDLE) -> list:

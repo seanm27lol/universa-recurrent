@@ -1,0 +1,28 @@
+{
+ "entries": [
+  {
+   "anchor_states_sha256": "0df879269cf875f8d26193c36c1d5ec55b4f04ca6f651310b4029899b3af6a31",
+   "cache_key": "bce35074f853060f658e864a2a1f96347336cfc235ee5f88a3725f3f852ad880",
+   "error": "SafetensorError: Error while deserializing header: invalid JSON in header: EOF while parsing a value at line 1 column 0",
+   "file_bytes": 135895984,
+   "file_sha256": "0365ed4707e1622bb5c27979508771bf9b0a2d0b50889d65dad5cb54e1a5e386",
+   "moved_to": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/quarantine/20261102T015059Z/bce35074f853060f658e864a2a1f96347336cfc235ee5f88a3725f3f852ad880.safetensors",
+   "task_id": "bird23tf-02775"
+  },
+  {
+   "anchor_states_sha256": "86df9414145133cb17be0f1754dba4d6ad072efe50d35a9c80651d8f8866f0e0",
+   "cache_key": "9db4e4813339601b2d0ea7637c6cdaf694f70309b4c6e478fb7edad9774437f9",
+   "error": "SafetensorError: Error while deserializing header: invalid JSON in header: EOF while parsing a value at line 1 column 0",
+   "file_bytes": 135153584,
+   "file_sha256": "fb11ff3486a2eb99c2d15c429ef70a8cb4f22f4d103ad6359da4e09130958f08",
+   "moved_to": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/quarantine/20261102T015059Z/9db4e4813339601b2d0ea7637c6cdaf694f70309b4c6e478fb7edad9774437f9.safetensors",
+   "task_id": "bird23tf-02776"
+  }
+ ],
+ "protocol": {
+  "file": "research/ti_tnn/scaling/docs/PROTOCOL_pilot.md",
+  "frozen_at": "5bb852c4077cfcaec10c0a9f5e1dcb635087e1cb",
+  "sha256": "81427fdc798b38df2416eb3a6ace09b99338722055b069f25cdd54628aae6c71"
+ },
+ "reason": "a host crash after 18:53:09 UTC on 2026-10-30 (the last ledger heartbeat; the journal ends at 18:52:39) left these two entries full size with no data; their fsynced anchors are intact"
+}

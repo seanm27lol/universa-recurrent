@@ -109,22 +109,17 @@ def tables(bundle: Path = evidence.PILOT_BUNDLE) -> str:
         lines.append(f"- {Path(r['run']).name}: seed {r['seed']}, passed {r['passed']}")
     lines += ["", "## GPU reservations (the whole study's ledger)", "",
               "| reservation | command | status | projected h | charged h |", "|---|---|---|---|---|"]
-    ledger = _load(bundle / "gpu_ledger.jsonl")
-    starts = {e["reservation"]: e for e in ledger if e.get("event") == "start"}
-    ends = {e["reservation"]: e for e in ledger if e.get("event") == "end"}
-    beats = defaultdict(float)
-    for e in ledger:
-        if e.get("event") == "heartbeat":
-            beats[e["reservation"]] = max(beats[e["reservation"]], e.get("elapsed", 0.0))
+    from . import ledger as ledger_mod
+    u = ledger_mod.usage(bundle / "gpu_ledger.jsonl")  # the ledger's own charging rule
     total = pilot_total = 0.0
-    for rid, st in starts.items():
-        en = ends.get(rid)
-        hours = (en["elapsed"] if en else beats[rid]) / 3600
+    for r in u["reservations"]:
+        hours = r["hours"]
         total += hours
-        if str(st.get("command", "")).startswith("pilot-"):
+        if str(r.get("command", "")).startswith("pilot-"):
             pilot_total += hours
-        status = en.get("status") if en else "INTERRUPTED (no end entry; charged to the last heartbeat)"
-        lines.append(f"| {rid} | {st.get('command')} | {status} | {st.get('projected_hours')} | {hours:.3f} |")
+        status = r["status"] if r["ended"] else "INTERRUPTED by the host crash (no end entry; charged to the last " \
+                                                 "heartbeat plus one interval)"
+        lines.append(f"| {r['reservation']} | {r['command']} | {status} | {r.get('projected_hours')} | {hours:.3f} |")
     lines.append(f"| total | | | | {total:.3f} of 8 (pilot: {pilot_total:.3f}) |")
     return "\n".join(lines)
 
