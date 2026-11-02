@@ -10,6 +10,9 @@ development evidence from 64 questions and two seeds, and confirms nothing.
 
 Protocol: [`PROTOCOL_pilot.md`](PROTOCOL_pilot.md), frozen at 5bb852c (sha256 81427fdc…).
 
+**Corrected 2026-11-02:** reporting, verification and resume only. The run records and the frozen outcome are
+unchanged; see [Corrections](#corrections-of-2026-11-02-reporting-verification-and-resume-only).
+
 ## The counts (64 questions, every request in the denominator)
 
 | | seed 100 | seed 101 | pooled (of 128) | cleared L in both seeds |
@@ -80,15 +83,34 @@ without a supervisable gold program. It is not an evaluation ceiling.
 | C4_params s100 | 1,500 | 4.720 → 0.169 | 0.588 / 0.557 | 6 (0.85) |
 | C4_params s101 | 1,500 | 4.679 → 0.167 | 0.583 / 0.567 | 6 (0.67) |
 
-At evaluation, every arm answered all 64 requests; nothing abstained. A request took 1.33–1.35 s end to end at batch
-size one, most of it the frozen 4B's forward. Some submitted queries hit the scorer's 30 s timeout: 1 and 2 of T4's,
-0 and 3 of C4_params', by seed. They count as wrong.
+At evaluation, every arm answered all 64 requests; nothing abstained.
 
-| | cost per correct request (s) |
-|---|---|
-| T4 | 9.6 (seed 100), 9.6 (seed 101) |
-| C4_params | 21.5 (seed 100), 8.5 (seed 101) |
-| L | 48.1 (192.3 s for the 64) |
+**Time to SQL submission.** Each record's time runs from the request's start until its final SQL is submitted, at
+batch size one. For the controllers, that covers the fresh forward of the frozen 4B (most of it) and the decode; for
+L, retrieval and its candidate queries. The scorer's execution of the submitted query comes afterwards and is not
+included.
+- **Means per request:** the four controller runs averaged 1.33–1.35 s; L averaged 3.00 s.
+
+**Generation cost per EX-correct submission:** the 64 requests' time to SQL submission, divided by the EX-correct
+submissions.
+- **It is the frozen protocol's cost unit, unchanged.** The protocol calls it "end-to-end seconds"; the recorded
+  seconds end at submission, so the metric is relabelled here, not recomputed.
+
+**Descriptive accounting, outside the frozen metric:** the scorer's recorded execution of each submitted query, and
+generation plus that execution per EX-correct submission.
+- **Timeouts dominate the execution column.** Six submitted queries hit the scorer's 30 s timeout: T4 1 and 2, and
+  C4_params 0 and 3, by seed. They score 0, and each recorded 30.0–33.2 s.
+
+| run | EX-correct | time to SQL submission, s (64 total / mean) | generation cost per EX-correct submission, s | recorded submitted-query execution, s (timeouts) | generation + execution per EX-correct, s (descriptive) |
+|---|---|---|---|---|---|
+| T4 s100 | 9 | 86.2 / 1.35 | 9.6 | 36.0 (1) | 13.6 |
+| T4 s101 | 9 | 86.0 / 1.34 | 9.6 | 66.4 (2) | 16.9 |
+| C4_params s100 | 4 | 86.2 / 1.35 | 21.5 | 1.7 (0) | 22.0 |
+| C4_params s101 | 10 | 85.2 / 1.33 | 8.5 | 94.1 (3) | 17.9 |
+| L | 4 | 192.3 / 3.00 | 48.1 | 4.5 (0) | 49.2 |
+
+The execution column changes the ordering: C4_params' seed 101 has the lowest generation cost per EX-correct
+submission (8.5 s), but not the lowest once its three timed-out queries are counted (17.9 s).
 
 ## Integrity
 
@@ -143,12 +165,26 @@ Every gate of the frozen protocol passed:
 
 ## Independent verification
 
-**The verdict reproduced exactly:** A3, with T4 clearing L in both seeds and C4_params not. The independent reviewer
-reconstructed it from the records (`independent/verify_pilot.py`, which reuses `verify_baselines.py`'s helpers).
+**The verdict reproduced exactly, twice:** A3, with T4 clearing L in both seeds and C4_params not.
+- **First, by the independent reviewer**, against an earlier snapshot of the bundle.
+- **Then, on the final bundle,** by the corrected verifier.
+
+The second run's public arithmetic reconstruction and its local checks are reported separately, because they
+establish different things.
+
+### The reviewer's verification (2026-11-02, preserved)
+
+The independent reviewer reconstructed the verdict from the records with `independent/verify_pilot.py` as committed
+in 0c420ab, which reuses `verify_baselines.py`'s helpers.
 - **Its own code** covers the EX rule, the JSON and ledger parsing, the tensor and optimizer digests, the training
   stream (`torch.randperm`) and the sign-flip enumeration. The pins and contracts are read at each run's commit.
 - **Producer code** was used only where flagged: the representability trace, and an informational CPU re-decode.
-- **Output:** `evidence/pilot_v1/independent/` (`pilot_verdict_summary.json`, sha256 78714dfc…).
+- **Outputs:** `pilot_verdict.json`, `pilot_verdict_redecode.json`, `pilot_verdict_summary.json` (sha256
+  78714dfc…) and `verify_L64.json`, all in `evidence/pilot_v1/independent/`. They are kept byte for byte.
+
+**They verified an earlier, 84-file snapshot of the bundle,** taken before the quarantine record and the outputs
+themselves were added. Their `bundle` sections describe that snapshot, which is labelled in
+`evidence/pilot_v1/independent/README.md`.
 
 **What it checked, all equal to the analysis:**
 - **The 64:** reconstructed from the raw release.
@@ -166,17 +202,94 @@ reconstructed it from the records (`independent/verify_pilot.py`, which reuses `
   - the fresh states equal the anchors and are identical across the arms;
   - exactly one passing evaluation per seed;
   - the L run's commit contains the freeze;
-  - the bundle is byte-equal to the runs.
+  - the bundle (that snapshot) is byte-equal to the runs.
 - **CPU re-decode** (informational: float32 on the CPU against TF32 on the GPU): 256 of 256 requests gave identical
   actions and SQL.
 - **The ledger:** 6.878 h in total, 3.899 h for the pilot.
 
-**Discrepancies, none affecting the verdict:**
+**Two limits of that version**, corrected below; neither affects its verdict:
+- it took an evaluation's eligibility from the producer's `passed` flag, without deriving it from the complete
+  reconstruction inventory (both inventories are entirely true);
+- it compared `analysis.json`'s inputs by absolute path (they were equal).
+
+**Discrepancies it reported, none affecting the verdict:**
 - the quarantine record was missing from the bundle (now included);
 - training ran 23% over its projection;
 - per-chunk encoding costs varied about 4×;
 - C4_params misses the gate by a single tie;
 - 3 question-runs were answered correctly although their gold program is unrepresentable, which EX allows.
+
+### Verification of the final bundle (2026-11-02 correction pass)
+
+The producer-side session ran the corrected `independent/verify_pilot.py` at the user's request; this is not a
+rerun by the reviewer. It verified the bundle at commit 4f2a495, as listed by the `SHA256SUMS` with sha256
+3f6a1337…. Its output is `evidence/pilot_v1/independent/final_bundle_verification.json`, added afterwards.
+
+**Public arithmetic reconstruction:** 87 checks, 0 failures.
+- **What it reads:** only the bundle, plus the checkout's pins, protocol and git history.
+- **Eligibility:** each evaluation's comes from its complete reconstruction inventory; both runs are eligible, and
+  the producer's `passed` flags agree.
+- **Totals:** each run's totals and cost ratios are recomputed from its records and equal the summaries.
+- **The decision:** the counts, gates, differences, rule, histogram, database table and sign-flip, recomputed from
+  the *recorded* EX scores, equal `analysis.json`. Runs are matched by their path relative to the runs root.
+- **What it establishes:** that the decision follows arithmetically from the bundled records. It does not
+  establish that the recorded scores are right.
+
+**Local checks:** 343 checks, 0 failures. They needed the runs root: the raw release, the SQLite databases,
+the checkpoint files and the cached states. They establish what the public part cannot:
+- the 64 are rebuilt from the raw release;
+- all 256 controller SQL submissions and L's 64 are re-executed with the reviewer's EX rule, and every recorded
+  score is re-derived;
+- the four final checkpoints re-hash to their names and records, with their model and optimizer digests recomputed;
+- 85 bundled run copies equal their run originals (the 84 of the earlier snapshot and the quarantine record);
+- representability recomputes to 58/64 (producer grammar, flagged);
+- the CPU re-decode gives identical actions and SQL on 256 of 256 requests (producer decoder, flagged,
+  informational).
+
+**From a relocated clean checkout.** A fresh clone of the pushed branch at 5366639, in another directory, had no
+runs root and `TI_TNN_SCALING_RUNS` unset. In it:
+- `python -m scaling.pilot_report` printed tables identical to those printed in place (98 lines);
+- the public reconstruction gave 87 checks with 0 failures, and an output identical to the in-place run's, section
+  by section, over the 91-file bundle (`SHA256SUMS` a551fbda…);
+- the focused rejection tests passed: 20 of 20 (bundle consistency and relocation, the verifier's rejections, run references, both resume cases and a moved runs root, inventory eligibility, and the protocol refusals).
+
+## Corrections of 2026-11-02 (reporting, verification and resume only)
+
+After review, one CPU-only correction pass. No run record, cache entry or checkpoint was changed, and the frozen
+outcome stands. No fit, GPU reservation or new evaluation was made.
+
+1. **The public bundle command** (`python -m scaling.pilot_report`) now recomputes the decision from the decision
+   records before printing anything:
+   - **what it recomputes:** the counts, L statuses, paired differences, database totals, histogram, rule and
+     block statistic, each run's totals, and each evaluation's eligibility from its reconstruction inventory;
+   - **what it compares them with:** `analysis.json` and the summaries;
+   - **on any disagreement** it stops, naming it.
+   - **Tests:** tampered bundle copies, with `SHA256SUMS` regenerated so the checksums pass, are refused.
+2. **The independent verifier** now derives each evaluation's eligibility from its complete reconstruction inventory:
+   - a single false entry rejects the run even when the summary's `passed` stays true, and that disagreement is
+     itself a failed check;
+   - it recomputes each run's reported totals and cost ratios against the producer's summaries.
+3. **Run identity.** Runs are compared by their path relative to the runs root (`identity.run_ref`), not by absolute
+   path. That covers:
+   - the analysis inputs, the bundle command and the verifier;
+   - the dev verifier's ledger match;
+   - resume, which now finds each recorded checkpoint by name in the run's own directory.
+
+   The frozen `analysis.json` keeps its absolute paths; both forms are read. Reconstruction was tested after
+   relocating the evidence: a moved bundle copy in the tests, and a fresh clone (see below).
+4. **The serving metric is relabelled:** time to SQL submission, and generation cost per EX-correct submission.
+   - **The frozen metric is unchanged.** The earlier text said every arm took 1.33–1.35 s end to end; that range
+     describes the controller runs' means only, and L averaged 3.00 s.
+   - **The scorer's recorded execution** of the submitted queries is now reported separately, as descriptive
+     accounting.
+5. **Resume:** a run with a complete training log but a missing or damaged final checkpoint was refused as already
+   complete, with no way to recover. It now resumes from its newest sound checkpoint.
+   - **Refused only when complete:** a run whose log is complete *and* whose final checkpoint passes the
+     final-checkpoint gate is still refused.
+   - **Regression tests:** both cases, and a moved runs root.
+6. **The reviewer's original outputs** are preserved byte for byte and labelled as verifying an earlier 84-file
+   bundle snapshot (`evidence/pilot_v1/independent/README.md`). A verification of the final bundle is appended,
+   with the public arithmetic reconstruction and the local checks reported separately.
 
 ## What this does not establish
 
@@ -189,10 +302,22 @@ Development gold informed the grammar's design.
 
 ## Evidence and reproduction
 
-**The bundle.** `research/ti_tnn/scaling/evidence/pilot_v1/` (weight-free, with `SHA256SUMS`) holds every encoding,
-feasibility, training, evaluation and analysis run, failed, interrupted and superseded ones included. It also holds
-the L run, the quarantine record and the ledger. `python -m scaling.pilot_report` rebuilds the tables above from the
-bundle alone.
+**The bundle.** `research/ti_tnn/scaling/evidence/pilot_v1/` (weight-free, with `SHA256SUMS`) holds:
+- every encoding, feasibility, training, evaluation and analysis run, failed, interrupted and superseded ones
+  included;
+- the L run, the quarantine record and the ledger;
+- the verification outputs.
+
+**Rebuilding from the bundle alone,** from `research/ti_tnn` in any checkout:
+
+```bash
+python -m scaling.pilot_report                                     # recompute from the records, compare, print the tables
+python scaling/independent/verify_pilot.py                         # the public arithmetic reconstruction
+python scaling/independent/verify_pilot.py --local --representability --redecode   # with the runs root (local checks)
+```
+
+`pilot_report` stops, naming the disagreement, if `analysis.json` or a summary differs from what the decision
+records give.
 
 **Reproduction.** From the run worktree at 120412d (encodings: 4484ee6, then 41dd184):
 
