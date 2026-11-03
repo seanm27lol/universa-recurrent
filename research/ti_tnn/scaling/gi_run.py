@@ -541,8 +541,9 @@ def eval_new_cmd(args) -> None:
     if sorted(g4) != sorted(ids):
         raise GiStop("the G4 run does not cover the new population")
     budget = check_budget(args.projected_hours)
-    fits = {f"{perf.label(a, g)}/{s}": perf.final_checkpoint(perf.run_dir_of(a, g, s)) for a, g in V2_ARMS
-            for s in perf.SEEDS}
+    # by seed, both architectures together: a stop on the budget never leaves T4 ahead of its shared control
+    fits = {f"{perf.label(a, g)}/{s}": perf.final_checkpoint(perf.run_dir_of(a, g, s)) for s in perf.SEEDS
+            for a, g in V2_ARMS}
     run_dir = pilot_run._new_dir(ROOT / "eval", "new")
     identity.write_manifest(run_dir, config={
         "command": "gi eval-new", "protocol": proto, "requested": ids, "policies": list(POLICIES),
@@ -713,7 +714,7 @@ def gold_reference(tid: str, items) -> dict:
         for part in [i.on for i in sel.from_] + [sel.where, sel.having]:
             if part is None:
                 continue
-            for n in ir.walk(part):
+            for n in D._walk_same_select(part):  # this SELECT's own comparisons (level 0 is its sources)
                 if isinstance(n, ir.Compare):
                     for col, lit in ((n.left, n.right), (n.right, n.left)):
                         if isinstance(col, ir.Column) and col.level == 0 and isinstance(lit, ir.Literal) and \
@@ -778,7 +779,8 @@ def dev_summary_cmd(args) -> None:
     """The development decodes: EX per policy, influence (changed SQL against G0), the interface gate, the CPU G0
     reproduction of the saved GPU decodes, the record diagnostics and the swap check."""
     from . import data
-    run = sorted((ROOT / "decode_dev").glob("*/records.jsonl"))[-1]
+    run = (ROOT / "decode_dev" / args.run / "records.jsonl") if args.run else \
+        sorted((ROOT / "decode_dev").glob("*/records.jsonl"))[-1]
     rows = [json.loads(x) for x in run.read_text().splitlines() if x.strip()]
     pols = ["G0", "Glex", "G4", "oracle", "G4-swap"]
     out = {"run": run.parent.name, "decodes": len(rows), "by_arch": {}, "influence": {}, "records": {}}
@@ -984,6 +986,7 @@ def main(argv=None) -> int:
     s.add_argument("--allow-dirty", action="store_true")
     s.set_defaults(fn=decode_dev_cmd)
     s = sub.add_parser("dev-summary")
+    s.add_argument("--run", default=None, help="a decode_dev run directory name (default: the latest)")
     s.set_defaults(fn=dev_summary_cmd)
     s = sub.add_parser("analyze")
     s.add_argument("--allow-dirty", action="store_true")
