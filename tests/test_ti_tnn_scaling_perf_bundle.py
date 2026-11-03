@@ -50,3 +50,28 @@ def test_a_score_that_disagrees_with_the_analysis_is_refused(tmp_path, monkeypat
     monkeypatch.setattr(perf_report, "BUNDLE", copy)
     with pytest.raises(perf_report.Inconsistent, match="counts"):
         perf_report.tables()
+
+
+def test_the_corrections_rebuild_from_the_bundle():
+    text = _perf_report().corrections()
+    for row in ("| new | T4-v2 | 192 | 7.015 G | 7.057 G | +0.60% |",
+                "| new | T4-v2 | 192 | 0.56 | 0.29 | 0.16 | 0.56 / 0.28 / 0.16 |",
+                "| standalone setup | the training pool's backbone states, completed encode reservations (4) | 1.936 |",
+                "| research | everything under authorization v2 (21 reservations) | 14.538 |"):
+        assert row in text, row
+    assert text.count("| B4 thinking, positions") == 2 and text.count("| Q27 thinking (low), positions") == 2
+
+
+def test_executed_macs_refuse_a_record_they_cannot_reconstruct():
+    _perf_report()
+    from scaling import controller as K
+    from scaling import perf_corrections as PC
+    (records,) = sorted(evidence.PERF_BUNDLE.glob("eval/s100_*/T4-v2/records.jsonl"))
+    record = json.loads(records.read_text().splitlines()[0])
+    cfg = K.ControllerConfig(**json.loads((evidence.PERF_BUNDLE / "train" / "T4-v2_s100" / "config.json")
+                                          .read_text())["controller"])
+    m = PC.executed_macs(record, cfg)
+    assert m["executed"] > m["recorded"] and m["pointer_recorded"] == record["controller_work"]["macs"]["pointer"]
+    record["controller_work"]["macs"]["pointer"] += 1
+    with pytest.raises(PC.MacMismatch, match="pointer"):
+        PC.executed_macs(record, cfg)

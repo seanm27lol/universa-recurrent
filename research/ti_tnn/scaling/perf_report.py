@@ -295,7 +295,7 @@ def corrections() -> str:
             f"({st['training_states_reservations']}) | {st['training_states_hours']:.3f} |"]
     out += [f"| standalone setup | one {lab} fit, mean of {len(seeds)} | {h:.3f} |"
             for lab, h in st["one_fit_hours_mean"].items()]
-    out += [f"| research | interrupted encode attempts (the pilot's host crash) | "
+    out += [f"| research | encode attempts that did not complete (the pilot's: one cut off by the host crash, one failed) | "
             f"{st['training_states_interrupted_hours']:.3f} |",
             f"| research | everything under authorization v2 ({rs['authorization_v2_reservations']} reservations) | "
             f"{rs['authorization_v2_hours']:.3f} |",

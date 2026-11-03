@@ -1,0 +1,105 @@
+{
+ "what": "CPU work started by the producer session or its reviewer sessions while a Qwen baseline reservation was timing requests (B4 and Q27, positions 16-63 and 64-127). Disclosure only: no interference correction is applied to any recorded time.",
+ "method": "Windows: the reservations' start and end events in gpu_ledger.jsonl. Jobs: the producer's session transcript and the reviewer sessions' transcripts (tool calls with timestamps; a foreground command ends at its result, a background one at its completion notice), and, for the diagnosis runs, the run directories' output times. File edits, sleeps and waiting loops are omitted. Machine load: logs/cotenancy_qwen_*.log (1-minute load average of all processes, sampled every 30 s); reproduced by `python -m scaling.perf_report --corrections`.",
+ "isolation": "The Qwen runs were pinned to cores 5-9,15-19 (Cortex-X925) and these jobs to 0-4,10-14 (Cortex-A725). Pinning separates cores only: the GB10's CPU and GPU share one unified LPDDR5x memory, so memory-bandwidth contention is not excluded. Processes of other sessions on the host, if any, appear only in the load average.",
+ "windows": {
+  "B4 thinking, positions 16-63": {
+   "reservation_command": "baseline B4_thinking_p16-64",
+   "start": "2026-11-02T22:28:47Z",
+   "end": "2026-11-02T23:49:30Z",
+   "jobs": [
+    {
+     "kind": "the pilot's CPU diagnosis (diagnose.py; torch, 8 threads, 4-6 SQL workers)",
+     "who": "producer",
+     "start": "22:28:55Z",
+     "end": "22:56:14Z",
+     "cores": "0-4,10-14",
+     "note": "two short attempts (22:28:55-22:31:59, 22:34:30-22:37:44), then the counted run 22:37:51-22:56:14 (diagnosis/20261102T223751Z_a9091ef)"
+    },
+    {
+     "kind": "pytest (scaling tests)",
+     "who": "producer",
+     "start": "23:15:02Z",
+     "end": "23:15:11Z",
+     "cores": "0-4,10-14"
+    },
+    {
+     "kind": "pytest (scaling tests)",
+     "who": "producer",
+     "start": "23:27:21Z",
+     "end": "23:30:51Z",
+     "cores": "0-4,10-14"
+    },
+    {
+     "kind": "pre-freeze reviewer probe scripts (5 runs of 5-58 s)",
+     "who": "reviewer a5619e66",
+     "start": "23:26:49Z",
+     "end": "23:38:35Z",
+     "cores": "0-4,10-14"
+    }
+   ]
+  },
+  "Q27 thinking (low), positions 16-63": {
+   "reservation_command": "baseline Q27_thinking_low_p16-64",
+   "start": "2026-11-02T23:49:33Z",
+   "end": "2026-11-03T01:48:34Z",
+   "jobs": [
+    {
+     "kind": "diagnosis table-mentions pass",
+     "who": "producer",
+     "start": "23:53:38Z",
+     "end": "23:54:48Z",
+     "cores": "0-4,10-14"
+    },
+    {
+     "kind": "phase-1 verifier checks (short runs; one 85 s mutation test)",
+     "who": "reviewer a18ff08e",
+     "start": "01:41:28Z",
+     "end": "01:48:36Z",
+     "cores": "0-4,10-14"
+    }
+   ]
+  },
+  "B4 thinking, positions 64-127": {
+   "reservation_command": "baseline B4_thinking_p64-128",
+   "start": "2026-11-03T09:27:10Z",
+   "end": "2026-11-03T11:03:40Z",
+   "jobs": [
+    {
+     "kind": "post-evaluation diagnosis (diagnose.py perf; torch, 8 threads)",
+     "who": "producer",
+     "start": "09:28:01Z",
+     "end": "09:33:58Z",
+     "cores": "0-4,10-14"
+    },
+    {
+     "kind": "phase-2 verifier development and runs (3 SQL worker processes, torch 4 threads), including a 7-minute full run 09:46:07-09:53:24",
+     "who": "reviewer a18ff08e",
+     "start": "09:32:08Z",
+     "end": "09:54:37Z",
+     "cores": "0-4,10-14"
+    },
+    {
+     "kind": "decision-rule and serving previews over the saved records",
+     "who": "producer",
+     "start": "09:36:35Z",
+     "end": "09:38:25Z",
+     "cores": "0-4,10-14"
+    }
+   ]
+  },
+  "Q27 thinking (low), positions 64-127": {
+   "reservation_command": "baseline Q27_thinking_low_p64-128",
+   "start": "2026-11-03T11:03:43Z",
+   "end": "2026-11-03T13:39:57Z",
+   "jobs": []
+  }
+ },
+ "scope": {
+  "B4 thinking, positions 16-63": "about 31 of 81 minutes had a producer or reviewer job running (mostly the 18-minute diagnosis); the load average exceeded 6 in 44% of samples (max 28.4)",
+  "Q27 thinking (low), positions 16-63": "about 8 of 119 minutes; load average above 6 in no sample (max 6.7)",
+  "B4 thinking, positions 64-127": "about 27 of 96 minutes (09:28:01-09:54:37); load average above 6 in 6% of samples (max 8.2)",
+  "Q27 thinking (low), positions 64-127": "none; load average at most 1.9"
+ },
+ "not_known": "Which individual Qwen requests ran during these jobs: the records carry durations, not start times. The size of any slowdown: none was measured, and none is subtracted."
+}

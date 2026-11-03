@@ -1,0 +1,245 @@
+{
+ "fits": {
+  "C4-v1/100/historical": {
+   "right": 33,
+   "steps": 62,
+   "top_right": 31,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 13,
+   "top_wrong_irrelevant": 14,
+   "wrong_in_gold_set": 15,
+   "wrong_irrelevant": 14
+  },
+  "C4-v1/100/new": {
+   "right": 33,
+   "steps": 64,
+   "top_right": 32,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 13,
+   "top_wrong_irrelevant": 15,
+   "wrong_in_gold_set": 15,
+   "wrong_irrelevant": 16
+  },
+  "C4-v1/101/historical": {
+   "right": 35,
+   "steps": 62,
+   "top_right": 33,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 16,
+   "top_wrong_irrelevant": 9,
+   "wrong_in_gold_set": 18,
+   "wrong_irrelevant": 9
+  },
+  "C4-v1/101/new": {
+   "right": 34,
+   "steps": 64,
+   "top_right": 33,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 15,
+   "top_wrong_irrelevant": 12,
+   "wrong_in_gold_set": 17,
+   "wrong_irrelevant": 13
+  },
+  "C4-v1/102/historical": {
+   "right": 37,
+   "steps": 62,
+   "top_right": 35,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 12,
+   "top_wrong_irrelevant": 11,
+   "wrong_in_gold_set": 14,
+   "wrong_irrelevant": 11
+  },
+  "C4-v1/102/new": {
+   "right": 35,
+   "steps": 64,
+   "top_right": 33,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 14,
+   "top_wrong_irrelevant": 13,
+   "wrong_in_gold_set": 16,
+   "wrong_irrelevant": 13
+  },
+  "C4-v2/100/historical": {
+   "right": 33,
+   "steps": 62,
+   "top_right": 32,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 16,
+   "top_wrong_irrelevant": 10,
+   "wrong_in_gold_set": 18,
+   "wrong_irrelevant": 11
+  },
+  "C4-v2/100/new": {
+   "right": 27,
+   "steps": 64,
+   "top_right": 25,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 19,
+   "top_wrong_irrelevant": 16,
+   "wrong_in_gold_set": 21,
+   "wrong_irrelevant": 16
+  },
+  "C4-v2/101/historical": {
+   "right": 34,
+   "steps": 62,
+   "top_right": 31,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 15,
+   "top_wrong_irrelevant": 12,
+   "wrong_in_gold_set": 15,
+   "wrong_irrelevant": 13
+  },
+  "C4-v2/101/new": {
+   "right": 29,
+   "steps": 64,
+   "top_right": 27,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 19,
+   "top_wrong_irrelevant": 14,
+   "wrong_in_gold_set": 21,
+   "wrong_irrelevant": 14
+  },
+  "C4-v2/102/historical": {
+   "right": 33,
+   "steps": 62,
+   "top_right": 31,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 16,
+   "top_wrong_irrelevant": 11,
+   "wrong_in_gold_set": 17,
+   "wrong_irrelevant": 12
+  },
+  "C4-v2/102/new": {
+   "right": 32,
+   "steps": 64,
+   "top_right": 31,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 17,
+   "top_wrong_irrelevant": 12,
+   "wrong_in_gold_set": 19,
+   "wrong_irrelevant": 13
+  },
+  "T4-v1/100/historical": {
+   "right": 33,
+   "steps": 62,
+   "top_right": 31,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 17,
+   "top_wrong_irrelevant": 10,
+   "wrong_in_gold_set": 19,
+   "wrong_irrelevant": 10
+  },
+  "T4-v1/100/new": {
+   "right": 36,
+   "steps": 64,
+   "top_right": 34,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 14,
+   "top_wrong_irrelevant": 12,
+   "wrong_in_gold_set": 16,
+   "wrong_irrelevant": 12
+  },
+  "T4-v1/101/historical": {
+   "right": 32,
+   "steps": 62,
+   "top_right": 29,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 15,
+   "top_wrong_irrelevant": 14,
+   "wrong_in_gold_set": 16,
+   "wrong_irrelevant": 14
+  },
+  "T4-v1/101/new": {
+   "right": 33,
+   "steps": 64,
+   "top_right": 31,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 15,
+   "top_wrong_irrelevant": 14,
+   "wrong_in_gold_set": 16,
+   "wrong_irrelevant": 15
+  },
+  "T4-v1/102/historical": {
+   "right": 34,
+   "steps": 62,
+   "top_right": 31,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 17,
+   "top_wrong_irrelevant": 10,
+   "wrong_in_gold_set": 17,
+   "wrong_irrelevant": 11
+  },
+  "T4-v1/102/new": {
+   "right": 31,
+   "steps": 64,
+   "top_right": 30,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 18,
+   "top_wrong_irrelevant": 12,
+   "wrong_in_gold_set": 19,
+   "wrong_irrelevant": 14
+  },
+  "T4-v2/100/historical": {
+   "right": 26,
+   "steps": 62,
+   "top_right": 23,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 19,
+   "top_wrong_irrelevant": 16,
+   "wrong_in_gold_set": 20,
+   "wrong_irrelevant": 16
+  },
+  "T4-v2/100/new": {
+   "right": 32,
+   "steps": 64,
+   "top_right": 30,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 19,
+   "top_wrong_irrelevant": 11,
+   "wrong_in_gold_set": 21,
+   "wrong_irrelevant": 11
+  },
+  "T4-v2/101/historical": {
+   "right": 37,
+   "steps": 62,
+   "top_right": 34,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 15,
+   "top_wrong_irrelevant": 9,
+   "wrong_in_gold_set": 15,
+   "wrong_irrelevant": 10
+  },
+  "T4-v2/101/new": {
+   "right": 38,
+   "steps": 64,
+   "top_right": 36,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 13,
+   "top_wrong_irrelevant": 11,
+   "wrong_in_gold_set": 14,
+   "wrong_irrelevant": 12
+  },
+  "T4-v2/102/historical": {
+   "right": 31,
+   "steps": 62,
+   "top_right": 28,
+   "top_steps": 58,
+   "top_wrong_in_gold_set": 22,
+   "top_wrong_irrelevant": 8,
+   "wrong_in_gold_set": 22,
+   "wrong_irrelevant": 9
+  },
+  "T4-v2/102/new": {
+   "right": 37,
+   "steps": 64,
+   "top_right": 35,
+   "top_steps": 60,
+   "top_wrong_in_gold_set": 18,
+   "top_wrong_irrelevant": 7,
+   "wrong_in_gold_set": 20,
+   "wrong_irrelevant": 7
+  }
+ },
+ "rule": "teacher forced on the gold prefix; 'in gold set' = a table any table pointer of the gold program targets (FROM or joined, any SELECT)"
+}

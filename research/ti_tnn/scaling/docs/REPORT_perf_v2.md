@@ -57,7 +57,8 @@ Both meet all three conditions of I1:
 The historical population shows the same: +16 and +18.
 
 The gain is in relational construction:
-- the same-reference joins and the scorer timeouts they caused fell to zero;
+- the same-reference joins and the scorer timeouts they caused fell to zero. This one is by construction: v2
+  includes a hard legality restriction against them (below);
 - the second join operand's teacher-forced error fell from 0.25 to 0.06-0.10;
 - the joined-table error fell from 0.58 to 0.43-0.46;
 - the predicted table set is right in 82 and 81 of 192 requests, against 57 and 54.
@@ -67,6 +68,9 @@ Three qualifications:
   added capacity.
 - **Suspicious programs:** about a quarter of v2's EX-correct answers have programs that differ from gold in ways EX
   does not see: 9 of 36 and 9 of 35, against 5 of 21 and 4 of 17 for v1. Without them, the gains are +11 and +13.
+- **The hard restriction:** v2 forbids an ON comparison of a column reference with itself, beside its learned
+  relational parts. The comparison tests them together, so the restriction's own contribution to the gain is not
+  isolated here.
 - **Absolute level:** it stays low, at 18-19%.
 
 **2. Did T4 outperform the parameter-matched shared architecture consistently? No.**
@@ -94,7 +98,10 @@ scorer:
 T4-v2 answers about a quarter as many questions as Q27, and under a third as many as B4. B4's abstentions were 13
 and 11, almost all from exhausting its tool-call budget. Q27 never abstained.
 
-Cost per request runs the other way. For the controllers, time to submission is the fresh 4B forward plus decoding.
+Cost per request runs the other way. Three kinds of cost are kept apart below and never added together.
+
+**Marginal serving** is per request, measured in the records. For the controllers, time to submission is the fresh
+4B forward plus decoding.
 
 | serving | time to SQL submission per request (historical, new) | generation + submitted-query execution per EX-correct answer | peak memory |
 |---|---|---|---|
@@ -102,50 +109,67 @@ Cost per request runs the other way. For the controllers, time to submission is 
 | B4 | 99.8 s, 89.1 s | 159.7 s, 139.2 s | 12.6 GB |
 | Q27 | 142.0 s, 140.0 s | 185.6 s, 179.2 s | 58.8 GB |
 
-So per correct answer, T4-v2 is about 20-27 times cheaper in serving time, and it answers far fewer questions.
-Submitted-query execution is small for every arm except v1, whose same-reference joins timed out.
+So per correct answer, T4-v2 is about 20-27 times cheaper in marginal serving time, and it answers far fewer
+questions. Submitted-query execution is small for every arm except v1, whose same-reference joins timed out.
 
-**Serving time is not total cost.** On the new 64, counted in GPU-reservation time, with model loading, tools and
-scoring inside the reservations:
+**Standalone setup** is one-time, in GPU-reservation hours. Before a controller serves anything it needs:
+- the training pool's backbone states, 1.936 h (the pilot's completed encode reservations, reused by every fit);
+- one fit: 0.48-0.56 h, and 0.558 h for T4-v2.
 
-| | GPU time per EX-correct answer |
-|---|---|
-| B4 | 1.608 h for 41 answers: 141 s |
-| Q27 | 2.604 h for 50 answers: 187 s |
-| one T4-v2 fit, with its training | about 175 s |
-| one T4-v2 fit, also with its share of the state cache | about 212 s |
+The Qwen baselines need no setup beyond loading the model, which is inside their serving reservations. The
+pretraining of the backbone and of the Qwen models is counted for neither side.
 
-The T4-v2 rows are for a fit trained only to answer these 64 questions:
-- training costs 0.558 h;
-- its share of an evaluation reservation is 0.027 h;
-- it answers 12 questions per seed;
-- the state cache, which holds the training set's 4B states, cost 1.935 h to build during the pilot and is shared by
-  16 fits.
+A setup of S hours spread over n requests adds S / n to each. For T4-v2, at n = 64 that is about 140 s per request:
+- about Q27's marginal time per request;
+- more than B4's.
 
-So at this scale the controllers are not cheaper overall. They become cheaper only when one training run is
-amortized over many requests. The pretraining of the backbone and of the Qwen models is not counted for either
-side.
+So the controllers are cheaper only when one setup serves many requests.
 
-**4. What capability remains the limiting factor? Grounding the question in an unseen schema: chiefly the anchor
-(first FROM) table, then literal values, aggregates and columns.** On the new population, under teacher forcing
-(the gold prefix given):
+**Research expenditure** is the cost of finding out, not a cost of serving. This study reserved 14.538 GPU-hours
+under authorization v2: twelve fits, three evaluations, the smokes and four Qwen runs. The whole ledger, with the
+pilot and earlier work, is 21.416 h.
+
+**Timing conditions.** The Qwen times are as recorded, but some of them overlapped CPU work by the producer and
+reviewer sessions on the other cores:
+- B4 on positions 16-63: about 31 of 81 minutes, mostly the pilot's diagnosis. The load average exceeded 6 in 44% of
+  samples.
+- B4 on the new 64: about 27 of 96 minutes.
+- Q27 on 16-63: briefly.
+- Q27 on the new 64: none.
+
+Core pinning does not separate memory bandwidth on this unified-memory machine. No correction is applied; the
+disclosure is in `evidence/perf_v2/corrections/cpu_overlap.json` and `perf_report --corrections`.
+
+**4. What capability remains the limiting factor? Grounding the question in an unseen schema: which tables the
+question needs, and the literal values and aggregates it names.**
+
+*Corrected on 2026-11-03.* The first version of this answer named the anchor (first FROM) table as the chief
+failure, citing a teacher-forced error of 0.45-0.54. That figure mixed two different things:
+- **another table of the gold program, chosen first:** 25-32% of these decisions, a reference-order disagreement
+  that an inner join may not care about;
+- **a table the gold program does not use:** 16-22%.
+
+On the new population, under teacher forcing (the gold prefix given):
 
 | decision | v1 error | v2 error |
 |---|---|---|
-| first FROM table | 0.47-0.48 | 0.45-0.54 (no improvement) |
+| FROM table: a table the gold program does not use (pointer) | 0.21-0.22 | 0.16-0.22 |
+| FROM table: another table of the gold program first (pointer) | 0.25-0.27 | 0.29-0.32 |
+| joined table | 0.58 | 0.43-0.46 |
 | WHERE literal | 0.45-0.50 | 0.44-0.49 (unchanged) |
 | SELECT aggregate | 0.43-0.46 | 0.41-0.44 |
 | SELECT column | 0.39-0.42 | 0.33-0.34 |
 | WHERE column | 0.36-0.39 | 0.29-0.30 |
 
 In free decoding:
-- the first divergence from the gold program is the first FROM table in 77-95 of 192 requests for every arm;
-- the predicted table set is still wrong in 57% of requests;
-- even when the table set is right, only 30 of 81-82 answers are EX-correct.
+- the predicted table set is still wrong in 57% of v2 requests: tables missing or extra, not merely reordered;
+- even when the table set is right, only 30 of 81-82 answers are EX-correct;
+- the first divergence from the gold traversal is at the first FROM table in 77-95 of 192 requests for every arm,
+  a count that includes choosing another gold table first.
 
 Relational grounding fixed what it could see: relations among schema items. It did not fix reading the question
-against a new schema. The pilot's fits had a first-table error of 17% on training questions, so this is a
-generalization gap, not a fitting gap. Doubling the updates did not help v1: see "Matched training budget" below.
+against a new schema: which tables the question needs, and which values it names. The pilot's fits erred on the
+first table in 17% of training questions, so the gap is generalization, not fitting.
 
 **Next.** A distinct experiment, not more of this one, follows under "Recommended next experiment". A T4
 confirmation is not proposed, because there was no T4 advantage to confirm.
@@ -231,7 +255,7 @@ Recomputed from the bundled records and equal to analysis.json (seeds [100, 101,
 
 Reading: both architectures improved materially and they do not differ consistently: an engineering gain of the intervention, not attributable to specialization
 
-| arm (pooled over seeds) | requests | EX-correct | time to submission, mean s | submitted execution, s (timeouts) | generation per EX-correct, s | generation + execution per EX-correct, s | active MACs per request |
+| arm (pooled over seeds) | requests | EX-correct | time to submission, mean s | submitted execution, s (timeouts) | generation per EX-correct, s | generation + execution per EX-correct, s | controller MACs per request, as recorded |
 |---|---|---|---|---|---|---|---|
 | T4-v1 | 192 | 18 | 1.33 | 35.4 (1) | 14.2 | 16.2 | 7.26 G |
 | C4-v1 | 192 | 15 | 1.31 | 112.6 (3) | 16.8 | 24.3 | 7.36 G |
@@ -296,7 +320,7 @@ Reading: both architectures improved materially and they do not differ consisten
 
 Reading: both architectures improved materially and they do not differ consistently: an engineering gain of the intervention, not attributable to specialization
 
-| arm (pooled over seeds) | requests | EX-correct | time to submission, mean s | submitted execution, s (timeouts) | generation per EX-correct, s | generation + execution per EX-correct, s | active MACs per request |
+| arm (pooled over seeds) | requests | EX-correct | time to submission, mean s | submitted execution, s (timeouts) | generation per EX-correct, s | generation + execution per EX-correct, s | controller MACs per request, as recorded |
 |---|---|---|---|---|---|---|---|
 | T4-v1 | 192 | 21 | 1.20 | 113.5 (3) | 11.0 | 16.4 | 6.64 G |
 | C4-v1 | 192 | 17 | 1.19 | 143.7 (3) | 13.4 | 21.9 | 6.74 G |
@@ -362,25 +386,27 @@ The pilot's fits (1,500 updates, seeds 100-101) on the historical 64: C4_params/
 
 Ledger: 21.416 of 32.0 h used.
 
-### Matched training budget, and the pilot's 1,500-update result
+### The pilot's 1,500-update result, beside the v1 arms at 3,000 (descriptive)
 
-The v1 arms at 3,000 updates are the unchanged controls. That is the comparison at a matched budget, and the
-answers above use it.
+The v1 arms at 3,000 updates are this study's unchanged controls, at a budget matched to the v2 arms; the answers
+above use them.
 
 Separately, the pilot's fits had the same grounding at 1,500 updates (seeds 100 and 101, historical 64):
 - T4 9 and 9;
 - C4_params 4 and 10.
 
-The same seeds at 3,000 updates scored:
+The same seeds at 3,000 updates here scored:
 - T4-v1 8 and 3;
 - C4-v1 4 and 4.
 
-Doubling the updates did not improve v1. The extra updates went into fitting the training databases:
-- the mean training loss over the last 100 updates fell from 0.19-0.21 (the pilot, at update 1,500) to 0.05-0.06
-  (v1, at update 3,000);
-- the same 3,000-update runs were at 0.19-0.20 over updates 1,400-1,499.
+**This does not isolate the number of updates.** The two sets of runs have different training streams from the
+first update: their training sets differ by one question (bird23tf-00003, dropped here), so the sampled order
+differs throughout. Two seeds are also few.
 
-The two runs also differ in one training question (bird23tf-00003, dropped here).
+The longer runs did fit their training data more closely. The mean training loss over their last 100 updates is
+0.05-0.06, against the pilot's 0.19-0.21 at its end; over updates 1,400-1,499 they were at 0.19-0.20, like the pilot.
+Yet they did not score higher on the historical 64. That is all the comparison shows; it does not show that longer
+training lowers accuracy.
 
 ## Diagnosis after evaluation (CPU; every fit under its own grounding)
 
@@ -513,6 +539,93 @@ inside a reservation included.
 - **The state cache:** 4,869 backbone encodings (107 GiB), built during the pilot and reused without
   re-encoding; perf-encode added the new 64 for 0.044 h.
 
+## Corrections of 2026-11-03 (reporting only)
+
+A review of the first version asked for seven corrections. None of them reruns a fit or changes a frozen result. No
+existing evidence byte changed: three files were added to the bundle and `SHA256SUMS` rewritten.
+
+1. **Controller MACs.** The recorded "active MACs per request" counted each operator step's chosen pointer kind only,
+   and no STOP step. The decoder executes more:
+   - every STOP step runs the trunk;
+   - every operator step scores all pointer heads;
+   - a span operator makes a second, end-pointer call.
+
+   Re-derived from the records, executed work is 0.6% above the recorded values for every arm. Both counts are the
+   controller's alone, and the frozen 4B forward over the context is in neither. The recorded values are kept; the
+   column is relabelled "as recorded".
+2. **CPU work during Qwen timing.** The Qwen runs were pinned to other cores, but producer and reviewer CPU jobs ran
+   during parts of three of the four Qwen reservations. The scope is disclosed below and in
+   `corrections/cpu_overlap.json`; no correction is applied to any time.
+3. **Costs.** Marginal serving, standalone setup and research expenditure are now kept apart (answer 3 and the table
+   below). The earlier per-answer figures that mixed a fit's training into 64 questions are withdrawn. The GPU ledger
+   is unchanged.
+4. **The first FROM table.** A CPU pass over the final checkpoints (`diagnose first-table`, new file
+   `diagnosis/*_first_table_*/first_table.json`) separates choosing another table of the gold program first from
+   choosing a table the gold program does not use. Answer 4 is rewritten accordingly.
+5. **The hard restriction.** The same-reference ON restriction is part of the v2 intervention. Its own contribution is
+   not isolated: the elimination of same-reference joins is by construction, and its share of the EX gain is not
+   measured.
+6. **The pilot comparison.** The pilot's 1,500-update fits and this study's 3,000-update v1 fits differ in their
+   training streams from the first update. Their comparison is narrowed to what it shows.
+7. **The verifier after relocation.** The reviewer made `verify_perf.py` independent of this machine's paths and
+   added a public, bundle-only mode (see "Independent verification").
+
+`python -m scaling.perf_report --corrections` prints the following from the bundle alone:
+
+#### Controller MACs per request: as recorded and as executed
+
+Controller only; the frozen 4B backbone's forward over the context is not included in either column. As recorded: the chosen operator's pointer kind only, and no STOP step. As executed: every STOP step's trunk, and every pointer head `decode_batch` runs (`perf_corrections.executed_macs`).
+
+| population | arm | requests | as recorded, mean | as executed, mean | difference |
+|---|---|---|---|---|---|
+| historical | T4-v1 | 192 | 7.259 G | 7.306 G | +0.64% |
+| historical | C4-v1 | 192 | 7.360 G | 7.408 G | +0.66% |
+| historical | T4-v2 | 192 | 7.672 G | 7.720 G | +0.62% |
+| historical | C4-v2 | 192 | 7.758 G | 7.806 G | +0.61% |
+| new | T4-v1 | 192 | 6.640 G | 6.681 G | +0.63% |
+| new | C4-v1 | 192 | 6.737 G | 6.781 G | +0.65% |
+| new | T4-v2 | 192 | 7.015 G | 7.057 G | +0.60% |
+| new | C4-v2 | 192 | 7.102 G | 7.144 G | +0.59% |
+
+#### Machine load while Qwen was timed (disclosure; no correction applied)
+
+| reservation | minutes | load samples | 1-min load mean | median | max | share above 6 | overlapping producer or reviewer CPU work |
+|---|---|---|---|---|---|---|---|
+| B4 thinking, positions 16-63 | 81 | 161 | 6.06 | 5.13 | 28.42 | 0.44 | about 31 of 81 minutes had a producer or reviewer job running (mostly the 18-minute diagnosis); the load average exceeded 6 in 44% of samples (max 28.4) |
+| Q27 thinking (low), positions 16-63 | 119 | 238 | 1.74 | 1.47 | 6.66 | 0.00 | about 8 of 119 minutes; load average above 6 in no sample (max 6.7) |
+| B4 thinking, positions 64-127 | 96 | 193 | 2.04 | 1.12 | 8.20 | 0.06 | about 27 of 96 minutes (09:28:01-09:54:37); load average above 6 in 6% of samples (max 8.2) |
+| Q27 thinking (low), positions 64-127 | 156 | 312 | 1.12 | 1.08 | 1.89 | 0.00 | none; load average at most 1.9 |
+
+#### Teacher-forced FROM-table decisions: wrong order or irrelevant table
+
+The pointer only (a wrong family or operator at the step is not counted here). In gold set: a table the gold program uses, chosen in another order; irrelevant: a table the gold program does not use.
+
+| population | arm | FROM-table steps | right | wrong, in gold set | wrong, irrelevant | first FROM of the program: right / in gold set / irrelevant |
+|---|---|---|---|---|---|---|
+| historical | T4-v1 | 186 | 0.53 | 0.28 | 0.19 | 0.52 / 0.28 / 0.20 |
+| historical | C4-v1 | 186 | 0.56 | 0.25 | 0.18 | 0.57 / 0.24 / 0.20 |
+| historical | T4-v2 | 186 | 0.51 | 0.31 | 0.19 | 0.49 / 0.32 / 0.19 |
+| historical | C4-v2 | 186 | 0.54 | 0.27 | 0.19 | 0.54 / 0.27 / 0.19 |
+| new | T4-v1 | 192 | 0.52 | 0.27 | 0.21 | 0.53 / 0.26 / 0.21 |
+| new | C4-v1 | 192 | 0.53 | 0.25 | 0.22 | 0.54 / 0.23 / 0.22 |
+| new | T4-v2 | 192 | 0.56 | 0.29 | 0.16 | 0.56 / 0.28 / 0.16 |
+| new | C4-v2 | 192 | 0.46 | 0.32 | 0.22 | 0.46 / 0.31 / 0.23 |
+
+#### Costs, kept apart (GPU-reservation hours; never added together)
+
+| kind | what | hours |
+|---|---|---|
+| standalone setup | the training pool's backbone states, completed encode reservations (4) | 1.936 |
+| standalone setup | one C4-v1 fit, mean of 3 | 0.484 |
+| standalone setup | one C4-v2 fit, mean of 3 | 0.541 |
+| standalone setup | one T4-v1 fit, mean of 3 | 0.500 |
+| standalone setup | one T4-v2 fit, mean of 3 | 0.558 |
+| research | encode attempts that did not complete (the pilot's: one cut off by the host crash, one failed) | 0.590 |
+| research | everything under authorization v2 (21 reservations) | 14.538 |
+| research | the whole ledger, the pilot and earlier included (52 reservations) | 21.416 |
+
+Marginal serving is per request and per EX-correct answer, measured in the records (the serving tables above); it is not a ledger quantity.
+
 ## Independent verification
 
 A separate reviewer session wrote `independent/verify_perf.py` and ran it. It uses its own digests, sampling-stream
@@ -555,12 +668,15 @@ Phase 1, before training (pins, history, ledger, baselines; 221 checks, 0 failur
 - **Not a confirmation.** The new population is fresh to this study, but it is development data from databases that
   informed the design.
 - **Not separable from capacity.** Relations and capacity are confounded: there is no capacity-matched v1 control.
+- **Not separable from the hard restriction.** The same-reference ON restriction is part of v2, so its own
+  contribution is not isolated.
 - **Not a statement about specialization in general.** One semantic organization (four typed heads), one size, one
   backbone.
 - **Not a strict accuracy.** EX scores result sets, so the counts include answers whose programs are suspicious
   (listed above).
-- **Not a total cost.** Serving times exclude training and the state cache. Qwen's times come from an HF eager
-  harness with no cross-turn prefix cache, so they are upper bounds for a production server.
+- **Not a total cost.** Marginal serving times exclude the setup (the state cache and a fit). Qwen's times come from
+  an HF eager harness with no cross-turn prefix cache, so they are upper bounds for a production server. Some of
+  them overlapped other CPU work; no correction is applied.
 
 ## Recommended next experiment
 
@@ -592,7 +708,11 @@ end-to-end comparison.
 - **Checkpoints:** not copied. Their sha256 and digests are in `checkpoints.jsonl`; the weights stay in the runs
   root.
 - **Tables:** `python -m scaling.perf_report` recomputes the decision and prints the tables. `--questions` prints
-  every question. Both read only the bundles `perf_v2`, `dev_v1` and `pilot_v1`.
+  every question, and `--corrections` the 2026-11-03 corrections. All three read only the bundles `perf_v2`, `dev_v1`
+  and `pilot_v1`.
+- **Correction inputs:** `corrections/cpu_overlap.json` (the CPU-overlap disclosure, from the session transcripts)
+  and `diagnosis/*_first_table_*/first_table.json` (`python -m scaling.diagnose first-table`, CPU, final
+  checkpoints).
 - **Diagnosis tables:** `python -m scaling.diagnose perf-tables --out <bundle>/diagnosis/<stamp>_post_<commit>`.
 - **The independent verifier:** `independent/verify_perf.py`, as written by the reviewer. Its outputs are in
   `evidence/perf_v2/independent/`.
