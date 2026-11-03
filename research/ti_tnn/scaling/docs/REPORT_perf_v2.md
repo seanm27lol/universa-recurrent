@@ -107,7 +107,7 @@ Cost per request runs the other way. Three kinds of cost are kept apart below an
 |---|---|---|---|
 | T4-v2 | 1.32 s, 1.20 s | 7.7 s, 6.6 s | 12.3 GB (4B backbone included) |
 | B4 | 99.8 s, 89.1 s | 159.7 s, 139.2 s | 12.6 GB |
-| Q27 | 142.0 s, 140.0 s | 185.6 s, 179.2 s | 58.8 GB |
+| Q27 | 142.0 s, 139.9 s | 185.6 s, 179.2 s | 58.8 GB |
 
 So per correct answer, T4-v2 is about 20-27 times cheaper in marginal serving time, and it answers far fewer
 questions. Submitted-query execution is small for every arm except v1, whose same-reference joins timed out.
@@ -145,8 +145,9 @@ question needs, and the literal values and aggregates it names.**
 
 *Corrected on 2026-11-03.* The first version of this answer named the anchor (first FROM) table as the chief
 failure, citing a teacher-forced error of 0.45-0.54. That figure mixed two different things:
-- **another table of the gold program, chosen first:** 25-32% of these decisions, a reference-order disagreement
-  that an inner join may not care about;
+- **another table of the gold program, chosen first:** 25-32% of these decisions. This is mostly a
+  reference-order disagreement that an inner join may not care about, but the count also includes gold tables used
+  only in a nested SELECT;
 - **a table the gold program does not use:** 16-22%.
 
 On the new population, under teacher forcing (the gold prefix given):
@@ -568,7 +569,7 @@ existing evidence byte changed: three files were added to the bundle and `SHA256
 6. **The pilot comparison.** The pilot's 1,500-update fits and this study's 3,000-update v1 fits differ in their
    training streams from the first update. Their comparison is narrowed to what it shows.
 7. **The verifier after relocation.** The reviewer made `verify_perf.py` independent of this machine's paths and
-   added a public, bundle-only mode (see "Independent verification").
+   added a public, bundle-only mode: 445 checks from a fresh clone, 0 failures (see "Independent verification").
 
 `python -m scaling.perf_report --corrections` prints the following from the bundle alone:
 
@@ -632,8 +633,43 @@ A separate reviewer session wrote `independent/verify_perf.py` and ran it. It us
 code, SQL parsing, EX rule and decision rules. It imports no producer module, with one exception: the gold-program
 strata classification, run in a separate process from the frozen worktree.
 
-**The final run:** sha256 `d0292a58…`, at 4ff35e1 against the runs root: **813 checks, 0 failures.** The output is
-`evidence/perf_v2/independent/verify_perf.json`, summarized in `README.txt` there.
+**After the correction pass:** sha256 `f7998d7f…`, at 4c73eec. The verifier no longer depends on this machine's
+paths, and it has two modes.
+
+| mode | what it needs | checks | failures |
+|---|---|---|---|
+| public (`--public`) | a checkout alone: the pins, git history and the bundles `perf_v2`, `dev_v1`, `pilot_v1`; run from a fresh `git clone --no-local` with no runs root | 445 | 0 |
+| local | the runs root: every SQL re-executed, checkpoints and databases re-hashed | 835 | 0 |
+
+The public mode re-derives:
+- the bundles against their sums (every file listed at 0f2f9b1 unchanged), and the ledger arithmetic;
+- the training data and the sampling stream, with the checkpoint records;
+- eligibility, anchors and the records' consistency;
+- 2,998 leaves of `analysis.json` (0 differ; the strata only in their marginal sums);
+- the executed controller MACs, from its own reading of the decoder.
+
+Their outputs are `evidence/perf_v2/independent/verify_perf_public_relocated.json` and `verify_perf_local.json`,
+summarized in `README_2026-11-03.txt` there.
+
+**The reviewer passed all seven corrected claims** against the evidence (4c73eec against 0f2f9b1):
+- the load figures reproduce from the bundled logs and ledger windows;
+- its own sessions' file times corroborate the disclosed windows;
+- the cost figures re-derive from the ledger;
+- a spot check of the first-table split agrees within 0-3 points;
+- the training streams differ from update 0;
+- no frozen result or existing evidence byte changed.
+
+It found one pre-existing rounding slip, Q27's new-population time to submission of 139.9 s not 140.0, now
+corrected. It also made the nested-SELECT caveat to the first-table split, now in answer 4.
+
+**The earlier runs, kept as recorded:**
+
+| run | when | checks | failures | output |
+|---|---|---|---|---|
+| final, against `analysis.json` | before the correction pass; sha256 `d0292a58…`, at 4ff35e1 | 813 | 0 | `verify_perf.json` |
+| phase 1 | before training | 221 | 0 | `verify_perf_phase1.json` |
+
+The 813-check run's sections:
 
 | section | checks | what it re-derives |
 |---|---|---|
@@ -645,9 +681,6 @@ strata classification, run in a separate process from the frozen worktree.
 | eval | 48 | one passing evaluation per seed, of the final checkpoints; the reconstruction inventories and anchors; all 1,536 records re-executed and re-scored |
 | compare | 61 | counts, Q1, Q2, leave-one-database-out, sign flips, per-question and per-database values, serving, baselines: every one of `analysis.json`'s 3,143 leaves equals the re-derivation |
 
-Phase 1, before training (pins, history, ledger, baselines; 221 checks, 0 failures), is kept as
-`verify_perf_phase1.json`.
-
 **Warnings, with no score changed:**
 - **Timeouts that depend on load.** Two submitted queries were recorded as wrong answers in 13.9 s and 15.9 s during
   evaluation (s100 C4-v1 bird23tf-00472, s101 C4-v1 bird23tf-03149). On the reviewer's machine load they time out at
@@ -656,9 +689,9 @@ Phase 1, before training (pins, history, ledger, baselines; 221 checks, 0 failur
 
 **Not checked independently:**
 - the strata classification;
-- the per-request MAC counts;
-- that the arms of a seed share the trunk initialization at update 0 (no update-0 checkpoint is kept; the code and
-  a CPU test pin it);
+- the teacher-forced first-table predictions themselves (no re-decode);
+- that the arms of a seed share the trunk initialization at update 0 (no update-0 checkpoint is kept; the code and a
+  CPU test pin it);
 - the loss values (nothing was retrained);
 - a CPU re-decode;
 - the U = 3,000 feasibility decision.
@@ -714,8 +747,9 @@ end-to-end comparison.
   and `diagnosis/*_first_table_*/first_table.json` (`python -m scaling.diagnose first-table`, CPU, final
   checkpoints).
 - **Diagnosis tables:** `python -m scaling.diagnose perf-tables --out <bundle>/diagnosis/<stamp>_post_<commit>`.
-- **The independent verifier:** `independent/verify_perf.py`, as written by the reviewer. Its outputs are in
-  `evidence/perf_v2/independent/`.
+- **The independent verifier:** `independent/verify_perf.py`, as written by the reviewer:
+  `python research/ti_tnn/scaling/independent/verify_perf.py --public` from any checkout, or with
+  `--runs-root <runs root>` for the local checks. Its outputs are in `evidence/perf_v2/independent/`.
 - **Code:**
   - the frozen code is c05e08f, and every fit, evaluation, baseline on the new 64 and the analysis ran from it;
   - the B4/Q27 runs on 16-63 ran from f81944c, whose Qwen path is byte-identical;
