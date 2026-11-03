@@ -16,7 +16,11 @@ step may produce
 - candidate literal bindings (a question or evidence span, a proposed value, an associated column);
 - a status, "ok" or "unresolved".
 
-No SQL, plan or prose. Identifiers are the schema's own table and column names, matched without regard to case.
+No SQL, plan or prose. Identifiers are the schema's own table and column names, matched without regard to case and
+without one layer of SQL quoting (`clean_name`).
+
+**Parsing.** The last fenced block of the reply, or the whole reply, is read as JSON; if that fails, again with invalid
+backslash escapes removed, and then the outermost braces alone.
 
 **Validation.** A record is valid when it parses as one JSON object of exactly these keys and types, every table
 and column reference resolves to an item of the request's schema, and the output that produced it was not
@@ -77,6 +81,19 @@ class Grounding:
         return out
 
 
+QUOTES = (("`", "`"), ('"', '"'), ("[", "]"), ("'", "'"))
+
+
+def clean_name(name: str) -> str:
+    """An identifier as the model wrote it, without surrounding whitespace or one layer of SQL quoting (the schema
+    text quotes some names; a model may copy the quotes)."""
+    n = name.strip()
+    for a, b in QUOTES:
+        if len(n) >= 2 and n.startswith(a) and n.endswith(b):
+            return n[1:-1].strip()
+    return n
+
+
 def _lookup(items):
     tables = {it.table.lower(): i for i, it in enumerate(items.items) if it.kind == "table"}
     columns = {(it.table.lower(), it.column.lower()): i for i, it in enumerate(items.items) if it.kind == "column"}
@@ -110,13 +127,13 @@ def resolve(obj, items, question: str, evidence: str, truncated: bool = False) -
     tables, columns = _lookup(items)
     t_out, c_out = [], []
     for t in obj["tables"]:
-        i = tables.get(t.strip().lower())
+        i = tables.get(clean_name(t).lower())
         if i is None:
             return Grounding(False, f"unknown table {t!r}")
         if i not in t_out:
             t_out.append(i)
     for c in obj["columns"]:
-        i = columns.get((c["table"].strip().lower(), c["column"].strip().lower()))
+        i = columns.get((clean_name(c["table"]).lower(), clean_name(c["column"]).lower()))
         if i is None:
             return Grounding(False, f"unknown column {c['table']!r}.{c['column']!r}")
         if i not in c_out:
@@ -124,7 +141,7 @@ def resolve(obj, items, question: str, evidence: str, truncated: bool = False) -
     text = f"{question}\n{evidence or ''}"
     lits, bad = [], []
     for x in obj["literals"]:
-        col = columns.get((str(x.get("table", "")).strip().lower(), str(x.get("column", "")).strip().lower()))
+        col = columns.get((clean_name(str(x.get("table", ""))).lower(), clean_name(str(x.get("column", ""))).lower()))
         ok = set(x) == {"span", "value", "table", "column"} and _occurs(text, x.get("span")) and \
             _occurs(text, x.get("value")) and col is not None
         (lits if ok else bad).append({"span": x.get("span"), "value": x.get("value"), "item": col,
@@ -134,6 +151,7 @@ def resolve(obj, items, question: str, evidence: str, truncated: bool = False) -
 
 
 FENCED = re.compile(r"```(?:json)?\s*\n?(.*?)```", re.S | re.I)
+INVALID_ESCAPE = re.compile(r'\\(?![\\"/bfnrtu])')
 
 
 def parse(text: str):
@@ -141,16 +159,19 @@ def parse(text: str):
     (object or None, reason)."""
     blocks = FENCED.findall(text or "")
     body = (blocks[-1] if blocks else (text or "")).strip()
-    try:
-        return json.loads(body), None
-    except json.JSONDecodeError as error:
-        start, end = body.find("{"), body.rfind("}")
-        if 0 <= start < end:
-            try:
-                return json.loads(body[start:end + 1]), None
-            except json.JSONDecodeError:
-                pass
-        return None, f"not JSON: {error.msg}"
+    first_error = None
+    for candidate in (body, INVALID_ESCAPE.sub("", body)):  # then with invalid backslash escapes (e.g. \\') removed
+        try:
+            return json.loads(candidate), None
+        except json.JSONDecodeError as error:
+            first_error = first_error or error
+            start, end = candidate.find("{"), candidate.rfind("}")
+            if 0 <= start < end:
+                try:
+                    return json.loads(candidate[start:end + 1]), None
+                except json.JSONDecodeError:
+                    pass
+    return None, f"not JSON: {first_error.msg}"
 
 
 @contextlib.contextmanager

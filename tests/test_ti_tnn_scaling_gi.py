@@ -239,3 +239,17 @@ def test_the_decoder_follows_the_prior_and_nothing_else(prepared):
     assert [a.as_json() for a in pushed.actions[:k]] == [a.as_json() for a in base.actions[:k]]
     again = I.decode_one(model, ex, max_steps=60)
     assert [a.as_json() for a in again.actions] == [a.as_json() for a in base.actions]  # restored
+
+
+def test_the_parser_repairs_only_mechanical_slips():
+    """Selected on the development questions: one layer of SQL quoting around a name is removed, and invalid backslash
+    escapes (such as \\' inside a JSON string) are dropped before the JSON is read again. Nothing semantic changes."""
+    items = V2._items()
+    obj, reason = GR.parse('{"tables": ["`movies`"], "columns": [{"table": "[ratings]", "column": "\\"score\\""}],'
+                           ' "literals": [{"span": "6\\\'2", "value": "x", "table": "movies", "column": "title"}],'
+                           ' "status": "ok"}')
+    assert reason is None and obj["literals"][0]["span"] == "6'2"
+    g = GR.resolve(obj, items, QUESTION, EVIDENCE)
+    assert g.valid and g.tables == [items.table_item["movies"]] and g.columns == [V2._col(items, "ratings", "score")]
+    assert GR.clean_name("  `voice-actors` ") == "voice-actors" and GR.clean_name("plain") == "plain"
+    assert not GR.resolve({**obj, "tables": ["`film`"]}, items, QUESTION, EVIDENCE).valid  # still an unknown table

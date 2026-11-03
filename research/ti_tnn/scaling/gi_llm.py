@@ -25,21 +25,24 @@ import time
 from . import gi_record as GR
 from . import llm_agent
 
-PROMPT_VERSION = "gi-g4-prompt-v1"
+PROMPT_VERSION = "gi-g4-prompt-v2"
 DIRECT_VERSION = "gi-direct-prompt-v1"
 MAX_NEW_TOKENS = 512
 
+# v1 (first development run): the same instructions without the last three sentences and without "always all four".
+# v2 was selected on the 128 development questions: v1 left out "status" in 7 replies and quoted names in 3.
 SYSTEM_GROUND = (
     "You link a question about a SQLite database to the database schema. Do not write SQL, and do not explain.\n"
-    "Reply with one JSON object and nothing else, with exactly these keys:\n"
+    "Reply with one JSON object and nothing else, with exactly these four keys, always all four:\n"
     '- "tables": the names of the tables a query answering the question needs, most important first;\n'
     '- "columns": the columns that query needs in any clause (selected, filtered, joined, grouped or sorted), '
     'most important first, each as {"table": ..., "column": ...};\n'
     '- "literals": the values in the question or evidence that the query compares columns with, each as '
-    '{"span": the words of the question or evidence, "value": the value as it would be written in the query, '
-    '"table": ..., "column": ...};\n'
+    '{"span": the words of the question or evidence, "value": the value alone as stored in the database, without '
+    'an operator, "table": ..., "column": ...};\n'
     '- "status": "ok", or "unresolved" if the question cannot be linked to this schema.\n'
-    "Use the exact table and column names of the schema."
+    "Use the exact table and column names of the schema, without quotes or backticks. List only tables and columns "
+    "that appear in the schema. Include \"status\" even when it is \"ok\"."
 )
 
 SYSTEM_DIRECT = (
