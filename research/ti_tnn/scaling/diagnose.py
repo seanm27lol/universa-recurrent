@@ -1088,13 +1088,67 @@ def tables(args) -> str:
     return "\n".join(lines)
 
 
+PERF_COUNTS = ("correct", "table_set_equal", "every_gold_table_predicted", "every_predicted_table_in_gold",
+               "join_keys_equal_given_tables_equal", "correct_given_table_set_equal",
+               "correct_given_table_set_differs", "exact_plan", "requests_with_same_reference_join", "timeouts")
+
+
+def perf_tables(args) -> str:
+    """Markdown tables of a saved post-evaluation diagnosis (perf_diagnosis.json): each arm pooled over its seeds,
+    per population."""
+    from . import perf
+    x = json.loads((Path(args.out) / "perf_diagnosis.json").read_text())
+    labels = [perf.label(*a) for a in perf.ARMS]
+    seeds = sorted(x["evaluations"])
+    lines = []
+    for pop in perf.POPULATIONS:
+        keys = {lab: [f"{lab}/{s}/{pop}" for s in seeds] for lab in labels}
+        n = sum(x["summary"][keys[labels[0]][0]]["requests"] for _ in seeds)
+        head = "| " + " | ".join(labels) + " |"
+        lines += [f"### {pop} population ({n} requests per arm: {len(seeds)} seeds)", "",
+                  "| free decoding | " + head[2:], "|---|" + "---|" * len(labels)]
+        for c in PERF_COUNTS:
+            lines.append(f"| {c.replace('_', ' ')} | " + " | ".join(
+                str(sum(x["summary"][k][c] for k in keys[lab])) for lab in labels) + " |")
+        lines.append("| EX-correct with a suspicious program | " + " | ".join(
+            str(sum(len(suspicious_correct(x["requests"][k])) for k in keys[lab])) for lab in labels) + " |")
+        for title, field in (("error category (requests; a request can have several)", "categories"),
+                             ("first divergence from the gold traversal", "first_divergence")):
+            vals = {c for lab in labels for k in keys[lab] for c in x["summary"][k][field]}
+            tot = {c: sum(x["summary"][k][field].get(c, 0) for lab in labels for k in keys[lab]) for c in vals}
+            lines += ["", f"| {title} | " + head[2:], "|---|" + "---|" * len(labels)]
+            for c in sorted(vals, key=lambda c: (-tot[c], c)):
+                lines.append(f"| {c} | " + " | ".join(
+                    str(sum(x["summary"][k][field].get(c, 0) for k in keys[lab])) for lab in labels) + " |")
+        decs = {d for lab in labels for k in keys[lab] for d in x["teacher_forced"][k]["by_decision"]}
+        rows = []
+        for d in decs:
+            cells, steps = [], 0
+            for lab in labels:
+                got = [x["teacher_forced"][k]["by_decision"].get(d) for k in keys[lab]]
+                w, s = sum(g["any_wrong"] for g in got if g), sum(g["steps"] for g in got if g)
+                steps = max(steps, s)
+                cells.append(f"{w / s:.2f}" if s else "-")
+            rows.append((steps, d, cells))
+        lines += ["", "| teacher-forced decision (error rate) | steps per arm | " + head[2:],
+                  "|---|---|" + "---|" * len(labels)]
+        lines += [f"| {d} | {s} | " + " | ".join(c) + " |" for s, d, c in sorted(rows, key=lambda r: (-r[0], r[1]))]
+        lines.append("| mean step accuracy (representable requests) | " + str(
+            sum(x["teacher_forced"][k]["representable"] for k in keys[labels[0]])) + " | " + " | ".join(
+            f"{sum(x['teacher_forced'][k]['mean_step_accuracy'] for k in keys[lab]) / len(seeds):.3f}"
+            for lab in labels) + " |")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def log(msg: str) -> None:
     print(msg, flush=True)
 
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("what", nargs="?", default="run", choices=("run", "table-mentions", "tables", "perf"))
+    ap.add_argument("what", nargs="?", default="run",
+                    choices=("run", "table-mentions", "tables", "perf", "perf-tables"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--workers", type=int, default=8)
@@ -1102,6 +1156,9 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     if args.what == "tables":
         print(tables(args))
+        return
+    if args.what == "perf-tables":
+        print(perf_tables(args))
         return
     if args.what == "perf":
         res = perf_diagnosis(args)

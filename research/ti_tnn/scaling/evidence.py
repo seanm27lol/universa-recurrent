@@ -106,7 +106,7 @@ def bundle_pilot(root: Path = None, l_runs=(), dest: Path = PILOT_BUNDLE) -> lis
 
 PERF_BUNDLE = C.SCALING / "evidence" / "perf_v2"
 PERF_FILES = PILOT_FILES + ("decodes.json", "analysis.json", "diagnosis.json", "dev_requests.json",
-                            "train_requests.json", "table_mentions.json", "log.txt")
+                            "train_requests.json", "table_mentions.json", "perf_diagnosis.json", "log.txt")
 PERF_BASELINES = ("B4_thinking_p16-64", "Q27_thinking_low_p16-64", "L_nonthinking_p64-128", "B4_thinking_p64-128",
                   "Q27_thinking_low_p64-128")
 
