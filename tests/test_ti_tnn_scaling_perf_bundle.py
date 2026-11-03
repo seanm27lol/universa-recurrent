@@ -53,6 +53,7 @@ def test_a_score_that_disagrees_with_the_analysis_is_refused(tmp_path, monkeypat
 
 
 def test_the_corrections_rebuild_from_the_bundle():
+    pytest.importorskip("torch")  # the MAC formulas live in the controller module
     text = _perf_report().corrections()
     for row in ("| new | T4-v2 | 192 | 7.015 G | 7.057 G | +0.60% |",
                 "| new | T4-v2 | 192 | 0.56 | 0.29 | 0.16 | 0.56 / 0.28 / 0.16 |",
@@ -63,6 +64,7 @@ def test_the_corrections_rebuild_from_the_bundle():
 
 
 def test_executed_macs_refuse_a_record_they_cannot_reconstruct():
+    pytest.importorskip("torch")
     _perf_report()
     from scaling import controller as K
     from scaling import perf_corrections as PC

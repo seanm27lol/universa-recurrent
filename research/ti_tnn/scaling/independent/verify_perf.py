@@ -1,36 +1,44 @@
 #!/usr/bin/env python3
 """Independent verifier for the TI-TNN scaling performance study v2 (the reviewer's, written apart from the producers).
 
-    usage: taskset -c 0-4,10-14 nice -n 19 python3 verify_perf.py [SECTION ...] [--repo REPO] [--runs-root RUNS]
-                                                                     [--out DIR] [--no-rehash]
+    public (a checkout alone; no runs root, databases or checkpoints):
+        python3 verify_perf.py --public [--out DIR] [--unchanged-since COMMIT]
+    local (the runs root as well):
+        taskset -c 0-4,10-14 nice -n 10 python3 verify_perf.py [SECTION ...] --runs-root RUNS [--out DIR] [--no-rehash]
+        (or TI_TNN_SCALING_RUNS=RUNS instead of --runs-root; there is no machine default)
 
-Sections (default: every phase-1 section):
-- pins:      the perf_v2 evaluation pin (historical = inventory positions 0-63 = the pilot's 64; new = 64-127),
-             rebuilt from the raw release with this file's own inventory rule and gold execution; the two populations
-             disjoint and outside training; perf_v2_train = pilot_train_v1 minus exactly bird23tf-00003, in order,
-             and that question's gold ON really compares one column reference with itself; the protocol pin's
-             sha256s equal the files (here, and at the freeze commit).
-- history:   the pilot's run files equal the committed evidence/pilot_v1 bundle (SHA256SUMS), the bundled ledger is a
-             byte prefix of the live one (append-only), evidence/pilot_v1 and evidence/dev_v1 unchanged since 9a534b5,
-             and the pilot's final checkpoints re-hash to their names and records (model digests recomputed).
-- ledger:    the shared GPU ledger parsed here, every reservation charged by the rule in ledger.py's docstring
-             (ended: its end elapsed; open: last heartbeat + 30 s), the producer's used_before/limit/hours recomputed,
-             the pilot-era total, every reservation since the pilot, one GPU owner at a time, the authorization fields.
-- baselines: B4 thinking on positions 16-63 (and Q27 thinking-low on 16-63 if its summary exists): requests rebuilt,
-             every final and gold SQL re-executed with this file's own EX rule, the record rules, the summary
-             recomputed, and the configuration equal to the earlier 0-16 run except positions and requested ids.
-Phase 2 (train, eval, compare) is added later.
+The checkout defaults to the one holding this file (--repo); outputs go to ./verify_perf_out unless --out says
+otherwise; nothing is ever written under the runs root.
 
-Discipline (as in verify_baselines.py / verify_pilot.py, whose helper code is reused here by copy):
-- No producer module is imported. The pins and contracts are read as files, or with `git show`, and contracts.py is
-  parsed as literals with `ast` (never executed). The EX rule, the inventory rule, the ledger parser and the tensor
-  digest are this file's own.
-- `torch` (third party) is used only to load the pilot's final checkpoints for the model digest, with
-  `weights_only=True`, so no pickled producer class can be loaded.
-- Nothing is written under the runs root. The gold-execution cache lives in the output directory.
+**Public sections** read the pins (pins/*.json), the protocol, git history and the committed bundles
+research/ti_tnn/scaling/evidence/{perf_v2, dev_v1, pilot_v1}:
+- bundles: each bundle against its SHA256SUMS; nothing listed at --unchanged-since (default 0f2f9b1) changed since,
+  the evidence only gained files; the bundled ledgers append-only across bundles.
+- pins_public: the protocol pin's sha256s (here and at frozen_at); historical = inventory 0-63 = the pilot's 64,
+  new = 64-127, disjoint; perf_v2_train = pilot_train_v1 minus bird23tf-00003; no evaluation id in training.
+- ledger: the bundled ledger, parsed and charged by ledger.py's documented rule.
+- train: training data and the own sampling stream from the bundled logs and configs, recipes, config differences,
+  checkpoint records (not weights), parameter reports, one reservation per fit.
+- eval: eligibility from the inventories recomputed out of decodes.json, anchors (pilot_v1 and perf_v2 encode
+  entries), records = timed decodes, fresh states, bindings; the recorded scores' internal consistency (statuses,
+  executions, correct bit, scored SQL); summaries and serving totals recomputed.
+- compare: counts, Q1/Q2 and their rules, leave-one-database-out, sign flips, per-database values, serving, MACs,
+  baselines' counts, the pilot's counts, the training and ledger blocks: every leaf of analysis.json except the
+  strata (whose classification needs the databases; their marginal sums are checked).
+- macs: the executed controller MACs per request, re-derived with this file's own reading of decode_batch.
 
-Output: <out>/verify_perf_<sections>.json, {"sections": {name: {"checks": [{name, passed, detail}], "failures": n,
-"info": {...}}}, "failures": total}.
+**Local sections** add what needs the runs root: pins (the inventory rebuilt from the raw release, gold execution),
+history (pilot run files and checkpoints), baselines (every final and gold SQL re-executed), and in train, eval and
+compare the checkpoint re-hashes and digests, SQL re-execution with this file's own EX rule, and the strata tallies.
+
+Discipline: no producer module is imported. Pins and contracts are read as files or with git show, producer
+constants with ast. The EX rule, inventory rule, ledger parser, sampling stream, digests and rules are this file's
+own. Exception, flagged in the output: the gold-program strata classification (scaling.perf_analysis.strata), local
+mode only, run in a separate process from the frozen worktree. torch (third party) loads checkpoints with
+weights_only=True (numpy globals allowlisted, nothing else) and draws the sampling stream.
+
+Output: <out>/verify_perf_<mode>_<sections>.json, {"sections": {name: {"checks": [{name, passed, detail}],
+"failures": n, "info": {...}}}, "checks": total, "failures": total}.
 """
 from __future__ import annotations
 
@@ -55,8 +63,8 @@ PIN_DIR = HARNESS + "pins"
 CONTRACTS = HARNESS + "contracts.py"
 RAW_RELEASE = "data/raw/hf/bird23_train_filtered.train-00000-of-00001.jsonl"  # relative to the runs root
 RELEASE_KEY = "data/train-00000-of-00001.jsonl"
-DEFAULT_RUNS = Path("/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling")
-DEFAULT_OUT = Path("/tmp/claude-1000/-home-seanjazm27/7be45db0-2608-4151-8825-79c9a73be53e/scratchpad/verify_perf")
+DEFAULT_OUT = Path("verify_perf_out")   # relative to the working directory; --out overrides
+UNCHANGED_SINCE = "0f2f9b1"              # the bundle state every later commit may only add to (--unchanged-since)
 PILOT_HEAD = "9a534b5"            # the pilot PR's head
 DROPPED = "bird23tf-00003"         # the one question perf_v2_train drops
 HEARTBEAT_SECONDS = 30.0           # ledger.py's documented heartbeat interval (open reservations: last heartbeat + one)
@@ -637,8 +645,12 @@ def parse_ledger(path: Path) -> tuple:
 
 @section
 def sec_ledger(sec: Section, ctx: dict) -> None:
-    runs = ctx["runs"]
-    path = runs / "gpu_ledger.jsonl"
+    path = ledger_file(ctx)
+    named = {r["start"].get("ledger") for r in parse_ledger(path)[0]}
+    sec.check(len(named) == 1 and str(next(iter(named))).endswith("/gpu_ledger.jsonl"), "every start entry names one and the same ledger",
+              f"{named}")
+    sec.info["ledger_file"] = str(path)
+    sec.info["ledger_named_by_its_entries"] = sorted(map(str, named))
     now = time.time()
     rs, problems = parse_ledger(path)
     sec.check(not problems, "ledger: every line JSON, one start per reservation, nothing after an end, monotone entries",
@@ -659,7 +671,7 @@ def sec_ledger(sec: Section, ctx: dict) -> None:
         # the watchdog stops at the limit; allow one heartbeat plus the documented 90 s grace
         if st["used_before_hours"] + r["hours"] > st["limit_hours"] + (HEARTBEAT_SECONDS + 90.0) / 3600.0:
             over.append(f"{r['id']} ({st['command']}): used_before + charge {st['used_before_hours'] + r['hours']:.4f} h > limit {st['limit_hours']:.4f} h")
-        if st.get("ledger") != str(path):
+        if not ctx["public"] and st.get("ledger") != str(path):
             bad_used.append(f"{r['id']}: start names ledger {st.get('ledger')}")
         r["cum_before"] = cum
         cum += r["hours"]
@@ -724,7 +736,10 @@ def sec_ledger(sec: Section, ctx: dict) -> None:
     sec.info["totals_hours"] = {"total": total, "pilot_era": era_hours, "since_pilot": total - era_hours,
                                 "remaining_under_32": 32.0 - total, "open_reservations": [x["reservation"] for x in since if x["status"] == "OPEN"]}
     stale = [x for x in since if x["status"] == "OPEN" and "STALE" in x["note"]]
-    sec.check(not stale, "every open reservation since the pilot is live (recent heartbeat, pid alive)", f"{stale}")
+    if not ctx["public"]:
+        sec.check(not stale, "every open reservation since the pilot is live (recent heartbeat, pid alive)", f"{stale}")
+    else:
+        sec.info["open_reservations_note"] = "public mode: a bundled ledger is a snapshot; liveness is not checked"
 
     # --- one GPU owner: no two reservations overlap in wall-clock time --------------------------------------------
     srt = sorted(rs, key=lambda r: r["t_start"])
@@ -1118,7 +1133,45 @@ def identity_of(obj) -> str:
 
 
 def perf_root(ctx) -> Path:
-    return ctx["runs"] / "perf_v2"
+    """This study's run tree: <runs>/perf_v2 (local) or the committed bundle evidence/perf_v2 (public)."""
+    return ctx["perf_root"]
+
+
+def ledger_file(ctx) -> Path:
+    return ctx["ledger_path"]
+
+
+def pilot_root(ctx) -> Path:
+    return ctx["pilot_root"]
+
+
+def baseline_dirs(ctx, pattern: str) -> list:
+    return sorted(p for root in ctx["baseline_roots"] if root.exists() for p in root.glob(pattern) if p.is_dir())
+
+
+def score_problems(r: dict) -> list:
+    """The recorded score's internal consistency (what can be checked without the database): its kind, status,
+    the predicted and gold executions, the correct bit and the scored-SQL binding."""
+    sc, f = r.get("score") or {}, r["final"]
+    p, g = sc.get("predicted") or {}, sc.get("gold") or {}
+    pred = f.get("sql") if f.get("kind") == "sql" else None
+    out = []
+    if sc.get("scored_sql_sha256") != sha256_bytes((pred or "").encode()):
+        out.append("scored SQL binding")
+    st, c = sc.get("status"), sc.get("correct")
+    expect = {"abstain": (0, "abstain", "not_run"), "correct": (1, "ok", "ok"), "incorrect": (0, "ok", "ok"),
+              "predicted_error": (0, "error", "ok"), "predicted_timeout": (0, "timeout", "not_run")}.get(st)
+    if expect is None:
+        out.append(f"unknown status {st}")
+    elif (c, p.get("status"), g.get("status")) != expect:
+        out.append(f"status {st} with correct {c}, predicted {p.get('status')}, gold {g.get('status')}")
+    if (f.get("kind") == "abstain") != (st == "abstain"):
+        out.append(f"final {f.get('kind')} scored {st}")
+    if st == "correct" and (p.get("distinct_rows") != g.get("distinct_rows") or p.get("distinct_rows") is None):
+        out.append("correct with different distinct row counts")
+    if st == "predicted_error" and not p.get("error"):
+        out.append("predicted_error without an error")
+    return out
 
 
 def perf_commit_checks(sec: Section, ctx: dict, commits: set, what: str) -> "str | None":
@@ -1146,14 +1199,14 @@ def ckpt_numbers(state: dict) -> dict:
 
 @section
 def sec_train(sec: Section, ctx: dict) -> None:
-    runs, repo = ctx["runs"], ctx["repo"]
+    repo = ctx["repo"]
     root = perf_root(ctx) / "train"
     pin = json.loads((repo / PIN_DIR / "perf_v2_train.json").read_text())["task_ids"]
     proto = json.loads((repo / PIN_DIR / "perf_v2_protocol.json").read_text())
     dirs = sorted(p.name for p in root.iterdir() if p.is_dir())
     want = sorted(f"{lab}_s{s}" for lab in PERF_LABELS for s in PERF_SEEDS)
     sec.check(dirs == want, "train/: exactly the 12 fits (4 arms x seeds 100-102)", f"{dirs}")
-    rs, _p = parse_ledger(runs / "gpu_ledger.jsonl")
+    rs, _p = parse_ledger(ledger_file(ctx))
     by_cmd = {}
     for r in rs:
         by_cmd.setdefault(r["start"]["command"], []).append(r)
@@ -1238,7 +1291,8 @@ def sec_train(sec: Section, ctx: dict) -> None:
             f = [c for c in cks if c["update"] == PERF_UPDATES - 1][-1]
             finals[(lab, s)] = f
             path = rd / "checkpoints" / Path(f["path"]).name
-            sec.check(Path(f["path"]).parent == rd / "checkpoints", f"{tag}: final checkpoint path in the run's checkpoints dir")
+            sec.check(Path(f["path"]).parts[-3:-1] == (rd.name, "checkpoints") and Path(f["path"]).name == f"ckpt_u{PERF_UPDATES - 1:06d}_{f['sha256'][:16]}.pt",
+                      f"{tag}: final checkpoint record: in the fit's checkpoints dir, named by its sha256", f["path"])
             if not ctx["rehash"]:
                 continue
             h = sha256_path(path)
@@ -1287,6 +1341,18 @@ def sec_train(sec: Section, ctx: dict) -> None:
     sec.info["run_commit"] = ctx["train_commit"] = commit
 
     # --- parameter matching ------------------------------------------------------------------------------------------
+    if not numbers:   # public mode (no weights): the configs' parameter reports
+        for s in PERF_SEEDS:
+            p = {lab: cfgs[(lab, s)]["parameters"] for lab in PERF_LABELS}
+            for g in ("v1", "v2"):
+                sec.check((p[f"T4-{g}"]["total"], p[f"T4-{g}"]["trunk"]) == (p[f"C4-{g}"]["total"], p[f"C4-{g}"]["trunk"]),
+                          f"s{s} {g}: T4 and C4 parameter totals and trunks equal (config reports)", f"{p[f'T4-{g}']} {p[f'C4-{g}']}")
+            for arch in ("T4", "C4"):
+                dt = p[f"{arch}-v2"]["trunk"] - p[f"{arch}-v1"]["trunk"]
+                sec.check(dt == PROTOCOL_V2_ADDED and p[f"{arch}-v2"]["total"] - p[f"{arch}-v1"]["total"] == PROTOCOL_V2_ADDED
+                          and p[f"{arch}-v2"]["semantic"] == p[f"{arch}-v1"]["semantic"],
+                          f"s{s} {arch}: v2 adds {PROTOCOL_V2_ADDED:,} trunk parameters and nothing else (config reports)", f"{dt}")
+        sec.info["parameters_from"] = "config reports (no weights in the bundle)"
     if numbers:
         for s in PERF_SEEDS:
             for g in ("v1", "v2"):
@@ -1371,11 +1437,11 @@ def ex_key(r: dict) -> tuple:
 def load_anchors(sec: Section, ctx: dict) -> dict:
     """{task_id: anchor entry}: the pilot's anchors (clean encode runs under the pilot protocol) and this study's
     (clean perf-encode runs under the perf protocol); a conflicting anchor is a failed check."""
-    runs, repo = ctx["runs"], ctx["repo"]
+    repo = ctx["repo"]
     pilot_sha = json.loads((repo / PIN_DIR / "pilot_protocol_v1.json").read_text())["sha256"]
     perf_sha = json.loads((repo / PIN_DIR / "perf_v2_protocol.json").read_text())["sha256"]
     out, conflicts, source = {}, [], {}
-    for root, sha, tag in ((runs / "pilot" / "encode", pilot_sha, "pilot"), (perf_root(ctx) / "encode", perf_sha, "perf")):
+    for root, sha, tag in ((pilot_root(ctx) / "encode", pilot_sha, "pilot"), (perf_root(ctx) / "encode", perf_sha, "perf")):
         for entries in sorted(root.glob("*/entries.jsonl")):
             m = json.loads((entries.parent / "manifest.json").read_text())
             if m["git"]["research_tree_dirty"] or (m["config"].get("protocol") or {}).get("sha256") != sha:
@@ -1398,14 +1464,18 @@ def eval_population_ids(repo: Path) -> tuple:
 
 @section
 def sec_eval(sec: Section, ctx: dict) -> None:
-    runs, repo = ctx["runs"], ctx["repo"]
+    repo = ctx["repo"]
     proto = json.loads((repo / PIN_DIR / "perf_v2_protocol.json").read_text())
     hist, new = eval_population_ids(repo)
     ids = hist + new
-    rs, _p = parse_ledger(runs / "gpu_ledger.jsonl")
+    rs, _p = parse_ledger(ledger_file(ctx))
     by_cmd = {}
     for r in rs:
         by_cmd.setdefault(r["start"]["command"], []).append(r)
+    evpin = json.loads((repo / PIN_DIR / "perf_v2_eval.json").read_text())["populations"]
+    db_pin = dict(zip(evpin["historical"]["task_ids"] + evpin["new"]["task_ids"],
+                      evpin["historical"]["db_ids"] + evpin["new"]["db_ids"]))
+    snaps = json.loads(git_show(repo, proto["frozen_at"], PIN_DIR + "/snapshots_v1.json"))["databases"]
 
     # --- this study's encode of the new 64 and the anchors -----------------------------------------------------------
     enc = sorted((perf_root(ctx) / "encode").glob("*"))
@@ -1441,7 +1511,7 @@ def sec_eval(sec: Section, ctx: dict) -> None:
             finals[(lab, s)] = [c for c in jl(rd / "checkpoints.jsonl") if c["update"] == PERF_UPDATES - 1][-1]
 
     # --- every evaluation run: eligibility derived here ---------------------------------------------------------------
-    rel = Release(runs, repo, proto["frozen_at"], ctx["cache"])
+    rel = None if ctx["public"] else Release(ctx["runs"], repo, proto["frozen_at"], ctx["cache"])
     all_runs, chosen, recs_of, commits = [], {}, {}, set()
     for d in sorted((perf_root(ctx) / "eval").glob("s*_*")):
         man = json.loads((d / "manifest.json").read_text())
@@ -1508,8 +1578,8 @@ def sec_eval(sec: Section, ctx: dict) -> None:
                     problems.append(f"{lab} {t}: config_identity is not sha256({{run, arm: label, model_digest}})")
                 if (r.get("label"), {"C4_params": "c4_params"}.get(r.get("arm"), r.get("arm")), r.get("grounding")) != (lab, arm, g):
                     problems.append(f"{lab} {t}: label/arm/grounding {(r.get('label'), r.get('arm'), r.get('grounding'))}")
-                if r["db_id"] != rel.by_id[t]["db_id"] or r["snapshot_sha256"] != rel.snaps[r["db_id"]]["sha256"] \
-                        or r["score"].get("snapshot_sha256") != rel.snaps[r["db_id"]]["sha256"]:
+                if r["db_id"] != db_pin[t] or r["snapshot_sha256"] != snaps[r["db_id"]]["sha256"] \
+                        or r["score"].get("snapshot_sha256") != snaps[r["db_id"]]["sha256"]:
                     problems.append(f"{lab} {t}: database / snapshot binding")
                 if r["score"].get("scored_sql_sha256") != sha256_bytes((pred or "").encode()):
                     problems.append(f"{lab} {t}: scored SQL binding")
@@ -1551,7 +1621,13 @@ def sec_eval(sec: Section, ctx: dict) -> None:
 
     # --- scores re-derived with the own EX rule -----------------------------------------------------------------------
     counted = [rr for (dn, lab), rr in recs_of.items() if any(dn == chosen[s].name for s in chosen)]
-    cache = rescore(ctx, rel, [r for rr in counted for r in rr])
+    if rel is None:   # public: the recorded scores, checked for internal consistency
+        cache = {ex_key(r): (r["score"]["correct"], r["score"]["status"], 0.0) for rr in counted for r in rr}
+        incons = [f"{r['task_id']} {r.get('label')}: {p_}" for rr in counted for r in rr for p_ in score_problems(r)]
+        sec.check(not incons, "public: every counted record's recorded score is internally consistent (status, executions, "
+                  "correct bit, scored SQL)", f"{incons[:10]}")
+    else:
+        cache = rescore(ctx, rel, [r for rr in counted for r in rr])
     correct, per_arm, mism, warn = {}, {}, [], []
     for s, d in sorted(chosen.items()):
         summ = json.loads((d / "summary.json").read_text())
@@ -1563,7 +1639,7 @@ def sec_eval(sec: Section, ctx: dict) -> None:
                 mine[r["task_id"]] = own
                 rc, rst = r["score"].get("correct"), r["score"].get("status")
                 if rc != own or status_class(rst) != status_class(st):
-                    timing = "timeout" in (status_class(st), status_class(rst)) or secs > 0.8 * rel.timeout
+                    timing = "timeout" in (status_class(st), status_class(rst)) or secs > 0.8 * 30.0
                     (warn if timing else mism).append(f"s{s} {lab} {r['task_id']}: recorded {rc}/{rst}, own {own}/{st} ({secs:.1f} s)")
             correct[(lab, s)] = mine
             n_ok = sum(mine.values())
@@ -1584,14 +1660,15 @@ def sec_eval(sec: Section, ctx: dict) -> None:
             sec.check(math.isclose(ps.get("elapsed_seconds_total", -1), gen, rel_tol=1e-9)
                       and (ps.get("cost_seconds_per_correct") is None if not n_ok else math.isclose(ps.get("cost_seconds_per_correct") or -1, gen / n_ok, rel_tol=1e-9)),
                       f"s{s} {lab}: time to submission total and per EX-correct = summary")
-    sec.check(not mism, "every counted record's score and status re-derived with the own EX rule", f"{mism[:10]}")
+    if rel is not None:
+        sec.check(not mism, "every counted record's score and status re-derived with the own EX rule", f"{mism[:10]}")
     sec.info["timing_sensitive_score_differences"] = warn
     sec.info["per_arm"] = per_arm
     sec.info["ex_executions"] = {"unique_question_sql_pairs": len(cache), "seconds": round(ctx.get("ex_seconds", 0), 1)}
     sec.info["record_arm_spelling_note"] = ("records spell the shared arm 'C4_params'; configs and summaries 'c4_params' "
                                             "(accepted as the same arm)")
     ctx["perf_eval"] = {"correct": correct, "chosen": {s: d.name for s, d in chosen.items()}, "all_runs": all_runs,
-                        "db_of": {t: rel.by_id[t]["db_id"] for t in ids}, "hist": hist, "new": new, "rel": rel,
+                        "db_of": {t: db_pin[t] for t in ids}, "hist": hist, "new": new, "rel": rel,
                         "records": {(lab, s): recs_of[(chosen[s].name, lab)] for s in chosen for lab in PERF_LABELS}}
 
 
@@ -1663,10 +1740,9 @@ def own_reading(t4: str, c4: str, q2: str) -> str:
 def baseline_population(sec: Section, ctx: dict, rel: Release, arm: str, pop: str, ids: list) -> "dict | None":
     """A baseline's records covering a population (re-scored with the own EX rule), or None if any run is missing or
     still running."""
-    base = ctx["runs"] / "baselines"
     recs, refs = {}, []
     for tag in BASELINE_TAGS[(arm, pop)]:
-        found = sorted(base.glob(f"*_{tag}"))
+        found = baseline_dirs(ctx, f"*_{tag}")
         if len(found) != 1:
             return {"status": "not yet run" if not found else f"{len(found)} runs tagged {tag}"}
         d = found[0]
@@ -1682,10 +1758,15 @@ def baseline_population(sec: Section, ctx: dict, rel: Release, arm: str, pop: st
     sec.check(sorted(recs) == sorted(ids), f"{arm} {pop}: the runs cover exactly the population", f"{len(recs)} of {len(ids)}")
     if sorted(recs) != sorted(ids):
         return {"status": "incomplete coverage", "runs": refs}
-    cache = rescore(ctx, rel, list(recs.values()))
-    own = {t: cache[ex_key(recs[t])][0] for t in ids}
-    mism = [t for t in ids if own[t] != recs[t]["score"]["correct"]]
-    sec.check(not mism, f"{arm} {pop}: recorded scores re-derived with the own EX rule", f"{mism}")
+    if rel is None:
+        own = {t: recs[t]["score"]["correct"] for t in ids}
+        incons = [f"{t}: {p_}" for t in ids for p_ in score_problems(recs[t])]
+        sec.check(not incons, f"{arm} {pop}: recorded scores internally consistent (public)", f"{incons[:5]}")
+    else:
+        cache = rescore(ctx, rel, list(recs.values()))
+        own = {t: cache[ex_key(recs[t])][0] for t in ids}
+        mism = [t for t in ids if own[t] != recs[t]["score"]["correct"]]
+        sec.check(not mism, f"{arm} {pop}: recorded scores re-derived with the own EX rule", f"{mism}")
     return {"status": "complete", "runs": refs, "correct": sum(own.values()), "per_question": own,
             "abstained": sum(recs[t]["final"]["kind"] == "abstain" for t in ids),
             "time_to_submission_seconds": sum(recs[t]["elapsed_seconds"] for t in ids), "_records": [recs[t] for t in ids]}
@@ -1844,7 +1925,7 @@ def sec_compare(sec: Section, ctx: dict) -> None:
     sec.check(seeds == list(PERF_SEEDS), "all three seeds have a counted evaluation (no symmetric reduction)", f"{seeds}")
     an_dirs = sorted((perf_root(ctx) / "analysis").glob("*/analysis.json")) if (perf_root(ctx) / "analysis").exists() else []
     an = json.loads(an_dirs[-1].read_text()) if an_dirs else None
-    sec.info["analysis_json"] = str(an_dirs[-1].relative_to(ctx["runs"])) if an_dirs else "not yet produced (perf-analyze has not run)"
+    sec.info["analysis_json"] = str(an_dirs[-1].relative_to(perf_root(ctx).parent)) if an_dirs else "not yet produced (perf-analyze has not run)"
     if an_dirs:
         sec.check(len(an_dirs) == 1, "exactly one analysis.json", f"{[str(p) for p in an_dirs]}")
     out, mirror_pops, strata_ids = {}, {}, {}
@@ -1900,14 +1981,19 @@ def sec_compare(sec: Section, ctx: dict) -> None:
                 mirror_pops[pop]["baselines"][arm] = None
 
     # --- the pilot's 1,500-update fits on the historical 64, separately (re-scored here) -------------------------------
-    pilot_eval = ctx["runs"] / "pilot" / "eval"
+    pilot_eval = pilot_root(ctx) / "eval"
     pil = {}
     for d in sorted(pilot_eval.glob("s*_*")):
         s = json.loads((d / "manifest.json").read_text())["config"]["seed"]
         for arm in PILOT_ARMS:
             recs = jl(d / arm / "records.jsonl")
-            cache = rescore(ctx, rel, recs)
-            pil[f"{arm}/{s}"] = sum(cache[ex_key(r)][0] for r in recs)
+            if rel is None:
+                bad = [f"{r['task_id']}: {p_}" for r in recs for p_ in score_problems(r)]
+                sec.check(not bad, f"pilot {d.name} {arm}: recorded scores internally consistent (public)", f"{bad[:5]}")
+                pil[f"{arm}/{s}"] = sum(r["score"]["correct"] for r in recs)
+            else:
+                cache = rescore(ctx, rel, recs)
+                pil[f"{arm}/{s}"] = sum(cache[ex_key(r)][0] for r in recs)
     out["pilot_1500_updates_historical"] = pil
     pan = sorted((ctx["repo"] / HARNESS / "evidence/pilot_v1/analysis").glob("*/analysis.json"))
     if pan:
@@ -1915,7 +2001,7 @@ def sec_compare(sec: Section, ctx: dict) -> None:
         sec.check(all(pc.get(k) == v for k, v in pil.items()), "pilot 1,500-update counts (re-scored here) = the pilot bundle's analysis.json",
                   f"{pil} vs {pc}")
     # the new population's L run: the configuration of the historical L run except positions and requested ids
-    lh, ln = sorted((ctx["runs"] / "baselines").glob("*_L_nonthinking_p0-64")), sorted((ctx["runs"] / "baselines").glob("*_L_nonthinking_p64-128"))
+    lh, ln = baseline_dirs(ctx, "*_L_nonthinking_p0-64"), baseline_dirs(ctx, "*_L_nonthinking_p64-128")
     if len(lh) == 1 and len(ln) == 1:
         a_, b_ = (json.loads((x[0] / "manifest.json").read_text()) for x in (lh, ln))
         dk = sorted(k for k in set(a_["config"]) | set(b_["config"]) if a_["config"].get(k) != b_["config"].get(k))
@@ -1933,19 +2019,40 @@ def sec_compare(sec: Section, ctx: dict) -> None:
               f"{an_man['git']}")
     sec.check(an_man["git"]["commit"] == ctx.get("train_commit", an_man["git"]["commit"]), "analysis: at the commit of the fits",
               an_man["git"]["commit"])
-    # strata: the producer's classification (flagged), tallied here with the own scores
-    strata_of, why = producer_strata(ctx, Path(an_man["git"]["worktree"]), an_man["git"]["commit"], pe["hist"] + pe["new"])
-    flagged = ctx.setdefault("producer_modules_used", [])
-    flagged.append("scaling.perf_analysis.strata + scaling.sql_to_ir/ir/schema/data (gold-program strata classification only; "
-                   "subprocess, frozen worktree)")
-    if sec.check(strata_of is not None, "producer strata classification ran (flagged)", why or ""):
+    # strata: locally, the producer's classification (flagged), tallied here with the own scores; in public mode the
+    # classification needs the databases, so only the tallies' marginal sums are checked
+    if not ctx["public"]:
+        strata_of, why = producer_strata(ctx, Path(an_man["git"]["worktree"]), an_man["git"]["commit"], pe["hist"] + pe["new"])
+        flagged = ctx.setdefault("producer_modules_used", [])
+        flagged.append("scaling.perf_analysis.strata + scaling.sql_to_ir/ir/schema/data (gold-program strata classification only; "
+                       "subprocess, frozen worktree)")
+        if sec.check(strata_of is not None, "producer strata classification ran (flagged)", why or ""):
+            for pop, ids in strata_ids.items():
+                mirror_pops[pop]["strata"] = strata_tally(strata_of, correct, seeds, ids)
+    else:
         for pop, ids in strata_ids.items():
-            mirror_pops[pop]["strata"] = strata_tally(strata_of, correct, seeds, ids)
+            st_ = ((an.get("populations") or {}).get(pop) or {}).get("strata") or {}
+            pooled = {lab: sum(correct[(lab, s)][t] for s in seeds for t in ids) for lab in PERF_LABELS}
+            bad = []
+            for dim, vals in st_.items():
+                q = sum(v["questions"] for v in vals.values())
+                if dim == "tables" and q != len(ids) or dim != "tables" and q > len(ids):
+                    bad.append(f"{dim}: {q} questions")
+                full = dim == "tables" or q == len(ids)
+                for lab in PERF_LABELS:
+                    tot = sum(v[lab] for v in vals.values())
+                    if (full and tot != pooled[lab]) or tot > pooled[lab] or any(v[lab] > 3 * v["questions"] for v in vals.values()):
+                        bad.append(f"{dim} {lab}: {tot} vs pooled {pooled[lab]}")
+            sec.check(not bad and st_, f"{pop} strata: marginal sums consistent with the own counts (public; classification not re-derived)",
+                      f"{bad[:6]}")
+            mirror_pops[pop]["strata"] = st_   # not re-derivable without the databases; excluded from the leaf comparison
+        sec.info["strata_note"] = "public mode: strata classification needs the databases; marginal sums checked only"
     pin = json.loads((ctx["repo"] / PIN_DIR / "perf_v2_protocol.json").read_text())
     t_cut = datetime.strptime(an_dir.name, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
-    led = ledger_at(ctx["runs"] / "gpu_ledger.jsonl", t_cut + 600)   # usage() runs at the end of the analysis
-    led_early = ledger_at(ctx["runs"] / "gpu_ledger.jsonl", t_cut)
-    rs_all, _p = parse_ledger(ctx["runs"] / "gpu_ledger.jsonl")
+    led = ledger_at(ledger_file(ctx), t_cut + 600)   # usage() runs at the end of the analysis
+    led_early = ledger_at(ledger_file(ctx), t_cut)
+    rs_all, _p = parse_ledger(ledger_file(ctx))
+    named = sorted({str(r["start"].get("ledger")) for r in rs_all})
     never_ended = sorted(r["id"] for r in rs_all if r["open"] and r["t_start"] < t_cut)
     sec.check(abs(led["used_hours"] - led_early["used_hours"]) < 1e-12 and led["open"] == led_early["open"]
               and sorted(led["open"]) == never_ended,
@@ -1957,7 +2064,7 @@ def sec_compare(sec: Section, ctx: dict) -> None:
                          "evaluations_all": [{"passed": r["eligible"], "run": r["run"], "seed": r["seed"]} for r in pe["all_runs"]]},
               "pilot_1500_updates_historical": {f"{'C4_params' if k.startswith('c4_params') else 'T4'}/{k.split('/')[1]}": v for k, v in pil.items()},
               "training": training_mirror(ctx, seeds),
-              "ledger": {"authorization": 2, "cap_hours": 32.0, "ledger": str(ctx["runs"] / "gpu_ledger.jsonl"),
+              "ledger": {"authorization": 2, "cap_hours": 32.0, "ledger": named[0] if len(named) == 1 else named,
                          "used_hours": led["used_hours"], "remaining_hours": 32.0 - led["used_hours"]}}
     # the rules: compare the code; the readings: by the protocol's bullet
     theirs = json.loads(json.dumps(an))
@@ -1977,12 +2084,17 @@ def sec_compare(sec: Section, ctx: dict) -> None:
         sec.check(ok, f"{pop}: analysis.json's reading matches the protocol's reading for the own rules ({mine_reading.split(':')[0]})",
                   f"analysis: {reading!r}")
     sec.info["analysis_rule_texts"] = rule_texts
+    if ctx["public"]:   # the strata need the databases: marginal sums checked above, leaves not compared
+        for pop in mirror_pops:
+            (theirs.get("populations") or {}).get(pop, {}).pop("strata", None)
+            mirror_pops[pop].pop("strata", None)
     diff = deep_diff(theirs, mirror)
     groups = sorted({p.split(".")[1] if not p.startswith(".populations") else ".".join(p.split(".")[1:4]).split("[")[0]
                      for p in [x[0] for x in diff["differ"]] + diff["only_in_analysis"]})
     top = ["protocol", "seeds", "threshold", "inputs", "pilot_1500_updates_historical", "training", "ledger"] + \
           [f"populations.{pop}.{k}" for pop in ("historical", "new") for k in
-           ("questions", "counts", "q1", "q2", "q2_v1_descriptive", "per_question", "serving", "serving_pooled", "macs", "strata", "baselines")]
+           ("questions", "counts", "q1", "q2", "q2_v1_descriptive", "per_question", "serving", "serving_pooled", "macs", "baselines")
+           + ((("strata",)) if not ctx["public"] else ())]
     for g in top:
         bad = [x for x in diff["differ"] if x[0] == f".{g}" or x[0].startswith(f".{g}.") or x[0].startswith(f".{g}[")]
         missing = [x for x in diff["only_in_analysis"] if x == f".{g}" or x.startswith(f".{g}.")]
@@ -1990,12 +2102,12 @@ def sec_compare(sec: Section, ctx: dict) -> None:
                   f"{len(bad)} differ, first {bad[:4]}; not re-derived {missing[:4]}")
     other = [x for x in diff["only_in_analysis"] if not any(x == f".{g}" or x.startswith(f".{g}.") for g in top)]
     sec.check(not other, "analysis.json has no field outside the groups re-derived here", f"{other[:8]}")
-    out["analysis_comparison"] = {"file": str(an_dirs[-1].relative_to(ctx["runs"])), "leaves_compared": diff["compared"],
+    out["analysis_comparison"] = {"file": str(an_dirs[-1].relative_to(perf_root(ctx).parent)), "leaves_compared": diff["compared"],
                                   "differ": diff["differ"][:50], "differ_count": len(diff["differ"]),
                                   "not_re_derived": diff["only_in_analysis"], "only_in_mirror": diff["only_in_mine"][:20],
                                   "groups_with_differences": groups}
     # the attempt summaries' reservation hours against the ledger charges
-    rs, _p = parse_ledger(ctx["runs"] / "gpu_ledger.jsonl")
+    rs, _p = parse_ledger(ledger_file(ctx))
     by_cmd = {r["start"]["command"]: r for r in rs}
     far = {k: (v["reservation_hours"], by_cmd.get(f"perf-train {k.split('/')[0]} s{k.split('/')[1]}", {}).get("hours"))
            for k, v in mirror["training"].items()}
@@ -2004,24 +2116,298 @@ def sec_compare(sec: Section, ctx: dict) -> None:
     sec.info.update(out)
 
 
+# === public mode: the committed bundles only (no runs root, no databases, no checkpoints) ===========================
+BUNDLES = ("perf_v2", "dev_v1", "pilot_v1")
+
+
+def evidence_dir(ctx) -> Path:
+    return ctx["repo"] / HARNESS / "evidence"
+
+
+@section
+def sec_bundles(sec: Section, ctx: dict) -> None:
+    """Each committed bundle against its SHA256SUMS; no file listed at --unchanged-since changed since; the bundled
+    ledgers grow by appending only."""
+    repo, ev = ctx["repo"], evidence_dir(ctx)
+    since = ctx["unchanged_since"]
+    for name in BUNDLES:
+        b = ev / name
+        sums = read_sums(b)
+        bad = [p for h, p in sums if not (b / p).is_file() or sha256_path(b / p) != h]
+        listed = {p for _h, p in sums}
+        unlisted = sorted(str(x.relative_to(b)) for x in b.rglob("*") if x.is_file() and x.name != "SHA256SUMS"
+                          and str(x.relative_to(b)) not in listed)
+        sec.check(not bad and not unlisted, f"evidence/{name}: every file matches SHA256SUMS, and every file is listed",
+                  f"mismatched {bad[:5]}, unlisted {unlisted[:5]}")
+        sec.info[f"{name}_files"] = len(sums)
+        try:
+            old = [x.split("  ", 1) for x in git_show(repo, since, f"{HARNESS}evidence/{name}/SHA256SUMS").decode().splitlines() if x.strip()]
+        except subprocess.CalledProcessError:
+            sec.check(False, f"evidence/{name}: SHA256SUMS readable at {since}")
+            continue
+        now = {p: h for h, p in sums}
+        changed = [p for h, p in old if now.get(p) != h]
+        sec.check(not changed, f"evidence/{name}: every file listed in SHA256SUMS at {since} is listed and hashes the same now",
+                  f"{changed[:8]}")
+        sec.info[f"{name}_added_since_{since}"] = sorted(set(now) - {p for _h, p in old})
+    status = git(repo, "diff", "--name-status", since, "HEAD", "--", HARNESS + "evidence").splitlines()
+    other = [x for x in status if not (x.startswith("A\t") or (x.startswith("M\t") and x.endswith("/SHA256SUMS")))]
+    sec.check(not other, f"git: since {since} the evidence only gained files (A) and rewrote SHA256SUMS (M)", f"{other[:8]}")
+    sec.info[f"evidence_changes_since_{since}"] = status
+    dirty = git(repo, "status", "--porcelain", "--untracked-files=all", "--", HARNESS + "evidence").strip()
+    sec.check(dirty == "", "no uncommitted or untracked change in the evidence", dirty[:300])
+    chain = [ev / n / "gpu_ledger.jsonl" for n in ("dev_v1", "pilot_v1", "perf_v2")]
+    blobs = [c.read_bytes() for c in chain]
+    sec.check(blobs[1].startswith(blobs[0]) and blobs[2].startswith(blobs[1]),
+              "bundled ledgers: dev_v1 is a byte prefix of pilot_v1, which is a byte prefix of perf_v2 (append-only)",
+              f"{[len(x) for x in blobs]} bytes")
+
+
+@section
+def sec_pins_public(sec: Section, ctx: dict) -> None:
+    """The pins, from the checkout alone (the raw-release rebuild and the gold SQL need the runs root: section pins)."""
+    repo = ctx["repo"]
+    pins = repo / PIN_DIR
+    proto = json.loads((pins / "perf_v2_protocol.json").read_text())
+    evb, trb = (pins / "perf_v2_eval.json").read_bytes(), (pins / "perf_v2_train.json").read_bytes()
+    ev, tr = json.loads(evb), json.loads(trb)
+    invb, ptrb = (pins / "inventory_v1.json").read_bytes(), (pins / "pilot_train_v1.json").read_bytes()
+    inv, ptr = json.loads(invb), json.loads(ptrb)
+    sec.check((sha256_path(repo / proto["file"]), sha256_bytes(trb), sha256_bytes(evb))
+              == (proto["sha256"], proto["train_pin_sha256"], proto["eval_pin_sha256"]), "protocol pin: protocol, train and eval pins hash to it")
+    at = tuple(sha256_bytes(git_show(repo, proto["frozen_at"], x)) for x in (proto["file"], PIN_DIR + "/perf_v2_train.json", PIN_DIR + "/perf_v2_eval.json"))
+    sec.check(at == (proto["sha256"], proto["train_pin_sha256"], proto["eval_pin_sha256"]), "protocol pin: the three files at frozen_at hash to it")
+    since = git(repo, "log", "--format=%h %s", f"{proto['frozen_at']}..HEAD", "--", proto["file"], PIN_DIR + "/perf_v2_train.json",
+                PIN_DIR + "/perf_v2_eval.json").strip()
+    sec.check(since == "", "protocol, train and eval pins unchanged by any commit after frozen_at", since)
+    sec.check(sha256_bytes(invb) == ev["inventory_pin_sha256"] and sha256_bytes(ptrb) == tr["pilot_train_pin_sha256"],
+              "eval and train pins name inventory_v1 and pilot_train_v1 by sha256")
+    h, n = ev["populations"]["historical"], ev["populations"]["new"]
+    sec.check(h["positions"] == [0, 64] and n["positions"] == [64, 128] and inv["task_ids"][:64] == h["task_ids"]
+              and inv["task_ids"][64:128] == n["task_ids"], "historical = inventory positions 0-63, new = 64-127, in order")
+    sec.check(h["task_ids"] == pilot_64(repo), "historical = the pilot's 64 (evidence/pilot_v1 evaluation manifests)")
+    sec.check(not set(h["task_ids"]) & set(n["task_ids"]) and len(set(h["task_ids"] + n["task_ids"])) == 128,
+              "the populations: 128 distinct ids, no overlap")
+    sec.check(len(h["db_ids"]) == len(n["db_ids"]) == 64, "each population lists a database per question")
+    expect = [t for t in ptr["task_ids"] if t != DROPPED]
+    sec.check(tr["task_ids"] == expect and sorted(tr["dropped"]) == [DROPPED] and (tr["pilot_questions"], tr["kept"]) == (4741, 4740),
+              f"perf_v2_train = pilot_train_v1 minus exactly {DROPPED}, in order")
+    leak = sorted((set(h["task_ids"]) | set(n["task_ids"])) & (set(tr["task_ids"]) | set(ptr["task_ids"])))
+    sec.check(not leak, "no evaluation id in either training pin", f"{leak}")
+    sec.info["not_checked_public"] = ("the inventory rebuilt from the raw release, its gold-execution exclusions and "
+                                      f"{DROPPED}'s gold SQL need the runs root (local section pins)")
+
+
+# --- executed controller MACs, re-derived here ------------------------------------------------------------------------
+def producer_literals(repo: Path, commit: str) -> dict:
+    """Constants of the producer's grammar and controller, read as literals with ast (never imported)."""
+    out = {}
+    for f, names in (("actions.py", ("POINTER_RELATIONS", "N_CLASSES", "N_FEATURES")), ("grounding.py", ("ITEM_FEATURES",)),
+                     ("controller.py", ("N_POINTERS",))):
+        for node in ast.parse(git_show(repo, commit, HARNESS + f)).body:
+            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) \
+                    and node.targets[0].id in names:
+                out[node.targets[0].id] = ast.literal_eval(node.value)
+    return out
+
+
+def own_executed_macs(rec: dict, ctl: dict, grammar: dict, K: dict) -> dict:
+    """One saved request (batch size one): N recovered from the recorded pointer MACs (or the trunk), every recorded
+    term re-derived, and the executed MACs of decode_batch:
+    - each operator step: trunk + semantic module + pointer_scores call 1 (item scores for the table and column
+      queries 2 N d, span start T d, under v2 the relation terms 2 R d + 2 N R);
+    - each span operator: pointer_scores call 2 (item scores 2 N d, start T d, end condition d^2, end T d; no
+      relations are passed);
+    - each STOP step: the trunk only (the loop stops before the semantic module);
+    - once: request_macs (memory, keys, initial state, v2 item features and schema encoder)."""
+    w = rec["controller_work"]
+    d, gl = ctl["d_model"], ctl["gru_layers"]
+    R, v2 = len(K["POINTER_RELATIONS"]), ctl["grounding"] == "v2"
+    acts = rec["attempts"][0]["actions"] or []
+    stops = w["families"].count("STOP")
+    ops = w["steps"] - stops
+    T = int(rec["tokens"]["context"])
+    kind = ["none" if a[1] is None else "span" if isinstance(a[1], (list, tuple)) else "item" for a in acts]
+    n_item, n_span = kind.count("item"), kind.count("span")
+    prob = []
+    if w.get("batch_size", 1) != 1:
+        prob.append("batch size")
+    if ops != len(acts):
+        prob.append(f"{ops} operator steps for {len(acts)} actions (a dead-end step would be uncharged)")
+    if stops > 1 or (stops == 1 and w["families"][-1] != "STOP"):
+        prob.append("STOP not last")
+    width = sum(ctl[k] for k in ("op_embed", "family_embed", "slot_embed", "parent_embed", "feature_embed", "arg_embed"))
+    C = K["N_FEATURES"] * ctl["feature_embed"] + d * ctl["arg_embed"] + width * d + gl * 6 * d * d + 4 * d * d + d * K["N_CLASSES"]
+    trunk_step, rem = divmod(w["macs"]["trunk"], ops) if ops else (None, 0)
+    N = None
+    if n_item:
+        num = w["macs"]["pointer"] - n_span * (2 * T * d + d * d) - (n_item * R * d if v2 else 0)
+        N, rem2 = divmod(num, n_item * (d + (R if v2 else 0)))
+        if rem2:
+            prob.append("pointer MACs give no integral N")
+    if trunk_step is not None:
+        if rem:
+            prob.append("trunk MACs not a multiple of the operator steps")
+        L, rem3 = divmod(trunk_step - C, 2 * d)
+        if rem3:
+            prob.append("trunk per step - constant not a multiple of 2d")
+        if N is None:
+            N = L - T
+        elif L - T != N:
+            prob.append(f"N from the pointer ({N}) != N from the trunk ({L - T})")
+    if N is None:
+        return {"problems": prob + ["N not recoverable"]}
+    # the recorded terms, re-derived
+    ptr_rec = n_item * (N * d + ((R * d + N * R) if v2 else 0)) + n_span * (2 * T * d + d * d)
+    if ptr_rec != w["macs"]["pointer"]:
+        prob.append("recorded pointer MACs not re-derived")
+    P = K["N_POINTERS"] * d
+    if ctl["arm"] == "T4":
+        sem = sum(d * ctl["head_hidden"] + ctl["head_hidden"] * (grammar["family_vocabulary_sizes"][f] + P)
+                  for f in w["families"] if f != "STOP")
+    else:
+        h = ctl["c4_params_hidden"]
+        sem = ops * (d * h + h * (grammar["union_size"] + P))
+    if sem != w["macs"]["semantic"]:
+        prob.append(f"recorded semantic MACs {w['macs']['semantic']} != own {sem}")
+    D = ctl["backbone_width"]
+    base_req = (T + N) * D * d + (T + N) * d * d + 2 * (T + N) * d * d + D * gl * d
+    if not v2 and base_req != w["request_macs"]:
+        prob.append("v1 request MACs not re-derived")
+    n_qe = None
+    if v2:   # solve the question/evidence key count from the schema encoder's terms; it must be a whole number >= 0
+        extra = w["request_macs"] - base_req - N * len(K["ITEM_FEATURES"]) * d
+        per_layer0 = N * d * d + 2 * N * d * d + 2 * N * N * d + N * d * d + 2 * N * d * ctl["encoder_ff"]
+        n_qe, rem4 = divmod(extra - ctl["encoder_layers"] * per_layer0, ctl["encoder_layers"] * (2 * d * d + 2 * N * d))
+        if rem4 or n_qe < 0:
+            prob.append(f"v2 request MACs give no whole question/evidence count ({n_qe}, remainder {rem4})")
+    recorded = w["request_macs"] + sum(w["macs"].values())
+    call1 = 2 * N * d + T * d + ((2 * R * d + 2 * N * R) if v2 else 0)
+    call2 = 2 * N * d + T * d + d * d + T * d
+    executed = (w["request_macs"] + (ops + stops) * (C + 2 * (T + N) * d) + w["macs"]["semantic"]
+                + ops * call1 + n_span * call2)
+    return {"problems": prob, "T": T, "N": N, "n_qe": n_qe, "ops": ops, "stops": stops, "spans": n_span,
+            "recorded": recorded, "executed": executed}
+
+
+def report_mac_table(repo: Path) -> dict:
+    """The corrected report's table 'Controller MACs per request: as recorded and as executed', parsed as data."""
+    text = (repo / HARNESS / "docs" / "REPORT_perf_v2.md").read_text()
+    out = {}
+    for m in re.finditer(r"^\| (historical|new) \| ([TC]4-v[12]) \| (\d+) \| ([\d.]+) G \| ([\d.]+) G \| \+([\d.]+)% \|$", text, re.M):
+        out[(m.group(1), m.group(2))] = {"requests": int(m.group(3)), "recorded_G": float(m.group(4)),
+                                         "executed_G": float(m.group(5)), "difference_pct": float(m.group(6))}
+    return out
+
+
+@section
+def sec_macs(sec: Section, ctx: dict) -> None:
+    """Executed controller MACs per request, re-derived with this file's own reading of decode_batch and
+    pointer_scores, from the records and configs alone, and compared with the corrected report's table."""
+    import statistics
+    repo = ctx["repo"]
+    proto = json.loads((repo / PIN_DIR / "perf_v2_protocol.json").read_text())
+    K = producer_literals(repo, proto["frozen_at"])
+    sec.info["literals"] = {"R": len(K["POINTER_RELATIONS"]), "N_ITEM_FEATURES": len(K["ITEM_FEATURES"]),
+                            **{k: K[k] for k in ("N_CLASSES", "N_FEATURES", "N_POINTERS")}}
+    hist, new = eval_population_ids(repo)
+    pops = {"historical": set(hist), "new": set(new)}
+    evals = {}
+    for d in sorted((perf_root(ctx) / "eval").glob("s*_*")):
+        summ = json.loads((d / "summary.json").read_text())
+        if summ.get("passed") is True:
+            evals.setdefault(json.loads((d / "manifest.json").read_text())["config"]["seed"], []).append(d)
+    sec.check(sorted(evals) == list(PERF_SEEDS) and all(len(v) == 1 for v in evals.values()), "one passing evaluation per seed")
+    rows, problems, n_of_db, consts = {}, [], {}, {}
+    an = sorted((perf_root(ctx) / "analysis").glob("*/analysis.json"))
+    an = json.loads(an[-1].read_text()) if an else None
+    for s, (d,) in sorted(evals.items()):
+        for lab in PERF_LABELS:
+            cfg = json.loads((perf_root(ctx) / "train" / f"{lab}_s{s}" / "config.json").read_text())
+            for r in jl(d / lab / "records.jsonl"):
+                x = own_executed_macs(r, cfg["controller"], cfg["grammar"], K)
+                if x["problems"]:
+                    problems.append(f"s{s} {lab} {r['task_id']}: {x['problems']}")
+                    continue
+                n_of_db.setdefault((r["db_id"], cfg["controller"]["grounding"]), set()).add(x["N"])
+                consts.setdefault((r["task_id"], cfg["controller"]["grounding"]), set()).add((x["N"], x["n_qe"]))
+                pop = "historical" if r["task_id"] in pops["historical"] else "new"
+                rows.setdefault((pop, lab), []).append(x)
+    sec.check(not problems, "every request's recorded trunk, semantic, pointer and request MACs re-derived from (T, N) "
+              "and the config; no dead-end or uncharged step", f"{len(problems)}: {problems[:6]}")
+    sec.check(all(len(v) == 1 for v in n_of_db.values()), "one schema-item count N per database (all arms, seeds, both groundings)",
+              f"{[(k, v) for k, v in n_of_db.items() if len(v) != 1][:5]}")
+    ng = {}
+    for (db, g), v in n_of_db.items():
+        ng.setdefault(db, set()).update(v)
+    sec.check(all(len(v) == 1 for v in ng.values()), "the same N per database under v1 and v2")
+    sec.check(all(len(v) == 1 for v in consts.values()), "one (N, question/evidence count) per question across arms and seeds")
+    table, rep = {}, report_mac_table(repo)
+    for (pop, lab), xs in sorted(rows.items()):
+        rec, exe = statistics.mean(x["recorded"] for x in xs), statistics.mean(x["executed"] for x in xs)
+        table[f"{pop}/{lab}"] = {"requests": len(xs), "recorded_mean": rec, "executed_mean": exe,
+                                 "difference_pct": 100 * (exe / rec - 1), "stop_steps": sum(x["stops"] for x in xs),
+                                 "span_ops": sum(x["spans"] for x in xs)}
+        if an is not None:
+            am = (((an.get("populations") or {}).get(pop) or {}).get("macs") or {}).get(lab) or {}
+            sec.check(leaf_equal(am.get("active_macs_per_request_mean"), rec), f"{pop} {lab}: recorded mean = analysis.json macs",
+                      f"{am.get('active_macs_per_request_mean')} vs {rec}")
+        rr = rep.get((pop, lab))
+        sec.check(rr is not None and rr["requests"] == len(xs) and f"{rec / 1e9:.3f}" == f"{rr['recorded_G']:.3f}"
+                  and f"{exe / 1e9:.3f}" == f"{rr['executed_G']:.3f}" and f"{100 * (exe / rec - 1):.2f}" == f"{rr['difference_pct']:.2f}",
+                  f"{pop} {lab}: own executed MACs = the corrected report's table (3 decimals in G, 2 in %)",
+                  f"own {rec / 1e9:.4f} G -> {exe / 1e9:.4f} G (+{100 * (exe / rec - 1):.3f}%), report {rr}")
+    sec.info["executed_macs"] = table
+    sec.info["reading"] = ("re-derived from controller.step_macs / request_macs (trunk, semantic, pointer terms), "
+                           "controller.pointer_scores and infer_controller.decode_batch at batch size one; the backbone's "
+                           "forward is in neither count")
+
+
+LOCAL_SECTIONS = ("pins", "history", "ledger", "baselines", "train", "eval", "compare", "macs")
+PUBLIC_SECTIONS = ("bundles", "pins_public", "ledger", "train", "eval", "compare", "macs")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("sections", nargs="*", default=None)
-    ap.add_argument("--repo", type=Path, default=HERE.parents[3])
-    ap.add_argument("--runs-root", type=Path, default=Path(os.environ.get("TI_TNN_SCALING_RUNS", DEFAULT_RUNS)))
-    ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument("--public", action="store_true",
+                    help="bundle-only mode: the checkout's pins and committed evidence; no runs root, databases or checkpoints")
+    ap.add_argument("--repo", type=Path, default=HERE.parents[3], help="the checkout (default: the one holding this file)")
+    ap.add_argument("--runs-root", type=Path, default=None,
+                    help="the shared runs directory (local mode; default: $TI_TNN_SCALING_RUNS, no machine default)")
+    ap.add_argument("--out", type=Path, default=DEFAULT_OUT, help="output directory (default: ./verify_perf_out)")
     ap.add_argument("--no-rehash", action="store_true", help="skip re-hashing database files and checkpoints")
     ap.add_argument("--workers", type=int, default=3, help="processes executing SQL (each inherits the CPU affinity)")
+    ap.add_argument("--unchanged-since", default=UNCHANGED_SINCE, help="commit whose SHA256SUMS every bundle file must still match")
     a = ap.parse_args(argv)
-    names = a.sections or [n for n in ("pins", "history", "ledger", "baselines", "train", "eval", "compare") if n in SECTIONS]
+    names = a.sections or list(PUBLIC_SECTIONS if a.public else LOCAL_SECTIONS)
+    repo = a.repo.resolve()
     a.out.mkdir(parents=True, exist_ok=True)
-    runs = a.runs_root.resolve()
-    assert not a.out.resolve().is_relative_to(runs), "the output directory must not be under the runs root"
-    ctx = {"repo": a.repo.resolve(), "runs": runs, "out": a.out, "rehash": not a.no_rehash, "workers": a.workers,
-           "cache": GoldCache(a.out / "gold_exec_cache.json")}
+    ev = repo / HARNESS / "evidence"
+    if a.public:
+        bad = [n for n in names if n not in PUBLIC_SECTIONS]
+        if bad:
+            ap.error(f"sections {bad} need the runs root; public sections are {', '.join(PUBLIC_SECTIONS)}")
+        ctx = {"repo": repo, "runs": None, "public": True, "rehash": False, "workers": a.workers, "out": a.out,
+               "perf_root": ev / "perf_v2", "ledger_path": ev / "perf_v2" / "gpu_ledger.jsonl", "pilot_root": ev / "pilot_v1",
+               "baseline_roots": [ev / "perf_v2" / "baselines", ev / "dev_v1" / "baselines", ev / "pilot_v1" / "L"],
+               "unchanged_since": a.unchanged_since, "cache": None}
+    else:
+        runs_arg = a.runs_root or (Path(os.environ["TI_TNN_SCALING_RUNS"]) if os.environ.get("TI_TNN_SCALING_RUNS") else None)
+        if runs_arg is None:
+            ap.error("local mode needs --runs-root or TI_TNN_SCALING_RUNS (or use --public)")
+        runs = runs_arg.resolve()
+        if a.out.resolve().is_relative_to(runs):
+            ap.error("the output directory must not be under the runs root")
+        ctx = {"repo": repo, "runs": runs, "public": False, "rehash": not a.no_rehash, "workers": a.workers, "out": a.out,
+               "perf_root": runs / "perf_v2", "ledger_path": runs / "gpu_ledger.jsonl", "pilot_root": runs / "pilot",
+               "baseline_roots": [runs / "baselines"], "unchanged_since": a.unchanged_since,
+               "cache": GoldCache(a.out / "gold_exec_cache.json")}
     result = {"verifier": {"file": HARNESS + "independent/verify_perf.py", "sha256": sha256_path(Path(__file__)),
-                           "checkout_commit": git(ctx["repo"], "rev-parse", "HEAD").strip(),
-                           "runs_root": str(runs), "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                           "checkout": str(repo), "checkout_commit": git(repo, "rev-parse", "HEAD").strip(),
+                           "mode": "public (bundles only)" if a.public else "local (runs root)",
+                           "runs_root": str(ctx["runs"]) if ctx["runs"] else None,
+                           "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                            "producer_modules_imported": []},
               "sections": {}}
     for n in names:
@@ -2029,7 +2415,7 @@ def main(argv=None) -> int:
         t0 = time.time()
         try:
             SECTIONS[n](sec, ctx)
-        except Exception as e:  # a crash is a failed check, never a silent pass
+        except Exception:  # a crash is a failed check, never a silent pass
             import traceback
             sec.check(False, f"{n}: section completed without an exception", traceback.format_exc()[-2000:])
         sec.info["seconds"] = round(time.time() - t0, 1)
@@ -2040,10 +2426,11 @@ def main(argv=None) -> int:
             if not c["passed"]:
                 print(f"   FAIL {c['name']}: {str(c['detail'])[:400]}", flush=True)
     result["verifier"]["producer_modules_imported"] = ctx.get("producer_modules_used", [])
-    result["failures"] = sum(s["failures"] for s in result["sections"].values())
-    out = a.out / f"verify_perf_{'_'.join(names)}.json"
+    result["checks"] = sum(s_["passed"] + s_["failures"] for s_ in result["sections"].values())
+    result["failures"] = sum(s_["failures"] for s_ in result["sections"].values())
+    out = a.out / f"verify_perf_{'public' if a.public else 'local'}_{'_'.join(names)}.json"
     out.write_text(json.dumps(result, indent=1, default=str) + "\n")
-    print(f"wrote {out}; failures {result['failures']}")
+    print(f"wrote {out}; {result['checks']} checks, failures {result['failures']}")
     return int(bool(result["failures"]))
 
 
