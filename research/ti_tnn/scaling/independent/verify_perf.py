@@ -749,7 +749,12 @@ AGENT_SOURCES = ("llm_agent.py", "tools.py", "schema.py", "retrieval.py", "runti
                  "records.py", "data.py")   # what decides an LLM baseline's behaviour and its record
 
 
-def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: str) -> dict:
+QWEN_PATH_SOURCES = ("llm_agent.py", "runtime.py", "tools.py", "retrieval.py", "schema.py", "scorer.py", "data.py",
+                     "contracts.py")   # must be byte-identical between a new-population run and its 16-63 reference
+
+
+def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: str, expect=(16, 64), ref_expect=(0, 16),
+                   strict_sources=()) -> dict:
     """One LLM baseline run (B4 or Q27) against its earlier configuration. Returns the per-question table."""
     repo, runs = ctx["repo"], ctx["runs"]
     man = json.loads((run_dir / "manifest.json").read_text())
@@ -802,8 +807,16 @@ def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: s
         if strip(a) == strip(b) and sha256_bytes(git_show(repo, commit, HARNESS + k)) == man["sources"][k] \
                 and sha256_bytes(git_show(repo, ref["git"]["commit"], HARNESS + k)) == ref["sources"][k]:
             neutral.append(k)
-    c(set(agent_diff) == set(neutral), "agent/scorer sources equal to the earlier run's, or differing only in where `import torch` sits",
-      f"changed: {agent_diff}; import-placement-only: {neutral}")
+    if strict_sources:
+        byte = {k: (sha256_bytes(git_show(repo, ref["git"]["commit"], HARNESS + k)), sha256_bytes(git_show(repo, commit, HARNESS + k)),
+                    ref["sources"].get(k), man["sources"].get(k)) for k in strict_sources}
+        bad = {k: v for k, v in byte.items() if len(set(v)) != 1}
+        c(not bad, f"Qwen-path sources byte-identical to the earlier run's ({', '.join(strict_sources)}), at both commits and in both manifests",
+          f"{bad}")
+        sec.info[f"{tag}_qwen_path_sha256"] = {k: v[0] for k, v in byte.items()}
+    else:
+        c(set(agent_diff) == set(neutral), "agent/scorer sources equal to the earlier run's, or differing only in where `import torch` sits",
+          f"changed: {agent_diff}; import-placement-only: {neutral}")
     sec.info[f"{tag}_sources_changed_since_{ref_dir.name}"] = {"all": src_diff, "agent_relevant": agent_diff,
                                                                "agent_changes_only_import_torch_placement": neutral,
                                                                "commits": [ref["git"]["commit"], commit]}
@@ -814,12 +827,16 @@ def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: s
     lo, hi = cfg["positions"]
     rlo, rhi = ref["config"]["positions"]
     order, _excl = rel.inventory(max(hi, rhi))
-    c((lo, hi) == (16, 64) and (rlo, rhi) == (0, 16), "positions: this run [16,64), the earlier run [0,16)", f"{(lo, hi)} {(rlo, rhi)}")
-    c(cfg["requested"] == order[lo:hi], "requested = own inventory rebuild at [16,64)")
-    c(ref["config"]["requested"] == order[rlo:rhi], "the earlier run's requested = own rebuild at [0,16)")
+    c((lo, hi) == tuple(expect) and (rlo, rhi) == tuple(ref_expect), f"positions: this run {list(expect)}, the earlier run {list(ref_expect)}",
+      f"{(lo, hi)} {(rlo, rhi)}")
+    c(cfg["requested"] == order[lo:hi], f"requested = own inventory rebuild at [{lo},{hi})")
+    c(ref["config"]["requested"] == order[rlo:rhi], f"the earlier run's requested = own rebuild at [{rlo},{rhi})")
     ev = json.loads((repo / PIN_DIR / "perf_v2_eval.json").read_text())
-    c(ref["config"]["requested"] + cfg["requested"] == ev["populations"]["historical"]["task_ids"],
-      "the two runs together request exactly the historical 64 of perf_v2_eval, in order")
+    if (lo, hi) == (16, 64):
+        c(ref["config"]["requested"] + cfg["requested"] == ev["populations"]["historical"]["task_ids"],
+          "the two runs together request exactly the historical 64 of perf_v2_eval, in order")
+    if (lo, hi) == (64, 128):
+        c(cfg["requested"] == ev["populations"]["new"]["task_ids"], "requested = the new 64 of perf_v2_eval, in order")
     ids = [r["task_id"] for r in recs]
     c(sorted(ids) == sorted(cfg["requested"]) and len(set(ids)) == len(ids), "every requested task exactly once, nothing else",
       f"missing {sorted(set(cfg['requested']) - set(ids))}, extra {sorted(set(ids) - set(cfg['requested']))}")
@@ -912,6 +929,11 @@ def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: s
                   f"budget-exhausted abstention with {executed} executed calls / an ok final")
             elif reason == "request timeout":
                 v(r["elapsed_seconds"] >= tmo - 5, f"timeout abstention at {r['elapsed_seconds']:.0f} s < {tmo} s")
+            elif reason == "turn truncated at the token limit without a final answer":
+                last = (atts[-1].get("generation") or {}) if atts else {}
+                v(bool(atts) and last.get("finish_reason") == "max_new_tokens" and last.get("generated_tokens") == per_turn
+                  and not last.get("tool_calls") and not any(a.get("final_status") == "ok" for a in atts),
+                  f"truncation abstention whose last turn did not stop at {per_turn} new tokens without tools or a final")
             else:
                 warnings.append(f"{t}: abstention reason {reason!r} not derived here")
         g = [a.get("generation") or {} for a in atts]
@@ -985,24 +1007,41 @@ def verify_llm_run(sec: Section, ctx: dict, run_dir: Path, ref_dir: Path, tag: s
         if m != (r.get("score") or {}).get("correct"):
             ref_mism.append(f"{r['task_id']}: recorded {(r.get('score') or {}).get('correct')}, own {m} ({st}, {secs:.2f} s)")
     c(not ref_mism, f"the earlier run {ref_dir.name}: recorded scores re-derived", f"{ref_mism}")
-    out["historical_64"] = {"p0_16_correct": ref_corr, "p16_64_correct": corr, "total_correct": ref_corr + corr, "of": len(ref_recs) + n}
+    out["reference_run_correct"] = {"run": ref_dir.name, "correct": ref_corr, "of": len(ref_recs)}
+    if (lo, hi) == (16, 64):
+        out["historical_64"] = {"p0_16_correct": ref_corr, "p16_64_correct": corr, "total_correct": ref_corr + corr, "of": len(ref_recs) + n}
     return out
 
 
 @section
 def sec_baselines(sec: Section, ctx: dict) -> None:
     base = ctx["runs"] / "baselines"
+
+    def one(glob_pat: str):
+        found = sorted(base.glob(glob_pat))
+        if len(found) != 1:
+            return None, f"{len(found)} run directories match {glob_pat}"
+        if not (found[0] / "summary.json").exists():
+            n = len(jl(found[0] / "records.jsonl")) if (found[0] / "records.jsonl").exists() else 0
+            return None, f"SKIPPED: {found[0].name} has no summary.json yet (still running; {n} records so far)"
+        return found[0], None
+
     sec.info["B4_p16_64"] = verify_llm_run(sec, ctx, base / B4_P16, base / B4_P0, "B4 16-63")
-    q = sorted(base.glob(Q27_P16_GLOB))
-    if not q:
-        sec.info["Q27_p16_64"] = "no run directory"
-        return
-    qd = q[-1]
-    if not (qd / "summary.json").exists():
-        n = len(jl(qd / "records.jsonl")) if (qd / "records.jsonl").exists() else 0
-        sec.info["Q27_p16_64"] = f"SKIPPED: {qd.name} has no summary.json yet (still running; {n} records so far)"
-        return
-    sec.info["Q27_p16_64"] = verify_llm_run(sec, ctx, qd, base / Q27_P0, "Q27 16-63")
+    qd, why = one(Q27_P16_GLOB)
+    sec.info["Q27_p16_64"] = verify_llm_run(sec, ctx, qd, base / Q27_P0, "Q27 16-63") if qd else why
+    # the new population: each run against its 16-63 run, Qwen-path sources byte-identical
+    train_mans = sorted((perf_root(ctx) / "train").glob("*/attempts/*/manifest.json"))
+    frozen = json.loads(train_mans[0].read_text())["git"]["commit"] if train_mans else None
+    for arm, pat, ref in (("B4", "*_B4_thinking_p64-128", base / B4_P16), ("Q27", "*_Q27_thinking_low_p64-128", qd)):
+        d, why = one(pat)
+        if d is None or ref is None:
+            sec.info[f"{arm}_p64_128"] = why or "no 16-63 reference run"
+            continue
+        sec.info[f"{arm}_p64_128"] = verify_llm_run(sec, ctx, d, ref, f"{arm} 64-127", expect=(64, 128), ref_expect=(16, 64),
+                                                    strict_sources=QWEN_PATH_SOURCES)
+        commit = json.loads((d / "manifest.json").read_text())["git"]["commit"]
+        sec.check(frozen is not None and commit == frozen, f"{arm} 64-127: run from the frozen commit of the fits and evaluations",
+                  f"{commit} vs {frozen}")
 
 
 # === phase 2: training, evaluation, comparison ==========================================================================
@@ -1551,7 +1590,7 @@ def sec_eval(sec: Section, ctx: dict) -> None:
     sec.info["ex_executions"] = {"unique_question_sql_pairs": len(cache), "seconds": round(ctx.get("ex_seconds", 0), 1)}
     sec.info["record_arm_spelling_note"] = ("records spell the shared arm 'C4_params'; configs and summaries 'c4_params' "
                                             "(accepted as the same arm)")
-    ctx["perf_eval"] = {"correct": correct, "chosen": {s: d.name for s, d in chosen.items()},
+    ctx["perf_eval"] = {"correct": correct, "chosen": {s: d.name for s, d in chosen.items()}, "all_runs": all_runs,
                         "db_of": {t: rel.by_id[t]["db_id"] for t in ids}, "hist": hist, "new": new, "rel": rel,
                         "records": {(lab, s): recs_of[(chosen[s].name, lab)] for s in chosen for lab in PERF_LABELS}}
 
@@ -1649,7 +1688,147 @@ def baseline_population(sec: Section, ctx: dict, rel: Release, arm: str, pop: st
     sec.check(not mism, f"{arm} {pop}: recorded scores re-derived with the own EX rule", f"{mism}")
     return {"status": "complete", "runs": refs, "correct": sum(own.values()), "per_question": own,
             "abstained": sum(recs[t]["final"]["kind"] == "abstain" for t in ids),
-            "time_to_submission_seconds": sum(recs[t]["elapsed_seconds"] for t in ids)}
+            "time_to_submission_seconds": sum(recs[t]["elapsed_seconds"] for t in ids), "_records": [recs[t] for t in ids]}
+
+
+# --- the analysis.json mirror: each field re-derived from the records, the own scores and the ledger ------------------
+def own_serving(records: list, per_q: "dict | None", flat: "list | None" = None) -> dict:
+    """Time to SQL submission (record elapsed) and the scorer's execution of the submitted query (recorded
+    score.predicted), separately and together; EX-correct from the own scores; timeouts as recorded by the scorer."""
+    ok = sum(flat) if flat is not None else sum(per_q[r["task_id"]] for r in records)
+    gen = sum(r["elapsed_seconds"] for r in records)
+    exe = sum(((r["score"].get("predicted") or {}).get("elapsed_seconds") or 0.0) for r in records)
+    return {"requests": len(records), "ex_correct": ok, "time_to_submission_seconds": gen,
+            "submitted_execution_seconds": exe, "together_seconds": gen + exe,
+            "mean_time_to_submission": gen / len(records) if records else None,
+            "timeouts": sum((r["score"].get("predicted") or {}).get("status") == "timeout" for r in records),
+            "abstentions": sum(r["final"]["kind"] == "abstain" for r in records),
+            "generation_per_ex_correct": gen / ok if ok else None,
+            "together_per_ex_correct": (gen + exe) / ok if ok else None}
+
+
+def own_macs(records: list) -> dict:
+    """Mean active MACs per request (backbone request MACs + the controller's trunk, semantic and pointer MACs, as
+    recorded) and mean decode steps. Re-derives the aggregation only; the per-request MAC counts are the producer's."""
+    import statistics
+    per = [r["controller_work"]["request_macs"] + sum(r["controller_work"]["macs"].values()) for r in records
+           if r.get("controller_work") and "macs" in r["controller_work"]]
+    steps = [r["controller_work"]["steps"] for r in records if r.get("controller_work")]
+    return {"active_macs_per_request_mean": statistics.mean(per) if per else None,
+            "decode_steps_mean": statistics.mean(steps) if steps else None}
+
+
+PRODUCER_STRATA = """
+import json, sys
+from scaling import data, ir, sql_to_ir
+from scaling import schema as schema_mod
+from scaling import perf_analysis as A
+out = {}
+for t in json.loads(sys.stdin.read()):
+    index = ir.SchemaIndex.from_schema(schema_mod.load_schema(data.task(t).db_id))
+    plan, err = sql_to_ir.try_convert(data.gold(t).sql, index)
+    out[t] = A.strata(plan if err is None else None)
+print("STRATA " + json.dumps(out))
+"""
+
+
+def producer_strata(ctx: dict, worktree: Path, commit: str, ids: list) -> tuple:
+    """FLAGGED PRODUCER CODE: the per-question semantic strata of the gold programs, from scaling.perf_analysis.strata
+    over scaling.sql_to_ir (the gold-program conversion is the producer's grammar, not re-implemented here). Run in a
+    separate process from the frozen worktree at the analysis commit, read-only (-B, no bytecode written)."""
+    head = git(worktree, "rev-parse", "HEAD").strip()
+    dirty = git(worktree, "status", "--porcelain", "--", "research/ti_tnn").strip()
+    if head != commit or dirty:
+        return None, f"worktree {worktree} at {head} (want {commit}), dirty: {dirty[:200]}"
+    env = dict(os.environ, PYTHONPATH=str(worktree / "research" / "ti_tnn"), PYTHONDONTWRITEBYTECODE="1",
+               CUDA_VISIBLE_DEVICES="", TI_TNN_SCALING_RUNS=str(ctx["runs"]))
+    res = subprocess.run([sys.executable, "-B", "-c", PRODUCER_STRATA], input=json.dumps(ids), capture_output=True,
+                         text=True, env=env, cwd=ctx["out"])
+    line = [x for x in res.stdout.splitlines() if x.startswith("STRATA ")]
+    if res.returncode or not line:
+        return None, f"exit {res.returncode}: {res.stderr[-600:]}"
+    return json.loads(line[-1][len("STRATA "):]), None
+
+
+def strata_tally(strata_of: dict, correct: dict, seeds: list, ids: list) -> dict:
+    out = {}
+    for t in ids:
+        for dim, value in strata_of[t].items():
+            row = out.setdefault(dim, {}).setdefault(value, {"questions": 0, **{lab: 0 for lab in PERF_LABELS}})
+            row["questions"] += 1
+            for lab in PERF_LABELS:
+                row[lab] += sum(correct[(lab, s)][t] for s in seeds)
+    return out
+
+
+def training_mirror(ctx: dict, seeds: list) -> dict:
+    import statistics
+    out = {}
+    for lab in PERF_LABELS:
+        for s in seeds:
+            rd = perf_root(ctx) / "train" / f"{lab}_s{s}"
+            logs = jl(rd / "train_log.jsonl")
+            atts = [json.loads((a / "summary.json").read_text()) for a in sorted((rd / "attempts").glob("*"))
+                    if (a / "summary.json").exists()]
+            cfg = json.loads((rd / "config.json").read_text())
+            out[f"{lab}/{s}"] = {"updates": len(logs), "loss_first_last": [logs[0]["loss"], logs[-1]["loss"]],
+                                 "seconds_per_update_mean": statistics.mean(r["wall_seconds"] for r in logs),
+                                 "reservation_hours": sum(a["reservation"]["hours"] for a in atts), "attempts": len(atts),
+                                 "peak_memory_bytes": max((a.get("peak_memory_bytes") or 0) for a in atts) if atts else None,
+                                 "parameters": cfg["parameters"]}
+    return out
+
+
+def ledger_at(path: Path, t_cut: float) -> dict:
+    """The ledger's usage as it stood at wall-clock time t_cut (ledger.py's rule: ended = its elapsed; open = last
+    heartbeat + 30 s)."""
+    res = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        e = json.loads(line)
+        if e["t"] > t_cut:
+            continue
+        r = res.setdefault(e["reservation"], {"elapsed": 0.0, "ended": False})
+        if e["event"] in ("heartbeat", "end"):
+            r["elapsed"] = max(r["elapsed"], float(e.get("elapsed", 0.0)))
+        if e["event"] == "end":
+            r["ended"] = True
+    used = sum((r["elapsed"] if r["ended"] else r["elapsed"] + HEARTBEAT_SECONDS) for r in res.values()) / 3600.0
+    return {"used_hours": used, "open": [k for k, r in res.items() if not r["ended"]]}
+
+
+def leaf_equal(a, b) -> bool:
+    if isinstance(a, bool) or isinstance(b, bool):
+        return type(a) is type(b) and a == b
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return a == b or math.isclose(a, b, rel_tol=1e-9, abs_tol=1e-12)
+    return a == b
+
+
+def deep_diff(theirs, mine, path="", out=None) -> dict:
+    out = out if out is not None else {"compared": 0, "differ": [], "only_in_analysis": [], "only_in_mine": []}
+    if isinstance(theirs, dict) and isinstance(mine, dict):
+        for k in theirs:
+            if k not in mine:
+                out["only_in_analysis"].append(f"{path}.{k}")
+            else:
+                deep_diff(theirs[k], mine[k], f"{path}.{k}", out)
+        out["only_in_mine"] += [f"{path}.{k}" for k in mine if k not in theirs]
+    elif isinstance(theirs, list) and isinstance(mine, list):
+        if len(theirs) != len(mine):
+            out["differ"].append([path, f"length {len(theirs)}", f"length {len(mine)}"])
+        for i, (x, y) in enumerate(zip(theirs, mine)):
+            deep_diff(x, y, f"{path}[{i}]", out)
+    else:
+        out["compared"] += 1
+        if not leaf_equal(theirs, mine):
+            out["differ"].append([path, theirs, mine])
+    return out
+
+
+READING_KEYWORDS = {"A1": ("confirmation",), "I1 for both with A3": ("engineering gain", "specialization"),
+                    "I3 for both": ("diagnose",)}
 
 
 @section
@@ -1668,7 +1847,7 @@ def sec_compare(sec: Section, ctx: dict) -> None:
     sec.info["analysis_json"] = str(an_dirs[-1].relative_to(ctx["runs"])) if an_dirs else "not yet produced (perf-analyze has not run)"
     if an_dirs:
         sec.check(len(an_dirs) == 1, "exactly one analysis.json", f"{[str(p) for p in an_dirs]}")
-    out, disagreements = {}, []
+    out, mirror_pops, strata_ids = {}, {}, {}
     for pop, ids in (("historical", pe["hist"]), ("new", pe["new"])):
         counts = {f"{lab}/{s}": sum(correct[(lab, s)][t] for t in ids) for lab in PERF_LABELS for s in seeds}
         q1 = {arch: own_paired(correct, f"{arch}-v2", f"{arch}-v1", seeds, ids, db_of) for arch in ("T4", "C4")}
@@ -1692,41 +1871,33 @@ def sec_compare(sec: Section, ctx: dict) -> None:
              "q1": q1, "q2": q2, "q2_v1_descriptive": q2v1,
              "reading": own_reading(q1["T4"]["rule"], q1["C4"]["rule"], q2["rule"]),
              "per_database": table,
-             "baselines": {arm: ({k: v for k, v in b.items() if k != "per_question"} if b else None) for arm, b in base.items()}}
+             "baselines": {arm: ({k: v for k, v in b.items() if k not in ("per_question", "_records")} if b else None)
+                           for arm, b in base.items()}}
         out[pop] = o
-        # --- agreement with analysis.json ---------------------------------------------------------------------------
-        if an is not None:
-            ap = (an.get("populations") or {}).get(pop) or {}
-            cmp = {"counts": ap.get("counts") == counts}
-            for name, mine, theirs in (("q1.T4", q1["T4"], (ap.get("q1") or {}).get("T4")), ("q1.C4", q1["C4"], (ap.get("q1") or {}).get("C4")),
-                                       ("q2", q2, ap.get("q2")), ("q2_v1", q2v1, ap.get("q2_v1_descriptive"))):
-                theirs = theirs or {}
-                for k in ("per_seed", "pooled", "threshold", "sign", "conditions", "all_conditions", "per_database",
-                          "leave_one_database_out", "per_question_histogram"):
-                    cmp[f"{name}.{k}"] = theirs.get(k) == mine[k]
-                cmp[f"{name}.rule"] = str(theirs.get("rule", "")).split(":")[0] == mine["rule"]
-                sf = theirs.get("exploratory_sign_flip") or {}
-                cmp[f"{name}.sign_flip"] = {k: sf.get(k) for k in mine["exploratory_sign_flip"]} == mine["exploratory_sign_flip"]
-            pq = ap.get("per_question") or {}
-            cmp["per_question"] = pq == {t: {f"{lab}/{s}": correct[(lab, s)][t] for lab in PERF_LABELS for s in seeds} for t in ids}
-            for arm, b in base.items():
-                theirs = (ap.get("baselines") or {}).get(arm)
-                if b and b.get("status") == "complete":
-                    cmp[f"baseline.{arm}"] = bool(theirs) and theirs.get("correct") == b["correct"] and theirs.get("per_question") == b["per_question"]
-                else:
-                    cmp[f"baseline.{arm}"] = theirs is None
-            for k, v in cmp.items():
-                sec.check(v, f"{pop}: analysis.json agrees on {k}")
-                if not v:
-                    disagreements.append(f"{pop}.{k}")
-            o["analysis_reading"] = ap.get("reading")
-    if an is not None:
-        ev = (an.get("inputs") or {}).get("evaluations_counted") or {}
-        sec.check({str(k): v for k, v in ev.items()} == {str(s): f"perf_v2/eval/{n}" for s, n in pe["chosen"].items()},
-                  "analysis.json counted the same evaluations", f"{ev}")
-        if not ({str(k): v for k, v in ev.items()} == {str(s): f"perf_v2/eval/{n}" for s, n in pe["chosen"].items()}):
-            disagreements.append("inputs.evaluations_counted")
-    out["analysis_disagreements"] = disagreements if an is not None else "analysis.json not yet produced"
+        # --- this population's half of the analysis.json mirror (from the own scores and the records) ----------------
+        recs_pop = {key: {r["task_id"]: r for r in rr} for key, rr in pe["records"].items()}
+        cor = lambda lab, s: {t: correct[(lab, s)][t] for t in ids}  # noqa: E731
+        mirror_pops[pop] = {
+            "questions": len(ids), "counts": counts,
+            "q1": {arch: {**q1[arch], "rule": q1[arch]["rule"]} for arch in q1}, "q2": q2, "q2_v1_descriptive": q2v1,
+            "per_question": {t: {f"{lab}/{s}": correct[(lab, s)][t] for lab in PERF_LABELS for s in seeds} for t in ids},
+            "serving": {f"{lab}/{s}": own_serving([recs_pop[(lab, s)][t] for t in ids], cor(lab, s)) for lab in PERF_LABELS for s in seeds},
+            "serving_pooled": {lab: own_serving([recs_pop[(lab, s)][t] for s in seeds for t in ids],
+                                                None, [correct[(lab, s)][t] for s in seeds for t in ids]) for lab in PERF_LABELS},
+            "macs": {lab: own_macs([recs_pop[(lab, s)][t] for s in seeds for t in ids]) for lab in PERF_LABELS},
+            "strata": "pending", "baselines": {}, "reading": o["reading"]}
+        strata_ids[pop] = ids
+        for arm, b in base.items():
+            if b and b.get("status") == "complete":
+                rr = b["_records"]
+                mirror_pops[pop]["baselines"][arm] = {
+                    "runs": [f"baselines/{x}" for x in b["runs"]], "correct": b["correct"], "per_question": b["per_question"],
+                    "serving": own_serving(rr, b["per_question"]), "tool_calls": sum(r["tool_calls"] for r in rr),
+                    "repairs": sum(r["repairs"] for r in rr),
+                    "abstention_reasons": {k: sum(1 for r in rr if r["final"]["kind"] == "abstain" and r["final"].get("reason") == k)
+                                           for k in sorted({r["final"].get("reason") for r in rr if r["final"]["kind"] == "abstain"})}}
+            else:
+                mirror_pops[pop]["baselines"][arm] = None
 
     # --- the pilot's 1,500-update fits on the historical 64, separately (re-scored here) -------------------------------
     pilot_eval = ctx["runs"] / "pilot" / "eval"
@@ -1750,6 +1921,86 @@ def sec_compare(sec: Section, ctx: dict) -> None:
         dk = sorted(k for k in set(a_["config"]) | set(b_["config"]) if a_["config"].get(k) != b_["config"].get(k))
         sec.check(dk == ["positions", "requested"] and b_["config"]["positions"] == [64, 128] and b_["config"]["requested"] == pe["new"],
                   "L on the new 64: configuration = the historical L run's except positions [64,128) and the new ids", f"{dk}")
+
+    # --- every field of analysis.json against the mirror ---------------------------------------------------------------
+    if an is None:
+        out["analysis_comparison"] = "analysis.json not yet produced"
+        sec.info.update(out)
+        return
+    an_dir = an_dirs[-1].parent
+    an_man = json.loads((an_dir / "manifest.json").read_text())
+    sec.check(an_man["git"]["research_tree_dirty"] is False and not an_man["git"]["dirty_paths"], "analysis: run from a clean tree",
+              f"{an_man['git']}")
+    sec.check(an_man["git"]["commit"] == ctx.get("train_commit", an_man["git"]["commit"]), "analysis: at the commit of the fits",
+              an_man["git"]["commit"])
+    # strata: the producer's classification (flagged), tallied here with the own scores
+    strata_of, why = producer_strata(ctx, Path(an_man["git"]["worktree"]), an_man["git"]["commit"], pe["hist"] + pe["new"])
+    flagged = ctx.setdefault("producer_modules_used", [])
+    flagged.append("scaling.perf_analysis.strata + scaling.sql_to_ir/ir/schema/data (gold-program strata classification only; "
+                   "subprocess, frozen worktree)")
+    if sec.check(strata_of is not None, "producer strata classification ran (flagged)", why or ""):
+        for pop, ids in strata_ids.items():
+            mirror_pops[pop]["strata"] = strata_tally(strata_of, correct, seeds, ids)
+    pin = json.loads((ctx["repo"] / PIN_DIR / "perf_v2_protocol.json").read_text())
+    t_cut = datetime.strptime(an_dir.name, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+    led = ledger_at(ctx["runs"] / "gpu_ledger.jsonl", t_cut + 600)   # usage() runs at the end of the analysis
+    led_early = ledger_at(ctx["runs"] / "gpu_ledger.jsonl", t_cut)
+    rs_all, _p = parse_ledger(ctx["runs"] / "gpu_ledger.jsonl")
+    never_ended = sorted(r["id"] for r in rs_all if r["open"] and r["t_start"] < t_cut)
+    sec.check(abs(led["used_hours"] - led_early["used_hours"]) < 1e-12 and led["open"] == led_early["open"]
+              and sorted(led["open"]) == never_ended,
+              "ledger: usage identical at the analysis start and 10 min later; the only unended reservations are ones that never ended",
+              f"{led_early} vs {led}; never ended {never_ended}")
+    mirror = {"protocol": {k: pin[k] for k in ("file", "sha256", "frozen_at", "updates")}, "seeds": seeds,
+              "threshold": THRESHOLD_THREE_SEEDS, "populations": mirror_pops,
+              "inputs": {"evaluations_counted": {str(s): f"perf_v2/eval/{n}" for s, n in pe["chosen"].items()},
+                         "evaluations_all": [{"passed": r["eligible"], "run": r["run"], "seed": r["seed"]} for r in pe["all_runs"]]},
+              "pilot_1500_updates_historical": {f"{'C4_params' if k.startswith('c4_params') else 'T4'}/{k.split('/')[1]}": v for k, v in pil.items()},
+              "training": training_mirror(ctx, seeds),
+              "ledger": {"authorization": 2, "cap_hours": 32.0, "ledger": str(ctx["runs"] / "gpu_ledger.jsonl"),
+                         "used_hours": led["used_hours"], "remaining_hours": 32.0 - led["used_hours"]}}
+    # the rules: compare the code; the readings: by the protocol's bullet
+    theirs = json.loads(json.dumps(an))
+    rule_texts = {}
+    for pop, ap in (theirs.get("populations") or {}).items():
+        for key in ("q2", "q2_v1_descriptive"):
+            if isinstance(ap.get(key), dict) and "rule" in ap[key]:
+                rule_texts[f"{pop}.{key}"] = ap[key]["rule"]
+                ap[key]["rule"] = str(ap[key]["rule"]).split(":")[0]
+        for arch, d in (ap.get("q1") or {}).items():
+            rule_texts[f"{pop}.q1.{arch}"] = d.get("rule")
+            d["rule"] = str(d.get("rule")).split(":")[0]
+        reading = ap.pop("reading", None)
+        mine_reading = mirror_pops.get(pop, {}).pop("reading", "")
+        cat = next((k for k in READING_KEYWORDS if mine_reading.startswith(k)), None)
+        ok = cat is not None and all(w in str(reading) for w in READING_KEYWORDS[cat])
+        sec.check(ok, f"{pop}: analysis.json's reading matches the protocol's reading for the own rules ({mine_reading.split(':')[0]})",
+                  f"analysis: {reading!r}")
+    sec.info["analysis_rule_texts"] = rule_texts
+    diff = deep_diff(theirs, mirror)
+    groups = sorted({p.split(".")[1] if not p.startswith(".populations") else ".".join(p.split(".")[1:4]).split("[")[0]
+                     for p in [x[0] for x in diff["differ"]] + diff["only_in_analysis"]})
+    top = ["protocol", "seeds", "threshold", "inputs", "pilot_1500_updates_historical", "training", "ledger"] + \
+          [f"populations.{pop}.{k}" for pop in ("historical", "new") for k in
+           ("questions", "counts", "q1", "q2", "q2_v1_descriptive", "per_question", "serving", "serving_pooled", "macs", "strata", "baselines")]
+    for g in top:
+        bad = [x for x in diff["differ"] if x[0] == f".{g}" or x[0].startswith(f".{g}.") or x[0].startswith(f".{g}[")]
+        missing = [x for x in diff["only_in_analysis"] if x == f".{g}" or x.startswith(f".{g}.")]
+        sec.check(not bad and not missing, f"analysis.json {g}: every field equals the own re-derivation",
+                  f"{len(bad)} differ, first {bad[:4]}; not re-derived {missing[:4]}")
+    other = [x for x in diff["only_in_analysis"] if not any(x == f".{g}" or x.startswith(f".{g}.") for g in top)]
+    sec.check(not other, "analysis.json has no field outside the groups re-derived here", f"{other[:8]}")
+    out["analysis_comparison"] = {"file": str(an_dirs[-1].relative_to(ctx["runs"])), "leaves_compared": diff["compared"],
+                                  "differ": diff["differ"][:50], "differ_count": len(diff["differ"]),
+                                  "not_re_derived": diff["only_in_analysis"], "only_in_mirror": diff["only_in_mine"][:20],
+                                  "groups_with_differences": groups}
+    # the attempt summaries' reservation hours against the ledger charges
+    rs, _p = parse_ledger(ctx["runs"] / "gpu_ledger.jsonl")
+    by_cmd = {r["start"]["command"]: r for r in rs}
+    far = {k: (v["reservation_hours"], by_cmd.get(f"perf-train {k.split('/')[0]} s{k.split('/')[1]}", {}).get("hours"))
+           for k, v in mirror["training"].items()}
+    sec.check(all(b is not None and abs(a - b) < 60 / 3600 for a, b in far.values()),
+              "training reservation_hours (attempt summaries) within 60 s of the ledger charges", f"{far}")
     sec.info.update(out)
 
 
@@ -1788,6 +2039,7 @@ def main(argv=None) -> int:
         for c in sec.checks:
             if not c["passed"]:
                 print(f"   FAIL {c['name']}: {str(c['detail'])[:400]}", flush=True)
+    result["verifier"]["producer_modules_imported"] = ctx.get("producer_modules_used", [])
     result["failures"] = sum(s["failures"] for s in result["sections"].values())
     out = a.out / f"verify_perf_{'_'.join(names)}.json"
     out.write_text(json.dumps(result, indent=1, default=str) + "\n")
