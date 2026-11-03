@@ -106,10 +106,15 @@ def _check_summary(recomputed: dict, recorded: dict, problems: list, where: str)
 
 
 def _check_ledger(run_dir: Path, problems: list) -> list:
-    from . import ledger
-    found = []
-    for entry in ledger.read():
-        if entry.get("event") == "start" and (entry.get("extra") or {}).get("run_dir") == str(run_dir):
+    from . import identity, ledger
+    found, ref = [], identity.run_ref(run_dir)
+    for entry in ledger.read():  # matched by the run's reference, so a moved runs root still finds its reservations
+        recorded = (entry.get("extra") or {}).get("run_dir") if entry.get("event") == "start" else None
+        try:
+            same = recorded is not None and identity.run_ref(recorded) == ref
+        except identity.IdentityError:  # a reservation for something outside the runs root
+            same = False
+        if same:
             found.append(entry["reservation"])
     usage = {r["reservation"]: r for r in ledger.usage()["reservations"]}
     out = [usage[r] for r in found if r in usage]

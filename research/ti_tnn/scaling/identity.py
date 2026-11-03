@@ -44,6 +44,60 @@ def sha256_file(path, chunk: int = 1 << 22) -> str:
     return h.hexdigest()
 
 
+def write_durable(path, data) -> None:
+    """Write `data` (str or bytes) so that it is on disk before it is visible: a temporary file in the same
+    directory, fsync, an atomic rename, then fsync of the directory. A host crash (2026-10-30) left files whose sizes
+    reached the disk but whose data did not."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    with open(tmp, "wb") as f:
+        f.write(data.encode() if isinstance(data, str) else data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
+    fsync_dir(path.parent)
+
+
+def fsync_dir(directory) -> None:
+    fd = os.open(directory, os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+RUN_KINDS = ("baselines", "pilot", "profiles", "smoke", "timing")  # the runs root's top-level run directories
+
+
+def run_ref(path, root=None) -> str:
+    """A run's stable reference: its path relative to the runs root, in POSIX form, which survives moving the runs
+    root, the evidence or the checkout. Records made before this helper hold absolute paths; compare runs by their
+    references, never by absolute path.
+
+    **Example.** `/home/a/repo/runs/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z` and
+    `/mnt/copy/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z` both give `pilot/eval/s100_20261102T044302Z`.
+
+    The rules:
+    - a relative path is already a reference;
+    - an absolute path under `root` (default: the runs root) is taken relative to it;
+    - any other absolute path is cut before the last component that names a top-level run kind (`RUN_KINDS`); those
+      are the runs root's only children that hold runs, so that suffix is the path relative to the runs root it was
+      recorded under.
+    A path with none of them is refused, rather than compared by its absolute form."""
+    p = PurePath(str(path))
+    if not p.is_absolute():
+        return p.as_posix()
+    root = PurePath(str(C.RUNS if root is None else root))
+    if p.is_relative_to(root):
+        return p.relative_to(root).as_posix()
+    parts = p.parts
+    for i in range(len(parts) - 1, -1, -1):
+        if parts[i] in RUN_KINDS:
+            return PurePath(*parts[i:]).as_posix()
+    raise IdentityError(f"{path}: not under the runs root and names no run kind {RUN_KINDS}")
+
+
 def _canon(obj):
     """A strictly JSON-shaped copy: string keys only; tuples and lists as lists; sets as sorted lists; dataclasses as
     dicts; paths as strings. Anything else raises, so an identity can never depend on a repr or on hash order."""
@@ -186,5 +240,5 @@ def write_manifest(run_dir: Path, *, config: dict, extra: dict | None = None, re
                 "config": _canon(config), "config_identity": content_identity(config), "environment": environment(),
                 **_canon(extra or {})}
     run_dir.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n")
+    write_durable(path, json.dumps(manifest, indent=1, sort_keys=True) + "\n")
     return manifest

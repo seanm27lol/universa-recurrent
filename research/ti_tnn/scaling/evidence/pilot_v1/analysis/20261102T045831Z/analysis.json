@@ -1,0 +1,275 @@
+{
+ "cleared_L_in_both_seeds": {
+  "T4": true,
+  "c4_params": false
+ },
+ "counts": {
+  "L": 4,
+  "T4/100": 9,
+  "T4/101": 9,
+  "c4_params/100": 4,
+  "c4_params/101": 10,
+  "questions": 64
+ },
+ "databases": {
+  "computer_student": {
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 1,
+   "c4_params/101": 1,
+   "difference": 0,
+   "questions": 4
+  },
+  "disney": {
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 1,
+   "c4_params/101": 1,
+   "difference": 0,
+   "questions": 4
+  },
+  "food_inspection": {
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 1,
+   "c4_params/101": 2,
+   "difference": -2,
+   "questions": 4
+  },
+  "hockey": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 1,
+   "questions": 5
+  },
+  "ice_hockey_draft": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0,
+   "questions": 5
+  },
+  "image_and_language": {
+   "L": 1,
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 1,
+   "questions": 5
+  },
+  "music_platform_2": {
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1,
+   "questions": 4
+  },
+  "professional_basketball": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0,
+   "questions": 5
+  },
+  "public_review_platform": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0,
+   "questions": 5
+  },
+  "simpson_episodes": {
+   "L": 1,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1,
+   "questions": 5
+  },
+  "soccer_2016": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0,
+   "questions": 5
+  },
+  "software_company": {
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0,
+   "questions": 4
+  },
+  "talkingdata": {
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1,
+   "questions": 4
+  },
+  "world": {
+   "L": 2,
+   "T4/100": 2,
+   "T4/101": 3,
+   "c4_params/100": 1,
+   "c4_params/101": 3,
+   "difference": 1,
+   "questions": 5
+  }
+ },
+ "differences": {
+  "per_seed": {
+   "100": 5,
+   "101": -1
+  },
+  "pooled": 4,
+  "pooled_out_of": 128
+ },
+ "exploratory_sign_flip": {
+  "assignments": 128,
+  "blocks": 14,
+  "nonzero_blocks": 7,
+  "observed": 4,
+  "p_two_sided": 0.359375,
+  "smallest_attainable_p": 0.015625
+ },
+ "gold_representability": {
+  "correct_on_unrepresentable": {
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 1,
+   "c4_params/101": 1
+  },
+  "of": 64,
+  "per_question": {
+   "bird23tf-00417": "representable",
+   "bird23tf-00443": "representable",
+   "bird23tf-00469": "representable",
+   "bird23tf-00788": "representable",
+   "bird23tf-00809": "representable",
+   "bird23tf-00840": "representable",
+   "bird23tf-00851": "representable",
+   "bird23tf-01149": "representable",
+   "bird23tf-01158": "representable",
+   "bird23tf-01167": "not encodable: literal not groundable",
+   "bird23tf-01479": "representable",
+   "bird23tf-01560": "representable",
+   "bird23tf-01565": "representable",
+   "bird23tf-01625": "representable",
+   "bird23tf-01627": "representable",
+   "bird23tf-01628": "representable",
+   "bird23tf-01640": "representable",
+   "bird23tf-01686": "not encodable: literal not groundable",
+   "bird23tf-01859": "representable",
+   "bird23tf-02636": "not encodable: literal not groundable",
+   "bird23tf-02659": "representable",
+   "bird23tf-02663": "representable",
+   "bird23tf-02664": "representable",
+   "bird23tf-02670": "not encodable: literal not groundable",
+   "bird23tf-02956": "representable",
+   "bird23tf-02969": "representable",
+   "bird23tf-02994": "representable",
+   "bird23tf-03022": "representable",
+   "bird23tf-03029": "representable",
+   "bird23tf-03037": "representable",
+   "bird23tf-03127": "representable",
+   "bird23tf-03130": "not encodable: literal not groundable",
+   "bird23tf-03134": "representable",
+   "bird23tf-03139": "representable",
+   "bird23tf-03420": "representable",
+   "bird23tf-03434": "representable",
+   "bird23tf-03442": "representable",
+   "bird23tf-03525": "representable",
+   "bird23tf-03526": "representable",
+   "bird23tf-03528": "representable",
+   "bird23tf-03551": "representable",
+   "bird23tf-03943": "representable",
+   "bird23tf-03953": "representable",
+   "bird23tf-04097": "representable",
+   "bird23tf-04254": "representable",
+   "bird23tf-04345": "representable",
+   "bird23tf-04392": "representable",
+   "bird23tf-04507": "representable",
+   "bird23tf-04521": "representable",
+   "bird23tf-04901": "representable",
+   "bird23tf-04905": "representable",
+   "bird23tf-04970": "representable",
+   "bird23tf-04982": "representable",
+   "bird23tf-05284": "representable",
+   "bird23tf-05697": "representable",
+   "bird23tf-05703": "representable",
+   "bird23tf-05748": "representable",
+   "bird23tf-05912": "representable",
+   "bird23tf-05928": "representable",
+   "bird23tf-06046": "representable",
+   "bird23tf-06228": "not encodable: literal not groundable",
+   "bird23tf-06507": "representable",
+   "bird23tf-06518": "representable",
+   "bird23tf-06520": "representable"
+  },
+  "reasons": {
+   "not encodable": 6
+  },
+  "representable": 58
+ },
+ "inputs": {
+  "L": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/baselines/20261102T045453Z_L_nonthinking_p0-64",
+  "evaluations_all": [
+   {
+    "passed": true,
+    "run": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z",
+    "seed": 100
+   },
+   {
+    "passed": true,
+    "run": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/eval/s101_20261102T044759Z",
+    "seed": 101
+   }
+  ],
+  "evaluations_counted": {
+   "100": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/eval/s100_20261102T044302Z",
+   "101": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/eval/s101_20261102T044759Z"
+  },
+  "protocol": {
+   "file": "research/ti_tnn/scaling/docs/PROTOCOL_pilot.md",
+   "frozen_at": "5bb852c4077cfcaec10c0a9f5e1dcb635087e1cb",
+   "sha256": "81427fdc798b38df2416eb3a6ace09b99338722055b069f25cdd54628aae6c71"
+  }
+ },
+ "lead_threshold": 7,
+ "per_question_difference_histogram": {
+  "-1": 5,
+  "0": 51,
+  "1": 7,
+  "2": 1
+ },
+ "rule": "A3: no pilot difference by the pre-set rule",
+ "training_exclusion_rate": {
+  "excluded": 330,
+  "note": "training-pool questions without a supervisable gold program; an exclusion rate for training, not an evaluation ceiling",
+  "pool": 5071,
+  "rate": 0.0650759219088937
+ }
+}

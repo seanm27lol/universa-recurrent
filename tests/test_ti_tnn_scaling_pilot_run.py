@@ -1,0 +1,453 @@
+"""The pilot's commands end to end on the CPU, with a tiny random Qwen3.5 backbone and a synthetic database (no
+downloaded data, no GPU, no ledger):
+
+    feasibility (measure, project) -> encode dev (with the determinism recheck) -> encode train chunks
+    -> train both arms -> final-checkpoint gate -> evaluate (timed + reconstruction) -> analyze
+
+**The refusals and stops it checks:**
+- an unfrozen or changed protocol;
+- a missing anchor;
+- anchors from a dirty tree or another protocol;
+- a torn last anchor line;
+- a run directory without `--resume`, and `--resume` on a completed run (a complete log AND a sound final
+  checkpoint);
+- a complete log whose final checkpoint is missing, or damaged, resumes instead of being refused;
+- a moved runs root still resumes from its own checkpoints;
+- a training log that is not complete;
+- a final checkpoint whose attempt summary was lost (recovered from `checkpoints.jsonl`);
+- a recomputed development context that differs;
+- a fresh-vs-anchor mismatch, and a cross-arm states mismatch, at evaluation;
+- an evaluation whose reconstruction inventory holds a false entry while its summary still says passed;
+- an analysis with two passing evaluations for one seed."""
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "research" / "ti_tnn"))
+torch = pytest.importorskip("torch")
+pytest.importorskip("transformers.models.qwen3_5")
+pytest.importorskip("sqlglot")
+from scaling import contracts as C  # noqa: E402
+from scaling import encode as E  # noqa: E402
+from scaling import pilot as P  # noqa: E402
+from scaling import pilot_run as R  # noqa: E402
+from scaling import schema as schema_mod  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import test_ti_tnn_scaling_controller as TC  # noqa: E402
+
+REAL_PROTOCOL_IDENTITY = R.protocol_identity
+QUESTIONS = [("Who directed the movie Alpha?", "Alpha refers to title = 'Alpha';",
+              "SELECT director FROM movies WHERE title = 'Alpha'"),
+             ("How many movies did Jo direct after 1999?", "Jo refers to director = 'Jo';",
+              "SELECT COUNT(*) FROM movies WHERE director = 'Jo' AND year > 1999"),
+             ("Which movie has the highest average score?", "",
+              "SELECT T1.title FROM movies AS T1 INNER JOIN ratings AS T2 ON T1.movie_id = T2.movie_id "
+              "GROUP BY T1.title ORDER BY AVG(T2.score) DESC LIMIT 1"),
+             ("Who directed Beta?", "Beta refers to title = 'Beta';", "SELECT director FROM movies WHERE title = 'Beta'")]
+TRAIN = [(f"tr{i}", f"{q} (training {i})", e, sql) for i, (q, e, sql) in enumerate(QUESTIONS)]
+DEV = [(f"dv{i}", f"{q} (development {i})", e, sql) for i, (q, e, sql) in enumerate(QUESTIONS)]
+PROTO = {"file": "PROTOCOL_pilot.md", "sha256": "f" * 64}
+
+
+class _FakeReservation:
+    def __init__(self, command, projected_hours, extra=None, **kw):
+        self.id = f"fake-{command}"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def check(self):
+        pass
+
+    def elapsed_hours(self):
+        return 0.0
+
+
+@pytest.fixture()
+def world(tmp_path, monkeypatch):
+    from scaling import cli, data, identity, ledger, retrieval, scorer, verify
+    tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e,
+                         split="train" if tid.startswith("tr") else "dev") for tid, q, e, _ in TRAIN + DEV}
+    golds = {tid: C.Gold(task_id=tid, sql=sql) for tid, _, _, sql in TRAIN + DEV}
+    bb = E.Backbone.tiny_random(E.MockTokenizer(), hidden_size=16, layers=2, seed=0)
+    monkeypatch.setattr(data, "task", lambda tid: tasks[tid])
+    monkeypatch.setattr(data, "gold", lambda tid: golds[tid])
+    monkeypatch.setattr(data, "snapshot", lambda db: C.Snapshot(db_id=db, path="/x", sha256="0" * 64, bytes=1))
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: TC.SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [TC.EXAMPLE])
+    monkeypatch.setattr(scorer, "score", lambda snap, sql, gold: {"correct": int(bool(sql) and "director" in sql),
+                                                                 "status": "scored"})
+    monkeypatch.setattr(cli, "_warm_databases", lambda dbs: 0.0)
+    monkeypatch.setattr(identity, "model_identity", lambda key, verify=False: {"key": key})
+    monkeypatch.setattr(identity, "git_state", lambda: {"commit": "c" * 40, "branch": "t", "worktree": "w",
+                                                        "research_tree_dirty": False, "dirty_paths": []})
+    monkeypatch.setattr(ledger, "Reservation", _FakeReservation)
+    monkeypatch.setattr(ledger, "usage", lambda: {"used_hours": 2.979})
+    monkeypatch.setattr(verify, "verify_run", lambda d: {"problems": []})
+    monkeypatch.setattr(C, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(P, "ROOT", tmp_path / "pilot")
+    monkeypatch.setattr(E, "PILOT_CACHE", tmp_path / "cache")
+    monkeypatch.setattr(P, "train_ids", lambda: [t for t, *_ in TRAIN])
+    monkeypatch.setattr(P, "eval_ids", lambda: [t for t, *_ in DEV])
+    monkeypatch.setattr(P, "UPDATES", 4)
+    monkeypatch.setattr(P, "CHECKPOINT_EVERY", 2)
+    monkeypatch.setattr(P, "MATMUL_PRECISION", "highest")
+    monkeypatch.setattr(R, "TRAIN_CHUNKS", ("0:2", "2:4"))
+    monkeypatch.setattr(R, "DEVICE", "cpu")
+    monkeypatch.setattr(R, "_load_backbone", lambda: (None, bb))
+    monkeypatch.setattr(R, "_tokenizer", lambda: bb.tokenizer)
+    monkeypatch.setattr(R, "protocol_identity", lambda: PROTO)
+    monkeypatch.setattr(P, "representability", lambda ids, tok: {t: "representable" for t in ids})
+    monkeypatch.setattr(R, "_is_ancestor", lambda ancestor, commit: True)
+    return tmp_path, bb
+
+
+def _args(**kw):
+    return argparse.Namespace(allow_dirty=True, projected_hours=0.1, **kw)
+
+
+def _l_run(tmp_path):
+    from scaling import records
+    d = C.RUNS / "baselines" / "20261030T000000Z_L_nonthinking_p0-64"
+    d.mkdir(parents=True)
+    (d / "manifest.json").write_text(json.dumps({"git": {"commit": "c" * 40}}))
+    for tid, *_ in DEV:
+        rec = {"task_id": tid, "db_id": "cinema", "arm": "L", "config_identity": "c", "input_identity": "i",
+               "snapshot_sha256": "0" * 64, "attempts": [], "final": {"kind": "abstain", "sql": None, "reason": "x"},
+               "score": {"correct": 0, "scored_sql_sha256": records.sql_sha256(None), "snapshot_sha256": "0" * 64},
+               "tokens": {}, "controller_work": None, "elapsed_seconds": 0.01, "peak_memory_bytes": None,
+               "timed_out": False, "error": None, "repairs": 0, "tool_calls": 0, "tool_log": []}
+        with open(d / "records.jsonl", "a") as f:
+            f.write(json.dumps(rec) + "\n")
+    return d
+
+
+def _run_to_trained(monkeypatch):
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    R.encode_cmd(_args(what="dev", range=None))
+    for chunk in R.TRAIN_CHUNKS:
+        R.encode_cmd(_args(what="train", range=chunk))
+    for seed in P.SEEDS:
+        R.train_cmd(_args(seed=seed, arms=["T4", "c4_params"], resume=False))
+
+
+def test_the_pilot_runs_end_to_end_and_reconstructs(world, monkeypatch):
+    tmp_path, bb = world
+    _run_to_trained(monkeypatch)
+    feas = json.loads(sorted((P.ROOT / "feasibility").glob("*/summary.json"))[-1].read_text())
+    assert feas["encode"]["encoded"] == 4 and set(feas["arms"]) == set(P.ARMS)
+    assert feas["projection"]["fits"] in (True, False) and feas["projection"]["needed_hours"] > 0
+    dev_run = sorted((P.ROOT / "encode").glob("*_dev"))[-1]
+    dev_sum = json.loads((dev_run / "summary.json").read_text())
+    assert dev_sum["rechecked"] == 2 and dev_sum["rechecked_equal"] == 2  # the feasibility run's 2 dev contexts
+    anchors, ident, ignored = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    assert set(anchors) == {t for t, *_ in TRAIN + DEV} and ident == bb.identity() and not ignored
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    R.analyze_cmd(_args())
+    out = json.loads(sorted((P.ROOT / "analysis").glob("*/analysis.json"))[-1].read_text())
+    assert out["counts"]["questions"] == len(DEV) and out["rule"][:2] in ("A1", "A2", "A3")
+    assert set(out["inputs"]["evaluations_counted"]) == {"100", "101"} and len(out["inputs"]["evaluations_all"]) == 2
+    # runs are recorded by their reference relative to the runs root, not by absolute path
+    assert all(v.startswith("pilot/eval/s") for v in out["inputs"]["evaluations_counted"].values())
+    assert out["inputs"]["L"] == "baselines/20261030T000000Z_L_nonthinking_p0-64"
+
+
+def test_a_lost_summary_does_not_strand_a_finished_run_and_resume_is_refused(world, monkeypatch):
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    for s in run_dir.glob("attempts/*/summary.json"):
+        s.unlink()  # a stop after the final save, before the summary
+    path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == 3 and "recovered" not in rec
+    records = run_dir / "checkpoints.jsonl"
+    records.write_text("".join(x + "\n" for x in records.read_text().splitlines()[:-1]))  # saved, never recorded
+    path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == 3 and rec["recovered"].startswith("accepted on its own evidence")
+    with pytest.raises(R.PilotStop, match="already complete"):
+        R.train_cmd(_args(seed=100, arms=["T4"], resume=True))
+    log = run_dir / "train_log.jsonl"
+    log.write_text("".join(line + "\n" for line in log.read_text().splitlines()[:-1]))
+    with pytest.raises(R.PilotStop, match="does not hold updates"):
+        R.final_checkpoint(run_dir)
+
+
+def test_evaluation_stops_on_a_fresh_states_mismatch(world, monkeypatch):
+    _run_to_trained(monkeypatch)
+    entries = sorted((P.ROOT / "encode").glob("*_dev"))[-1] / "entries.jsonl"
+    lines = [json.loads(x) for x in entries.read_text().splitlines()]
+    # a fresh forward that disagrees with the anchors: the evaluation reports it and stops
+    real = E.encode_request
+
+    def drifting(bb, task, *a, use_cache=True, **k):
+        enc = real(bb, task, *a, use_cache=use_cache, **k)
+        if not use_cache and task.task_id == lines[0]["task_id"]:
+            enc.states = enc.states + 1e-3
+        return enc
+    monkeypatch.setattr(E, "encode_request", drifting)
+    with pytest.raises(R.PilotStop, match="integrity"):
+        R.eval_cmd(_args(seed=100))
+    summary = json.loads(sorted((P.ROOT / "eval").glob("s100_*"))[-1].joinpath("summary.json").read_text())
+    assert summary["passed"] is False and summary["arms"]["T4"]["fresh_states_all_equal_anchor"] is False
+
+
+def test_analysis_counts_exactly_one_passing_evaluation_per_seed(world, monkeypatch):
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    first = sorted((P.ROOT / "eval").glob("s100_*"))[0]
+    shutil.copytree(first, first.with_name(first.name + "_rerun"))  # a second passing seed-100 evaluation
+    with pytest.raises(R.PilotStop, match="exactly one"):
+        R.analyze_cmd(_args())
+    rerun = first.with_name(first.name + "_rerun") / "summary.json"
+    s = json.loads(rerun.read_text())
+    s["states_differ_across_arms"] = ["dv0"]
+    rerun.write_text(json.dumps(s))  # a failed rerun is reported but not counted
+    R.analyze_cmd(_args())
+    out = json.loads(sorted((P.ROOT / "analysis").glob("*/analysis.json"))[-1].read_text())
+    assert out["inputs"]["evaluations_counted"]["100"] == f"pilot/eval/{first.name}"
+    assert sum(not r["passed"] for r in out["inputs"]["evaluations_all"]) == 1
+
+
+def test_a_recomputed_development_context_that_differs_stops_the_pilot(world, monkeypatch):
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    real = E.encode_request
+
+    def drifting(bb, task, *a, use_cache=True, **k):
+        enc = real(bb, task, *a, use_cache=use_cache, **k)
+        if not use_cache:
+            enc.states = enc.states + 1e-3
+        return enc
+    monkeypatch.setattr(E, "encode_request", drifting)
+    with pytest.raises(R.PilotStop, match="cross-process"):
+        R.encode_cmd(_args(what="dev", range=None))
+
+
+def test_the_pilot_refuses_what_the_protocol_forbids(world, monkeypatch):
+    tmp_path, bb = world
+    monkeypatch.setattr(R, "protocol_identity", REAL_PROTOCOL_IDENTITY)
+    monkeypatch.setattr(R, "PROTOCOL_PIN", tmp_path / "no_pin.json")
+    with pytest.raises(R.PilotStop, match="not frozen"):
+        R.encode_cmd(_args(what="dev", range=None))
+    protocol = tmp_path / "PROTOCOL_pilot.md"
+    protocol.write_text("frozen text\n")
+    monkeypatch.setattr(P, "PROTOCOL", protocol)
+    (tmp_path / "pin.json").write_text(json.dumps({"sha256": "0" * 64}))
+    monkeypatch.setattr(R, "PROTOCOL_PIN", tmp_path / "pin.json")
+    with pytest.raises(R.PilotStop, match="frozen hash"):
+        R.encode_cmd(_args(what="dev", range=None))
+    monkeypatch.setattr(R, "protocol_identity", lambda: PROTO)
+    with pytest.raises(R.PilotStop, match="chunks"):
+        R.encode_cmd(_args(what="train", range="0:3"))
+    R.encode_cmd(_args(what="train", range="0:2"))
+    with pytest.raises(R.PilotStop, match="no encoding anchor"):
+        R.train_cmd(_args(seed=100, arms=["T4"], resume=False))
+    with pytest.raises(R.PilotStop, match="not one of"):
+        R.train_cmd(_args(seed=7, arms=["T4"], resume=False))
+    entries = sorted((P.ROOT / "encode").glob("*_train_0-2"))[-1] / "entries.jsonl"
+    entries.write_text(entries.read_text() + '{"task_id": "tr9", "cache')  # a torn last line
+    found, _, ignored = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    assert "tr9" not in found and ignored
+    manifest = entries.parent / "manifest.json"
+    m = json.loads(manifest.read_text())
+    m["config"]["protocol"]["sha256"] = "1" * 64
+    manifest.write_text(json.dumps(m))
+    found, _, ignored = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    assert not found and any("not accepted" in x for x in ignored)  # skipped and reported, not trusted
+    with pytest.raises(R.PilotStop, match="no encoding anchor"):
+        R.train_cmd(_args(seed=100, arms=["T4"], resume=False))
+    R.encode_cmd(_args(what="train", range="0:2"))  # its entries are recomputed before they are anchored
+    newest = max((P.ROOT / "encode").glob("*_train_0-2"), key=lambda d: d.joinpath("manifest.json").stat().st_mtime_ns)
+    rerun = json.loads(newest.joinpath("summary.json").read_text())
+    assert rerun["rechecked"] == 2 and rerun["rechecked_equal"] == 2
+
+
+def test_the_projection_counts_every_remaining_step():
+    m = {"encode": {"seconds_per_new_context": 2.0}, "load_seconds": 60.0,
+         "arms": {a: {"update_seconds_after_first": 0.5, "first_update_seconds": 3.0, "checkpoint_save_seconds_mean": 2.0,
+                      "fixed_seconds": 10.0, "eval_seconds_per_request": 1.2,
+                      "reconstruction_seconds_per_request": 0.1} for a in P.ARMS}}
+    import scaling.ledger as L
+    orig = L.usage
+    L.usage = lambda: {"used_hours": 3.0}
+    try:
+        out = R.project(m, n_pool=4741, n_eval=64, n_sample=160, n_dev=8)
+    finally:
+        L.usage = orig
+    enc = (((4741 - 160) + (64 - 8)) * 2.0 + 8 * 2.0 + 5 * 60) / 3600
+    fit = 1499 * 0.5 + 3.0 + 6 * 2.0 + 10.0
+    ev = (2 * 60 + 2 * 2 * 64 * 1.3) / 3600
+    items = list(out["items_hours"].values())
+    assert items[0] == pytest.approx(enc) and items[1] == pytest.approx(2 * 2 * fit / 3600)
+    assert items[2] == pytest.approx(ev) and out["remaining_hours"] == pytest.approx(5.0)
+    assert out["fits"] == (enc + 4 * fit / 3600 + ev <= 5.0)
+    with pytest.raises(R.PilotStop, match="was measured"):
+        R.project({**m, "encode": {"seconds_per_new_context": None}}, 4741, 64, 160, 8)
+
+
+def test_a_feasibility_rerun_projects_from_recorded_times(world, monkeypatch):
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    R.feasibility_cmd(_args(sample=2, dev=2, updates=3, checkpoint_every=1, seed=999))
+    runs = sorted((P.ROOT / "feasibility").glob("*/summary.json"))
+    second = json.loads(runs[-1].read_text())
+    assert second["encode"]["encoded"] == 0 and second["recorded_seconds_per_new_context"] > 0
+    assert second["projection"]["needed_hours"] > 0
+    assert all(a["cold_epoch_update_seconds"] is not None for a in second["arms"].values())
+
+
+def test_an_l_run_from_before_the_freeze_is_refused(world, monkeypatch):
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    (C.RUNS / "baselines" / "20261030T000000Z_L_nonthinking_p0-64" / "manifest.json").write_text(
+        json.dumps({"git": {"commit": "a" * 40}}))
+    monkeypatch.setattr(R, "_is_ancestor", lambda ancestor, commit: False)
+    with pytest.raises(R.PilotStop, match="after the protocol was frozen"):
+        R.analyze_cmd(_args())
+
+
+def test_a_damaged_entry_is_quarantined_and_must_recompute_to_its_original_anchor(world, monkeypatch):
+    R.encode_cmd(_args(what="train", range="0:2"))
+    known, _, _ = P.load_anchors(protocol_sha256=PROTO["sha256"])
+    path = E.cache_path(known["tr1"]["cache_key"], E.PILOT_CACHE)
+    with pytest.raises(R.PilotStop, match="not damaged"):
+        R.quarantine_cmd(argparse.Namespace(task_ids=["tr1"], reason="test"))  # a sound entry is refused
+    size = path.stat().st_size
+    path.write_bytes(b"\0" * size)  # what the host crash left: full size, no data
+    R.quarantine_cmd(argparse.Namespace(task_ids=["tr1"], reason="host crash"))
+    rec = json.loads(sorted((P.ROOT / "quarantine").glob("*/quarantine.json"))[-1].read_text())
+    assert rec["entries"][0]["task_id"] == "tr1" and not path.exists()
+    R.encode_cmd(_args(what="train", range="0:2"))  # recomputed, and equal to the original anchor
+    assert path.exists() and E.states_sha256(__import__("safetensors.torch", fromlist=["x"]).load_file(
+        str(path))["states"]) == known["tr1"]["states_sha256"]
+    path.unlink()  # a recomputation that differed from the anchor would stop the pilot
+    real = E.encode_request
+
+    def drifting(bb, task, *a, use_cache=True, **k):
+        enc = real(bb, task, *a, use_cache=False, **k) if task.task_id == "tr1" else real(bb, task, *a, use_cache=use_cache, **k)
+        if task.task_id == "tr1":
+            enc.states = enc.states + 1e-3
+            enc.cost["states_sha256"] = E.states_sha256(enc.states)
+            enc.cost["cache_hit"] = False
+        return enc
+    monkeypatch.setattr(E, "encode_request", drifting)
+    with pytest.raises(R.PilotStop, match="differs from its anchor"):
+        R.encode_cmd(_args(what="train", range="0:2"))
+
+
+def test_resume_skips_a_checkpoint_a_crash_damaged(world, monkeypatch):
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    records = [json.loads(x) for x in (run_dir / "checkpoints.jsonl").read_text().splitlines()]
+    last = Path(records[-1]["path"])
+    last.write_bytes(b"\0" * last.stat().st_size)  # the final checkpoint's data never reached the disk
+    log = run_dir / "train_log.jsonl"
+    log.write_text("".join(x + "\n" for x in log.read_text().splitlines()[:2]))  # the crash came after update 1
+    R.train_cmd(_args(seed=100, arms=["T4"], resume=True))
+    path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == 3 and list((run_dir / "checkpoints").glob("*.damaged-*"))
+    attempt = sorted((run_dir / "attempts").glob("*/manifest.json"))[-1]
+    cfg = json.loads(attempt.read_text())["config"]
+    assert Path(cfg["resume_from"]).name == Path(records[0]["path"]).name
+    assert Path(cfg["resume_skipped"][0]["path"]).name == last.name
+
+
+def _drop_last_record(run_dir):
+    records = run_dir / "checkpoints.jsonl"
+    records.write_text("".join(x + "\n" for x in records.read_text().splitlines()[:-1]))
+
+
+def _resumes_to_a_sound_final(run_dir, seed=100):
+    """Resume, then: a sound final checkpoint; the log holds every update once, the replayed ones superseded; and a
+    second resume is refused, since the run is now complete."""
+    R.train_cmd(_args(seed=seed, arms=["T4"], resume=True))
+    _path, rec = R.final_checkpoint(run_dir)
+    assert rec["update"] == P.UPDATES - 1 and R.completed(run_dir) is None
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    superseded = [json.loads(x)["update"] for x in (run_dir / "train_log.superseded.jsonl").read_text().splitlines()]
+    assert superseded == list(range(P.CHECKPOINT_EVERY, P.UPDATES))  # replayed after the update-1 checkpoint
+    with pytest.raises(R.PilotStop, match="already complete"):
+        R.train_cmd(_args(seed=seed, arms=["T4"], resume=True))
+    return json.loads(sorted((run_dir / "attempts").glob("*/manifest.json"))[-1].read_text())["config"]
+
+
+def test_a_complete_log_with_a_missing_final_checkpoint_resumes(world, monkeypatch):
+    """A stop after the last log line but before the final save: the log is complete and the final checkpoint does
+    not exist. That run is not complete; it resumes from its newest sound checkpoint."""
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.unlink()
+    _drop_last_record(run_dir)  # never saved, so never recorded
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    assert "final checkpoint is not usable" in R.completed(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert Path(cfg["resume_from"]).name.startswith("ckpt_u000001_")
+
+
+def test_a_complete_log_with_a_damaged_final_checkpoint_resumes(world, monkeypatch):
+    """The final checkpoint is recorded and full size, but its bytes were lost: the log is complete, the run is not.
+    The damaged file is set aside (kept), and the run resumes from its newest sound checkpoint."""
+    _run_to_trained(monkeypatch)
+    run_dir = P.ROOT / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.write_bytes(b"\0" * final.stat().st_size)
+    assert R._train_log_updates(run_dir) == list(range(P.UPDATES))
+    assert "final checkpoint is not usable" in R.completed(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert Path(cfg["resume_skipped"][0]["path"]).name == final.name
+    assert [p.name.split(".damaged-")[0] for p in (run_dir / "checkpoints").glob("*.damaged-*")] == [final.name]
+
+
+def test_resume_finds_its_checkpoints_after_the_runs_root_moved(world, monkeypatch):
+    """checkpoints.jsonl records absolute paths; resume looks each checkpoint up by name in the run's own
+    checkpoints/ directory, so a moved runs root resumes from the same checkpoint rather than from scratch."""
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    moved = tmp_path / "moved" / "pilot"
+    shutil.move(str(P.ROOT), str(moved))
+    monkeypatch.setattr(P, "ROOT", moved)
+    run_dir = moved / "train" / "T4_s100"
+    final, _rec = R.final_checkpoint(run_dir)
+    final.unlink()
+    _drop_last_record(run_dir)
+    cfg = _resumes_to_a_sound_final(run_dir)
+    assert cfg["resume_from"].startswith(str(run_dir)) and Path(cfg["resume_from"]).name.startswith("ckpt_u000001_")
+
+
+def test_an_evaluation_with_a_false_reconstruction_entry_is_not_counted(world, monkeypatch):
+    """Eligibility comes from the complete reconstruction inventory: one false entry rejects the run, even though
+    its summary still records passed and its aggregate flags are all true."""
+    tmp_path, _ = world
+    _run_to_trained(monkeypatch)
+    for seed in P.SEEDS:
+        R.eval_cmd(_args(seed=seed))
+    _l_run(tmp_path)
+    path = sorted((P.ROOT / "eval").glob("s100_*"))[0] / "summary.json"
+    s = json.loads(path.read_text())
+    s["arms"]["c4_params"]["reconstruction"][1]["same_actions"] = False
+    assert s["passed"] is True and s["arms"]["c4_params"]["reconstruction_all_equal"] is True
+    path.write_text(json.dumps(s))
+    failures = R.eval_failures(s, P.eval_ids())
+    assert any("1 reconstruction entries are not true" in f for f in failures)
+    assert any("reconstruction_all_equal is recorded True; the inventory gives False" in f for f in failures)
+    with pytest.raises(R.PilotStop, match="seed 100: 0 passing"):
+        R.analyze_cmd(_args())
+    s["arms"]["c4_params"]["reconstruction"] = s["arms"]["c4_params"]["reconstruction"][:-1]  # an incomplete one
+    s["arms"]["c4_params"]["reconstruction"][1]["same_actions"] = True
+    assert any("once each" in f for f in R.eval_failures(s, P.eval_ids()))

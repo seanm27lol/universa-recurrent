@@ -1,0 +1,22 @@
+{
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/baselines/20261102T045453Z_L_nonthinking_p0-64",
+ "summary": {
+  "abstained": 0,
+  "abstention_reasons": {},
+  "answered": 64,
+  "arm": "L",
+  "config_identity": "7304050ea41059252cba8f47f985c3ab7ebab43daf5183e15ccc45edba37f372",
+  "correct": 4,
+  "cost_seconds_per_correct": 48.07942135300118,
+  "elapsed_seconds_total": 192.31768541200472,
+  "errors": 0,
+  "peak_memory_bytes_max": 0,
+  "quality": 0.0625,
+  "repairs": 0,
+  "requested": 64,
+  "timeouts": 0,
+  "tokens": {},
+  "tool_calls": 165
+ },
+ "warm_database_seconds": 1.808588496000084
+}

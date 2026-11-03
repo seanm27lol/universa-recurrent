@@ -45,8 +45,7 @@ def _stamp() -> str:
 
 
 def _write(path: Path, obj) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(obj, indent=1, sort_keys=True, default=str) + "\n")
+    identity.write_durable(path, json.dumps(obj, indent=1, sort_keys=True, default=str) + "\n")
 
 
 def _append(path: Path, obj: dict) -> None:
@@ -657,6 +656,42 @@ def main(argv=None) -> None:
     s = sub.add_parser("pilot-pin")
     s.add_argument("--rewrite", action="store_true", help="replace a differing committed pin (review the diff!)")
     s.set_defaults(fn=pilot_pin)
+    from scaling import pilot_run
+    s = sub.add_parser("pilot-feasibility")
+    s.add_argument("--sample", type=int, default=160)
+    s.add_argument("--dev", type=int, default=8)
+    s.add_argument("--updates", type=int, default=40)
+    s.add_argument("--checkpoint-every", type=int, default=10)
+    s.add_argument("--seed", type=int, default=999, help="a measurement seed, never a pilot seed")
+    s.add_argument("--projected-hours", type=float, required=True)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=pilot_run.feasibility_cmd)
+    s = sub.add_parser("pilot-encode")
+    s.add_argument("--what", choices=["dev", "train"], required=True)
+    s.add_argument("--range", help="one of the protocol's chunks of pins/pilot_train_v1.json: 0:1200 1200:2400 "
+                                   "2400:3600 3600:4741 (train)")
+    s.add_argument("--projected-hours", type=float, required=True)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=pilot_run.encode_cmd)
+    s = sub.add_parser("pilot-quarantine", help="move damaged pilot-cache entries aside, with a record (no GPU)")
+    s.add_argument("task_ids", nargs="+")
+    s.add_argument("--reason", required=True)
+    s.set_defaults(fn=pilot_run.quarantine_cmd)
+    s = sub.add_parser("pilot-train")
+    s.add_argument("--seed", type=int, required=True)
+    s.add_argument("--arms", nargs="+", choices=["T4", "c4_params"], default=["T4", "c4_params"])
+    s.add_argument("--resume", action="store_true")
+    s.add_argument("--projected-hours", type=float, required=True, help="per arm")
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=pilot_run.train_cmd)
+    s = sub.add_parser("pilot-eval")
+    s.add_argument("--seed", type=int, required=True)
+    s.add_argument("--projected-hours", type=float, required=True)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=pilot_run.eval_cmd)
+    s = sub.add_parser("pilot-analyze", help="counts the one passing evaluation per seed and the one L run on the 64")
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=pilot_run.analyze_cmd)
     s = sub.add_parser("verify")
     s.add_argument("run_dirs", nargs="+")
     s.set_defaults(fn=verify_cmd)

@@ -490,3 +490,207 @@ def test_evaluation_sets_and_restores_its_matmul_precision(backbone, monkeypatch
     before = torch.get_float32_matmul_precision()
     I.evaluate(models()["T4"], ["t1"], backbone, score=False, max_steps=20, matmul_precision="high", log=None)
     assert seen == ["high"] and torch.get_float32_matmul_precision() == before
+
+
+# --- the pilot's repairs (user, 2026-10-30): verified entries only, dtype/shape checks, fatal cache errors, bound resume
+def test_require_verified_refuses_an_entry_without_a_recorded_hash(backbone, tmp_path):
+    from safetensors.torch import save_file
+    task = C.Task(task_id="v1", db_id="cinema", question="Who directed Alpha?", evidence="", split="dev")
+    enc = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    path = E.cache_path(enc.cost["cache_key"], tmp_path)
+    path.unlink()
+    save_file({"states": enc.states}, str(path), metadata={"tokens": str(len(enc.token_ids))})  # a legacy entry
+    assert E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path).cost["verified"] is False
+    with pytest.raises(E.CacheUnverified):
+        E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path, require_verified=True)
+
+
+def test_a_cached_entry_with_the_wrong_dtype_or_shape_is_corrupt(backbone, tmp_path):
+    from safetensors import safe_open
+    from safetensors.torch import save_file
+    task = C.Task(task_id="v2", db_id="cinema", question="How many movies?", evidence="", split="dev")
+    enc = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    path = E.cache_path(enc.cost["cache_key"], tmp_path)
+    with safe_open(str(path), framework="pt") as f:
+        meta = f.metadata()
+    for bad in (enc.states.to(torch.float64), enc.states[:-1]):
+        path.unlink()
+        save_file({"states": bad.contiguous()}, str(path), metadata={**meta, "states_sha256": E.states_sha256(bad)})
+        with pytest.raises(E.CacheCorrupt):
+            E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+
+
+def test_a_lazy_read_with_the_wrong_dtype_or_shape_is_refused(prepared, tmp_path):
+    from safetensors.torch import save_file
+    e = prepared[0]
+    for bad in (e.tokens.to(torch.float64), e.tokens[:, :-1]):
+        f = tmp_path / f"bad_{bad.dtype}_{bad.shape[1]}.safetensors"
+        save_file({"states": bad.contiguous()}, str(f))
+        lazy = K.Prepared(**{**e.__dict__, "tokens": None, "tokens_file": str(f), "tokens_crc32": None,
+                             "tokens_dtype": str(e.tokens.dtype)})
+        with pytest.raises(RuntimeError, match="expected"):
+            lazy.token_states()
+
+
+def test_cache_corruption_stops_an_evaluation(backbone, monkeypatch):
+    from scaling import data, retrieval
+    monkeypatch.setattr(data, "task", lambda tid: C.Task(task_id=tid, db_id="cinema", question="q", evidence="",
+                                                         split="dev"))
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+
+    def corrupt(*a, **k):
+        raise E.CacheCorrupt("damaged")
+    monkeypatch.setattr(E, "encode_request", corrupt)
+    for error in (E.CacheCorrupt, E.CacheUnverified, E.CacheMiss):
+        monkeypatch.setattr(E, "encode_request", lambda *a, _e=error, **k: (_ for _ in ()).throw(_e("x")))
+        with pytest.raises(error):
+            I.evaluate(models()["T4"], ["t1", "t2"], backbone, score=False, log=None)
+
+
+def test_preparation_checks_each_entry_against_its_anchor(backbone, tmp_path, monkeypatch):
+    from scaling import data, retrieval
+    tasks = {tid: C.Task(task_id=tid, db_id="cinema", question=q, evidence=e, split="train")
+             for tid, q, e, _ in REQUESTS}
+    golds = {tid: C.Gold(task_id=tid, sql=sql) for tid, _, _, sql in REQUESTS}
+    monkeypatch.setattr(data, "task", lambda tid: tasks[tid])
+    monkeypatch.setattr(data, "gold", lambda tid: golds[tid])
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    prepared, skipped, costs = T.prepare_examples(list(tasks), backbone, cache_root=tmp_path, log=None)
+    anchors = {tid: {"cache_key": c["cache_key"], "states_sha256": c["states_sha256"]} for tid, c in costs.items()}
+    ok, _, _ = T.prepare_examples(list(tasks), backbone, cache_root=tmp_path, lazy=True, require_hit=True,
+                                  require_verified=True, anchors=anchors, log=None)
+    assert [e.task_id for e in ok] == [e.task_id for e in prepared]
+    wrong = {**anchors, "t2": {**anchors["t2"], "states_sha256": "0" * 64}}
+    with pytest.raises(E.CacheCorrupt, match="anchor"):
+        T.prepare_examples(list(tasks), backbone, cache_root=tmp_path, require_hit=True, anchors=wrong, log=None)
+    with pytest.raises(E.CacheCorrupt, match="anchor"):
+        T.prepare_examples(list(tasks), backbone, cache_root=tmp_path, require_hit=True,
+                           anchors={k: v for k, v in anchors.items() if k != "t3"}, log=None)
+
+
+@pytest.mark.parametrize("change", ["arm", "seed", "order", "backbone", "precision", "sources"])
+def test_a_checkpoint_resumes_only_its_own_configuration(prepared, tmp_path, monkeypatch, change):
+    from scaling import identity
+    cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1)
+    first = T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "a", extra_config={"backbone": "B"},
+                  log=None)["checkpoints"][0]["path"]
+    arm, examples, extra = "T4", prepared, {"backbone": "B"}
+    if change == "arm":
+        arm = "c4_params"
+    elif change == "seed":
+        cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1, seed=101)
+    elif change == "order":
+        examples = list(reversed(prepared))
+    elif change == "backbone":
+        extra = {"backbone": "another"}
+    elif change == "precision":
+        cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1,
+                            matmul_precision="high")
+    elif change == "sources":
+        real = identity.source_hashes()
+        monkeypatch.setattr(identity, "source_hashes", lambda: {**real, "train.py": "0" * 64})
+    if arm != "T4":
+        cfg = T.TrainConfig(arm=arm, updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1)
+    with pytest.raises(T.CheckpointMismatch):
+        T.fit(T.build_model(arm, 16, 100), examples, cfg, tmp_path / "b", resume_from=first, extra_config=extra,
+              log=None)
+    assert not (tmp_path / "b" / "config.json").exists()  # refused before anything was written
+
+
+def test_the_backbone_forward_ignores_the_decoding_precision(backbone, monkeypatch):
+    """The pilot's feasibility check (2026-10-30) found fresh evaluation states differing from their anchors: the
+    evaluation's TF32 setting had also covered the backbone's float32 matmuls. The forward now always runs at
+    'highest', and only the decoding uses the requested precision."""
+    from scaling import data, retrieval
+    monkeypatch.setattr(data, "task", lambda tid: C.Task(task_id=tid, db_id="cinema", question="Who directed Alpha?",
+                                                         evidence="", split="dev"))
+    monkeypatch.setattr(schema_mod, "load_schema", lambda db: SCHEMA)
+    monkeypatch.setattr(retrieval, "retrieve", lambda task: [EXAMPLE])
+    seen = {"forward": [], "decode": []}
+    real_states, real_decode = E.Backbone.states, I.decode_one
+
+    def states(self, ids):
+        seen["forward"].append(torch.get_float32_matmul_precision())
+        return real_states(self, ids)
+
+    def decode(*a, **k):
+        seen["decode"].append(torch.get_float32_matmul_precision())
+        return real_decode(*a, **k)
+    monkeypatch.setattr(E.Backbone, "states", states)
+    monkeypatch.setattr(I, "decode_one", decode)
+    before = torch.get_float32_matmul_precision()
+    torch.set_float32_matmul_precision("high")  # even a caller's global setting does not reach the forward
+    try:
+        I.evaluate(models()["T4"], ["t1"], backbone, score=False, use_cache=False, max_steps=10,
+                   matmul_precision="high", log=None)
+        assert torch.get_float32_matmul_precision() == "high"
+    finally:
+        torch.set_float32_matmul_precision(before)
+    assert seen["decode"] == ["high"] and len(seen["forward"]) == 1  # decoding at the requested precision
+    precision_inside = []
+    monkeypatch.setattr(E.Backbone, "states", real_states)
+    real_model_forward = backbone.model.forward
+
+    def spy(*a, **k):
+        precision_inside.append(torch.get_float32_matmul_precision())
+        return real_model_forward(*a, **k)
+    monkeypatch.setattr(backbone.model, "forward", spy)
+    torch.set_float32_matmul_precision("high")
+    try:
+        backbone.states([1, 2, 3])
+    finally:
+        torch.set_float32_matmul_precision(before)
+    assert precision_inside == ["highest"]
+
+
+def test_a_cache_entry_is_on_disk_before_it_is_linked(backbone, tmp_path, monkeypatch):
+    """A host crash (2026-10-30) left two entries linked and anchored with their data never written. The writer now
+    fsyncs the file before linking it into place, and the directory after."""
+    import os
+    events = []
+    real_fsync, real_link = os.fsync, os.link
+    monkeypatch.setattr(os, "fsync", lambda fd: (events.append(("fsync", os.readlink(f"/proc/self/fd/{fd}"))),
+                                                 real_fsync(fd))[1])
+    monkeypatch.setattr(os, "link", lambda a, b: (events.append(("link", str(b))), real_link(a, b))[1])
+    task = C.Task(task_id="d1", db_id="cinema", question="Which director?", evidence="", split="dev")
+    enc = E.encode_request(backbone, task, SCHEMA, [], cache_root=tmp_path)
+    path = str(E.cache_path(enc.cost["cache_key"], tmp_path))
+    kinds = [k for k, _ in events]
+    assert kinds == ["fsync", "link", "fsync"]
+    assert events[0][1].endswith(".tmp") and events[1][1] == path and events[2][1] == str(Path(path).parent)
+
+
+def test_checkpoints_and_the_train_log_are_on_disk_before_they_are_recorded(prepared, tmp_path, monkeypatch):
+    import os
+    events = []
+    real_fsync, real_replace = os.fsync, os.replace
+    monkeypatch.setattr(os, "fsync", lambda fd: (events.append(("fsync", os.readlink(f"/proc/self/fd/{fd}"))),
+                                                 real_fsync(fd))[1])
+    monkeypatch.setattr(os, "replace", lambda a, b: (events.append(("replace", str(b))), real_replace(a, b))[1])
+    cfg = T.TrainConfig(arm="T4", updates=2, effective_batch=2, micro_batch=1, checkpoint_every=1)
+    T.fit(T.build_model("T4", 16, 100), prepared, cfg, tmp_path / "run", log=None)
+    names = [Path(p).name for _, p in events]
+    log_syncs = [i for i, (k, p) in enumerate(events) if k == "fsync" and p.endswith("train_log.jsonl")]
+    ckpts = [i for i, (k, p) in enumerate(events) if k == "replace" and p.endswith(".pt")]
+    assert len(log_syncs) == 2 and len(ckpts) == 2
+    for i in ckpts:  # the data was synced before the rename, and the directory after
+        assert events[i - 1][0] == "fsync" and names[i - 1].endswith(".pt.tmp")
+        assert events[i + 1] == ("fsync", str(Path(events[i][1]).parent))
+    record_syncs = [i for i, (k, p) in enumerate(events) if k == "fsync" and p.endswith("checkpoints.jsonl")]
+    assert all(r > c for r, c in zip(record_syncs, ckpts))  # each record after its checkpoint is durable
+
+
+def test_a_damaged_checkpoint_is_set_aside_and_rewritten(tmp_path):
+    cfg = T.TrainConfig(arm="T4", updates=1, effective_batch=2, micro_batch=1)
+    model = T.build_model("T4", 16, 100)
+    optimizer = T.make_optimizer(model, cfg)
+    first = T.save_checkpoint(tmp_path, model, optimizer, 0, {"x": 1})
+    path = Path(first["path"])
+    path.write_bytes(b"\0" * path.stat().st_size)  # full size, no data: what the host crash left
+    with pytest.raises(ValueError):
+        T.load_checkpoint(path)
+    again = T.save_checkpoint(tmp_path, model, optimizer, 0, {"x": 1})  # the same content, so the same name
+    assert again["path"] == first["path"] and T.load_checkpoint(path)["update"] == 0
+    assert len(list((tmp_path / "checkpoints").glob("*.damaged-*"))) == 1  # kept aside, never overwritten

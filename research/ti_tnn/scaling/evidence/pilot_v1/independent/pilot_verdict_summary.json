@@ -1,0 +1,438 @@
+{
+ "what": "independently reconstructed verdict of the TI-TNN C4/T4 learning pilot (reviewer's code; producer code only where listed)",
+ "verifiers": {
+  "pilot": "nice -n 19 python3 verify_pilot.py [--representability] [--redecode] [--bundle DIR] [--json OUT]",
+  "L run": "nice -n 19 python3 verify_baselines.py RUN_DIR [--json OUT]  (TI_TNN_VERIFY_CACHE set to a scratch path)"
+ },
+ "producer_code_used": [
+  "scaling.pilot.representability (grammar trace) for the representability strata",
+  "scaling.encode/infer_controller/train: CPU re-decode from cached states (informational)"
+ ],
+ "verdict": {
+  "counts": {
+   "T4/100": 9,
+   "T4/101": 9,
+   "c4_params/100": 4,
+   "c4_params/101": 10,
+   "L": 4,
+   "questions": 64
+  },
+  "cleared_L_in_both_seeds": {
+   "T4": true,
+   "c4_params": false
+  },
+  "differences": {
+   "per_seed": {
+    "100": 5,
+    "101": -1
+   },
+   "pooled": 4,
+   "pooled_out_of": 128
+  },
+  "rule": "A3",
+  "reading": "exactly one arm cleared L: the finding is that asymmetry; paired results and the rule outcome are descriptive",
+  "sign_flip_exploratory": {
+   "observed": 4,
+   "blocks": 14,
+   "nonzero_blocks": 7,
+   "assignments": 128,
+   "p_two_sided": 0.359375,
+   "smallest_attainable_p": 0.015625
+  },
+  "agreement_with_producer_analysis": {
+   "counts": true,
+   "cleared": true,
+   "differences": true,
+   "rule": true,
+   "databases": true,
+   "histogram": true,
+   "sign_flip": true,
+   "inputs": true
+  }
+ },
+ "databases": {
+  "computer_student": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 1,
+   "c4_params/101": 1,
+   "difference": 0
+  },
+  "disney": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 1,
+   "c4_params/101": 1,
+   "difference": 0
+  },
+  "food_inspection": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 1,
+   "c4_params/101": 2,
+   "difference": -2
+  },
+  "hockey": {
+   "questions": 5,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 1
+  },
+  "ice_hockey_draft": {
+   "questions": 5,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0
+  },
+  "image_and_language": {
+   "questions": 5,
+   "L": 1,
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 1
+  },
+  "music_platform_2": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1
+  },
+  "professional_basketball": {
+   "questions": 5,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0
+  },
+  "public_review_platform": {
+   "questions": 5,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0
+  },
+  "simpson_episodes": {
+   "questions": 5,
+   "L": 1,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1
+  },
+  "soccer_2016": {
+   "questions": 5,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0
+  },
+  "software_company": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 0,
+   "T4/101": 0,
+   "c4_params/100": 0,
+   "c4_params/101": 0,
+   "difference": 0
+  },
+  "talkingdata": {
+   "questions": 4,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 1,
+   "c4_params/100": 0,
+   "c4_params/101": 1,
+   "difference": 1
+  },
+  "world": {
+   "questions": 5,
+   "L": 2,
+   "T4/100": 2,
+   "T4/101": 3,
+   "c4_params/100": 1,
+   "c4_params/101": 3,
+   "difference": 1
+  }
+ },
+ "per_question_difference_histogram": {
+  "-1": 5,
+  "0": 51,
+  "1": 7,
+  "2": 1
+ },
+ "representability": {
+  "representable": {
+   "questions": 58,
+   "L": 4,
+   "T4/100": 8,
+   "T4/101": 9,
+   "c4_params/100": 3,
+   "c4_params/101": 9
+  },
+  "unrepresentable": {
+   "questions": 6,
+   "L": 0,
+   "T4/100": 1,
+   "T4/101": 0,
+   "c4_params/100": 1,
+   "c4_params/101": 1
+  },
+  "unrepresentable_reasons": {
+   "bird23tf-03130": "not encodable: literal not groundable",
+   "bird23tf-02636": "not encodable: literal not groundable",
+   "bird23tf-06228": "not encodable: literal not groundable",
+   "bird23tf-01167": "not encodable: literal not groundable",
+   "bird23tf-01686": "not encodable: literal not groundable",
+   "bird23tf-02670": "not encodable: literal not groundable"
+  }
+ },
+ "integrity": {
+  "checks_passed": 263,
+  "checks_failed": [],
+  "evaluations": [
+   {
+    "run": "s100_20261102T044302Z",
+    "seed": 100,
+    "passed": true,
+    "problems": [],
+    "flags": {
+     "summary_passed": true,
+     "states_differ_across_arms": [],
+     "T4_reconstruction_all_equal": true,
+     "T4_fresh_states_all_equal_anchor": true,
+     "T4_record_errors": [],
+     "c4_params_reconstruction_all_equal": true,
+     "c4_params_fresh_states_all_equal_anchor": true,
+     "c4_params_record_errors": []
+    },
+    "commit": "120412d3e383359f5d2f1d40d5b3dc554faaff38"
+   },
+   {
+    "run": "s101_20261102T044759Z",
+    "seed": 101,
+    "passed": true,
+    "problems": [],
+    "flags": {
+     "summary_passed": true,
+     "states_differ_across_arms": [],
+     "T4_reconstruction_all_equal": true,
+     "T4_fresh_states_all_equal_anchor": true,
+     "T4_record_errors": [],
+     "c4_params_reconstruction_all_equal": true,
+     "c4_params_fresh_states_all_equal_anchor": true,
+     "c4_params_record_errors": []
+    },
+    "commit": "120412d3e383359f5d2f1d40d5b3dc554faaff38"
+   }
+  ],
+  "training": {
+   "T4/100": {
+    "final": "ckpt_u001499_7218aa08dfd4690f.pt",
+    "model_digest": "5443481c1a2e46d6",
+    "final_loss": 0.1593471715847651,
+    "attempts": 1
+   },
+   "c4_params/100": {
+    "final": "ckpt_u001499_af63f7c7646c7f4c.pt",
+    "model_digest": "67bb0c4185db2778",
+    "final_loss": 0.16907092928886414,
+    "attempts": 1
+   },
+   "T4/101": {
+    "final": "ckpt_u001499_23af16c346e71973.pt",
+    "model_digest": "377e5cf90b3d6120",
+    "final_loss": 0.1742319448746462,
+    "attempts": 1
+   },
+   "c4_params/101": {
+    "final": "ckpt_u001499_4267932128c3184e.pt",
+    "model_digest": "9e2c44c09b23d7c2",
+    "final_loss": 0.1673425582640949,
+    "attempts": 1
+   }
+  },
+  "L_run_verification": {
+   "20261102T045453Z_L_nonthinking_p0-64": {
+    "fails": [],
+    "warns": [],
+    "passes": 1348
+   }
+  },
+  "cpu_redecode_informational": {
+   "T4/100": "64/64 identical actions and SQL (CPU float32 vs GPU TF32)",
+   "c4_params/100": "64/64 identical actions and SQL (CPU float32 vs GPU TF32)",
+   "T4/101": "64/64 identical actions and SQL (CPU float32 vs GPU TF32)",
+   "c4_params/101": "64/64 identical actions and SQL (CPU float32 vs GPU TF32)"
+  },
+  "code": {
+   "run_commit": "120412d3e383359f5d2f1d40d5b3dc554faaff38",
+   "protocol_sha256": "81427fdc798b38df2416eb3a6ace09b99338722055b069f25cdd54628aae6c71",
+   "frozen_at": "5bb852c4077cfcaec10c0a9f5e1dcb635087e1cb"
+  },
+  "L": {
+   "run": "20261102T045453Z_L_nonthinking_p0-64",
+   "commit": "120412d3e383359f5d2f1d40d5b3dc554faaff38"
+  }
+ },
+ "resources": {
+  "ledger_total_hours": 6.878170164078087,
+  "cap_hours": 8.0,
+  "pilot_hours": 3.8988226043664493,
+  "pilot_reservations": [
+   {
+    "started": "2026-10-30T17:39:17+00:00",
+    "command": "pilot-feasibility",
+    "status": "ok",
+    "hours": 0.1295
+   },
+   {
+    "started": "2026-10-30T17:55:58+00:00",
+    "command": "pilot-feasibility",
+    "status": "ok",
+    "hours": 0.0415
+   },
+   {
+    "started": "2026-10-30T17:58:57+00:00",
+    "command": "pilot-encode dev",
+    "status": "ok",
+    "hours": 0.0396
+   },
+   {
+    "started": "2026-10-30T18:01:20+00:00",
+    "command": "pilot-encode train_0-1200",
+    "status": "ok",
+    "hours": 0.313
+   },
+   {
+    "started": "2026-10-30T18:20:08+00:00",
+    "command": "pilot-encode train_1200-2400",
+    "status": "NO END (host crash)",
+    "hours": 0.5586
+   },
+   {
+    "started": "2026-11-02T01:27:23+00:00",
+    "command": "pilot-encode train_1200-2400",
+    "status": "failed",
+    "hours": 0.0311
+   },
+   {
+    "started": "2026-11-02T01:51:00+00:00",
+    "command": "pilot-encode train_1200-2400",
+    "status": "ok",
+    "hours": 0.5879
+   },
+   {
+    "started": "2026-11-02T02:26:17+00:00",
+    "command": "pilot-encode train_2400-3600",
+    "status": "ok",
+    "hours": 0.5863
+   },
+   {
+    "started": "2026-11-02T03:01:29+00:00",
+    "command": "pilot-encode train_3600-4741",
+    "status": "ok",
+    "hours": 0.4484
+   },
+   {
+    "started": "2026-11-02T03:34:42+00:00",
+    "command": "pilot-train T4 s100",
+    "status": "ok",
+    "hours": 0.2686
+   },
+   {
+    "started": "2026-11-02T03:50:50+00:00",
+    "command": "pilot-train c4_params s100",
+    "status": "ok",
+    "hours": 0.2503
+   },
+   {
+    "started": "2026-11-02T04:11:56+00:00",
+    "command": "pilot-train T4 s101",
+    "status": "ok",
+    "hours": 0.2594
+   },
+   {
+    "started": "2026-11-02T04:27:31+00:00",
+    "command": "pilot-train c4_params s101",
+    "status": "ok",
+    "hours": 0.2479
+   },
+   {
+    "started": "2026-11-02T04:43:09+00:00",
+    "command": "pilot-eval s100",
+    "status": "ok",
+    "hours": 0.0684
+   },
+   {
+    "started": "2026-11-02T04:48:01+00:00",
+    "command": "pilot-eval s101",
+    "status": "ok",
+    "hours": 0.0683
+   }
+  ],
+  "projected_vs_actual_hours": {
+   "encode (dev + 4 train chunks, incl. crash and failed resume)": {
+    "projected": 2.504198252407949,
+    "actual": 2.56490684452898
+   },
+   "train (4 fits)": {
+    "projected": 0.8340885378454166,
+    "actual": 1.0261539130947221
+   },
+   "evaluate + reconstruct (2 runs)": {
+    "projected": 0.16377644839748326,
+    "actual": 0.13671210959527746
+   },
+   "projection total (excl. the two feasibility runs)": {
+    "projected": 3.5020632386508486,
+    "actual": 3.7277728672189796
+   },
+   "feasibility runs (before the projection)": {
+    "actual": 0.1710497371474695
+   }
+  }
+ },
+ "bundle": {
+  "files": 84,
+  "sha256sums_ok": true,
+  "equal_to_originals": 84,
+  "differ": [],
+  "no_original": [],
+  "pilot_json_not_bundled": [
+   "quarantine/20261102T015059Z/quarantine.json"
+  ]
+ },
+ "discrepancies_and_notes": [
+  "bundle: runs/ti_tnn_scaling/pilot/quarantine/20261102T015059Z/quarantine.json (the crash-damage record) is not in evidence/pilot_v1",
+  "projection vs actual (re-run feasibility 20261030T175558Z): total 3.502 h projected vs 3.728 h actual (+0.226 h), within the 1.3 h slack",
+  "train +0.19 h (+23%): updates averaged 0.58-0.63 s against 0.50 s projected; prefetch waits explain about 0.04 s of the gap",
+  "encode +0.06 h despite the crash: the crashed reservation (0.559 h, no end entry) produced 846 anchored entries that were reused; only the failed resume (0.031 h) and the 2 recomputes were lost. Per-chunk cost varied about 4x because long contexts cluster in release order (the forward rate stayed at 0.37-0.40 s per 1,000 tokens; the chunk re-run's 346 new contexts averaged 13,951 tokens)",
+  "evaluate -0.03 h",
+  "reading fragility: C4_params seed 100 scored 4, equal to L's 4, so it fails 'cleared L' by a tie under the strict '>' rule; one question decides C4_params's gate status",
+  "the controllers answered 3 question-runs correctly whose gold program is unrepresentable (EX compares result sets): T4/100, C4_params/100, C4_params/101 one each"
+ ]
+}
