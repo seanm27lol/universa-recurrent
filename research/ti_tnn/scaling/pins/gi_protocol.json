@@ -1,0 +1,35 @@
+{
+ "protocol": "docs/PROTOCOL_grounding_interface.md",
+ "sha256": "d3215e69684741de24610b4c6070400eb98dc3eb939740f100d52c7bff3013a7",
+ "new_eval_pin_sha256": "f00898f02362d0ecbbb9881e503049ea49f3fd95d565f23509040ef5cc463a42",
+ "frozen_at": "fb4e342af2ebe11aa806a6a93d73fc0818972d2b",
+ "selected_on_dev": {
+  "prompt": "gi-g4-prompt-v2",
+  "record": "gi-record-v1",
+  "parser": "fenced block or whole reply; then invalid escapes removed; then outermost braces; one layer of SQL quoting removed from names",
+  "dev_ground_run": "grounding_interface/ground/20261103T191242Z_dev",
+  "dev_decode_run": "grounding_interface/decode_dev/20261103T193217Z"
+ },
+ "fixed_by_the_work_order": {
+  "rank_prior": "ln 2 / r",
+  "max_tables": 8,
+  "max_columns": 16,
+  "fallback": "G0 on any invalid or incomplete record",
+  "max_new_tokens": 512,
+  "thinking": false
+ },
+ "gate": {
+  "rule": "some policy changes the final SQL on >= 10% of the 768 dev decodes",
+  "passes": true,
+  "shares": {
+   "Glex": 0.1042,
+   "G4": 0.1016,
+   "oracle": 0.0885
+  }
+ },
+ "budget": {
+  "used_at_freeze_hours": 22.042,
+  "work_order_limit_hours": 29.416,
+  "projected_hours": 0.9
+ }
+}
