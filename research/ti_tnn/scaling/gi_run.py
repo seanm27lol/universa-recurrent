@@ -1,6 +1,9 @@
 """Commands of the grounding-interface study (development; `docs/PROTOCOL_grounding_interface.md`).
 
     python -m scaling.gi_run constraint   # post hoc: the six v1 checkpoints, v1 and v1 + the ON restriction (CPU)
+    python -m scaling.gi_run ground --population dev --projected-hours 0.8   # G4 grounding calls (GPU reservation)
+    python -m scaling.gi_run lexical --population dev                        # Glex records (CPU)
+    python -m scaling.gi_run decode-dev                                      # G0, Glex, G4, oracle, swaps (CPU)
 
 Runs go to `<runs root>/grounding_interface/`. The historical producers and their evidence are read, never written.
 """
@@ -16,6 +19,43 @@ from . import contracts as C
 
 ROOT = C.RUNS / "grounding_interface"
 V1_ARMS = (("T4", "v1"), ("c4_params", "v1"))
+V2_ARMS = (("T4", "v2"), ("c4_params", "v2"))
+POLICIES = ("G0", "Glex", "G4")
+# The work order of 2026-11-03 allots at most 8 GPU-reservation hours, within authorization v2's 32 cumulative hours.
+# The ledger read when it began held 21.415907 h, so no reservation may let the cumulative total pass this.
+WORK_ORDER_USED_AT_START = 21.415907
+WORK_ORDER_LIMIT = min(32.0, WORK_ORDER_USED_AT_START + 8.0)
+
+
+class GiStop(SystemExit):
+    pass
+
+
+def check_budget(projected_hours: float) -> dict:
+    """Before a reservation: the hours used plus 1.5 x the projection (the watchdog's worst case) must stay within
+    the work order's limit."""
+    from . import ledger
+    u = ledger.usage()
+    worst = u["used_hours"] + (1 + ledger.PROJECTION_MARGIN) * projected_hours
+    out = {"used_hours": u["used_hours"], "projected_hours": projected_hours, "worst_case_hours": worst,
+           "work_order_limit_hours": WORK_ORDER_LIMIT, "fits": worst <= WORK_ORDER_LIMIT}
+    if not out["fits"]:
+        raise GiStop(f"budget: {out}")
+    return out
+
+
+def population_ids(population: str) -> list:
+    """dev: the performance study's 128 evaluated questions (positions 0-127). new: the pinned block (positions
+    128-191), only after the protocol freeze."""
+    from . import perf
+    if population == "dev":
+        return perf.eval_ids()
+    if population == "new":
+        return json.loads(NEW_PIN.read_text())["task_ids"]
+    raise ValueError(population)
+
+
+NEW_PIN = C.PINS / "gi_new_eval.json"
 
 
 def _write(path: Path, obj) -> None:
@@ -152,6 +192,182 @@ def constraint_summary(rows: list) -> dict:
     return out
 
 
+def _prompt_inputs(task, limits, index) -> tuple:
+    """(schema text, retrieved examples) exactly as the B4 harness builds them (`cli.baseline`)."""
+    from . import data, retrieval
+    from . import schema as schema_mod
+    snap = data.snapshot(task.db_id)
+    text = schema_mod.serialize(schema_mod.load_schema(task.db_id, snap),
+                                budget_chars=schema_mod.PROMPT_BUDGET_CHARS).text
+    return text, retrieval.retrieve(task, limits.retrieval_k, index=index)
+
+
+def _items(task):
+    """The request's schema items as the controller's encoding serializes them (no budget), for a preview of a
+    record's resolution; consumption resolves again against the encoding's own items."""
+    from . import actions as A
+    from . import schema as schema_mod
+    sch = schema_mod.load_schema(task.db_id)
+    return A.SchemaItems(schema_mod.serialize(sch).items, sch)
+
+
+def ground_cmd(args) -> None:
+    """G4: one bounded Qwen3.5-4B grounding call per question of a population (GPU reservation)."""
+    from . import data, gi_llm, identity, ledger, pilot_run, retrieval
+    from .runtime import Runtime
+    ids = population_ids(args.population)
+    limits = C.Limits()
+    budget = check_budget(args.projected_hours)
+    cfg = gi_llm.config(limits)
+    run_dir = pilot_run._new_dir(ROOT / "ground", args.population)
+    identity.write_manifest(run_dir, config={"command": f"gi ground {args.population}", "requested": ids,
+                                             "prompt": gi_llm.PROMPT_VERSION, "system": gi_llm.SYSTEM_GROUND,
+                                             "generation": cfg.as_dict(), "record": "gi-record-v1",
+                                             "budget": budget, "seed_rule": "int(sha256('G4:' + task_id)[:8], 16)"},
+                            require_clean=not args.allow_dirty, extra={"model_identity": identity.model_identity("B4")})
+    index = retrieval.training_pool_index()
+    out = {"requested": len(ids)}
+    with ledger.Reservation(f"gi ground {args.population}", projected_hours=args.projected_hours,
+                            extra={"run_dir": identity.run_ref(run_dir), "work_order_limit": WORK_ORDER_LIMIT}) as res:
+        t0 = time.perf_counter()
+        rt = Runtime("B4")
+        out["load_seconds"] = time.perf_counter() - t0
+        for tid in ids:
+            res.check()
+            task = data.task(tid)
+            text, examples = _prompt_inputs(task, limits, index)
+            rec = gi_llm.ground_call(rt, cfg, task, text, examples, _items(task))
+            rec["retrieved"] = [e.task_id for e in examples]
+            with open(run_dir / "records.jsonl", "a") as f:
+                f.write(json.dumps(rec, sort_keys=True, default=str) + "\n")
+            print(json.dumps({"task": tid, "valid": rec["grounding"]["valid"], "reason": rec["grounding"]["reason"],
+                              "finish": rec["call"]["finish_reason"], "seconds": round(rec["seconds"], 2)}), flush=True)
+        out["reservation"] = {"id": res.id, "hours": res.elapsed_hours(), "projected_hours": args.projected_hours}
+    _write(run_dir / "summary.json", out)
+
+
+def lexical_cmd(args) -> None:
+    """Glex records for a population (CPU, timed per request)."""
+    from . import data, gi_lexical, identity, pilot_run
+    from . import gi_record as GR
+    from . import schema as schema_mod
+    ids = population_ids(args.population)
+    run_dir = pilot_run._new_dir(ROOT / "lexical", args.population)
+    identity.write_manifest(run_dir, config={"command": f"gi lexical {args.population}", "requested": ids},
+                            require_clean=not args.allow_dirty)
+    with open(run_dir / "records.jsonl", "w") as f:
+        for tid in ids:
+            task = data.task(tid)
+            t0 = time.perf_counter()
+            items = _items(task)
+            obj = gi_lexical.ground(task.question, task.evidence, schema_mod.load_schema(task.db_id), items)
+            g = GR.resolve(obj, items, task.question, task.evidence)
+            f.write(json.dumps({"task_id": tid, "record": obj, "grounding": g.as_dict(),
+                                "seconds": time.perf_counter() - t0}, sort_keys=True) + "\n")
+
+
+def _latest(kind: str, population: str) -> Path:
+    runs = sorted(d for d in (ROOT / kind).glob(f"*_{population}") if (d / "records.jsonl").exists())
+    if not runs:
+        raise GiStop(f"no {kind} run for {population}")
+    return runs[-1]
+
+
+def _load_records(run_dir: Path) -> dict:
+    return {r["task_id"]: r for r in map(json.loads, (run_dir / "records.jsonl").read_text().splitlines()) if r}
+
+
+def swap_partner(ids: list, db_of: dict) -> dict:
+    """Each question's swap partner: the next question of the same database in population order (cyclic); none for a
+    database with one question."""
+    by_db: dict = {}
+    for t in ids:
+        by_db.setdefault(db_of[t], []).append(t)
+    out = {}
+    for qs in by_db.values():
+        if len(qs) > 1:
+            for k, t in enumerate(qs):
+                out[t] = qs[(k + 1) % len(qs)]
+    return out
+
+
+def decode_rows(model, enc, policies: dict, score_fn, task) -> dict:
+    """Decode one request under each named policy ({name: biases or None}); score each."""
+    from . import controller as K
+    from . import gi_record as GR
+    from . import infer_controller
+    prep = K.prepare(enc, grounding=model.cfg.grounding)
+    out = {}
+    for name, biases in policies.items():
+        with GR.pointer_prior(model, biases):
+            dec = infer_controller.decode_one(model, prep)
+        rec = dec.as_record()
+        sc = score_fn(task, rec["final"]["sql"])
+        out[name] = {"actions": rec["actions"], "sql": rec["final"]["sql"], "kind": rec["final"]["kind"],
+                     "reason": rec["final"].get("reason"), "correct": sc["correct"],
+                     "status": sc["predicted"]["status"], "exec_seconds": sc["predicted"]["elapsed_seconds"],
+                     "work": rec["controller_work"]}
+    return out
+
+
+def decode_dev_cmd(args) -> None:
+    """Development decoding on the CPU (cached anchored states), for the six saved v2 controllers on the 128 dev
+    questions: G0, Glex, G4, the marked oracle (gold tables and columns, unordered) and the G4 record swapped with
+    another question's of the same database."""
+    import torch
+
+    from . import data, identity, perf, pilot_run, sql_to_ir, train
+    from . import gi_record as GR
+    torch.set_num_threads(args.threads)
+    ids = population_ids("dev")
+    ground_dir, lex_dir = _latest("ground", "dev"), _latest("lexical", "dev")
+    g4, glex = _load_records(ground_dir), _load_records(lex_dir)
+    db_of = {t: data.task(t).db_id for t in ids}
+    partner = swap_partner(ids, db_of)
+    run_dir = pilot_run._new_dir(ROOT / "decode_dev", "")
+    fits = {f"{perf.label(a, g)}/{s}": perf.final_checkpoint(perf.run_dir_of(a, g, s)) for a, g in V2_ARMS
+            for s in perf.SEEDS}
+    identity.write_manifest(run_dir, config={
+        "command": "gi decode-dev", "ground_run": identity.run_ref(ground_dir),
+        "lexical_run": identity.run_ref(lex_dir),
+        "checkpoints": {k: {"path": identity.run_ref(p), **{f: (r or {}).get(f) for f in ("sha256", "model_digest")}}
+                        for k, (p, r) in fits.items()},
+        "policies": ["G0", "Glex", "G4", "oracle (evaluator information; diagnostic only)", "G4-swap"],
+        "device": "cpu", "threads": args.threads}, require_clean=not args.allow_dirty)
+    encs = _encodings(ids)
+    scores: dict = {}
+    t0 = time.time()
+    with open(run_dir / "records.jsonl", "w") as f:
+        for key, (path, _r) in fits.items():
+            label, seed = key.split("/")
+            model = train.model_from_checkpoint(train.load_checkpoint(path), "cpu").eval()
+            saved = _saved_records(label, int(seed))
+            for tid in ids:
+                task, enc = data.task(tid), encs[tid]
+                items, n = enc.schema, len(enc.schema.items)
+                res = {name: GR.resolve(r["record"], items, task.question, task.evidence,
+                                        truncated=r.get("call", {}).get("finish_reason", "eos") != "eos")
+                       if r.get("record") is not None else GR.Grounding(False, r["grounding"]["reason"])
+                       for name, r in (("Glex", glex[tid]), ("G4", g4[tid]))}
+                plan, err = sql_to_ir.try_convert(data.gold(tid).sql, items.index)
+                oracle = GR.oracle_record(plan, items) if err is None else None
+                policies = {"G0": None, "Glex": res["Glex"].biases(n), "G4": res["G4"].biases(n),
+                            "oracle": GR.oracle_biases(oracle, n) if oracle else None}
+                if tid in partner:
+                    other = g4[partner[tid]]
+                    sw = GR.resolve(other["record"], items, task.question, task.evidence,
+                                    truncated=other["call"]["finish_reason"] != "eos") \
+                        if other.get("record") is not None else GR.Grounding(False, "partner record invalid")
+                    policies["G4-swap"] = sw.biases(n)
+                rows = decode_rows(model, enc, policies, lambda t, q: _score(scores, t, q), task)
+                row = {"fit": key, "task_id": tid, "db_id": task.db_id, "policies": rows,
+                       "grounding": {k: v.as_dict() for k, v in res.items()}, "oracle": oracle,
+                       "swap_partner": partner.get(tid),
+                       "g0_equals_saved_decode": rows["G0"]["actions"] == saved[tid]["attempts"][0]["actions"]}
+                f.write(json.dumps(row, sort_keys=True, default=str) + "\n")
+            print(json.dumps({"fit": key, "seconds": round(time.time() - t0)}), flush=True)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="command", required=True)
@@ -159,6 +375,19 @@ def main(argv=None) -> int:
     s.add_argument("--threads", type=int, default=8)
     s.add_argument("--allow-dirty", action="store_true")
     s.set_defaults(fn=constraint_cmd)
+    s = sub.add_parser("ground")
+    s.add_argument("--population", choices=("dev", "new"), required=True)
+    s.add_argument("--projected-hours", type=float, required=True)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=ground_cmd)
+    s = sub.add_parser("lexical")
+    s.add_argument("--population", choices=("dev", "new"), required=True)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=lexical_cmd)
+    s = sub.add_parser("decode-dev")
+    s.add_argument("--threads", type=int, default=8)
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=decode_dev_cmd)
     args = ap.parse_args(argv)
     args.fn(args)
     return 0
