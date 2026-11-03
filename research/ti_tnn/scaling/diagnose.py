@@ -1088,6 +1088,83 @@ def tables(args) -> str:
     return "\n".join(lines)
 
 
+def table_predictions(model, example) -> list:
+    """Teacher forced, the controller's argmax table at every table-pointer step: [(step, predicted, gold)]."""
+    import torch
+
+    from . import controller as K
+    with torch.no_grad():
+        batch = K.collate([example])
+        st = batch.steps
+        mem = model.trunk.memory(batch)
+        state, _ = model.trunk.states(mem, st)
+        rows = st["valid"][0] & (st["family"][0] < 4)
+        idx = rows.nonzero(as_tuple=True)[0]
+        _op_logits, q_rows = model.semantic(state[0, idx], st["family"][0, idx])
+        queries = state.new_zeros((1, state.shape[1], K.N_POINTERS, model.cfg.d_model))
+        queries[0, idx] = q_rows
+        items, _start, _end = model.trunk.pointer_scores(mem, queries, st["ptr_target"], st.get("ptr_rel"))
+        kind = st["ptr_kind"][0]
+        out = []
+        for t in (kind == 1).nonzero(as_tuple=True)[0].tolist():
+            sc = items[0, t, 0].masked_fill(~st["ptr_items"][0][t], K.NEG)
+            out.append((t, int(sc.argmax()), int(st["ptr_target"][0][t])))
+    return out
+
+
+def first_table(args) -> dict:
+    """After the performance study (CPU, descriptive): every teacher-forced "FROM table" decision of every fit split
+    into right; wrong but a table of the gold program (a reference-order disagreement); and wrong with a table the
+    gold program does not use (an irrelevant table). Reads the final checkpoints and the anchored states only."""
+    import torch
+
+    from . import controller as K
+    from . import data, encode, perf, train
+    torch.set_num_threads(args.threads)
+    from . import pilot_run
+    tok = pilot_run._tokenizer()
+    anchors, ident = perf.anchors()
+    reader = encode.Backbone.cache_reader(ident, tok)
+    encs = {}
+    for tid in perf.eval_ids():
+        enc = _encoding(tid, reader, encode.PILOT_CACHE, anchors)
+        encs[tid] = {"enc": enc, "steps": {g: train.gold_steps(data.gold(tid).sql, enc, g)[0] for g in ("v1", "v2")}}
+    out = {"fits": {}, "rule": "teacher forced on the gold prefix; 'in gold set' = a table any table pointer of the "
+                                "gold program targets (FROM or joined, any SELECT)"}
+    for arm, g in perf.ARMS:
+        for seed in perf.SEEDS:
+            path, _ = perf.final_checkpoint(perf.run_dir_of(arm, g, seed))
+            model = train.model_from_checkpoint(train.load_checkpoint(path), "cpu").eval()
+            for pop in perf.POPULATIONS:
+                counts = {"steps": 0, "right": 0, "wrong_in_gold_set": 0, "wrong_irrelevant": 0,
+                          "top_steps": 0, "top_right": 0, "top_wrong_in_gold_set": 0, "top_wrong_irrelevant": 0}
+                for tid in perf.eval_ids(pop):
+                    e, steps = encs[tid]["enc"], encs[tid]["steps"][g]
+                    if not steps:
+                        continue
+                    actions = [s.action for s in steps[:-1]]
+                    labels = step_labels(actions, e.schema, e.spans, g)
+                    preds = table_predictions(model, K.prepare(e, steps, grounding=g))
+                    gold_set = {gold for _t, _p, gold in preds}
+                    first_from = min((t for t, _p, _g in preds if labels[t] == "FROM table"), default=None)
+                    for t, pred, gold in preds:
+                        if labels[t] != "FROM table":
+                            continue
+                        verdict = "right" if pred == gold else "wrong_in_gold_set" if pred in gold_set else \
+                            "wrong_irrelevant"
+                        counts["steps"] += 1
+                        counts[verdict] += 1
+                        if t == first_from:
+                            counts["top_steps"] += 1
+                            counts["top_" + verdict] += 1
+                key = f"{perf.label(arm, g)}/{seed}/{pop}"
+                out["fits"][key] = counts
+                log(f"{key}: {counts}")
+    Path(args.out).mkdir(parents=True, exist_ok=True)
+    (Path(args.out) / "first_table.json").write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
+    return out
+
+
 PERF_COUNTS = ("correct", "table_set_equal", "every_gold_table_predicted", "every_predicted_table_in_gold",
                "join_keys_equal_given_tables_equal", "correct_given_table_set_equal",
                "correct_given_table_set_differs", "exact_plan", "requests_with_same_reference_join", "timeouts")
@@ -1148,7 +1225,7 @@ def log(msg: str) -> None:
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("what", nargs="?", default="run",
-                    choices=("run", "table-mentions", "tables", "perf", "perf-tables"))
+                    choices=("run", "table-mentions", "tables", "perf", "perf-tables", "first-table"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--workers", type=int, default=8)
@@ -1156,6 +1233,9 @@ def main(argv=None) -> None:
     args = ap.parse_args(argv)
     if args.what == "tables":
         print(tables(args))
+        return
+    if args.what == "first-table":
+        first_table(args)
         return
     if args.what == "perf-tables":
         print(perf_tables(args))

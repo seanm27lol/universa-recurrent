@@ -2,6 +2,7 @@
 
     python -m scaling.perf_report              # recompute from the records, compare with analysis.json, print tables
     python -m scaling.perf_report --questions  # the same checks, then every question of both populations
+    python -m scaling.perf_report --corrections  # the 2026-11-03 corrections beside the recorded values
 
 **What it reads:**
 - `evidence/perf_v2/`: the counted evaluations' records, the training logs, the analysis, the baselines run in this
@@ -148,7 +149,7 @@ def tables() -> str:
                        f"{full['exploratory_sign_flip']['p_two_sided']:.3f} |")
         out += ["", f"Reading: {a['reading']}", "", "| arm (pooled over seeds) | requests | EX-correct | time to "
                 "submission, mean s | submitted execution, s (timeouts) | generation per EX-correct, s | generation + "
-                "execution per EX-correct, s | active MACs per request |", "|---|---|---|---|---|---|---|---|"]
+                "execution per EX-correct, s | controller MACs per request, as recorded |", "|---|---|---|---|---|---|---|---|"]
         for lab in labels:
             v = r["serving_pooled"][lab]
             m = a["macs"][lab]["active_macs_per_request_mean"]
@@ -226,6 +227,85 @@ def questions() -> str:
     return "\n".join(out)
 
 
+def corrections() -> str:
+    """The 2026-11-03 corrections, from the bundle alone and beside the recorded values (which stay as they are):
+    controller MACs as executed, the machine's load while Qwen was timed, the first-table split and the costs kept
+    apart."""
+    import glob
+    import statistics
+
+    from . import controller as K
+    from . import ledger
+    from . import perf_corrections as PC
+    analysis, _rec = reconstruct()
+    seeds = analysis["seeds"]
+    labels = [perf.label(*a) for a in perf.ARMS]
+    pin = json.loads(perf.EVAL_PIN.read_text())["populations"]
+    out = ["### Controller MACs per request: as recorded and as executed", "",
+           "Controller only; the frozen 4B backbone's forward over the context is not included in either column. "
+           "As recorded: the chosen operator's pointer kind only, and no STOP step. As executed: every STOP step's "
+           "trunk, and every pointer head `decode_batch` runs (`perf_corrections.executed_macs`).", "",
+           "| population | arm | requests | as recorded, mean | as executed, mean | difference |", "|---|---|---|---|---|---|"]
+    for pop, p in pin.items():
+        ids = set(p["task_ids"])
+        for lab in labels:
+            rows = []
+            for s in seeds:
+                cfg = K.ControllerConfig(**json.loads((BUNDLE / "train" / f"{lab}_s{s}" / "config.json").read_text())
+                                         ["controller"])
+                d = _in_bundle(analysis["inputs"]["evaluations_counted"][str(s)])
+                rows += [PC.executed_macs(r, cfg) for r in _load(d / lab / "records.jsonl") if r["task_id"] in ids]
+            rec = statistics.mean(r["recorded"] for r in rows)
+            exe = statistics.mean(r["executed"] for r in rows)
+            out.append(f"| {pop} | {lab} | {len(rows)} | {rec / 1e9:.3f} G | {exe / 1e9:.3f} G | "
+                       f"+{100 * (exe / rec - 1):.2f}% |")
+    lines = [json.loads(x) for x in (BUNDLE / "gpu_ledger.jsonl").read_text().splitlines() if x.strip()]
+    windows = PC.qwen_windows(lines)
+    logs = [x for f in sorted(glob.glob(str(BUNDLE / "logs" / "cotenancy_*.log"))) for x in Path(f).read_text()
+            .splitlines()]
+    overlap = json.loads((BUNDLE / "corrections" / "cpu_overlap.json").read_text())
+    out += ["", "### Machine load while Qwen was timed (disclosure; no correction applied)", "",
+            "| reservation | minutes | load samples | 1-min load mean | median | max | share above 6 | overlapping "
+            "producer or reviewer CPU work |", "|---|---|---|---|---|---|---|---|"]
+    for name, w in overlap["windows"].items():
+        cmd = w["reservation_command"]
+        a, b = windows[cmd]
+        v = PC.load_during(logs, {cmd: (a, b)})[cmd]
+        out.append(f"| {name} | {(b - a) / 60:.0f} | {v['samples']} | {v['mean']:.2f} | {v['median']:.2f} | "
+                   f"{v['max']:.2f} | {v['share_above_6']:.2f} | {overlap['scope'][name]} |")
+    (ft_path,) = sorted(BUNDLE.glob("diagnosis/*_first_table_*/first_table.json"))[-1:]
+    ft = json.loads(ft_path.read_text())["fits"]
+    out += ["", "### Teacher-forced FROM-table decisions: wrong order or irrelevant table", "",
+            "The pointer only (a wrong family or operator at the step is not counted here). In gold set: a table the "
+            "gold program uses, chosen in another order; irrelevant: a table the gold program does not use.", "",
+            "| population | arm | FROM-table steps | right | wrong, in gold set | wrong, irrelevant | first FROM of the "
+            "program: right / in gold set / irrelevant |", "|---|---|---|---|---|---|---|"]
+    for pop in pin:
+        for lab in labels:
+            c = {k: sum(ft[f"{lab}/{s}/{pop}"][k] for s in seeds) for k in ft[f"{lab}/{seeds[0]}/{pop}"]}
+            n, t = c["steps"], c["top_steps"]
+            out.append(f"| {pop} | {lab} | {n} | {c['right'] / n:.2f} | {c['wrong_in_gold_set'] / n:.2f} | "
+                       f"{c['wrong_irrelevant'] / n:.2f} | {c['top_right'] / t:.2f} / "
+                       f"{c['top_wrong_in_gold_set'] / t:.2f} / {c['top_wrong_irrelevant'] / t:.2f} |")
+    cost = PC.cost_separation(ledger.usage(BUNDLE / "gpu_ledger.jsonl")["reservations"])
+    st, rs = cost["setup"], cost["research"]
+    out += ["", "### Costs, kept apart (GPU-reservation hours; never added together)", "",
+            "| kind | what | hours |", "|---|---|---|",
+            f"| standalone setup | the training pool's backbone states, completed encode reservations "
+            f"({st['training_states_reservations']}) | {st['training_states_hours']:.3f} |"]
+    out += [f"| standalone setup | one {lab} fit, mean of {len(seeds)} | {h:.3f} |"
+            for lab, h in st["one_fit_hours_mean"].items()]
+    out += [f"| research | interrupted encode attempts (the pilot's host crash) | "
+            f"{st['training_states_interrupted_hours']:.3f} |",
+            f"| research | everything under authorization v2 ({rs['authorization_v2_reservations']} reservations) | "
+            f"{rs['authorization_v2_hours']:.3f} |",
+            f"| research | the whole ledger, the pilot and earlier included ({rs['all_reservations']} reservations) | "
+            f"{rs['all_hours']:.3f} |", "",
+            "Marginal serving is per request and per EX-correct answer, measured in the records (the serving tables "
+            "above); it is not a ledger quantity."]
+    return "\n".join(out)
+
+
 _DB = None
 
 
@@ -239,7 +319,7 @@ def analysis_db(task_id: str) -> str:
 
 def main(argv=None) -> int:
     argv = sys.argv[1:] if argv is None else argv
-    print(questions() if argv == ["--questions"] else tables())
+    print(questions() if argv == ["--questions"] else corrections() if argv == ["--corrections"] else tables())
     return 0
 
 
