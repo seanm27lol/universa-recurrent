@@ -1,0 +1,831 @@
+T4-v1/100/historical: 8 correct
+T4-v1/100/new: 6 correct
+C4-v1/100/historical: 4 correct
+C4-v1/100/new: 4 correct
+T4-v2/100/historical: 9 correct
+T4-v2/100/new: 10 correct
+C4-v2/100/historical: 11 correct
+C4-v2/100/new: 12 correct
+T4-v1/101/historical: 3 correct
+T4-v1/101/new: 7 correct
+C4-v1/101/historical: 4 correct
+C4-v1/101/new: 7 correct
+T4-v2/101/historical: 11 correct
+T4-v2/101/new: 16 correct
+C4-v2/101/historical: 12 correct
+C4-v2/101/new: 11 correct
+T4-v1/102/historical: 7 correct
+T4-v1/102/new: 8 correct
+C4-v1/102/historical: 7 correct
+C4-v1/102/new: 6 correct
+T4-v2/102/historical: 14 correct
+T4-v2/102/new: 10 correct
+C4-v2/102/historical: 10 correct
+C4-v2/102/new: 12 correct
+{
+ "T4-v1/100/historical": {
+  "requests": 64,
+  "correct": 8,
+  "table_set_equal": 20,
+  "correct_given_table_set_equal": 6,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 17,
+  "every_predicted_table_in_gold": 38,
+  "every_gold_table_predicted": 29,
+  "first_table_in_gold_set": 48,
+  "exact_plan": 0,
+  "categories": {
+   "table grounding": 44,
+   "projection": 42,
+   "predicate column": 38,
+   "join key (different tables)": 34,
+   "aggregation": 15,
+   "join: same-reference equality": 14,
+   "predicate literal": 10,
+   "ordering or LIMIT": 10,
+   "grouping or HAVING": 8,
+   "nested query involved": 7,
+   "join: undeclared, non-gold key": 6,
+   "DISTINCT": 5,
+   "join key (same tables)": 3,
+   "execution timeout": 1,
+   "predicate operator or shape": 1
+  },
+  "first_divergence": {
+   "FROM table": 27,
+   "join count or kind": 11,
+   "joined table": 8,
+   "gold not representable": 6,
+   "ON column (operand 0)": 3,
+   "SELECT aggregate": 2,
+   "WHERE predicate structure": 2,
+   "WHERE literal": 1,
+   "FROM structure": 1,
+   "SELECT structure": 1,
+   "GROUP BY": 1,
+   "WHERE column": 1
+  },
+  "divergence_decision": {
+   "pointer": 42,
+   "operator": 15,
+   "family": 1
+  },
+  "join_equalities": {
+   "cross_source": 33,
+   "same_reference": 14,
+   "same_source": 8
+  },
+  "requests_with_same_reference_join": 14,
+  "timeouts": 1
+ },
+ "T4-v1/100/new": {
+  "requests": 64,
+  "correct": 6,
+  "table_set_equal": 19,
+  "correct_given_table_set_equal": 5,
+  "correct_given_table_set_differs": 1,
+  "join_keys_equal_given_tables_equal": 17,
+  "every_predicted_table_in_gold": 35,
+  "every_gold_table_predicted": 30,
+  "first_table_in_gold_set": 46,
+  "exact_plan": 1,
+  "categories": {
+   "projection": 52,
+   "table grounding": 44,
+   "predicate column": 39,
+   "join key (different tables)": 31,
+   "aggregation": 16,
+   "join: same-reference equality": 13,
+   "ordering or LIMIT": 12,
+   "predicate literal": 10,
+   "grouping or HAVING": 9,
+   "DISTINCT": 8,
+   "join: undeclared, non-gold key": 7,
+   "nested query involved": 6,
+   "join key (same tables)": 2,
+   "predicate: same-reference equality": 1,
+   "execution timeout": 1,
+   "no comparable plan": 1
+  },
+  "first_divergence": {
+   "FROM table": 25,
+   "join count or kind": 12,
+   "joined table": 10,
+   "ON column (operand 0)": 4,
+   "gold not representable": 4,
+   "WHERE literal": 3,
+   "WHERE predicate structure": 1,
+   "WHERE column": 1,
+   "exact": 1,
+   "SELECT column": 1,
+   "LIMIT": 1,
+   "FROM structure": 1
+  },
+  "divergence_decision": {
+   "pointer": 43,
+   "operator": 16
+  },
+  "join_equalities": {
+   "cross_source": 31,
+   "same_source": 7,
+   "same_reference": 14
+  },
+  "requests_with_same_reference_join": 13,
+  "timeouts": 1
+ },
+ "C4-v1/100/historical": {
+  "requests": 64,
+  "correct": 4,
+  "table_set_equal": 13,
+  "correct_given_table_set_equal": 2,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 10,
+  "every_predicted_table_in_gold": 33,
+  "every_gold_table_predicted": 30,
+  "first_table_in_gold_set": 46,
+  "exact_plan": 1,
+  "categories": {
+   "table grounding": 51,
+   "projection": 44,
+   "predicate column": 40,
+   "join key (different tables)": 39,
+   "aggregation": 14,
+   "join: same-reference equality": 13,
+   "predicate literal": 12,
+   "join: undeclared, non-gold key": 12,
+   "grouping or HAVING": 7,
+   "ordering or LIMIT": 7,
+   "DISTINCT": 7,
+   "nested query involved": 6,
+   "join key (same tables)": 3,
+   "execution timeout": 1,
+   "predicate operator or shape": 1
+  },
+  "first_divergence": {
+   "FROM table": 27,
+   "join count or kind": 11,
+   "joined table": 11,
+   "gold not representable": 6,
+   "WHERE predicate structure": 4,
+   "ON column (operand 1)": 1,
+   "FROM structure": 1,
+   "exact": 1,
+   "WHERE literal": 1,
+   "SELECT aggregate": 1
+  },
+  "divergence_decision": {
+   "pointer": 39,
+   "operator": 17,
+   "family": 1
+  },
+  "join_equalities": {
+   "cross_source": 34,
+   "same_source": 15,
+   "same_reference": 15
+  },
+  "requests_with_same_reference_join": 13,
+  "timeouts": 1
+ },
+ "C4-v1/100/new": {
+  "requests": 64,
+  "correct": 4,
+  "table_set_equal": 16,
+  "correct_given_table_set_equal": 4,
+  "correct_given_table_set_differs": 0,
+  "join_keys_equal_given_tables_equal": 14,
+  "every_predicted_table_in_gold": 35,
+  "every_gold_table_predicted": 30,
+  "first_table_in_gold_set": 44,
+  "exact_plan": 1,
+  "categories": {
+   "projection": 51,
+   "table grounding": 47,
+   "join key (different tables)": 36,
+   "predicate column": 32,
+   "aggregation": 18,
+   "ordering or LIMIT": 12,
+   "grouping or HAVING": 12,
+   "join: undeclared, non-gold key": 12,
+   "DISTINCT": 10,
+   "predicate literal": 9,
+   "join: same-reference equality": 7,
+   "nested query involved": 7,
+   "execution timeout": 3,
+   "join key (same tables)": 2,
+   "no comparable plan": 1,
+   "predicate operator or shape": 1
+  },
+  "first_divergence": {
+   "FROM table": 26,
+   "join count or kind": 15,
+   "joined table": 7,
+   "ON column (operand 0)": 4,
+   "gold not representable": 4,
+   "SELECT column": 2,
+   "FROM structure": 2,
+   "WHERE column": 1,
+   "exact": 1,
+   "SELECT aggregate": 1,
+   "LIMIT": 1
+  },
+  "divergence_decision": {
+   "pointer": 40,
+   "operator": 19
+  },
+  "join_equalities": {
+   "cross_source": 41,
+   "same_source": 9,
+   "same_reference": 7
+  },
+  "requests_with_same_reference_join": 7,
+  "timeouts": 3
+ },
+ "T4-v2/100/historical": {
+  "requests": 64,
+  "correct": 9,
+  "table_set_equal": 31,
+  "correct_given_table_set_equal": 8,
+  "correct_given_table_set_differs": 1,
+  "join_keys_equal_given_tables_equal": 26,
+  "every_predicted_table_in_gold": 39,
+  "every_gold_table_predicted": 41,
+  "first_table_in_gold_set": 51,
+  "exact_plan": 0,
+  "categories": {
+   "projection": 40,
+   "predicate column": 40,
+   "table grounding": 33,
+   "join key (different tables)": 29,
+   "aggregation": 17,
+   "predicate literal": 11,
+   "ordering or LIMIT": 8,
+   "DISTINCT": 8,
+   "join: undeclared, non-gold key": 8,
+   "nested query involved": 7,
+   "grouping or HAVING": 6,
+   "join key (same tables)": 5
+  },
+  "first_divergence": {
+   "FROM table": 35,
+   "gold not representable": 6,
+   "ON column (operand 0)": 5,
+   "join count or kind": 4,
+   "joined table": 3,
+   "WHERE predicate structure": 3,
+   "WHERE column": 2,
+   "WHERE literal": 2,
+   "ON column (operand 1)": 1,
+   "ORDER BY": 1,
+   "SELECT aggregate": 1,
+   "SELECT structure": 1
+  },
+  "divergence_decision": {
+   "pointer": 50,
+   "operator": 8
+  },
+  "join_equalities": {
+   "cross_source": 48,
+   "same_source": 3
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "T4-v2/100/new": {
+  "requests": 64,
+  "correct": 10,
+  "table_set_equal": 26,
+  "correct_given_table_set_equal": 8,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 24,
+  "every_predicted_table_in_gold": 35,
+  "every_gold_table_predicted": 36,
+  "first_table_in_gold_set": 43,
+  "exact_plan": 2,
+  "categories": {
+   "projection": 46,
+   "table grounding": 37,
+   "predicate column": 35,
+   "join key (different tables)": 31,
+   "aggregation": 17,
+   "DISTINCT": 10,
+   "ordering or LIMIT": 10,
+   "grouping or HAVING": 10,
+   "predicate literal": 7,
+   "nested query involved": 7,
+   "join: undeclared, non-gold key": 7,
+   "execution error": 2,
+   "join key (same tables)": 2,
+   "no comparable plan": 1,
+   "predicate operator or shape": 1
+  },
+  "first_divergence": {
+   "FROM table": 30,
+   "join count or kind": 11,
+   "joined table": 4,
+   "gold not representable": 4,
+   "ON column (operand 0)": 4,
+   "WHERE predicate structure": 3,
+   "exact": 2,
+   "WHERE column": 1,
+   "WHERE literal": 1,
+   "GROUP BY": 1,
+   "ON column (operand 1)": 1,
+   "SELECT aggregate": 1,
+   "SELECT column": 1
+  },
+  "divergence_decision": {
+   "pointer": 41,
+   "operator": 17
+  },
+  "join_equalities": {
+   "cross_source": 47,
+   "same_source": 1
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "C4-v2/100/historical": {
+  "requests": 64,
+  "correct": 11,
+  "table_set_equal": 34,
+  "correct_given_table_set_equal": 7,
+  "correct_given_table_set_differs": 4,
+  "join_keys_equal_given_tables_equal": 30,
+  "every_predicted_table_in_gold": 38,
+  "every_gold_table_predicted": 45,
+  "first_table_in_gold_set": 51,
+  "exact_plan": 2,
+  "categories": {
+   "projection": 38,
+   "predicate column": 38,
+   "table grounding": 30,
+   "join key (different tables)": 27,
+   "aggregation": 12,
+   "predicate literal": 9,
+   "join: undeclared, non-gold key": 8,
+   "DISTINCT": 8,
+   "ordering or LIMIT": 7,
+   "grouping or HAVING": 6,
+   "nested query involved": 6,
+   "join key (same tables)": 4
+  },
+  "first_divergence": {
+   "FROM table": 26,
+   "join count or kind": 8,
+   "WHERE predicate structure": 6,
+   "gold not representable": 6,
+   "ON column (operand 0)": 4,
+   "joined table": 3,
+   "SELECT aggregate": 3,
+   "WHERE literal": 2,
+   "exact": 2,
+   "GROUP BY": 1,
+   "WHERE column": 1,
+   "SELECT structure": 1,
+   "DISTINCT": 1
+  },
+  "divergence_decision": {
+   "pointer": 38,
+   "operator": 17,
+   "family": 1
+  },
+  "join_equalities": {
+   "cross_source": 54,
+   "same_source": 2
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "C4-v2/100/new": {
+  "requests": 64,
+  "correct": 12,
+  "table_set_equal": 25,
+  "correct_given_table_set_equal": 9,
+  "correct_given_table_set_differs": 3,
+  "join_keys_equal_given_tables_equal": 22,
+  "every_predicted_table_in_gold": 34,
+  "every_gold_table_predicted": 37,
+  "first_table_in_gold_set": 47,
+  "exact_plan": 0,
+  "categories": {
+   "projection": 46,
+   "table grounding": 38,
+   "predicate column": 36,
+   "join key (different tables)": 30,
+   "aggregation": 14,
+   "DISTINCT": 12,
+   "ordering or LIMIT": 10,
+   "join: undeclared, non-gold key": 9,
+   "predicate literal": 9,
+   "nested query involved": 8,
+   "grouping or HAVING": 7,
+   "join key (same tables)": 3,
+   "no comparable plan": 1,
+   "execution error": 1
+  },
+  "first_divergence": {
+   "FROM table": 35,
+   "join count or kind": 8,
+   "ON column (operand 0)": 6,
+   "gold not representable": 4,
+   "joined table": 3,
+   "WHERE column": 3,
+   "SELECT column": 2,
+   "WHERE predicate structure": 1,
+   "SELECT aggregate": 1,
+   "SELECT structure": 1
+  },
+  "divergence_decision": {
+   "pointer": 49,
+   "operator": 11
+  },
+  "join_equalities": {
+   "cross_source": 47,
+   "same_source": 2
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "T4-v1/101/historical": {
+  "requests": 64,
+  "correct": 3,
+  "table_set_equal": 17,
+  "correct_given_table_set_equal": 1,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 15,
+  "every_predicted_table_in_gold": 29,
+  "every_gold_table_predicted": 30,
+  "first_table_in_gold_set": 45,
+  "exact_plan": 1,
+  "categories": {
+   "table grounding": 47,
+   "projection": 41,
+   "predicate column": 40,
+   "join key (different tables)": 40,
+   "join: undeclared, non-gold key": 18,
+   "aggregation": 13,
+   "predicate literal": 9,
+   "ordering or LIMIT": 8,
+   "grouping or HAVING": 7,
+   "join: same-reference equality": 6,
+   "DISTINCT": 5,
+   "nested query involved": 4,
+   "join key (same tables)": 2,
+   "predicate operator or shape": 1
+  },
+  "first_divergence": {
+   "FROM table": 29,
+   "join count or kind": 11,
+   "joined table": 7,
+   "gold not representable": 6,
+   "WHERE literal": 2,
+   "WHERE predicate structure": 2,
+   "ON column (operand 0)": 2,
+   "SELECT column": 1,
+   "exact": 1,
+   "ON column (operand 1)": 1,
+   "GROUP BY": 1,
+   "WHERE column": 1
+  },
+  "divergence_decision": {
+   "pointer": 43,
+   "operator": 14
+  },
+  "join_equalities": {
+   "cross_source": 44,
+   "same_reference": 6,
+   "same_source": 7
+  },
+  "requests_with_same_reference_join": 6,
+  "timeouts": 0
+ },
+ "T4-v1/101/new": {
+  "requests": 64,
+  "correct": 7,
+  "table_set_equal": 18,
+  "correct_given_table_set_equal": 7,
+  "correct_given_table_set_differs": 0,
+  "join_keys_equal_given_tables_equal": 16,
+  "every_predicted_table_in_gold": 31,
+  "every_gold_table_predicted": 30,
+  "first_table_in_gold_set": 41,
+  "exact_plan": 1,
+  "categories": {
+   "projection": 46,
+   "table grounding": 45,
+   "predicate column": 41,
+   "join key (different tables)": 36,
+   "ordering or LIMIT": 13,
+   "DISTINCT": 12,
+   "aggregation": 12,
+   "join: undeclared, non-gold key": 11,
+   "join: same-reference equality": 10,
+   "nested query involved": 9,
+   "grouping or HAVING": 6,
+   "predicate literal": 5,
+   "join key (same tables)": 2,
+   "predicate: same-reference equality": 1,
+   "no comparable plan": 1,
+   "execution timeout": 1
+  },
+  "first_divergence": {
+   "FROM table": 27,
+   "join count or kind": 13,
+   "ON column (operand 0)": 6,
+   "joined table": 5,
+   "gold not representable": 4,
+   "FROM structure": 2,
+   "WHERE column": 2,
+   "WHERE predicate structure": 1,
+   "exact": 1,
+   "SELECT aggregate": 1,
+   "SELECT column": 1,
+   "WHERE literal": 1
+  },
+  "divergence_decision": {
+   "pointer": 42,
+   "operator": 17
+  },
+  "join_equalities": {
+   "cross_source": 39,
+   "same_reference": 10,
+   "same_source": 2
+  },
+  "requests_with_same_reference_join": 10,
+  "timeouts": 1
+ },
+ "C4-v1/101/historical": {
+  "requests": 64,
+  "correct": 4,
+  "table_set_equal": 22,
+  "correct_given_table_set_equal": 3,
+  "correct_given_table_set_differs": 1,
+  "join_keys_equal_given_tables_equal": 20,
+  "every_predicted_table_in_gold": 41,
+  "every_gold_table_predicted": 33,
+  "first_table_in_gold_set": 54,
+  "exact_plan": 1,
+  "categories": {
+   "table grounding": 42,
+   "projection": 42,
+   "join key (different tables)": 38,
+   "predicate column": 37,
+   "aggregation": 15,
+   "join: undeclared, non-gold key": 13,
+   "predicate literal": 12,
+   "grouping or HAVING": 9,
+   "ordering or LIMIT": 9,
+   "DISTINCT": 8,
+   "join: same-reference equality": 6,
+   "nested query involved": 4,
+   "join key (same tables)": 2
+  },
+  "first_divergence": {
+   "FROM table": 25,
+   "join count or kind": 12,
+   "joined table": 6,
+   "gold not representable": 6,
+   "WHERE literal": 4,
+   "WHERE predicate structure": 3,
+   "SELECT aggregate": 2,
+   "SELECT column": 2,
+   "ON column (operand 0)": 2,
+   "exact": 1,
+   "WHERE column": 1
+  },
+  "divergence_decision": {
+   "pointer": 37,
+   "operator": 19,
+   "family": 1
+  },
+  "join_equalities": {
+   "same_source": 4,
+   "same_reference": 6,
+   "cross_source": 37
+  },
+  "requests_with_same_reference_join": 6,
+  "timeouts": 0
+ },
+ "C4-v1/101/new": {
+  "requests": 64,
+  "correct": 7,
+  "table_set_equal": 21,
+  "correct_given_table_set_equal": 5,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 18,
+  "every_predicted_table_in_gold": 37,
+  "every_gold_table_predicted": 32,
+  "first_table_in_gold_set": 48,
+  "exact_plan": 1,
+  "categories": {
+   "projection": 49,
+   "predicate column": 43,
+   "table grounding": 42,
+   "join key (different tables)": 35,
+   "aggregation": 14,
+   "join: undeclared, non-gold key": 13,
+   "ordering or LIMIT": 11,
+   "nested query involved": 10,
+   "DISTINCT": 9,
+   "grouping or HAVING": 9,
+   "predicate literal": 6,
+   "join: same-reference equality": 6,
+   "join key (same tables)": 3,
+   "no comparable plan": 1
+  },
+  "first_divergence": {
+   "FROM table": 27,
+   "join count or kind": 13,
+   "ON column (operand 0)": 5,
+   "joined table": 5,
+   "gold not representable": 4,
+   "WHERE column": 3,
+   "WHERE predicate structure": 2,
+   "exact": 1,
+   "SELECT aggregate": 1,
+   "SELECT column": 1,
+   "SELECT structure": 1,
+   "WHERE literal": 1
+  },
+  "divergence_decision": {
+   "pointer": 42,
+   "operator": 17
+  },
+  "join_equalities": {
+   "cross_source": 37,
+   "same_source": 6,
+   "same_reference": 6
+  },
+  "requests_with_same_reference_join": 6,
+  "timeouts": 0
+ },
+ "T4-v2/101/historical": {
+  "requests": 64,
+  "correct": 11,
+  "table_set_equal": 27,
+  "correct_given_table_set_equal": 9,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 23,
+  "every_predicted_table_in_gold": 35,
+  "every_gold_table_predicted": 46,
+  "first_table_in_gold_set": 51,
+  "exact_plan": 2,
+  "categories": {
+   "projection": 38,
+   "table grounding": 37,
+   "predicate column": 37,
+   "join key (different tables)": 35,
+   "aggregation": 16,
+   "predicate literal": 10,
+   "grouping or HAVING": 9,
+   "ordering or LIMIT": 8,
+   "join: undeclared, non-gold key": 8,
+   "DISTINCT": 6,
+   "nested query involved": 5,
+   "join key (same tables)": 4
+  },
+  "first_divergence": {
+   "FROM table": 24,
+   "join count or kind": 10,
+   "joined table": 6,
+   "gold not representable": 6,
+   "ON column (operand 0)": 4,
+   "WHERE predicate structure": 3,
+   "GROUP BY": 2,
+   "exact": 2,
+   "SELECT structure": 2,
+   "WHERE literal": 2,
+   "HAVING column": 1,
+   "WHERE column": 1,
+   "SELECT aggregate": 1
+  },
+  "divergence_decision": {
+   "pointer": 38,
+   "operator": 17,
+   "family": 1
+  },
+  "join_equalities": {
+   "cross_source": 57,
+   "same_source": 4
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "T4-v2/101/new": {
+  "requests": 64,
+  "correct": 16,
+  "table_set_equal": 26,
+  "correct_given_table_set_equal": 13,
+  "correct_given_table_set_differs": 3,
+  "join_keys_equal_given_tables_equal": 25,
+  "every_predicted_table_in_gold": 36,
+  "every_gold_table_predicted": 39,
+  "first_table_in_gold_set": 48,
+  "exact_plan": 4,
+  "categories": {
+   "projection": 45,
+   "table grounding": 37,
+   "join key (different tables)": 33,
+   "predicate column": 31,
+   "aggregation": 16,
+   "ordering or LIMIT": 12,
+   "DISTINCT": 10,
+   "predicate literal": 10,
+   "nested query involved": 9,
+   "join: undeclared, non-gold key": 8,
+   "grouping or HAVING": 6,
+   "execution error": 1,
+   "no comparable plan": 1,
+   "join key (same tables)": 1
+  },
+  "first_divergence": {
+   "FROM table": 23,
+   "join count or kind": 13,
+   "WHERE predicate structure": 6,
+   "ON column (operand 0)": 5,
+   "gold not representable": 4,
+   "exact": 4,
+   "joined table": 3,
+   "WHERE column": 3,
+   "FROM structure": 1,
+   "SELECT column": 1,
+   "DISTINCT": 1
+  },
+  "divergence_decision": {
+   "pointer": 35,
+   "operator": 21
+  },
+  "join_equalities": {
+   "cross_source": 49,
+   "same_source": 3
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "C4-v2/101/historical": {
+  "requests": 64,
+  "correct": 12,
+  "table_set_equal": 26,
+  "correct_given_table_set_equal": 10,
+  "correct_given_table_set_differs": 2,
+  "join_keys_equal_given_tables_equal": 23,
+  "every_predicted_table_in_gold": 33,
+  "every_gold_table_predicted": 39,
+  "first_table_in_gold_set": 48,
+  "exact_plan": 2,
+  "categories": {
+   "table grounding": 38,
+   "projection": 35,
+   "join key (different tables)": 35,
+   "predicate column": 33,
+   "aggregation": 12,
+   "predicate literal": 11,
+   "DISTINCT": 8,
+   "ordering or LIMIT": 8,
+   "join: undeclared, non-gold key": 7,
+   "nested query involved": 5,
+   "grouping or HAVING": 5,
+   "join key (same tables)": 3,
+   "predicate operator or shape": 2
+  },
+  "first_divergence": {
+   "FROM table": 27,
+   "join count or kind": 10,
+   "gold not representable": 6,
+   "WHERE literal": 5,
+   "joined table": 5,
+   "ON column (operand 0)": 4,
+   "WHERE predicate structure": 2,
+   "exact": 2,
+   "HAVING column": 1,
+   "WHERE column": 1,
+   "SELECT aggregate": 1
+  },
+  "divergence_decision": {
+   "pointer": 43,
+   "operator": 13
+  },
+  "join_equalities": {
+   "cross_source": 54,
+   "same_source": 2
+  },
+  "requests_with_same_reference_join": 0,
+  "timeouts": 0
+ },
+ "C4-v2/101/new": {
+  "requests": 64,
+  "correct": 11,
+  "table_set_equal": 30,
+  "correct_given_table_set_equal": 11,
+  "correct_given_table_set_differs": 0,
+  "join_keys_equal_given_tables_equal": 28,
+  "every_predicted_table_in_gold": 38,
+  "every_gold_table_predicted": 39,
+  "first_table_in_gold_set": 46,
+  "exact_plan": 0,
+  "categories": {
+   "projection": 42,
+   "predicate column": 37,
+   "table grounding": 33,
+   "join key (differ
+exit 0

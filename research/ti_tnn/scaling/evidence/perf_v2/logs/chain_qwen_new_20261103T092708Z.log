@@ -1,0 +1,5 @@
+B4 budget {"used_hours": 17.2040925912353, "remaining_hours": 14.795907408764698, "projected_hours": 1.8, "rule": "remaining - 1 >= projected", "passes": true}
+B4 exit 0
+Q27 budget {"used_hours": 18.812290138877245, "remaining_hours": 13.187709861122755, "projected_hours": 2.65, "rule": "remaining - 1 >= projected", "passes": true}
+Q27 exit 0
+QWEN NEW DONE

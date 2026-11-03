@@ -1,6 +1,7 @@
 """The performance study's report tables, rebuilt from the committed evidence bundles alone.
 
-    python -m scaling.perf_report            # recompute from the records, compare with analysis.json, print tables
+    python -m scaling.perf_report              # recompute from the records, compare with analysis.json, print tables
+    python -m scaling.perf_report --questions  # the same checks, then every question of both populations
 
 **What it reads:**
 - `evidence/perf_v2/`: the counted evaluations' records, the training logs, the analysis, the baselines run in this
@@ -131,12 +132,12 @@ def tables() -> str:
         for lab in labels:
             vals = [r["counts"][f"{lab}/{s}"] for s in seeds]
             out.append(f"| {lab} | " + " | ".join(map(str, vals)) + f" | {sum(vals)} of {len(seeds) * a['questions']} |")
-        for arm in ("L", "B4", "Q27"):
+        for arm in ("L", "B4", "Q27"):  # one run each, no training seed
             b = r["baselines"][arm]
-            out.append(f"| {arm} | " + (" | ".join([str(b["correct"])] * len(seeds)) + " | (deterministic or one run)"
-                                        if b else " | ".join(["not run"] * len(seeds)) + " | —") + " |")
-        out += ["", "| comparison | " + " | ".join(f"seed {s}" for s in seeds) + " | pooled | min leaving one database "
-                "out | rule | sign-flip p (exploratory) |", "|---|" + "---|" * (len(seeds) + 4)]
+            out.append(f"| {arm} | " + " | ".join(["—"] * len(seeds)) +
+                       (f" | {b['correct']} of {a['questions']} (one run) |" if b else " | not run |"))
+        out += ["", "| comparison | " + " | ".join(f"seed {s}" for s in seeds) + " | pooled | leaving one database "
+                "out (min .. max) | rule | sign-flip p (exploratory) |", "|---|" + "---|" * (len(seeds) + 4)]
         for name, d, full in (("T4: v2 - v1", r["q1"]["T4"], a["q1"]["T4"]), ("C4: v2 - v1", r["q1"]["C4"],
                                                                             a["q1"]["C4"]),
                               ("v2: T4 - C4", r["q2"], a["q2"]), ("v1: T4 - C4 (descriptive)",
@@ -190,6 +191,41 @@ def tables() -> str:
     return "\n".join(out)
 
 
+def questions() -> str:
+    """Every question of both populations: each arm's EX-correct seeds (with submitted-query timeouts and errors),
+    and each baseline's outcome with its tool calls. The SQL itself is in the bundled records."""
+    analysis, rec = reconstruct()
+    seeds = analysis["seeds"]
+    labels = [perf.label(*a) for a in perf.ARMS]
+    records = {}
+    for s in seeds:
+        d = _in_bundle(analysis["inputs"]["evaluations_counted"][str(s)])
+        for lab in labels:
+            records[(lab, s)] = {r["task_id"]: r for r in _load(d / lab / "records.jsonl")}
+    pin = json.loads(perf.EVAL_PIN.read_text())["populations"]
+    out = ["Per question: an arm's cell is its EX-correct seeds of " + str(len(seeds)) + ", with t = a submitted-query "
+           "timeout and e = an execution error (one letter per seed). A baseline's cell is 1 or 0 (a = abstained), "
+           "with its tool calls. Recomputed from the bundled records.", ""]
+    for pop, p in pin.items():
+        base = {arm: (None if _baseline(arm, pop, p["task_ids"]) is None else
+                      {r["task_id"]: r for r in _baseline(arm, pop, p["task_ids"])}) for arm in ("L", "B4", "Q27")}
+        out += [f"### {pop} population", "", "| question | database | " + " | ".join(labels) + " | L | B4 | Q27 |",
+                "|---|---|" + "---|" * (len(labels) + 3)]
+        for t, db in zip(p["task_ids"], p["db_ids"]):
+            cells = []
+            for lab in labels:
+                rs = [records[(lab, s)][t] for s in seeds]
+                flags = "".join({"timeout": "t", "error": "e"}.get(r["score"]["predicted"]["status"], "") for r in rs)
+                cells.append(f"{sum(r['score']['correct'] for r in rs)}{' ' + flags if flags else ''}")
+            for arm in ("L", "B4", "Q27"):
+                r = base[arm][t] if base[arm] else None
+                cells.append("—" if r is None else
+                             f"{'a' if r['final']['kind'] == 'abstain' else r['score']['correct']} ({r['tool_calls']})")
+            out.append(f"| {t} | {db} | " + " | ".join(cells) + " |")
+        out.append("")
+    return "\n".join(out)
+
+
 _DB = None
 
 
@@ -201,8 +237,9 @@ def analysis_db(task_id: str) -> str:
     return _DB[task_id]
 
 
-def main() -> int:
-    print(tables())
+def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    print(questions() if argv == ["--questions"] else tables())
     return 0
 
 

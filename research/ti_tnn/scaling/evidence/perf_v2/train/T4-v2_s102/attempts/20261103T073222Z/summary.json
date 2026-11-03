@@ -1,0 +1,72 @@
+{
+ "arm": "T4",
+ "checkpoints": [
+  {
+   "bytes": 255184849,
+   "model_digest": "06dcfccafe4df6e814c912d99f09d15c48f9a4fbddb26753de05505168aa5bcb",
+   "optimizer_digest": "4efd597f40a65be0049aabf0ca58a88a6bb412a3260fb065693bc5424ab6b18c",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u000499_9c3ad5d88c560cc4.pt",
+   "save_seconds": 0.7732590779924067,
+   "sha256": "9c3ad5d88c560cc45c40c069e57711bcfac0644423c26fa20d9c8716ee94eea6",
+   "update": 499
+  },
+  {
+   "bytes": 255184849,
+   "model_digest": "edffb7024261ec5412bf3241b5310cdefd786cd5ec58fc3e5b878716f67917b6",
+   "optimizer_digest": "624054596957be7994e554d9d84945483594c368b282e1fcc551d3923ad0df0d",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u000999_7c12596c82cbf3c7.pt",
+   "save_seconds": 1.2335540450003464,
+   "sha256": "7c12596c82cbf3c73b88ecd2d86fb63ec2c3ca0e1e18474d8ea4b03ce78924ca",
+   "update": 999
+  },
+  {
+   "bytes": 255184849,
+   "model_digest": "fc88cd51ab595a6d8dd8d4215e8382af74f89733276811b07f43d80015ce2dc5",
+   "optimizer_digest": "9c1e87edc65858046c7e55d0b7f9327c76a82d502dbbd24e695a3ee75b907979",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u001499_a899668deb69d522.pt",
+   "save_seconds": 0.8517196729953866,
+   "sha256": "a899668deb69d522e5a61cad1078d76efa1e1cc64004c23cace92968ecb364d1",
+   "update": 1499
+  },
+  {
+   "bytes": 255184849,
+   "model_digest": "5451aab9849540ef54d1f82801adea25a428ac317b4453ad18eead61994ba788",
+   "optimizer_digest": "581945a8177bcfb28f9e37a181a975894ec1e0bb835c6bace5c81f72f2b8a446",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u001999_1ac724115d86fd5a.pt",
+   "save_seconds": 1.333690621991991,
+   "sha256": "1ac724115d86fd5a4377d1055eb6f7f1704b3be04cc6cb8404a5c74eb3e2508b",
+   "update": 1999
+  },
+  {
+   "bytes": 255184849,
+   "model_digest": "c149ef06934752b84c89bcda5a6737a085941d3dc4511f64ca8d6203d46e6e7d",
+   "optimizer_digest": "bb51758e0023d48cb1e773c1b1c256b0a9c24f42090263c4c8ac97e2ac4fdde3",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u002499_5a76b4207c214d04.pt",
+   "save_seconds": 1.012012698003673,
+   "sha256": "5a76b4207c214d04a45fadab06387f53944da010d5c4ecd3ea1df6bf1e889707",
+   "update": 2499
+  },
+  {
+   "bytes": 255184849,
+   "model_digest": "930afc4a4eb6aed2f3b0e18ead7394ff52ddf2832826347aaa07430f59c4046f",
+   "optimizer_digest": "56265aaa4c9ddb479c8cc363a884361a9f03b2f5683b43a788b3f2a7d2d2b0f9",
+   "path": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/checkpoints/ckpt_u002999_d3ddad5f70ad92e4.pt",
+   "save_seconds": 0.7261311360052787,
+   "sha256": "d3ddad5f70ad92e4da489b34b4c9573d33c72577163e6d19caed6d608317288f",
+   "update": 2999
+  }
+ ],
+ "config_identity": "eb486a5491149d31e349f4197f9982ed806b5915173294cdd1ac2db9fb460163",
+ "grounding": "v2",
+ "label": "T4-v2",
+ "log": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/train/T4-v2_s102/train_log.jsonl",
+ "peak_memory_bytes": 10320941568,
+ "reservation": {
+  "hours": 0.5607953816144436,
+  "id": "20261103T073222-46a807e6",
+  "projected_hours": 0.75
+ },
+ "resumed_from": null,
+ "seconds": 2018.8234762689972,
+ "seed": 102
+}

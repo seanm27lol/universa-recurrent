@@ -1,0 +1,75 @@
+{
+ "model": {
+  "chat_template_sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+  "dtype": "torch.bfloat16",
+  "key": "Q27",
+  "linear_attention": {
+   "causal_conv1d": "reference",
+   "configuration": "reference",
+   "gated_delta_rule": "reference"
+  },
+  "linear_attention_bound": {
+   "causal_conv1d_fn": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_fn (reference)",
+   "causal_conv1d_update": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_update (reference)",
+   "torch_chunk_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_chunk_gated_delta_rule (reference)",
+   "torch_recurrent_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_recurrent_gated_delta_rule (reference)"
+  },
+  "load_seconds": 344.6546579519927,
+  "memory_allocated_bytes": 54728103936,
+  "memory_reserved_bytes": 54748250112,
+  "model_class": "Qwen3_5ForConditionalGeneration",
+  "parameters": 27356728560,
+  "repo": "Qwen/Qwen3.8-27B",
+  "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+  "stop_tokens": {
+   "<|endoftext|>": 248044,
+   "<|im_end|>": 248046
+  }
+ },
+ "reservation": {
+  "hours": 2.6036168439275005,
+  "id": "20261103T110343-fa4c744f",
+  "projected_hours": 2.65
+ },
+ "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/baselines/20261103T110341Z_Q27_thinking_low_p64-128",
+ "summary": {
+  "abstained": 0,
+  "abstention_reasons": {},
+  "answered": 64,
+  "arm": "Q27",
+  "config_identity": "3fe621f617b913156af8bb3b4dd471b559fc40ff17fa821039b5b4f8a126ea64",
+  "correct": 50,
+  "cost_seconds_per_correct": 179.13494945112063,
+  "elapsed_seconds_total": 8956.747472556031,
+  "errors": 0,
+  "peak_memory_bytes_max": 58442023936,
+  "quality": 0.78125,
+  "repairs": 0,
+  "requested": 64,
+  "timeouts": 0,
+  "tokens": {
+   "content": 12930,
+   "generated": 33849,
+   "initial_prompt": 198722,
+   "prefill": 575021,
+   "reasoning": 20762,
+   "tool_observation": 25057
+  },
+  "tool_calls": 100
+ },
+ "warm_database_seconds": 2.0561852259997977,
+ "warm_up": {
+  "excluded_from_records": true,
+  "final": "abstain",
+  "seconds": 63.88739083100518,
+  "task": "bird23tf-01612",
+  "tokens": {
+   "content": 0,
+   "generated": 256,
+   "initial_prompt": 1349,
+   "prefill": 1349,
+   "reasoning": 256,
+   "tool_observation": 0
+  }
+ }
+}
