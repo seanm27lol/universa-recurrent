@@ -176,3 +176,66 @@ def test_lexical_grounding_reads_only_names_descriptions_and_the_question():
     assert V2._col(items, "movies", "title") in g.columns
     assert GL.ground("Who directed the movie Alpha?", "", V2.SCHEMA, items) == \
         GL.ground("Who directed the movie Alpha?", "", V2.SCHEMA, items)  # deterministic
+
+
+# --- the runner -------------------------------------------------------------------------------------------------------
+from scaling import gi_run as GRun  # noqa: E402
+
+
+def test_swap_partners_stay_in_one_database_and_skip_singletons():
+    ids = ["a1", "b1", "a2", "c1", "a3", "b2"]
+    db = {"a1": "A", "a2": "A", "a3": "A", "b1": "B", "b2": "B", "c1": "C"}
+    p = GRun.swap_partner(ids, db)
+    assert p == {"a1": "a2", "a2": "a3", "a3": "a1", "b1": "b2", "b2": "b1"}
+
+
+def test_the_budget_check_refuses_a_reservation_past_the_work_order_limit(monkeypatch):
+    from scaling import ledger
+    monkeypatch.setattr(ledger, "usage", lambda: {"used_hours": GRun.WORK_ORDER_LIMIT - 1.0})
+    assert GRun.check_budget(0.6)["fits"]                     # 1.5 x 0.6 = 0.9 < 1.0
+    with pytest.raises(GRun.GiStop, match="budget"):
+        GRun.check_budget(0.7)                                # 1.05 > 1.0
+    assert GRun.WORK_ORDER_LIMIT == pytest.approx(21.415907 + 8.0)
+
+
+def test_record_diagnostics_against_the_gold_annotation():
+    gold = {"convertible": True, "tables": [1, 2], "columns": [5, 6, 7], "first_table": 1,
+            "literals": [(6, "alpha")]}
+    g = {"valid": True, "tables": [2, 3], "columns": [5, 6], "status": "ok", "invalid_literals": [],
+         "literals": [{"item": 6, "value": "'Alpha'"}, {"item": 7, "value": "alpha"}]}
+    d = GRun.record_diagnostics(g, gold)
+    assert d["table_recall"] == 0.5 and d["table_precision"] == 0.5 and not d["table_set_exact"]
+    assert d["first_in_gold_set"] and not d["first_equals_gold_first"]   # in the set, not the gold first table
+    assert d["column_coverage"] == 2 / 3 and d["literal_value_correct"] == 2 and d["literal_pair_correct"] == 1
+    assert GRun.record_diagnostics({"valid": False}, gold) == {"scored": False}
+
+
+def test_the_decoder_follows_the_prior_and_nothing_else(prepared):
+    """A random controller that reaches a FROM-table pointer: a large prior on another legal table moves that choice,
+    the decisions before it are untouched, and decoding without the prior is unchanged afterwards."""
+    from scaling import infer_controller as I
+    found = None
+    for seed in range(8):
+        for model in V2.models(seed=seed).values():
+            for ex in prepared["v2"]:
+                d = I.decode_one(model, ex, max_steps=60)
+                k = next((n for n, a in enumerate(d.actions) if a.op == "FROM_TABLE"), None)
+                if k is not None:
+                    found = (model.eval(), ex, d, k)
+                    break
+            if found:
+                break
+        if found:
+            break
+    assert found, "no random controller reached a FROM-table pointer"
+    model, ex, base, k = found
+    items = ex.schema
+    target = next(i for i in items.tables if i != base.actions[k].arg)
+    b = [0.0] * len(items.items)
+    b[target] = 50.0                                          # far larger than ln 2: forces the choice
+    with GR.pointer_prior(model, b):
+        pushed = I.decode_one(model, ex, max_steps=60)
+    assert pushed.actions[k].op == "FROM_TABLE" and pushed.actions[k].arg == target
+    assert [a.as_json() for a in pushed.actions[:k]] == [a.as_json() for a in base.actions[:k]]
+    again = I.decode_one(model, ex, max_steps=60)
+    assert [a.as_json() for a in again.actions] == [a.as_json() for a in base.actions]  # restored
