@@ -818,6 +818,151 @@ def dev_summary_cmd(args) -> None:
     print(json.dumps(out, indent=1))
 
 
+def _reading(cmp: dict, interaction: dict, direct_beats: "bool | None") -> list:
+    """The protocol's readings, in order, from the per-architecture comparisons."""
+    def consistent_up(d):
+        return d["all_conditions"] and d["sign"] > 0
+    out = []
+    g4_g0 = {a: consistent_up(cmp[a]["G4-G0"]) for a in cmp}
+    g4_glex = {a: consistent_up(cmp[a]["G4-Glex"]) for a in cmp}
+    glex_g0 = {a: consistent_up(cmp[a]["Glex-G0"]) for a in cmp}
+    if all(g4_g0.values()) and all(g4_glex.values()):
+        out.append("G4 beats both G0 and Glex consistently for both architectures: the task-conditioned grounding "
+                   "interface merits a larger paired study")
+    elif any(g4_g0.values()) and not any(g4_glex.values()):
+        out.append("G4 beats G0 but not Glex: explicit grounding helps; neural grounding has not earned its cost")
+    if any(g4_g0.values()) or any(glex_g0.values()):
+        if interaction["all_conditions"] and interaction["sign"] > 0:
+            out.append("T4 improves more than C4_params: a development interaction worth investigating, not "
+                       "confirmation")
+        else:
+            out.append("the architectures do not differ consistently in their improvement: an interface "
+                       "improvement, not evidence for specialization")
+    if direct_beats:
+        out.append("the direct short-budget B4 answers more questions than the best controller policy in every "
+                   "seed: retain that baseline and reconsider whether the controller adds value")
+    if not any(g4_g0.values()) and not any(glex_g0.values()):
+        out.append("nothing improves consistently: do not spend the remainder on more seeds or larger controllers")
+    return out
+
+
+def analyze_cmd(args) -> None:
+    """Outcomes, diagnostics and costs on the new population (CPU), from the frozen runs."""
+    from . import data, identity, ir, ledger, pilot_run
+    from . import gi_record as GR
+    from . import perf_analysis as PA
+    proto = protocol_identity()
+    ids = population_ids("new")
+    db_of = {t: data.task(t).db_id for t in ids}
+    ev = _latest("eval", "new")
+    recs = [json.loads(x) for x in (ev / "records.jsonl").read_text().splitlines() if x.strip()]
+    plans = {(d["fit"], d["policy"], d["task_id"]): d["plan"] for d in json.loads((ev / "decodes.json").read_text())}
+    seeds = sorted({int(r["fit"].split("/")[1]) for r in recs})
+    correct, by = {}, {}
+    for r in recs:
+        arch, seed = r["fit"].split("-")[0], int(r["fit"].split("/")[1])
+        correct.setdefault((f"{arch}-{r['policy']}", seed), {})[r["task_id"]] = r["score"]["correct"]
+        by[(arch, r["policy"], seed, r["task_id"])] = r
+    for k, v in correct.items():
+        if sorted(v) != sorted(ids):
+            raise GiStop(f"{k}: the evaluation covers {len(v)} of {len(ids)}")
+    out = {"protocol": proto, "eval_run": identity.run_ref(ev), "seeds": seeds,
+           "counts": {f"{lab}/{s}": sum(v.values()) for (lab, s), v in sorted(correct.items())}, "comparisons": {}}
+    for arch in ("T4", "C4"):
+        out["comparisons"][arch] = {}
+        for a, b in (("G4", "G0"), ("Glex", "G0"), ("G4", "Glex")):
+            d = PA.paired(correct, f"{arch}-{a}", f"{arch}-{b}", seeds, ids, db_of)
+            out["comparisons"][arch][f"{a}-{b}"] = d
+    inter = {("I", s): {t: correct[("T4-G4", s)][t] - correct[("T4-G0", s)][t] for t in ids} for s in seeds}
+    inter.update({("Z", s): {t: correct[("C4-G4", s)][t] - correct[("C4-G0", s)][t] for t in ids} for s in seeds})
+    out["interaction_T4_minus_C4_of_G4_minus_G0"] = PA.paired(inter, "I", "Z", seeds, ids, db_of)
+    dr = _latest("direct", "new")
+    direct = [json.loads(x) for x in (dr / "records.jsonl").read_text().splitlines() if x.strip()]
+    d_ok = sum(r["score"]["correct"] for r in direct)
+    best = {s: max(out["counts"][f"{a}-{p}/{s}"] for a in ("T4", "C4") for p in POLICIES) for s in seeds}
+    out["direct"] = {"run": identity.run_ref(dr), "correct": d_ok, "requests": len(direct),
+                     "abstentions": sum(r["final"]["kind"] == "abstain" for r in direct),
+                     "truncated": sum(r["call"]["finish_reason"] != "eos" for r in direct),
+                     "timeouts": sum(r["score"]["predicted"]["status"] == "timeout" for r in direct),
+                     "call_seconds_mean": _mean(r["seconds"] for r in direct),
+                     "best_controller_policy_per_seed": best,
+                     "beats_best_controller_every_seed": all(d_ok > v for v in best.values())}
+    gd = _latest("ground", "new")
+    g4 = _load_records(gd)
+    encs = _encodings(ids)
+    gold = {t: gold_reference(t, encs[t].schema) for t in ids}
+    diag = {"G4": [], "Glex": []}
+    for t in ids:
+        task = data.task(t)
+        g = _resolve_policy("G4", g4[t], encs[t].schema, task)
+        diag["G4"].append(record_diagnostics(g.as_dict(), gold[t]))
+        lex = by[("T4", "Glex", seeds[0], t)]["grounding"]
+        diag["Glex"].append(record_diagnostics(lex, gold[t]))
+    from collections import Counter
+    out["records"] = {p: summarize_records(v) for p, v in diag.items()}
+    out["records"]["G4"].update({
+        "valid": sum(r["grounding"]["valid"] for r in g4.values()),
+        "fallback_reasons": dict(Counter(r["grounding"]["reason"] for r in g4.values() if not r["grounding"]["valid"])),
+        "truncated": sum(r["call"]["finish_reason"] != "eos" for r in g4.values()),
+        "call_seconds_mean": _mean(r["seconds"] for r in g4.values()), "ground_run": identity.run_ref(gd)})
+    out["decodes"] = {}
+    for arch in ("T4", "C4"):
+        for p in ("Glex", "G4"):
+            rows = [(by[(arch, p, s, t)], by[(arch, "G0", s, t)]) for s in seeds for t in ids]
+            alt = 0
+            for (x, _g0) in rows:
+                if x["score"]["correct"]:
+                    plan = plans[(x["fit"], p, x["task_id"])]
+                    pt = GR.oracle_record(ir.from_json(plan), encs[x["task_id"]].schema)["tables"] if plan else []
+                    alt += gold[x["task_id"]].get("convertible") and set(pt) != set(gold[x["task_id"]]["tables"])
+            out["decodes"][f"{arch}-{p}"] = {
+                "changed_decisions_vs_G0": sum(x["actions"] != g0["actions"] for x, g0 in rows),
+                "changed_sql_vs_G0": sum(x["final"]["sql"] != g0["final"]["sql"] for x, g0 in rows),
+                "wrong_to_correct": sum(x["score"]["correct"] > g0["score"]["correct"] for x, g0 in rows),
+                "correct_to_wrong": sum(x["score"]["correct"] < g0["score"]["correct"] for x, g0 in rows),
+                "fallback_to_G0": sum(not (x["grounding"] or {}).get("valid", False) for x, _g in rows),
+                "ex_correct_with_another_table_set": int(alt)}
+    cost = {}
+    g4_sec = {t: g4[t]["seconds"] for t in ids}
+    for arch in ("T4", "C4"):
+        for p in POLICIES:
+            rows = [by[(arch, p, s, t)] for s in seeds for t in ids]
+            ctrl = sum(r["controller_seconds"] for r in rows)
+            ground = sum(g4_sec[r["task_id"]] for r in rows) if p == "G4" else 0.0
+            exe = sum(r["score"]["predicted"]["elapsed_seconds"] for r in rows)
+            ok = sum(r["score"]["correct"] for r in rows)
+            cost[f"{arch}-{p}"] = {"requests": len(rows), "ex_correct": ok, "controller_seconds": ctrl,
+                                   "grounding_call_seconds": ground, "submitted_execution_seconds": exe,
+                                   "per_request_seconds": (ctrl + ground + exe) / len(rows),
+                                   "per_ex_correct_seconds": (ctrl + ground + exe) / ok if ok else None,
+                                   "timeouts": sum(r["score"]["predicted"]["status"] == "timeout" for r in rows),
+                                   "abstentions": sum(r["final"]["kind"] == "abstain" for r in rows)}
+    dsec = sum(r["seconds"] for r in direct) + sum(r["score"]["predicted"]["elapsed_seconds"] for r in direct)
+    cost["direct-B4-short"] = {"requests": len(direct), "ex_correct": d_ok, "per_request_seconds": dsec / len(direct),
+                               "per_ex_correct_seconds": dsec / d_ok if d_ok else None}
+    out["cost"] = cost
+    out["gpu_hours"] = {r["command"]: r["hours"] for r in ledger.usage()["reservations"]
+                        if r["command"].startswith("gi ")}
+    out["ledger"] = {k: v for k, v in ledger.usage().items() if k != "reservations"}
+    sw = sorted((ROOT / "swap").glob("*_new/records.jsonl"))
+    if sw:
+        rows = [json.loads(x) for x in sw[-1].read_text().splitlines() if x.strip()]
+        out["swap"] = {"run": identity.run_ref(sw[-1].parent), "decodes": len(rows),
+                       "changed_sql": sum(r["policies"]["G4"]["sql"] != r["policies"]["G4-swap"]["sql"] for r in rows),
+                       "own_correct": sum(r["policies"]["G4"]["correct"] for r in rows),
+                       "swapped_correct": sum(r["policies"]["G4-swap"]["correct"] for r in rows)}
+    out["reading"] = _reading(out["comparisons"], out["interaction_T4_minus_C4_of_G4_minus_G0"],
+                              out["direct"]["beats_best_controller_every_seed"])
+    run_dir = pilot_run._new_dir(ROOT / "analysis", "")
+    identity.write_manifest(run_dir, config={"command": "gi analyze", "protocol": proto,
+                                             "eval_run": identity.run_ref(ev)}, require_clean=not args.allow_dirty)
+    _write(run_dir / "analysis.json", out)
+    print(json.dumps({"counts": out["counts"], "rules": {a: {k: (v["pooled"], v["per_seed"], v["all_conditions"])
+                                                              for k, v in c.items()} for a, c in
+                                                          out["comparisons"].items()},
+                      "direct": out["direct"]["correct"], "reading": out["reading"]}, indent=1, default=str))
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="command", required=True)
@@ -840,6 +985,9 @@ def main(argv=None) -> int:
     s.set_defaults(fn=decode_dev_cmd)
     s = sub.add_parser("dev-summary")
     s.set_defaults(fn=dev_summary_cmd)
+    s = sub.add_parser("analyze")
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=analyze_cmd)
     s = sub.add_parser("pin-new")
     s.set_defaults(fn=pin_new_cmd)
     for name, fn in (("encode-new", encode_new_cmd), ("eval-new", eval_new_cmd), ("direct-new", direct_new_cmd)):
