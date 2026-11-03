@@ -1,0 +1,20 @@
+Loading weights:   0%|          | 0/723 [00:00<?, ?it/s]Loading weights: 100%|██████████| 723/723 [00:00<00:00, 14587.02it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+{"fit": "T4-v2/100", "done": 192}
+{"fit": "C4-v2/100", "done": 384}
+{"fit": "T4-v2/101", "done": 576}
+{"fit": "C4-v2/101", "done": 768}
+{"fit": "T4-v2/102", "done": 960}
+{"fit": "C4-v2/102", "done": 1152}
+{
+ "reservation": {
+  "id": "20261103T200120-d90a321a",
+  "hours": 0.46244585154472184,
+  "projected_hours": 0.6
+ },
+ "integrity": {
+  "requests": 1152,
+  "anchor_or_reconstruction_failures": 0
+ }
+}

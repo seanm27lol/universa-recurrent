@@ -1,0 +1,123 @@
+{
+ "by_arch": {
+  "C4-v2": {
+   "G0": 68,
+   "G4": 71,
+   "G4-swap": 69,
+   "G4-swap_vs_G0": {
+    "changed_sql": 19,
+    "correct_to_wrong": 1,
+    "requests": 384,
+    "wrong_to_correct": 2
+   },
+   "G4_vs_G0": {
+    "changed_sql": 35,
+    "correct_to_wrong": 0,
+    "requests": 384,
+    "wrong_to_correct": 3
+   },
+   "Glex": 69,
+   "Glex_vs_G0": {
+    "changed_sql": 40,
+    "correct_to_wrong": 1,
+    "requests": 384,
+    "wrong_to_correct": 2
+   },
+   "oracle": 74,
+   "oracle_vs_G0": {
+    "changed_sql": 38,
+    "correct_to_wrong": 0,
+    "requests": 384,
+    "wrong_to_correct": 6
+   },
+   "requests": 384
+  },
+  "T4-v2": {
+   "G0": 70,
+   "G4": 68,
+   "G4-swap": 70,
+   "G4-swap_vs_G0": {
+    "changed_sql": 16,
+    "correct_to_wrong": 0,
+    "requests": 384,
+    "wrong_to_correct": 0
+   },
+   "G4_vs_G0": {
+    "changed_sql": 31,
+    "correct_to_wrong": 2,
+    "requests": 384,
+    "wrong_to_correct": 0
+   },
+   "Glex": 71,
+   "Glex_vs_G0": {
+    "changed_sql": 40,
+    "correct_to_wrong": 0,
+    "requests": 384,
+    "wrong_to_correct": 1
+   },
+   "oracle": 69,
+   "oracle_vs_G0": {
+    "changed_sql": 30,
+    "correct_to_wrong": 1,
+    "requests": 384,
+    "wrong_to_correct": 0
+   },
+   "requests": 384
+  }
+ },
+ "decodes": 768,
+ "g0_reproduces_saved_gpu_decode": 766,
+ "gate": {
+  "passes": true,
+  "rule": "some policy changes the final SQL on >= 10% of the dev decodes"
+ },
+ "influence": {
+  "G4": {
+   "changed_sql": 66,
+   "share": 0.0859375
+  },
+  "Glex": {
+   "changed_sql": 80,
+   "share": 0.10416666666666667
+  },
+  "oracle": {
+   "changed_sql": 68,
+   "share": 0.08854166666666667
+  }
+ },
+ "records": {
+  "G4": {
+   "column_coverage": 0.5399705014749262,
+   "first_equals_gold_first": 0.6017699115044248,
+   "first_in_gold_set": 0.911504424778761,
+   "invalid_literal_bindings": 36,
+   "literal_bindings": 122,
+   "literal_pair_accuracy": 0.6311475409836066,
+   "literal_value_accuracy": 0.7131147540983607,
+   "requests": 128,
+   "scored": 113,
+   "table_precision": 0.8525073746312684,
+   "table_recall": 0.9454277286135693,
+   "table_set_exact": 0.6902654867256637,
+   "unresolved_rate": 0.0,
+   "valid": 114
+  },
+  "Glex": {
+   "column_coverage": 0.8507561554805649,
+   "first_equals_gold_first": 0.5354330708661418,
+   "first_in_gold_set": 0.84251968503937,
+   "invalid_literal_bindings": 0,
+   "literal_bindings": 0,
+   "literal_pair_accuracy": null,
+   "literal_value_accuracy": null,
+   "requests": 128,
+   "scored": 127,
+   "table_precision": 0.4233408323959505,
+   "table_recall": 0.9921259842519685,
+   "table_set_exact": 0.08661417322834646,
+   "unresolved_rate": 0.0,
+   "valid": 128
+  }
+ },
+ "run": "20261103T191216Z"
+}

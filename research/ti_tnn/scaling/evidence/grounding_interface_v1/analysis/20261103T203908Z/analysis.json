@@ -1,0 +1,674 @@
+{
+ "comparisons": {
+  "C4": {
+   "G4-G0": {
+    "a": "C4-G4",
+    "all_conditions": false,
+    "b": "C4-G0",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": false
+    },
+    "exploratory_sign_flip": {
+     "assignments": 4,
+     "blocks": 14,
+     "nonzero_blocks": 2,
+     "observed": 0,
+     "p_two_sided": 1.0,
+     "smallest_attainable_p": 0.5
+    },
+    "leave_one_database_out": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 1,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": -1
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": -1,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 1
+    },
+    "per_question_histogram": {
+     "-1": 1,
+     "0": 62,
+     "1": 1
+    },
+    "per_seed": {
+     "100": 0,
+     "101": 0,
+     "102": 0
+    },
+    "pooled": 0,
+    "pooled_out_of": 192,
+    "sign": 0,
+    "threshold": 10
+   },
+   "G4-Glex": {
+    "a": "C4-G4",
+    "all_conditions": false,
+    "b": "C4-Glex",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": false
+    },
+    "exploratory_sign_flip": {
+     "assignments": 2,
+     "blocks": 14,
+     "nonzero_blocks": 1,
+     "observed": 1,
+     "p_two_sided": 1.0,
+     "smallest_attainable_p": 1.0
+    },
+    "leave_one_database_out": {
+     "computer_student": 1,
+     "disney": 1,
+     "food_inspection": 1,
+     "hockey": 1,
+     "ice_hockey_draft": 1,
+     "image_and_language": 1,
+     "music_platform_2": 1,
+     "professional_basketball": 1,
+     "public_review_platform": 1,
+     "simpson_episodes": 1,
+     "soccer_2016": 1,
+     "software_company": 1,
+     "talkingdata": 1,
+     "world": 0
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 0,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 1
+    },
+    "per_question_histogram": {
+     "0": 63,
+     "1": 1
+    },
+    "per_seed": {
+     "100": 0,
+     "101": 1,
+     "102": 0
+    },
+    "pooled": 1,
+    "pooled_out_of": 192,
+    "sign": 1,
+    "threshold": 10
+   },
+   "Glex-G0": {
+    "a": "C4-Glex",
+    "all_conditions": false,
+    "b": "C4-G0",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": false
+    },
+    "exploratory_sign_flip": {
+     "assignments": 2,
+     "blocks": 14,
+     "nonzero_blocks": 1,
+     "observed": -1,
+     "p_two_sided": 1.0,
+     "smallest_attainable_p": 1.0
+    },
+    "leave_one_database_out": {
+     "computer_student": -1,
+     "disney": -1,
+     "food_inspection": -1,
+     "hockey": 0,
+     "ice_hockey_draft": -1,
+     "image_and_language": -1,
+     "music_platform_2": -1,
+     "professional_basketball": -1,
+     "public_review_platform": -1,
+     "simpson_episodes": -1,
+     "soccer_2016": -1,
+     "software_company": -1,
+     "talkingdata": -1,
+     "world": -1
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": -1,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 0
+    },
+    "per_question_histogram": {
+     "-1": 1,
+     "0": 63
+    },
+    "per_seed": {
+     "100": 0,
+     "101": -1,
+     "102": 0
+    },
+    "pooled": -1,
+    "pooled_out_of": 192,
+    "sign": -1,
+    "threshold": 10
+   }
+  },
+  "T4": {
+   "G4-G0": {
+    "a": "T4-G4",
+    "all_conditions": false,
+    "b": "T4-G0",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": true
+    },
+    "exploratory_sign_flip": {
+     "assignments": 4,
+     "blocks": 14,
+     "nonzero_blocks": 2,
+     "observed": 2,
+     "p_two_sided": 0.5,
+     "smallest_attainable_p": 0.5
+    },
+    "leave_one_database_out": {
+     "computer_student": 2,
+     "disney": 2,
+     "food_inspection": 2,
+     "hockey": 1,
+     "ice_hockey_draft": 2,
+     "image_and_language": 2,
+     "music_platform_2": 1,
+     "professional_basketball": 2,
+     "public_review_platform": 2,
+     "simpson_episodes": 2,
+     "soccer_2016": 2,
+     "software_company": 2,
+     "talkingdata": 2,
+     "world": 2
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 1,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 1,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 0
+    },
+    "per_question_histogram": {
+     "0": 62,
+     "1": 2
+    },
+    "per_seed": {
+     "100": 1,
+     "101": 0,
+     "102": 1
+    },
+    "pooled": 2,
+    "pooled_out_of": 192,
+    "sign": 1,
+    "threshold": 10
+   },
+   "G4-Glex": {
+    "a": "T4-G4",
+    "all_conditions": false,
+    "b": "T4-Glex",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": true
+    },
+    "exploratory_sign_flip": {
+     "assignments": 4,
+     "blocks": 14,
+     "nonzero_blocks": 2,
+     "observed": 2,
+     "p_two_sided": 0.5,
+     "smallest_attainable_p": 0.5
+    },
+    "leave_one_database_out": {
+     "computer_student": 2,
+     "disney": 2,
+     "food_inspection": 2,
+     "hockey": 1,
+     "ice_hockey_draft": 2,
+     "image_and_language": 2,
+     "music_platform_2": 1,
+     "professional_basketball": 2,
+     "public_review_platform": 2,
+     "simpson_episodes": 2,
+     "soccer_2016": 2,
+     "software_company": 2,
+     "talkingdata": 2,
+     "world": 2
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 1,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 1,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 0
+    },
+    "per_question_histogram": {
+     "0": 62,
+     "1": 2
+    },
+    "per_seed": {
+     "100": 1,
+     "101": 0,
+     "102": 1
+    },
+    "pooled": 2,
+    "pooled_out_of": 192,
+    "sign": 1,
+    "threshold": 10
+   },
+   "Glex-G0": {
+    "a": "T4-Glex",
+    "all_conditions": false,
+    "b": "T4-G0",
+    "conditions": {
+     "pooled_at_least_threshold": false,
+     "same_sign_every_seed": false,
+     "same_sign_without_any_one_database": false
+    },
+    "exploratory_sign_flip": {
+     "assignments": 1,
+     "blocks": 14,
+     "nonzero_blocks": 0,
+     "observed": 0,
+     "p_two_sided": 1.0,
+     "smallest_attainable_p": 1.0
+    },
+    "leave_one_database_out": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 0,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 0
+    },
+    "per_database": {
+     "computer_student": 0,
+     "disney": 0,
+     "food_inspection": 0,
+     "hockey": 0,
+     "ice_hockey_draft": 0,
+     "image_and_language": 0,
+     "music_platform_2": 0,
+     "professional_basketball": 0,
+     "public_review_platform": 0,
+     "simpson_episodes": 0,
+     "soccer_2016": 0,
+     "software_company": 0,
+     "talkingdata": 0,
+     "world": 0
+    },
+    "per_question_histogram": {
+     "0": 64
+    },
+    "per_seed": {
+     "100": 0,
+     "101": 0,
+     "102": 0
+    },
+    "pooled": 0,
+    "pooled_out_of": 192,
+    "sign": 0,
+    "threshold": 10
+   }
+  }
+ },
+ "cost": {
+  "C4-G0": {
+   "abstentions": 0,
+   "controller_seconds": 245.40226502213045,
+   "ex_correct": 32,
+   "grounding_call_seconds": 0.0,
+   "per_ex_correct_seconds": 7.986656219441577,
+   "per_request_seconds": 1.3311093699069294,
+   "requests": 192,
+   "submitted_execution_seconds": 10.170734,
+   "timeouts": 0
+  },
+  "C4-G4": {
+   "abstentions": 0,
+   "controller_seconds": 247.7539084671298,
+   "ex_correct": 32,
+   "grounding_call_seconds": 1721.3320648919907,
+   "per_ex_correct_seconds": 61.80901766747252,
+   "per_request_seconds": 10.301502944578752,
+   "requests": 192,
+   "submitted_execution_seconds": 8.802592,
+   "timeouts": 0
+  },
+  "C4-Glex": {
+   "abstentions": 0,
+   "controller_seconds": 246.36492008031928,
+   "ex_correct": 31,
+   "grounding_call_seconds": 0.0,
+   "per_ex_correct_seconds": 8.28021761549417,
+   "per_request_seconds": 1.3369101358349962,
+   "requests": 192,
+   "submitted_execution_seconds": 10.321826,
+   "timeouts": 0
+  },
+  "T4-G0": {
+   "abstentions": 0,
+   "controller_seconds": 245.76436554791871,
+   "ex_correct": 29,
+   "grounding_call_seconds": 0.0,
+   "per_ex_correct_seconds": 8.979010432686852,
+   "per_request_seconds": 1.3562047007704099,
+   "requests": 192,
+   "submitted_execution_seconds": 14.626937,
+   "timeouts": 0
+  },
+  "T4-G4": {
+   "abstentions": 0,
+   "controller_seconds": 247.71680317498976,
+   "ex_correct": 31,
+   "grounding_call_seconds": 1721.3320648919907,
+   "per_ex_correct_seconds": 63.955429969902596,
+   "per_request_seconds": 10.326137130557191,
+   "requests": 192,
+   "submitted_execution_seconds": 13.569461,
+   "timeouts": 0
+  },
+  "T4-Glex": {
+   "abstentions": 0,
+   "controller_seconds": 247.6607542479469,
+   "ex_correct": 29,
+   "grounding_call_seconds": 0.0,
+   "per_ex_correct_seconds": 9.044844629239549,
+   "per_request_seconds": 1.36614840754139,
+   "requests": 192,
+   "submitted_execution_seconds": 14.63974,
+   "timeouts": 0
+  },
+  "direct-B4-short": {
+   "ex_correct": 32,
+   "per_ex_correct_seconds": 10.277382789783369,
+   "per_request_seconds": 5.138691394891684,
+   "requests": 64
+  }
+ },
+ "counts": {
+  "C4-G0/100": 12,
+  "C4-G0/101": 11,
+  "C4-G0/102": 9,
+  "C4-G4/100": 12,
+  "C4-G4/101": 11,
+  "C4-G4/102": 9,
+  "C4-Glex/100": 12,
+  "C4-Glex/101": 10,
+  "C4-Glex/102": 9,
+  "T4-G0/100": 9,
+  "T4-G0/101": 13,
+  "T4-G0/102": 7,
+  "T4-G4/100": 10,
+  "T4-G4/101": 13,
+  "T4-G4/102": 8,
+  "T4-Glex/100": 9,
+  "T4-Glex/101": 13,
+  "T4-Glex/102": 7
+ },
+ "decodes": {
+  "C4-G4": {
+   "changed_decisions_vs_G0": 14,
+   "changed_sql_vs_G0": 14,
+   "correct_to_wrong": 1,
+   "ex_correct_with_another_table_set": 5,
+   "fallback_to_G0": 18,
+   "wrong_to_correct": 1
+  },
+  "C4-Glex": {
+   "changed_decisions_vs_G0": 19,
+   "changed_sql_vs_G0": 19,
+   "correct_to_wrong": 1,
+   "ex_correct_with_another_table_set": 5,
+   "fallback_to_G0": 0,
+   "wrong_to_correct": 0
+  },
+  "T4-G4": {
+   "changed_decisions_vs_G0": 15,
+   "changed_sql_vs_G0": 15,
+   "correct_to_wrong": 0,
+   "ex_correct_with_another_table_set": 6,
+   "fallback_to_G0": 18,
+   "wrong_to_correct": 2
+  },
+  "T4-Glex": {
+   "changed_decisions_vs_G0": 14,
+   "changed_sql_vs_G0": 14,
+   "correct_to_wrong": 0,
+   "ex_correct_with_another_table_set": 5,
+   "fallback_to_G0": 0,
+   "wrong_to_correct": 0
+  }
+ },
+ "direct": {
+  "abstentions": 0,
+  "beats_best_controller_every_seed": true,
+  "best_controller_policy_per_seed": {
+   "100": 12,
+   "101": 13,
+   "102": 9
+  },
+  "call_seconds_mean": 4.633400910516684,
+  "correct": 32,
+  "requests": 64,
+  "run": "grounding_interface/direct/20261103T202939Z_new",
+  "timeouts": 1,
+  "truncated": 0
+ },
+ "eval_run": "grounding_interface/eval/20261103T200119Z_new",
+ "gpu_hours": {
+  "gi direct-new": 0.098044906772775,
+  "gi encode-new": 0.04213886407305027,
+  "gi eval-new": 0.46244598098972345,
+  "gi ground dev": 0.32344005279277754,
+  "gi ground new": 0.1785831118891656
+ },
+ "interaction_T4_minus_C4_of_G4_minus_G0": {
+  "a": "I",
+  "all_conditions": false,
+  "b": "Z",
+  "conditions": {
+   "pooled_at_least_threshold": false,
+   "same_sign_every_seed": false,
+   "same_sign_without_any_one_database": false
+  },
+  "exploratory_sign_flip": {
+   "assignments": 8,
+   "blocks": 14,
+   "nonzero_blocks": 3,
+   "observed": 2,
+   "p_two_sided": 0.75,
+   "smallest_attainable_p": 0.25
+  },
+  "leave_one_database_out": {
+   "computer_student": 2,
+   "disney": 2,
+   "food_inspection": 2,
+   "hockey": 0,
+   "ice_hockey_draft": 2,
+   "image_and_language": 2,
+   "music_platform_2": 1,
+   "professional_basketball": 2,
+   "public_review_platform": 2,
+   "simpson_episodes": 2,
+   "soccer_2016": 2,
+   "software_company": 2,
+   "talkingdata": 2,
+   "world": 3
+  },
+  "per_database": {
+   "computer_student": 0,
+   "disney": 0,
+   "food_inspection": 0,
+   "hockey": 2,
+   "ice_hockey_draft": 0,
+   "image_and_language": 0,
+   "music_platform_2": 1,
+   "professional_basketball": 0,
+   "public_review_platform": 0,
+   "simpson_episodes": 0,
+   "soccer_2016": 0,
+   "software_company": 0,
+   "talkingdata": 0,
+   "world": -1
+  },
+  "per_question_histogram": {
+   "-1": 1,
+   "0": 61,
+   "1": 1,
+   "2": 1
+  },
+  "per_seed": {
+   "100": 1,
+   "101": 0,
+   "102": 1
+  },
+  "pooled": 2,
+  "pooled_out_of": 192,
+  "sign": 1,
+  "threshold": 10
+ },
+ "ledger": {
+  "authorization": 2,
+  "cap_hours": 32.0,
+  "ledger": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/gpu_ledger.jsonl",
+  "remaining_hours": 9.177249115128596,
+  "used_hours": 22.822750884871404
+ },
+ "protocol": {
+  "file": "research/ti_tnn/scaling/docs/PROTOCOL_grounding_interface.md",
+  "frozen_at": "fb4e342af2ebe11aa806a6a93d73fc0818972d2b",
+  "sha256": "d3215e69684741de24610b4c6070400eb98dc3eb939740f100d52c7bff3013a7"
+ },
+ "reading": [
+  "the direct short-budget B4 answers more questions than the best controller policy in every seed: retain that baseline and reconsider whether the controller adds value",
+  "nothing improves consistently: do not spend the remainder on more seeds or larger controllers"
+ ],
+ "records": {
+  "G4": {
+   "call_seconds_mean": 8.965271171312452,
+   "column_coverage": 0.5264455782312926,
+   "fallback_reasons": {
+    "unknown column 'Business'.'closing_time'": 1,
+    "unknown column 'CountryLanguage'.'LifeExpectancy'": 1,
+    "unknown column 'Customers'.'INCOME_K'": 1,
+    "unknown column 'Customers'.'INHABITANTS_K'": 1,
+    "unknown column 'IMG_OBJ'.'id'": 1,
+    "unknown column 'Master'.'name'": 1
+   },
+   "first_equals_gold_first": 0.6428571428571429,
+   "first_in_gold_set": 0.9285714285714286,
+   "ground_run": "grounding_interface/ground/20261103T195032Z_new",
+   "invalid_literal_bindings": 12,
+   "literal_bindings": 81,
+   "literal_pair_accuracy": 0.6296296296296297,
+   "literal_value_accuracy": 0.7283950617283951,
+   "requests": 64,
+   "scored": 56,
+   "table_precision": 0.8601190476190476,
+   "table_recall": 0.9583333333333333,
+   "table_set_exact": 0.6785714285714286,
+   "truncated": 0,
+   "unresolved_rate": 0.0,
+   "valid": 58
+  },
+  "Glex": {
+   "column_coverage": 0.8134920634920635,
+   "first_equals_gold_first": 0.5645161290322581,
+   "first_in_gold_set": 0.8548387096774194,
+   "invalid_literal_bindings": 0,
+   "literal_bindings": 0,
+   "literal_pair_accuracy": null,
+   "literal_value_accuracy": null,
+   "requests": 64,
+   "scored": 62,
+   "table_precision": 0.44591013824884795,
+   "table_recall": 1.0,
+   "table_set_exact": 0.06451612903225806,
+   "unresolved_rate": 0.0
+  }
+ },
+ "seeds": [
+  100,
+  101,
+  102
+ ],
+ "swap": {
+  "changed_sql": 34,
+  "decodes": 384,
+  "own_correct": 63,
+  "run": "grounding_interface/swap/20261103T203613Z_new",
+  "swapped_correct": 58
+ }
+}

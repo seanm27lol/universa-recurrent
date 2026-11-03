@@ -135,28 +135,31 @@ def tables() -> str:
                    f" | {c['pooled']:+d} | {min(loo.values()):+d} .. {max(loo.values()):+d} | "
                    f"{'yes' if c['all_conditions'] else 'no'} | {c['exploratory_sign_flip']['p_two_sided']:.3f} |")
     out += ["", "Readings:"] + [f"- {r}" for r in analysis["reading"]]
-    out += ["", "| arm-policy | requests | EX-correct | per request, s | per EX-correct, s | controller s | G4 call s | "
-            "execution s | timeouts | abstentions |", "|---|---|---|---|---|---|---|---|---|---|"]
+    out += ["", "| arm-policy | requests | EX-correct | per request, s | per EX-correct, s | controller s | "
+            "G4 call s | execution s | timeouts | abstentions |", "|---|---|---|---|---|---|---|---|---|---|"]
     for k, v in analysis["cost"].items():
         out.append(f"| {k} | {v['requests']} | {v['ex_correct']} | {v['per_request_seconds']:.2f} | "
                    f"{'—' if v['per_ex_correct_seconds'] is None else format(v['per_ex_correct_seconds'], '.1f')} | "
                    f"{v.get('controller_seconds', 0):.0f} | {v.get('grounding_call_seconds', 0):.0f} | "
                    f"{v.get('submitted_execution_seconds', 0):.0f} | {v.get('timeouts', '—')} | "
                    f"{v.get('abstentions', '—')} |")
-    out += ["", "| decodes against G0 | changed decisions | changed SQL | wrong to correct | correct to wrong | fallback "
-            "to G0 | EX-correct with another table set |", "|---|---|---|---|---|---|---|"]
+    out += ["", "| decodes against G0 | changed decisions | changed SQL | wrong to correct | correct to wrong | "
+            "fallback to G0 | EX-correct with another table set |", "|---|---|---|---|---|---|---|"]
     for k, v in analysis["decodes"].items():
         out.append(f"| {k} | {v['changed_decisions_vs_G0']} | {v['changed_sql_vs_G0']} | {v['wrong_to_correct']} | "
                    f"{v['correct_to_wrong']} | {v['fallback_to_G0']} | {v['ex_correct_with_another_table_set']} |")
-    out += ["", "| record (new population) | valid | table recall | table precision | table set exact | first listed in "
-            "gold set | first = gold first FROM | column coverage | literal value accuracy | literal pair accuracy |",
-            "|---|---|---|---|---|---|---|---|---|---|"]
+    out += ["", "| record (new population) | valid of 64 | scored (gold convertible) | table recall | "
+            "table precision | table set exact | "
+            "first listed in gold set | first = gold first FROM | column coverage | literal value accuracy | "
+            "literal pair accuracy |",
+            "|---|---|---|---|---|---|---|---|---|---|---|"]
     for p in ("G4", "Glex"):
         v = analysis["records"][p]
 
         def f(x):
             return "—" if x is None else f"{x:.2f}"
-        out.append(f"| {p} | {v.get('valid', v['scored'])} | {f(v['table_recall'])} | {f(v['table_precision'])} | "
+        out.append(f"| {p} | {v.get('valid', v['requests'])} | {v['scored']} | {f(v['table_recall'])} | "
+                   f"{f(v['table_precision'])} | "
                    f"{f(v['table_set_exact'])} | {f(v['first_in_gold_set'])} | {f(v['first_equals_gold_first'])} | "
                    f"{f(v['column_coverage'])} | {f(v['literal_value_accuracy'])} | {f(v['literal_pair_accuracy'])} |")
     if "swap" in analysis:
@@ -164,8 +167,14 @@ def tables() -> str:
         out += ["", f"Swap check: another question's G4 record (same database) changes the final SQL of "
                     f"{s['changed_sql']} of {s['decodes']} decodes; EX-correct {s['own_correct']} with the own "
                     f"record, {s['swapped_correct']} with the swapped one."]
-    out += ["", "GPU-reservation hours: " + ", ".join(f"{k} {v:.3f}" for k, v in analysis["gpu_hours"].items()) +
-            f". Ledger: {analysis['ledger']['used_hours']:.3f} of {analysis['ledger']['cap_hours']} h."]
+    from . import ledger
+    res = [r for r in ledger.usage(BUNDLE / "gpu_ledger.jsonl")["reservations"] if r["command"].startswith("gi ")]
+    out += ["", "| GPU reservation (this work order) | hours | status |", "|---|---|---|"]
+    out += [f"| {r['command']} ({r['reservation']}) | {r['hours']:.3f} | {r['status']} |" for r in res]
+    out += [f"| total | {sum(r['hours'] for r in res):.3f} | |", "",
+            f"Ledger at the analysis: {analysis['ledger']['used_hours']:.3f} of {analysis['ledger']['cap_hours']} h "
+            f"(analysis.json's `gpu_hours` keeps one entry per command name, so it shows only the second dev "
+            f"grounding run; the table above lists every reservation)."]
     return "\n".join(out)
 
 
