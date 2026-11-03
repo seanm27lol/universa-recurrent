@@ -164,7 +164,7 @@ confirmation is not proposed, because there was no T4 advantage to confirm.
 
 ## Software correctness
 
-- **Tests:** 337 passed and 8 skipped (they need the downloaded data) in the scaling suite at f9e98d4, CPU. Added for
+- **Tests:** 340 passed and 8 skipped (they need the downloaded data) in the scaling suite at ad20692, CPU. Added for
   this study:
   - ledger v2: 6 tests. Two worktrees share one ledger and one 32 h cap, and one GPU owner; a private runs
     directory is refused; the history is preserved.
@@ -177,6 +177,9 @@ confirmation is not proposed, because there was no T4 advantage to confirm.
     - parameter and MAC accounting.
   - the performance run end to end on synthetic data: 4 tests.
   - the decision rules: 5 tests.
+  - the post-evaluation diagnosis tables: 1 test.
+  - the perf bundle: 2 tests. The report rebuilds from the bundle alone, and a changed score is refused even
+    when the sums are rewritten.
 - **Determinism:** under one seed, every arm shares the trunk initialization and the example order. v2's added
   modules are drawn from a forked generator. The verifier recomputes the sampling stream independently.
 - **Evaluation integrity, all three seeds:**
