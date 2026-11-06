@@ -100,7 +100,8 @@ def tables() -> str:
                    f" | {d['pooled']:+d} | {min(loo.values()):+d} .. {max(loo.values()):+d} | {d['recoveries']} | "
                    f"{d['regressions']} |")
     out += ["", f"Decision (the protocol's rule): {analysis['decision']}.", "",
-            "| database | questions | " + " | ".join(POLICIES) + " |", "|---|---|" + "---|" * len(POLICIES)]
+            "| database | questions | " + " | ".join(f"{p}, both seeds" for p in POLICIES) + " |",
+            "|---|---|" + "---|" * len(POLICIES)]
     for db, v in analysis["by_database"].items():
         out.append(f"| {db} | {v['questions']} | " + " | ".join(str(v[p]) for p in POLICIES) + " |")
     ini = analysis["initial"]
