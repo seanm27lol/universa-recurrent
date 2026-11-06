@@ -840,3 +840,27 @@ GPU authorization v2: 32 cumulative hours, of which 21.416 were used.
 | The limiting capability is grounding the question in an unseen schema (which tables, literals, aggregates) | Observed (development diagnosis; corrected 2026-11-03) | New 64, teacher forced, v2: on the FROM-table decisions, 16-22% choose a table the gold program does not use and 29-32% another table of the gold program first (mostly a reference-order disagreement; it includes gold tables used only in a nested SELECT); the joined-table error is 0.43-0.46, the WHERE-literal error 0.44-0.49 (v1 0.45-0.50), the SELECT-aggregate error 0.41-0.44. In free decoding the table set is wrong in 57% of v2 requests. The first version cited a 0.45-0.54 first-table error that mixed the two kinds |
 | The study's evidence is intact | Verified (in-process gates; independent reconstruction) | Every evaluation passed its integrity gates. The reviewer's `verify_perf.py` (no producer modules imported) re-derived training data, checkpoint identities, every score, the rules and the baselines: 813 checks, 0 failures; all 3,143 values in `analysis.json` equal. After the 2026-11-03 correction pass, the relocatable verifier passes 445 public checks from a fresh clone (bundles only) and 835 local checks, 0 failures; the reviewer passed all seven corrected claims. The strata classification and the per-request MAC counts are the producer's |
 | Anything about the reserved BIRD Mini-Dev 500 | Not measured (reserved) | Not read by any arm |
+
+## TI-TNN grounding interface (development, 2026-11-03)
+
+A frozen development protocol ([protocol](../research/ti_tnn/scaling/docs/PROTOCOL_grounding_interface.md),
+[report](../research/ti_tnn/scaling/docs/REPORT_grounding_interface.md)) tested explicit grounding for the six saved
+v2 controllers, without retraining:
+- G0: the controller unchanged;
+- Glex: a lexical ranking;
+- G4: one non-thinking Qwen3.5-4B call returning ranked tables and columns, never SQL.
+
+Records are consumed as a fixed ln 2 / r prior on the table- and column-pointer logits. The study ran on 64 new
+development questions (inventory positions 128-191), with a post-hoc constraint-only diagnostic and an oracle gate on
+the 128 earlier questions. It used 1.407 GPU-reservation hours of the 8 allotted, for a cumulative 22.823 of 32.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| Explicit grounding through this interface improves the saved controllers' EX accuracy | NOT SUPPORTED (development, three seeds) | New 64, EX-correct of 192: T4-v2 G0 29, Glex 29, G4 31; C4-v2 G0 32, Glex 31, G4 32. The largest difference is +2 (T4, G4 - G0; per seed +1, 0, +1), far below the bar of +10 that is positive in every seed and leaving any one database out. One integration rule (a fixed additive prior), no retraining |
+| This interface can carry correct grounding into better programs | Not shown | Dev 128, the oracle record (gold tables and columns, unordered): it changed the final SQL of 8.9% of 768 decodes and added 5 EX-correct answers pooled (C4-v2 +6, T4-v2 -1). A finding about this interface, not about grounding in general |
+| One bounded Qwen3.5-4B call can ground tables well | Observed (development) | New 64, G4 records: 58 valid (the 6 invalid name nonexistent columns and fall back to G0); table recall 0.96, precision 0.86; the first listed table is in the gold set 93% of the time; column coverage 0.53; literal values right 73% of the time. Gold sets are annotations |
+| The T4 specialists benefit more than the shared controller | NOT SUPPORTED | The interaction (T4: G4 - G0) - (C4: G4 - G0) is +2 (+1, 0, +1), not consistent |
+| The controllers add value over a direct short-budget Qwen3.5-4B call | NOT SUPPORTED (development) | The same added-call configuration asked for SQL: 32 of 64, against the best controller policy's 12, 13 and 9 of 64 per seed. Marginal serving: 5.1 s per request and 10.3 s per EX-correct answer, against G0's 1.3 s and 8.0-9.0 s, and G4's 10.3 s and 62-64 s. A short-budget control, not the thinking-mode baselines |
+| The same-reference ON restriction alone improves v1 decoding | NOT SUPPORTED (post hoc, CPU) | The six v1 controllers on the 128 questions: EX 71 against 70 of 768 with the restriction. It removes all 117 same-reference outputs and 8 of 10 timeouts, and keeps all 117 self-join outputs. It does not isolate the restriction inside v2 |
+| The study's evidence is intact | Verified in-process; independent reconstruction pending | All 1,152 timed decodes equal their anchors and cache reconstructions; 8 of 8 earlier contexts re-encode equal; `python -m scaling.gi_report` rebuilds the tables from the bundle and refuses any disagreement with `analysis.json` |
+
