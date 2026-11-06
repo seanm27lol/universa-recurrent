@@ -105,9 +105,9 @@ The six v1 checkpoints were decoded on the 128 evaluated questions twice:
 
 The weights, states, other legality rules and decoding limits were identical.
 
-| v1 fits, pooled over the six | v1 | v1 + the restriction |
+| v1 fits, pooled over the six | original v1 policy | v1 + the restriction |
 |---|---|---|
-| EX-correct of 768 | 71 | 70 |
+| EX-correct of 768 | 71 (original) | 70 (restricted) |
 | changed decisions | — | 117 (exactly the same-reference outputs) |
 | wrong to correct, correct to wrong | — | 1, 2 |
 | same-reference ON outputs | 117 | 0 |
@@ -124,7 +124,7 @@ The per-architecture split:
 | C4-v1, new | 17, 17 | 23 | 3, 1 |
 
 - **Accuracy:** the restriction alone, applied to v1, removes the tautological joins and most timeouts and keeps
-  every self-join. It changes accuracy by −1 of 768.
+  every self-join. Accuracy goes from 71 of 768 (original) to 70 of 768 (restricted): one fewer correct answer.
 - **What it suggests about v2:** the performance study's v2 gain (+15 and +18 of 192 on its new population) is not
   explained by the restriction alone. This is suggestive only: post hoc, on v1 controllers, it does not isolate the
   restriction inside v2.
@@ -259,6 +259,29 @@ Ledger at the analysis: 22.823 of 32.0 h (analysis.json's `gpu_hours` keeps one 
   study's B4 and Q27 ran in thinking mode on another population.
 - **Not a measure of faithfulness.** A record that changes an answer shows that the interface influences the system,
   not that the record is right or describes the backbone's reasoning.
+
+## Diagnostic corrections (2026-11-05; no historical result is changed)
+
+Five statements of this study, and of the performance study it builds on, need narrowing:
+
+1. **The prior can only change close decisions.** A record changes a pointer decision only when, for some legal
+   candidate, the prior's advantage over the selected item exceeds that item's logit lead. The largest possible
+   advantage is ln 2 (about 0.69: a rank-1 item against an unlisted one), so any decision whose legal margin exceeds
+   ln 2 cannot be changed by any record. The interface's small effect therefore partly reflects how often the
+   controllers' margins exceed ln 2. The bounded margin diagnostic below measures this.
+2. **The oracle was a small bias, not enforced grounding.** It added ln 2 to every gold table and column. Its +5 of
+   768 measures what this prior does with correct information, not what correct grounding would achieve.
+3. **Literals and status were not consumed.** Literal bindings and the unresolved status were recorded and scored but
+   never reached the decoder. The interface could not have repaired a literal error.
+4. **Exposure bias is not ruled out.** In the performance study's diagnosis, teacher-forced all-correct programs and
+   exact greedy decodes coincided. That shows only that greedy decoding reproduces the gold when every step is right;
+   it does not measure how a first error compounds. The forced-prefix diagnostic below tests that on a small sample.
+5. **Specialization is not established.** T4 and C4_params did not differ consistently in the performance study (A3)
+   or here (the interaction is +2, not consistent). Nothing here shows that specialization helps.
+
+The next experiment must not be a larger controller or a larger ranking bias chosen after these results.
+
+⟨MARGIN DIAGNOSTIC⟩
 
 ## Recommendation
 
