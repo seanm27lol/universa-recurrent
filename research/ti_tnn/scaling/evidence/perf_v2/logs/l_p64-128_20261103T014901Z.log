@@ -1,0 +1,82 @@
+{"task": "bird23tf-06525", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.2, "tokens": {}}
+{"task": "bird23tf-03426", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-01838", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05932", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05268", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03519", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01450", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-00784", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-04922", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.06, "tokens": {}}
+{"task": "bird23tf-02962", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.21, "tokens": {}}
+{"task": "bird23tf-04433", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-04963", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-02680", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01113", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03149", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.11, "tokens": {}}
+{"task": "bird23tf-03440", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-04524", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 1, "elapsed": 0.0, "tokens": {}}
+{"task": "bird23tf-03980", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.28, "tokens": {}}
+{"task": "bird23tf-03949", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03537", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-04385", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.09, "tokens": {}}
+{"task": "bird23tf-04133", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-03099", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.03, "tokens": {}}
+{"task": "bird23tf-02979", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.07, "tokens": {}}
+{"task": "bird23tf-04436", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 1, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03138", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.0, "tokens": {}}
+{"task": "bird23tf-02661", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01130", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-06528", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.49, "tokens": {}}
+{"task": "bird23tf-03445", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.19, "tokens": {}}
+{"task": "bird23tf-04513", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-00472", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 1, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05910", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05138", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01576", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.07, "tokens": {}}
+{"task": "bird23tf-00736", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03060", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.03, "tokens": {}}
+{"task": "bird23tf-02989", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.03, "tokens": {}}
+{"task": "bird23tf-01670", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03126", "final": "sql", "reason": "no candidate returned rows; first that ran", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-04824", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-06049", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-06516", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 1.3, "tokens": {}}
+{"task": "bird23tf-03432", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.21, "tokens": {}}
+{"task": "bird23tf-01824", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05282", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03938", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.0, "tokens": {}}
+{"task": "bird23tf-05134", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01506", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-00765", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-06499", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.03, "tokens": {}}
+{"task": "bird23tf-02964", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.37, "tokens": {}}
+{"task": "bird23tf-01698", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 1, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03121", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-02673", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01110", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-05715", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 1.44, "tokens": {}}
+{"task": "bird23tf-05090", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.07, "tokens": {}}
+{"task": "bird23tf-01847", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-00451", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-00430", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-03518", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{"task": "bird23tf-01546", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.02, "tokens": {}}
+{"task": "bird23tf-05321", "final": "sql", "reason": "first candidate that ran with at least one row", "correct": 0, "elapsed": 0.01, "tokens": {}}
+{
+ "arm": "L",
+ "config_identity": "2741b0273dd07ee873f2bae3cb26a879efcfb6da25f2712ec39d2eccee815981",
+ "requested": 64,
+ "correct": 4,
+ "quality": 0.0625,
+ "answered": 64,
+ "abstained": 0,
+ "abstention_reasons": {},
+ "errors": 0,
+ "timeouts": 0,
+ "repairs": 0,
+ "tool_calls": 153,
+ "elapsed_seconds_total": 5.750856925995322,
+ "cost_seconds_per_correct": 1.4377142314988305,
+ "tokens": {},
+ "peak_memory_bytes_max": 0
+}

@@ -1,0 +1,869 @@
+development encodings and gold: 4 s
+development records diagnosed: 8 s
+development teacher forcing: 176 s
+training sample T4/100: 400 s
+training sample c4_params/100: 609 s
+training sample T4/101: 804 s
+training sample c4_params/101: 1017 s
+training sample scored: 1098 s
+{
+ "dev": {
+  "T4/100": {
+   "requests": 64,
+   "correct": 9,
+   "table_set_equal": 20,
+   "correct_given_table_set_equal": 7,
+   "correct_given_table_set_differs": 2,
+   "join_keys_equal_given_tables_equal": 18,
+   "every_predicted_table_in_gold": 37,
+   "every_gold_table_predicted": 31,
+   "first_table_in_gold_set": 49,
+   "exact_plan": 1,
+   "categories": {
+    "table grounding": 44,
+    "projection": 43,
+    "predicate column": 42,
+    "join key (different tables)": 36,
+    "aggregation": 18,
+    "join: undeclared, non-gold key": 12,
+    "DISTINCT": 11,
+    "join: same-reference equality": 10,
+    "ordering or LIMIT": 9,
+    "predicate literal": 8,
+    "grouping or HAVING": 8,
+    "nested query involved": 7,
+    "join key (same tables)": 2,
+    "predicate: same-reference equality": 1,
+    "execution timeout": 1
+   },
+   "first_divergence": {
+    "FROM table": 28,
+    "join count or kind": 10,
+    "joined table": 7,
+    "gold not representable": 6,
+    "ON column (operand 0)": 4,
+    "FROM structure": 2,
+    "SELECT aggregate": 2,
+    "WHERE predicate structure": 2,
+    "SELECT column": 1,
+    "exact": 1,
+    "WHERE column": 1
+   },
+   "divergence_decision": {
+    "pointer": 41,
+    "operator": 15,
+    "family": 1
+   },
+   "join_equalities": {
+    "cross_source": 41,
+    "same_source": 7,
+    "same_reference": 10
+   },
+   "requests_with_same_reference_join": 10,
+   "timeouts": 1
+  },
+  "c4_params/100": {
+   "requests": 64,
+   "correct": 4,
+   "table_set_equal": 16,
+   "correct_given_table_set_equal": 3,
+   "correct_given_table_set_differs": 1,
+   "join_keys_equal_given_tables_equal": 15,
+   "every_predicted_table_in_gold": 40,
+   "every_gold_table_predicted": 31,
+   "first_table_in_gold_set": 52,
+   "exact_plan": 0,
+   "categories": {
+    "table grounding": 48,
+    "projection": 47,
+    "join key (different tables)": 42,
+    "predicate column": 41,
+    "aggregation": 20,
+    "join: undeclared, non-gold key": 14,
+    "predicate literal": 13,
+    "DISTINCT": 10,
+    "grouping or HAVING": 8,
+    "ordering or LIMIT": 8,
+    "nested query involved": 6,
+    "join: same-reference equality": 4,
+    "join key (same tables)": 1
+   },
+   "first_divergence": {
+    "FROM table": 27,
+    "join count or kind": 12,
+    "joined table": 9,
+    "gold not representable": 6,
+    "WHERE predicate structure": 4,
+    "WHERE column": 2,
+    "WHERE literal": 1,
+    "HAVING column": 1,
+    "SELECT aggregate": 1,
+    "ON column (operand 0)": 1
+   },
+   "divergence_decision": {
+    "pointer": 41,
+    "operator": 17
+   },
+   "join_equalities": {
+    "cross_source": 43,
+    "same_source": 6,
+    "same_reference": 5
+   },
+   "requests_with_same_reference_join": 4,
+   "timeouts": 0
+  },
+  "T4/101": {
+   "requests": 64,
+   "correct": 9,
+   "table_set_equal": 21,
+   "correct_given_table_set_equal": 5,
+   "correct_given_table_set_differs": 4,
+   "join_keys_equal_given_tables_equal": 19,
+   "every_predicted_table_in_gold": 32,
+   "every_gold_table_predicted": 31,
+   "first_table_in_gold_set": 49,
+   "exact_plan": 1,
+   "categories": {
+    "table grounding": 43,
+    "predicate column": 41,
+    "projection": 40,
+    "join key (different tables)": 36,
+    "aggregation": 15,
+    "join: same-reference equality": 14,
+    "join: undeclared, non-gold key": 10,
+    "ordering or LIMIT": 8,
+    "grouping or HAVING": 8,
+    "predicate literal": 6,
+    "DISTINCT": 5,
+    "nested query involved": 5,
+    "join key (same tables)": 2,
+    "execution timeout": 2
+   },
+   "first_divergence": {
+    "FROM table": 30,
+    "join count or kind": 8,
+    "joined table": 8,
+    "gold not representable": 6,
+    "WHERE predicate structure": 4,
+    "ON column (operand 0)": 2,
+    "WHERE literal": 2,
+    "SELECT aggregate": 2,
+    "SELECT column": 1,
+    "WHERE column": 1
+   },
+   "divergence_decision": {
+    "pointer": 44,
+    "operator": 14
+   },
+   "join_equalities": {
+    "cross_source": 33,
+    "same_reference": 16,
+    "same_source": 5
+   },
+   "requests_with_same_reference_join": 14,
+   "timeouts": 2
+  },
+  "c4_params/101": {
+   "requests": 64,
+   "correct": 10,
+   "table_set_equal": 19,
+   "correct_given_table_set_equal": 7,
+   "correct_given_table_set_differs": 3,
+   "join_keys_equal_given_tables_equal": 17,
+   "every_predicted_table_in_gold": 36,
+   "every_gold_table_predicted": 31,
+   "first_table_in_gold_set": 48,
+   "exact_plan": 1,
+   "categories": {
+    "table grounding": 45,
+    "projection": 40,
+    "predicate column": 37,
+    "join key (different tables)": 34,
+    "aggregation": 16,
+    "join: same-reference equality": 14,
+    "predicate literal": 12,
+    "DISTINCT": 10,
+    "grouping or HAVING": 8,
+    "ordering or LIMIT": 8,
+    "join: undeclared, non-gold key": 7,
+    "nested query involved": 5,
+    "execution timeout": 3,
+    "join key (same tables)": 2,
+    "predicate operator or shape": 1
+   },
+   "first_divergence": {
+    "FROM table": 27,
+    "joined table": 10,
+    "join count or kind": 9,
+    "gold not representable": 6,
+    "ON column (operand 0)": 3,
+    "WHERE literal": 2,
+    "SELECT aggregate": 2,
+    "WHERE predicate structure": 2,
+    "FROM structure": 1,
+    "ON column (operand 1)": 1,
+    "DISTINCT": 1
+   },
+   "divergence_decision": {
+    "pointer": 43,
+    "operator": 15
+   },
+   "join_equalities": {
+    "same_reference": 14,
+    "cross_source": 34,
+    "same_source": 5
+   },
+   "requests_with_same_reference_join": 14,
+   "timeouts": 3
+  }
+ },
+ "train": {
+  "T4/100": {
+   "by_decision": {
+    "WHERE literal": {
+     "steps": 377,
+     "family_wrong": 0,
+     "op_wrong": 32,
+     "pointer_steps": 330,
+     "pointer_wrong": 20,
+     "any_wrong": 48,
+     "error_rate": 0.1273209549071618
+    },
+    "FROM table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 277,
+     "pointer_wrong": 47,
+     "any_wrong": 47,
+     "error_rate": 0.16967509025270758
+    },
+    "join: add table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 10,
+     "pointer_steps": 277,
+     "pointer_wrong": 24,
+     "any_wrong": 34,
+     "error_rate": 0.12274368231046931
+    },
+    "WHERE operator": {
+     "steps": 638,
+     "family_wrong": 0,
+     "op_wrong": 34,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 34,
+     "error_rate": 0.05329153605015674
+    },
+    "WHERE column": {
+     "steps": 372,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 372,
+     "pointer_wrong": 31,
+     "any_wrong": 32,
+     "error_rate": 0.08602150537634409
+    },
+    "SELECT column": {
+     "steps": 383,
+     "family_wrong": 2,
+     "op_wrong": 3,
+     "pointer_steps": 383,
+     "pointer_wrong": 21,
+     "any_wrong": 26,
+     "error_rate": 0.06788511749347259
+    },
+    "join: no more tables": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 23,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 23,
+     "error_rate": 0.08098591549295775
+    },
+    "SELECT other": {
+     "steps": 915,
+     "family_wrong": 4,
+     "op_wrong": 13,
+     "pointer_steps": 37,
+     "pointer_wrong": 2,
+     "any_wrong": 19,
+     "error_rate": 0.020765027322404372
+    },
+    "ON column (operand 0)": {
+     "steps": 276,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 276,
+     "pointer_wrong": 18,
+     "any_wrong": 18,
+     "error_rate": 0.06521739130434782
+    },
+    "SELECT aggregate": {
+     "steps": 126,
+     "family_wrong": 1,
+     "op_wrong": 9,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 10,
+     "error_rate": 0.07936507936507936
+    },
+    "DISTINCT": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 7,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 7,
+     "error_rate": 0.02464788732394366
+    },
+    "ON column (operand 1)": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 277,
+     "pointer_wrong": 6,
+     "any_wrong": 6,
+     "error_rate": 0.021660649819494584
+    },
+    "GROUP BY column": {
+     "steps": 25,
+     "family_wrong": 0,
+     "op_wrong": 5,
+     "pointer_steps": 25,
+     "pointer_wrong": 1,
+     "any_wrong": 6,
+     "error_rate": 0.24
+    },
+    "ORDER BY column": {
+     "steps": 44,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 44,
+     "pointer_wrong": 2,
+     "any_wrong": 2,
+     "error_rate": 0.045454545454545456
+    },
+    "FROM structure": {
+     "steps": 7,
+     "family_wrong": 0,
+     "op_wrong": 2,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 2,
+     "error_rate": 0.2857142857142857
+    },
+    "ON operator": {
+     "steps": 278,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 1,
+     "error_rate": 0.0035971223021582736
+    },
+    "ORDER BY other": {
+     "steps": 15,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 1,
+     "error_rate": 0.06666666666666667
+    },
+    "QUERY": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "GROUP BY other": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "HAVING operator": {
+     "steps": 285,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "LIMIT": {
+     "steps": 330,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "STOP": {
+     "steps": 256,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "HAVING column": {
+     "steps": 1,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 1,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "HAVING literal": {
+     "steps": 1,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    }
+   },
+   "table_set_equal": 196,
+   "sample": 256,
+   "mean_tf_loss": 0.1441372616800026,
+   "mean_tf_step_accuracy": 0.9543738514184952,
+   "tf_all_steps_correct": 101,
+   "free_exact_actions": 101,
+   "free_ex_correct": 149,
+   "timeouts": 1,
+   "abstentions": 0,
+   "same_reference_join_outputs": 6,
+   "first_divergence": {
+    "exact": 101,
+    "FROM table": 45,
+    "join count or kind": 23,
+    "WHERE literal": 21,
+    "WHERE column": 14,
+    "WHERE predicate structure": 12,
+    "joined table": 12,
+    "SELECT column": 6,
+    "SELECT structure": 5,
+    "DISTINCT": 5,
+    "ON column (operand 0)": 5,
+    "SELECT aggregate": 3,
+    "ON column (operand 1)": 2,
+    "ORDER BY": 2
+   }
+  },
+  "c4_params/100": {
+   "by_decision": {
+    "FROM table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 277,
+     "pointer_wrong": 50,
+     "any_wrong": 51,
+     "error_rate": 0.18411552346570398
+    },
+    "WHERE literal": {
+     "steps": 377,
+     "family_wrong": 0,
+     "op_wrong": 30,
+     "pointer_steps": 330,
+     "pointer_wrong": 19,
+     "any_wrong": 49,
+     "error_rate": 0.129973474801061
+    },
+    "SELECT column": {
+     "steps": 383,
+     "family_wrong": 10,
+     "op_wrong": 4,
+     "pointer_steps": 383,
+     "pointer_wrong": 29,
+     "any_wrong": 42,
+     "error_rate": 0.10966057441253264
+    },
+    "SELECT other": {
+     "steps": 915,
+     "family_wrong": 11,
+     "op_wrong": 27,
+     "pointer_steps": 37,
+     "pointer_wrong": 4,
+     "any_wrong": 41,
+     "error_rate": 0.04480874316939891
+    },
+    "WHERE operator": {
+     "steps": 638,
+     "family_wrong": 0,
+     "op_wrong": 40,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 40,
+     "error_rate": 0.06269592476489028
+    },
+    "WHERE column": {
+     "steps": 372,
+     "family_wrong": 0,
+     "op_wrong": 2,
+     "pointer_steps": 372,
+     "pointer_wrong": 38,
+     "any_wrong": 40,
+     "error_rate": 0.10752688172043011
+    },
+    "join: add table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 17,
+     "pointer_steps": 277,
+     "pointer_wrong": 25,
+     "any_wrong": 39,
+     "error_rate": 0.1407942238267148
+    },
+    "join: no more tables": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 19,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 19,
+     "error_rate": 0.06690140845070422
+    },
+    "ON column (operand 0)": {
+     "steps": 276,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 276,
+     "pointer_wrong": 19,
+     "any_wrong": 19,
+     "error_rate": 0.06884057971014493
+    },
+    "DISTINCT": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 17,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 17,
+     "error_rate": 0.05985915492957746
+    },
+    "SELECT aggregate": {
+     "steps": 126,
+     "family_wrong": 3,
+     "op_wrong": 11,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 14,
+     "error_rate": 0.1111111111111111
+    },
+    "GROUP BY column": {
+     "steps": 25,
+     "family_wrong": 0,
+     "op_wrong": 6,
+     "pointer_steps": 25,
+     "pointer_wrong": 3,
+     "any_wrong": 8,
+     "error_rate": 0.32
+    },
+    "ON column (operand 1)": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 277,
+     "pointer_wrong": 7,
+     "any_wrong": 7,
+     "error_rate": 0.02527075812274368
+    },
+    "ORDER BY column": {
+     "steps": 44,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 44,
+     "pointer_wrong": 3,
+     "any_wrong": 3,
+     "error_rate": 0.06818181818181818
+    },
+    "FROM structure": {
+     "steps": 7,
+     "family_wrong": 0,
+     "op_wrong": 2,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 2,
+     "error_rate": 0.2857142857142857
+    },
+    "GROUP BY other": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 1,
+     "error_rate": 0.0035211267605633804
+    },
+    "LIMIT": {
+     "steps": 330,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 1,
+     "error_rate": 0.0030303030303030303
+    },
+    "HAVING column": {
+     "steps": 1,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 1,
+     "pointer_wrong": 1,
+     "any_wrong": 1,
+     "error_rate": 1.0
+    },
+    "QUERY": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "ON operator": {
+     "steps": 278,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "HAVING operator": {
+     "steps": 285,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "STOP": {
+     "steps": 256,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "ORDER BY other": {
+     "steps": 15,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    },
+    "HAVING literal": {
+     "steps": 1,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 0,
+     "error_rate": 0.0
+    }
+   },
+   "table_set_equal": 190,
+   "sample": 256,
+   "mean_tf_loss": 0.16317420740792257,
+   "mean_tf_step_accuracy": 0.9429553900845349,
+   "tf_all_steps_correct": 81,
+   "free_exact_actions": 81,
+   "free_ex_correct": 139,
+   "timeouts": 1,
+   "abstentions": 0,
+   "same_reference_join_outputs": 2,
+   "first_divergence": {
+    "exact": 81,
+    "FROM table": 46,
+    "join count or kind": 27,
+    "WHERE literal": 19,
+    "WHERE predicate structure": 18,
+    "WHERE column": 14,
+    "SELECT aggregate": 13,
+    "joined table": 12,
+    "SELECT column": 8,
+    "DISTINCT": 6,
+    "SELECT structure": 5,
+    "ON column (operand 0)": 4,
+    "FROM structure": 1,
+    "ORDER BY": 1,
+    "GROUP BY": 1
+   }
+  },
+  "T4/101": {
+   "by_decision": {
+    "WHERE literal": {
+     "steps": 377,
+     "family_wrong": 0,
+     "op_wrong": 31,
+     "pointer_steps": 330,
+     "pointer_wrong": 24,
+     "any_wrong": 54,
+     "error_rate": 0.14323607427055704
+    },
+    "FROM table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 277,
+     "pointer_wrong": 51,
+     "any_wrong": 51,
+     "error_rate": 0.18411552346570398
+    },
+    "join: add table": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 36,
+     "pointer_steps": 277,
+     "pointer_wrong": 14,
+     "any_wrong": 47,
+     "error_rate": 0.16967509025270758
+    },
+    "SELECT column": {
+     "steps": 383,
+     "family_wrong": 2,
+     "op_wrong": 4,
+     "pointer_steps": 383,
+     "pointer_wrong": 36,
+     "any_wrong": 42,
+     "error_rate": 0.10966057441253264
+    },
+    "WHERE column": {
+     "steps": 372,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 372,
+     "pointer_wrong": 40,
+     "any_wrong": 41,
+     "error_rate": 0.11021505376344086
+    },
+    "WHERE operator": {
+     "steps": 638,
+     "family_wrong": 0,
+     "op_wrong": 39,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 39,
+     "error_rate": 0.061128526645768025
+    },
+    "SELECT other": {
+     "steps": 915,
+     "family_wrong": 4,
+     "op_wrong": 22,
+     "pointer_steps": 37,
+     "pointer_wrong": 5,
+     "any_wrong": 31,
+     "error_rate": 0.033879781420765025
+    },
+    "ON column (operand 0)": {
+     "steps": 276,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 276,
+     "pointer_wrong": 28,
+     "any_wrong": 28,
+     "error_rate": 0.10144927536231885
+    },
+    "ON column (operand 1)": {
+     "steps": 277,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 277,
+     "pointer_wrong": 13,
+     "any_wrong": 13,
+     "error_rate": 0.04693140794223827
+    },
+    "SELECT aggregate": {
+     "steps": 126,
+     "family_wrong": 9,
+     "op_wrong": 4,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 12,
+     "error_rate": 0.09523809523809523
+    },
+    "join: no more tables": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 7,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 7,
+     "error_rate": 0.02464788732394366
+    },
+    "GROUP BY column": {
+     "steps": 25,
+     "family_wrong": 0,
+     "op_wrong": 5,
+     "pointer_steps": 25,
+     "pointer_wrong": 2,
+     "any_wrong": 7,
+     "error_rate": 0.28
+    },
+    "ORDER BY column": {
+     "steps": 44,
+     "family_wrong": 0,
+     "op_wrong": 0,
+     "pointer_steps": 44,
+     "pointer_wrong": 5,
+     "any_wrong": 5,
+     "error_rate": 0.11363636363636363
+    },
+    "DISTINCT": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 4,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 4,
+     "error_rate": 0.014084507042253521
+    },
+    "GROUP BY other": {
+     "steps": 284,
+     "family_wrong": 0,
+     "op_wrong": 3,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 3,
+     "error_rate": 0.01056338028169014
+    },
+    "FROM structure": {
+     "steps": 7,
+     "family_wrong": 0,
+     "op_wrong": 2,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 2,
+     "error_rate": 0.2857142857142857
+    },
+    "ON operator": {
+     "steps": 278,
+     "family_wrong": 0,
+     "op_wrong": 1,
+     "pointer_steps": 0,
+     "pointer_wrong": 0,
+     "any_wrong": 1,
+     "error_rate": 0.0035971223021582736
+    },
+

@@ -1,0 +1,247 @@
+Loading weights:   0%|          | 0/1184 [00:00<?, ?it/s]Loading weights:  30%|███       | 361/1184 [00:00<00:00, 3580.53it/s]Loading weights:  61%|██████    | 720/1184 [00:00<00:00, 3559.02it/s]Loading weights: 100%|██████████| 1184/1184 [00:00<00:00, 3991.11it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+[transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+{"task": "bird23tf-01612", "turn": 0, "kind": "generation", "finish": "max_new_tokens", "prompt": 1349, "generated": 256, "reasoning": 256, "seconds": 65.2, "ttft": 3.9, "tool_calls": 0, "elapsed": 66.1}
+{"task": "bird23tf-03029", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 7003, "generated": 130, "reasoning": 79, "seconds": 42.1, "ttft": 10.6, "tool_calls": 1, "elapsed": 42.4}
+{"task": "bird23tf-03029", "tool": "execute_select", "status": "ok", "seconds": 0.251301, "elapsed": 42.6}
+{"task": "bird23tf-03029", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7327, "generated": 116, "reasoning": 33, "seconds": 38.5, "ttft": 10.4, "tool_calls": 0, "elapsed": 81.1}
+{"task": "bird23tf-03029", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 81.2, "tokens": {"initial_prompt": 7003, "prefill": 14330, "generated": 246, "reasoning": 112, "content": 132, "tool_observation": 179}}
+{"task": "bird23tf-04905", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1941, "generated": 79, "reasoning": 41, "seconds": 21.5, "ttft": 2.8, "tool_calls": 1, "elapsed": 21.6}
+{"task": "bird23tf-04905", "tool": "execute_select", "status": "ok", "seconds": 0.000592, "elapsed": 21.6}
+{"task": "bird23tf-04905", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2211, "generated": 59, "reasoning": 29, "seconds": 17.2, "ttft": 3.1, "tool_calls": 0, "elapsed": 38.8}
+{"task": "bird23tf-04905", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 38.8, "tokens": {"initial_prompt": 1941, "prefill": 4152, "generated": 138, "reasoning": 70, "content": 66, "tool_observation": 176}}
+{"task": "bird23tf-01628", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3006, "generated": 207, "reasoning": 111, "seconds": 54.0, "ttft": 4.3, "tool_calls": 1, "elapsed": 54.1}
+{"task": "bird23tf-01628", "tool": "execute_select", "status": "ok", "seconds": 0.005524, "elapsed": 54.1}
+{"task": "bird23tf-01628", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3526, "generated": 208, "reasoning": 73, "seconds": 54.9, "ttft": 5.0, "tool_calls": 0, "elapsed": 109.1}
+{"task": "bird23tf-01628", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 109.06, "tokens": {"initial_prompt": 3006, "prefill": 6532, "generated": 415, "reasoning": 184, "content": 229, "tool_observation": 298}}
+{"task": "bird23tf-03134", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2053, "generated": 95, "reasoning": 33, "seconds": 25.5, "ttft": 2.9, "tool_calls": 1, "elapsed": 25.6}
+{"task": "bird23tf-03134", "tool": "execute_select", "status": "ok", "seconds": 0.000746, "elapsed": 25.6}
+{"task": "bird23tf-03134", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2373, "generated": 95, "reasoning": 27, "seconds": 26.0, "ttft": 3.4, "tool_calls": 0, "elapsed": 51.6}
+{"task": "bird23tf-03134", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 51.62, "tokens": {"initial_prompt": 2053, "prefill": 4426, "generated": 190, "reasoning": 60, "content": 128, "tool_observation": 210}}
+{"task": "bird23tf-02664", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2762, "generated": 134, "reasoning": 62, "seconds": 36.1, "ttft": 4.1, "tool_calls": 1, "elapsed": 36.2}
+{"task": "bird23tf-02664", "tool": "execute_select", "status": "ok", "seconds": 0.000796, "elapsed": 36.2}
+{"task": "bird23tf-02664", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3119, "generated": 86, "reasoning": 21, "seconds": 24.8, "ttft": 4.3, "tool_calls": 0, "elapsed": 61.0}
+{"task": "bird23tf-02664", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 61.05, "tokens": {"initial_prompt": 2762, "prefill": 5881, "generated": 220, "reasoning": 83, "content": 135, "tool_observation": 208}}
+{"task": "bird23tf-04254", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6472, "generated": 542, "reasoning": 483, "seconds": 141.4, "ttft": 9.1, "tool_calls": 1, "elapsed": 141.5}
+{"task": "bird23tf-04254", "tool": "execute_select", "status": "ok", "seconds": 0.001249, "elapsed": 141.5}
+{"task": "bird23tf-04254", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7358, "generated": 130, "reasoning": 60, "seconds": 41.8, "ttft": 10.3, "tool_calls": 0, "elapsed": 183.3}
+{"task": "bird23tf-04254", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 183.36, "tokens": {"initial_prompt": 6472, "prefill": 13830, "generated": 672, "reasoning": 543, "content": 127, "tool_observation": 329}}
+{"task": "bird23tf-06518", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1968, "generated": 130, "reasoning": 63, "seconds": 33.8, "ttft": 2.8, "tool_calls": 1, "elapsed": 33.8}
+{"task": "bird23tf-06518", "tool": "execute_select", "status": "ok", "seconds": 0.188759, "elapsed": 34.0}
+{"task": "bird23tf-06518", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2462, "generated": 159, "reasoning": 88, "seconds": 41.4, "ttft": 3.4, "tool_calls": 0, "elapsed": 75.4}
+{"task": "bird23tf-06518", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 75.64, "tokens": {"initial_prompt": 1968, "prefill": 4430, "generated": 289, "reasoning": 151, "content": 136, "tool_observation": 349}}
+{"task": "bird23tf-03434", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2380, "generated": 322, "reasoning": 234, "seconds": 80.5, "ttft": 3.4, "tool_calls": 2, "elapsed": 80.6}
+{"task": "bird23tf-03434", "tool": "lookup_values", "status": "ok", "seconds": 0.049209, "elapsed": 80.6}
+{"task": "bird23tf-03434", "tool": "lookup_values", "status": "ok", "seconds": 0.007689, "elapsed": 80.6}
+{"task": "bird23tf-03434", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3030, "generated": 666, "reasoning": 509, "seconds": 164.6, "ttft": 4.4, "tool_calls": 1, "elapsed": 245.2}
+{"task": "bird23tf-03434", "tool": "execute_select", "status": "ok", "seconds": 0.005201, "elapsed": 245.2}
+{"task": "bird23tf-03434", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 4197, "generated": 172, "reasoning": 36, "seconds": 47.1, "ttft": 5.8, "tool_calls": 0, "elapsed": 292.4}
+{"task": "bird23tf-03434", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 292.39, "tokens": {"initial_prompt": 2380, "prefill": 9607, "generated": 1160, "reasoning": 779, "content": 378, "tool_observation": 794}}
+{"task": "bird23tf-06228", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2386, "generated": 138, "reasoning": 90, "seconds": 36.3, "ttft": 3.4, "tool_calls": 1, "elapsed": 36.4}
+{"task": "bird23tf-06228", "tool": "execute_select", "status": "ok", "seconds": 0.000931, "elapsed": 36.4}
+{"task": "bird23tf-06228", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2719, "generated": 58, "reasoning": 15, "seconds": 17.8, "ttft": 4.0, "tool_calls": 0, "elapsed": 54.1}
+{"task": "bird23tf-06228", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 54.15, "tokens": {"initial_prompt": 2386, "prefill": 5105, "generated": 196, "reasoning": 105, "content": 89, "tool_observation": 180}}
+{"task": "bird23tf-00443", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2483, "generated": 241, "reasoning": 166, "seconds": 61.1, "ttft": 3.5, "tool_calls": 1, "elapsed": 61.2}
+{"task": "bird23tf-00443", "tool": "execute_select", "status": "ok", "seconds": 0.005731, "elapsed": 61.2}
+{"task": "bird23tf-00443", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3014, "generated": 229, "reasoning": 120, "seconds": 59.2, "ttft": 4.4, "tool_calls": 0, "elapsed": 120.4}
+{"task": "bird23tf-00443", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 120.43, "tokens": {"initial_prompt": 2483, "prefill": 5497, "generated": 470, "reasoning": 286, "content": 182, "tool_observation": 275}}
+{"task": "bird23tf-05912", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1616, "generated": 215, "reasoning": 172, "seconds": 53.7, "ttft": 2.3, "tool_calls": 1, "elapsed": 53.7}
+{"task": "bird23tf-05912", "tool": "execute_select", "status": "ok", "seconds": 0.001443, "elapsed": 53.7}
+{"task": "bird23tf-05912", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2016, "generated": 51, "reasoning": 14, "seconds": 14.9, "ttft": 2.9, "tool_calls": 0, "elapsed": 68.6}
+{"task": "bird23tf-05912", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 68.6, "tokens": {"initial_prompt": 1616, "prefill": 3632, "generated": 266, "reasoning": 186, "content": 78, "tool_observation": 170}}
+{"task": "bird23tf-03525", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2337, "generated": 205, "reasoning": 103, "seconds": 52.4, "ttft": 3.4, "tool_calls": 1, "elapsed": 52.4}
+{"task": "bird23tf-03525", "tool": "execute_select", "status": "ok", "seconds": 0.002923, "elapsed": 52.4}
+{"task": "bird23tf-03525", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2801, "generated": 161, "reasoning": 27, "seconds": 42.6, "ttft": 4.1, "tool_calls": 0, "elapsed": 95.0}
+{"task": "bird23tf-03525", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 95.01, "tokens": {"initial_prompt": 2337, "prefill": 5138, "generated": 366, "reasoning": 130, "content": 234, "tool_observation": 244}}
+{"task": "bird23tf-01565", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3606, "generated": 110, "reasoning": 60, "seconds": 31.2, "ttft": 5.0, "tool_calls": 1, "elapsed": 31.3}
+{"task": "bird23tf-01565", "tool": "execute_select", "status": "ok", "seconds": 0.002825, "elapsed": 31.3}
+{"task": "bird23tf-01565", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3999, "generated": 102, "reasoning": 37, "seconds": 30.0, "ttft": 5.7, "tool_calls": 0, "elapsed": 61.3}
+{"task": "bird23tf-01565", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 61.33, "tokens": {"initial_prompt": 3606, "prefill": 7605, "generated": 212, "reasoning": 97, "content": 113, "tool_observation": 268}}
+{"task": "bird23tf-00840", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 4191, "generated": 231, "reasoning": 163, "seconds": 61.4, "ttft": 5.9, "tool_calls": 1, "elapsed": 61.4}
+{"task": "bird23tf-00840", "tool": "execute_select", "status": "ok", "seconds": 0.000854, "elapsed": 61.5}
+{"task": "bird23tf-00840", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 4744, "generated": 102, "reasoning": 31, "seconds": 31.1, "ttft": 6.6, "tool_calls": 0, "elapsed": 92.5}
+{"task": "bird23tf-00840", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 92.54, "tokens": {"initial_prompt": 4191, "prefill": 8935, "generated": 333, "reasoning": 194, "content": 137, "tool_observation": 307}}
+{"task": "bird23tf-03022", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6996, "generated": 108, "reasoning": 67, "seconds": 36.0, "ttft": 9.8, "tool_calls": 1, "elapsed": 36.0}
+{"task": "bird23tf-03022", "tool": "execute_select", "status": "ok", "seconds": 0.000835, "elapsed": 36.0}
+{"task": "bird23tf-03022", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7314, "generated": 158, "reasoning": 72, "seconds": 48.5, "ttft": 10.2, "tool_calls": 0, "elapsed": 84.6}
+{"task": "bird23tf-03022", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 84.59, "tokens": {"initial_prompt": 6996, "prefill": 14310, "generated": 266, "reasoning": 139, "content": 125, "tool_observation": 195}}
+{"task": "bird23tf-02969", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1962, "generated": 186, "reasoning": 89, "seconds": 47.2, "ttft": 2.8, "tool_calls": 1, "elapsed": 47.2}
+{"task": "bird23tf-02969", "tool": "execute_select", "status": "ok", "seconds": 0.000773, "elapsed": 47.2}
+{"task": "bird23tf-02969", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2469, "generated": 238, "reasoning": 38, "seconds": 61.6, "ttft": 3.4, "tool_calls": 0, "elapsed": 108.8}
+{"task": "bird23tf-02969", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 108.79, "tokens": {"initial_prompt": 1962, "prefill": 4431, "generated": 424, "reasoning": 127, "content": 295, "tool_observation": 306}}
+{"task": "bird23tf-01625", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3000, "generated": 131, "reasoning": 58, "seconds": 36.2, "ttft": 4.4, "tool_calls": 1, "elapsed": 36.2}
+{"task": "bird23tf-01625", "tool": "execute_select", "status": "ok", "seconds": 0.012932, "elapsed": 36.2}
+{"task": "bird23tf-01625", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3362, "generated": 104, "reasoning": 27, "seconds": 29.7, "ttft": 4.7, "tool_calls": 0, "elapsed": 65.9}
+{"task": "bird23tf-01625", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 65.96, "tokens": {"initial_prompt": 3000, "prefill": 6362, "generated": 235, "reasoning": 85, "content": 148, "tool_observation": 216}}
+{"task": "bird23tf-04970", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1995, "generated": 83, "reasoning": 44, "seconds": 22.6, "ttft": 2.8, "tool_calls": 1, "elapsed": 22.6}
+{"task": "bird23tf-04970", "tool": "execute_select", "status": "ok", "seconds": 0.000682, "elapsed": 22.6}
+{"task": "bird23tf-04970", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2263, "generated": 54, "reasoning": 15, "seconds": 15.9, "ttft": 3.2, "tool_calls": 0, "elapsed": 38.5}
+{"task": "bird23tf-04970", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 38.51, "tokens": {"initial_prompt": 1995, "prefill": 4258, "generated": 137, "reasoning": 59, "content": 76, "tool_observation": 170}}
+{"task": "bird23tf-02659", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2704, "generated": 247, "reasoning": 168, "seconds": 62.9, "ttft": 3.8, "tool_calls": 1, "elapsed": 62.9}
+{"task": "bird23tf-02659", "tool": "execute_select", "status": "ok", "seconds": 0.001434, "elapsed": 62.9}
+{"task": "bird23tf-02659", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3189, "generated": 134, "reasoning": 38, "seconds": 36.7, "ttft": 4.6, "tool_calls": 0, "elapsed": 99.6}
+{"task": "bird23tf-02659", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 99.59, "tokens": {"initial_prompt": 2704, "prefill": 5893, "generated": 381, "reasoning": 206, "content": 173, "tool_observation": 223}}
+{"task": "bird23tf-01167", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6658, "generated": 284, "reasoning": 174, "seconds": 78.5, "ttft": 9.4, "tool_calls": 1, "elapsed": 78.6}
+{"task": "bird23tf-01167", "tool": "execute_select", "status": "ok", "seconds": 0.000934, "elapsed": 78.6}
+{"task": "bird23tf-01167", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7202, "generated": 161, "reasoning": 33, "seconds": 49.1, "ttft": 10.0, "tool_calls": 1, "elapsed": 127.7}
+{"task": "bird23tf-01167", "tool": "execute_select", "status": "ok", "seconds": 0.000883, "elapsed": 127.7}
+{"task": "bird23tf-01167", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 7629, "generated": 84, "reasoning": 29, "seconds": 31.0, "ttft": 10.7, "tool_calls": 1, "elapsed": 158.7}
+{"task": "bird23tf-01167", "tool": "lookup_values", "status": "ok", "seconds": 0.000482, "elapsed": 158.7}
+{"task": "bird23tf-01167", "turn": 3, "kind": "generation", "finish": "eos", "prompt": 7893, "generated": 175, "reasoning": 48, "seconds": 53.6, "ttft": 11.0, "tool_calls": 1, "elapsed": 212.3}
+{"task": "bird23tf-01167", "tool": "execute_select", "status": "ok", "seconds": 0.000955, "elapsed": 212.3}
+{"task": "bird23tf-01167", "turn": 4, "kind": "generation", "finish": "eos", "prompt": 8328, "generated": 157, "reasoning": 27, "seconds": 50.2, "ttft": 11.9, "tool_calls": 1, "elapsed": 262.5}
+{"task": "bird23tf-01167", "tool": "execute_select", "status": "ok", "seconds": 0.000916, "elapsed": 262.5}
+{"task": "bird23tf-01167", "turn": 5, "kind": "generation", "finish": "eos", "prompt": 8833, "generated": 283, "reasoning": 136, "seconds": 82.0, "ttft": 12.7, "tool_calls": 0, "elapsed": 344.5}
+{"task": "bird23tf-01167", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 344.54, "tokens": {"initial_prompt": 6658, "prefill": 46543, "generated": 1144, "reasoning": 447, "content": 691, "tool_observation": 1239}}
+{"task": "bird23tf-06520", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2193, "generated": 731, "reasoning": 611, "seconds": 178.5, "ttft": 3.1, "tool_calls": 1, "elapsed": 178.5}
+{"task": "bird23tf-06520", "tool": "execute_select", "status": "ok", "seconds": 0.214409, "elapsed": 178.8}
+{"task": "bird23tf-06520", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3286, "generated": 353, "reasoning": 92, "seconds": 89.5, "ttft": 4.8, "tool_calls": 0, "elapsed": 268.3}
+{"task": "bird23tf-06520", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 268.56, "tokens": {"initial_prompt": 2193, "prefill": 5479, "generated": 1084, "reasoning": 703, "content": 379, "tool_observation": 347}}
+{"task": "bird23tf-03442", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2342, "generated": 699, "reasoning": 598, "seconds": 171.1, "ttft": 3.4, "tool_calls": 1, "elapsed": 171.1}
+{"task": "bird23tf-03442", "tool": "execute_select", "status": "ok", "seconds": 0.016868, "elapsed": 171.1}
+{"task": "bird23tf-03442", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3390, "generated": 207, "reasoning": 81, "seconds": 54.4, "ttft": 4.7, "tool_calls": 0, "elapsed": 225.6}
+{"task": "bird23tf-03442", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 225.6, "tokens": {"initial_prompt": 2342, "prefill": 5732, "generated": 906, "reasoning": 679, "content": 225, "tool_observation": 334}}
+{"task": "bird23tf-04521", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2588, "generated": 301, "reasoning": 236, "seconds": 75.8, "ttft": 3.7, "tool_calls": 1, "elapsed": 75.9}
+{"task": "bird23tf-04521", "tool": "execute_select", "status": "ok", "seconds": 0.005043, "elapsed": 75.9}
+{"task": "bird23tf-04521", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3099, "generated": 95, "reasoning": 27, "seconds": 26.9, "ttft": 4.3, "tool_calls": 0, "elapsed": 102.8}
+{"task": "bird23tf-04521", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 102.81, "tokens": {"initial_prompt": 2588, "prefill": 5687, "generated": 396, "reasoning": 263, "content": 131, "tool_observation": 195}}
+{"task": "bird23tf-05284", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2418, "generated": 387, "reasoning": 303, "seconds": 96.1, "ttft": 3.4, "tool_calls": 1, "elapsed": 96.2}
+{"task": "bird23tf-05284", "tool": "execute_select", "status": "ok", "seconds": 0.000845, "elapsed": 96.2}
+{"task": "bird23tf-05284", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3059, "generated": 170, "reasoning": 69, "seconds": 45.0, "ttft": 4.4, "tool_calls": 0, "elapsed": 141.2}
+{"task": "bird23tf-05284", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 141.21, "tokens": {"initial_prompt": 2418, "prefill": 5477, "generated": 557, "reasoning": 372, "content": 183, "tool_observation": 239}}
+{"task": "bird23tf-00417", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1707, "generated": 141, "reasoning": 73, "seconds": 36.1, "ttft": 2.6, "tool_calls": 1, "elapsed": 36.1}
+{"task": "bird23tf-00417", "tool": "execute_select", "status": "ok", "seconds": 0.015761, "elapsed": 36.1}
+{"task": "bird23tf-00417", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2110, "generated": 126, "reasoning": 32, "seconds": 33.0, "ttft": 3.0, "tool_calls": 0, "elapsed": 69.1}
+{"task": "bird23tf-00417", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 69.14, "tokens": {"initial_prompt": 1707, "prefill": 3817, "generated": 267, "reasoning": 105, "content": 160, "tool_observation": 247}}
+{"task": "bird23tf-03528", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2016, "generated": 158, "reasoning": 81, "seconds": 40.5, "ttft": 2.9, "tool_calls": 1, "elapsed": 40.6}
+{"task": "bird23tf-03528", "tool": "execute_select", "status": "ok", "seconds": 0.007172, "elapsed": 40.6}
+{"task": "bird23tf-03528", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2403, "generated": 110, "reasoning": 34, "seconds": 29.6, "ttft": 3.4, "tool_calls": 0, "elapsed": 70.2}
+{"task": "bird23tf-03528", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 70.17, "tokens": {"initial_prompt": 2016, "prefill": 4419, "generated": 268, "reasoning": 115, "content": 151, "tool_observation": 214}}
+{"task": "bird23tf-01479", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3725, "generated": 196, "reasoning": 93, "seconds": 52.1, "ttft": 5.1, "tool_calls": 1, "elapsed": 52.1}
+{"task": "bird23tf-01479", "tool": "execute_select", "status": "ok", "seconds": 0.002776, "elapsed": 52.1}
+{"task": "bird23tf-01479", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 4174, "generated": 150, "reasoning": 20, "seconds": 41.9, "ttft": 5.8, "tool_calls": 0, "elapsed": 94.1}
+{"task": "bird23tf-01479", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 94.09, "tokens": {"initial_prompt": 3725, "prefill": 7899, "generated": 346, "reasoning": 113, "content": 231, "tool_observation": 238}}
+{"task": "bird23tf-00809", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 4231, "generated": 137, "reasoning": 81, "seconds": 39.6, "ttft": 6.0, "tool_calls": 1, "elapsed": 39.6}
+{"task": "bird23tf-00809", "tool": "lookup_values", "status": "ok", "seconds": 0.000533, "elapsed": 39.6}
+{"task": "bird23tf-00809", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 4538, "generated": 102, "reasoning": 36, "seconds": 31.0, "ttft": 6.4, "tool_calls": 1, "elapsed": 70.6}
+{"task": "bird23tf-00809", "tool": "execute_select", "status": "ok", "seconds": 0.001408, "elapsed": 70.6}
+{"task": "bird23tf-00809", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 4858, "generated": 98, "reasoning": 26, "seconds": 32.3, "ttft": 6.8, "tool_calls": 0, "elapsed": 102.9}
+{"task": "bird23tf-00809", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 102.91, "tokens": {"initial_prompt": 4231, "prefill": 13627, "generated": 337, "reasoning": 143, "content": 191, "tool_observation": 358}}
+{"task": "bird23tf-05703", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 7071, "generated": 205, "reasoning": 155, "seconds": 60.6, "ttft": 9.8, "tool_calls": 1, "elapsed": 60.6}
+{"task": "bird23tf-05703", "tool": "execute_select", "status": "ok", "seconds": 0.001889, "elapsed": 60.6}
+{"task": "bird23tf-05703", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7599, "generated": 106, "reasoning": 41, "seconds": 37.4, "ttft": 10.8, "tool_calls": 0, "elapsed": 98.1}
+{"task": "bird23tf-05703", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 98.13, "tokens": {"initial_prompt": 7071, "prefill": 14670, "generated": 311, "reasoning": 196, "content": 113, "tool_observation": 308}}
+{"task": "bird23tf-02994", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2011, "generated": 208, "reasoning": 123, "seconds": 53.3, "ttft": 2.9, "tool_calls": 1, "elapsed": 53.4}
+{"task": "bird23tf-02994", "tool": "execute_select", "status": "ok", "seconds": 0.000783, "elapsed": 53.4}
+{"task": "bird23tf-02994", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2461, "generated": 132, "reasoning": 32, "seconds": 35.9, "ttft": 3.4, "tool_calls": 0, "elapsed": 89.3}
+{"task": "bird23tf-02994", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 89.35, "tokens": {"initial_prompt": 2011, "prefill": 4472, "generated": 340, "reasoning": 155, "content": 183, "tool_observation": 227}}
+{"task": "bird23tf-01686", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2975, "generated": 126, "reasoning": 60, "seconds": 38.8, "ttft": 4.6, "tool_calls": 1, "elapsed": 38.9}
+{"task": "bird23tf-01686", "tool": "execute_select", "status": "ok", "seconds": 0.000724, "elapsed": 39.0}
+{"task": "bird23tf-01686", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3353, "generated": 240, "reasoning": 91, "seconds": 70.1, "ttft": 5.3, "tool_calls": 0, "elapsed": 109.1}
+{"task": "bird23tf-01686", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 109.12, "tokens": {"initial_prompt": 2975, "prefill": 6328, "generated": 366, "reasoning": 151, "content": 213, "tool_observation": 237}}
+{"task": "bird23tf-03127", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1954, "generated": 114, "reasoning": 48, "seconds": 33.1, "ttft": 2.8, "tool_calls": 1, "elapsed": 33.2}
+{"task": "bird23tf-03127", "tool": "execute_select", "status": "ok", "seconds": 0.002543, "elapsed": 33.2}
+{"task": "bird23tf-03127", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2360, "generated": 92, "reasoning": 17, "seconds": 36.3, "ttft": 3.4, "tool_calls": 0, "elapsed": 69.6}
+{"task": "bird23tf-03127", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 69.61, "tokens": {"initial_prompt": 1954, "prefill": 4314, "generated": 206, "reasoning": 65, "content": 139, "tool_observation": 277}}
+{"task": "bird23tf-02670", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2817, "generated": 160, "reasoning": 101, "seconds": 67.9, "ttft": 6.2, "tool_calls": 1, "elapsed": 68.0}
+{"task": "bird23tf-02670", "tool": "lookup_values", "status": "ok", "seconds": 0.000735, "elapsed": 68.0}
+{"task": "bird23tf-02670", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3151, "generated": 160, "reasoning": 63, "seconds": 68.3, "ttft": 7.2, "tool_calls": 1, "elapsed": 136.3}
+{"task": "bird23tf-02670", "tool": "execute_select", "status": "ok", "seconds": 0.001574, "elapsed": 136.3}
+{"task": "bird23tf-02670", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 3558, "generated": 95, "reasoning": 22, "seconds": 44.1, "ttft": 8.1, "tool_calls": 0, "elapsed": 180.5}
+{"task": "bird23tf-02670", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 180.54, "tokens": {"initial_prompt": 2817, "prefill": 9526, "generated": 415, "reasoning": 186, "content": 226, "tool_observation": 391}}
+{"task": "bird23tf-01149", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6504, "generated": 397, "reasoning": 280, "seconds": 168.6, "ttft": 14.4, "tool_calls": 1, "elapsed": 168.7}
+{"task": "bird23tf-01149", "tool": "execute_select", "status": "ok", "seconds": 0.002081, "elapsed": 168.8}
+{"task": "bird23tf-01149", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7169, "generated": 169, "reasoning": 39, "seconds": 81.1, "ttft": 15.8, "tool_calls": 0, "elapsed": 249.9}
+{"task": "bird23tf-01149", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 249.94, "tokens": {"initial_prompt": 6504, "prefill": 13673, "generated": 566, "reasoning": 319, "content": 245, "tool_observation": 253}}
+{"task": "bird23tf-06507", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2029, "generated": 157, "reasoning": 90, "seconds": 64.2, "ttft": 4.5, "tool_calls": 1, "elapsed": 64.3}
+{"task": "bird23tf-06507", "tool": "execute_select", "status": "ok", "seconds": 1.350354, "elapsed": 65.7}
+{"task": "bird23tf-06507", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3311, "generated": 122, "reasoning": 44, "seconds": 54.0, "ttft": 7.5, "tool_calls": 0, "elapsed": 119.7}
+{"task": "bird23tf-06507", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 121.03, "tokens": {"initial_prompt": 2029, "prefill": 5340, "generated": 279, "reasoning": 134, "content": 143, "tool_observation": 1110}}
+{"task": "bird23tf-05748", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2245, "generated": 207, "reasoning": 116, "seconds": 83.8, "ttft": 5.0, "tool_calls": 1, "elapsed": 83.9}
+{"task": "bird23tf-05748", "tool": "execute_select", "status": "ok", "seconds": 0.077717, "elapsed": 84.0}
+{"task": "bird23tf-05748", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2994, "generated": 163, "reasoning": 47, "seconds": 69.0, "ttft": 6.8, "tool_calls": 0, "elapsed": 153.0}
+{"task": "bird23tf-05748", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 153.04, "tokens": {"initial_prompt": 2245, "prefill": 5239, "generated": 370, "reasoning": 163, "content": 205, "tool_observation": 527}}
+{"task": "bird23tf-04507", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2496, "generated": 218, "reasoning": 136, "seconds": 88.5, "ttft": 5.4, "tool_calls": 1, "elapsed": 88.5}
+{"task": "bird23tf-04507", "tool": "execute_select", "status": "ok", "seconds": 0.001102, "elapsed": 88.5}
+{"task": "bird23tf-04507", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3114, "generated": 385, "reasoning": 282, "seconds": 154.2, "ttft": 6.9, "tool_calls": 1, "elapsed": 242.7}
+{"task": "bird23tf-04507", "tool": "execute_select", "status": "ok", "seconds": 0.007305, "elapsed": 242.8}
+{"task": "bird23tf-04507", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 3752, "generated": 142, "reasoning": 18, "seconds": 62.6, "ttft": 8.3, "tool_calls": 0, "elapsed": 305.4}
+{"task": "bird23tf-04507", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 305.43, "tokens": {"initial_prompt": 2496, "prefill": 9362, "generated": 745, "reasoning": 436, "content": 306, "tool_observation": 623}}
+{"task": "bird23tf-05928", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2464, "generated": 236, "reasoning": 158, "seconds": 95.5, "ttft": 5.4, "tool_calls": 1, "elapsed": 95.5}
+{"task": "bird23tf-05928", "tool": "execute_select", "status": "ok", "seconds": 0.246235, "elapsed": 95.8}
+{"task": "bird23tf-05928", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3027, "generated": 133, "reasoning": 39, "seconds": 57.5, "ttft": 6.9, "tool_calls": 0, "elapsed": 153.3}
+{"task": "bird23tf-05928", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 153.54, "tokens": {"initial_prompt": 2464, "prefill": 5491, "generated": 369, "reasoning": 197, "content": 170, "tool_observation": 312}}
+{"task": "bird23tf-03953", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1646, "generated": 701, "reasoning": 603, "seconds": 271.5, "ttft": 3.7, "tool_calls": 1, "elapsed": 271.5}
+{"task": "bird23tf-03953", "tool": "execute_select", "status": "ok", "seconds": 0.002556, "elapsed": 271.5}
+{"task": "bird23tf-03953", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2546, "generated": 202, "reasoning": 100, "seconds": 83.0, "ttft": 6.0, "tool_calls": 2, "elapsed": 354.6}
+{"task": "bird23tf-03953", "tool": "execute_select", "status": "ok", "seconds": 0.000673, "elapsed": 354.6}
+{"task": "bird23tf-03953", "tool": "execute_select", "status": "ok", "seconds": 0.002067, "elapsed": 354.6}
+{"task": "bird23tf-03953", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 3223, "generated": 628, "reasoning": 535, "seconds": 249.9, "ttft": 7.4, "tool_calls": 1, "elapsed": 604.5}
+{"task": "bird23tf-03953", "tool": "execute_select", "status": "ok", "seconds": 0.00196, "elapsed": 604.5}
+{"task": "bird23tf-03953", "turn": 3, "kind": "generation", "finish": "eos", "prompt": 4209, "generated": 204, "reasoning": 114, "seconds": 87.3, "ttft": 9.2, "tool_calls": 0, "elapsed": 691.9}
+{"task": "bird23tf-03953", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 691.87, "tokens": {"initial_prompt": 1646, "prefill": 11624, "generated": 1735, "reasoning": 1352, "content": 379, "tool_observation": 982}}
+{"task": "bird23tf-03551", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2061, "generated": 110, "reasoning": 66, "seconds": 46.3, "ttft": 4.6, "tool_calls": 1, "elapsed": 46.3}
+{"task": "bird23tf-03551", "tool": "execute_select", "status": "ok", "seconds": 0.001817, "elapsed": 46.4}
+{"task": "bird23tf-03551", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2516, "generated": 67, "reasoning": 20, "seconds": 31.2, "ttft": 5.9, "tool_calls": 0, "elapsed": 77.6}
+{"task": "bird23tf-03551", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 77.58, "tokens": {"initial_prompt": 2061, "prefill": 4577, "generated": 177, "reasoning": 86, "content": 89, "tool_observation": 330}}
+{"task": "bird23tf-01560", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3729, "generated": 249, "reasoning": 140, "seconds": 103.7, "ttft": 8.0, "tool_calls": 1, "elapsed": 103.8}
+{"task": "bird23tf-01560", "tool": "execute_select", "status": "ok", "seconds": 0.015318, "elapsed": 103.8}
+{"task": "bird23tf-01560", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 4326, "generated": 680, "reasoning": 442, "seconds": 271.3, "ttft": 9.5, "tool_calls": 0, "elapsed": 375.2}
+{"task": "bird23tf-01560", "final": "sql", "reason": "final SQL", "correct": 0, "elapsed": 375.19, "tokens": {"initial_prompt": 3729, "prefill": 8055, "generated": 929, "reasoning": 582, "content": 345, "tool_observation": 333}}
+{"task": "bird23tf-00851", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 4415, "generated": 306, "reasoning": 219, "seconds": 87.1, "ttft": 9.7, "tool_calls": 1, "elapsed": 87.1}
+{"task": "bird23tf-00851", "tool": "execute_select", "status": "ok", "seconds": 0.000858, "elapsed": 87.1}
+{"task": "bird23tf-00851", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 4962, "generated": 123, "reasoning": 21, "seconds": 36.3, "ttft": 6.8, "tool_calls": 0, "elapsed": 123.4}
+{"task": "bird23tf-00851", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 123.44, "tokens": {"initial_prompt": 4415, "prefill": 9377, "generated": 429, "reasoning": 240, "content": 187, "tool_observation": 226}}
+{"task": "bird23tf-03037", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6979, "generated": 252, "reasoning": 200, "seconds": 71.1, "ttft": 9.8, "tool_calls": 1, "elapsed": 71.1}
+{"task": "bird23tf-03037", "tool": "execute_select", "status": "ok", "seconds": 0.000878, "elapsed": 71.1}
+{"task": "bird23tf-03037", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7425, "generated": 105, "reasoning": 45, "seconds": 35.6, "ttft": 10.2, "tool_calls": 0, "elapsed": 106.7}
+{"task": "bird23tf-03037", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 106.77, "tokens": {"initial_prompt": 6979, "prefill": 14404, "generated": 357, "reasoning": 245, "content": 110, "tool_observation": 179}}
+{"task": "bird23tf-02956", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 1965, "generated": 185, "reasoning": 86, "seconds": 47.0, "ttft": 2.8, "tool_calls": 1, "elapsed": 47.0}
+{"task": "bird23tf-02956", "tool": "execute_select", "status": "ok", "seconds": 0.000837, "elapsed": 47.0}
+{"task": "bird23tf-02956", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2418, "generated": 188, "reasoning": 49, "seconds": 48.5, "ttft": 3.4, "tool_calls": 0, "elapsed": 95.5}
+{"task": "bird23tf-02956", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 95.47, "tokens": {"initial_prompt": 1965, "prefill": 4383, "generated": 373, "reasoning": 135, "content": 236, "tool_observation": 253}}
+{"task": "bird23tf-01640", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 3230, "generated": 475, "reasoning": 382, "seconds": 118.9, "ttft": 4.7, "tool_calls": 1, "elapsed": 118.9}
+{"task": "bird23tf-01640", "tool": "execute_select", "status": "ok", "seconds": 0.001189, "elapsed": 118.9}
+{"task": "bird23tf-01640", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3975, "generated": 385, "reasoning": 275, "seconds": 98.8, "ttft": 5.6, "tool_calls": 1, "elapsed": 217.8}
+{"task": "bird23tf-01640", "tool": "execute_select", "status": "ok", "seconds": 0.005992, "elapsed": 217.8}
+{"task": "bird23tf-01640", "turn": 2, "kind": "generation", "finish": "eos", "prompt": 4620, "generated": 201, "reasoning": 55, "seconds": 55.2, "ttft": 6.5, "tool_calls": 0, "elapsed": 272.9}
+{"task": "bird23tf-01640", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 272.95, "tokens": {"initial_prompt": 3230, "prefill": 11825, "generated": 1061, "reasoning": 712, "content": 346, "tool_observation": 500}}
+{"task": "bird23tf-03139", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2025, "generated": 166, "reasoning": 103, "seconds": 42.5, "ttft": 2.9, "tool_calls": 1, "elapsed": 42.5}
+{"task": "bird23tf-03139", "tool": "execute_select", "status": "ok", "seconds": 0.001766, "elapsed": 42.5}
+{"task": "bird23tf-03139", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 2400, "generated": 78, "reasoning": 13, "seconds": 21.9, "ttft": 3.4, "tool_calls": 0, "elapsed": 64.5}
+{"task": "bird23tf-03139", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 64.51, "tokens": {"initial_prompt": 2025, "prefill": 4425, "generated": 244, "reasoning": 116, "content": 126, "tool_observation": 194}}
+{"task": "bird23tf-02663", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 2842, "generated": 368, "reasoning": 241, "seconds": 92.3, "ttft": 4.0, "tool_calls": 1, "elapsed": 92.3}
+{"task": "bird23tf-02663", "tool": "execute_select", "status": "ok", "seconds": 0.006679, "elapsed": 92.3}
+{"task": "bird23tf-02663", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 3538, "generated": 193, "reasoning": 49, "seconds": 51.5, "ttft": 5.1, "tool_calls": 0, "elapsed": 143.8}
+{"task": "bird23tf-02663", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 143.81, "tokens": {"initial_prompt": 2842, "prefill": 6380, "generated": 561, "reasoning": 290, "content": 269, "tool_observation": 313}}
+{"task": "bird23tf-01158", "turn": 0, "kind": "generation", "finish": "eos", "prompt": 6595, "generated": 201, "reasoning": 144, "seconds": 58.3, "ttft": 9.2, "tool_calls": 1, "elapsed": 58.3}
+{"task": "bird23tf-01158", "tool": "execute_select", "status": "ok", "seconds": 0.000992, "elapsed": 58.3}
+{"task": "bird23tf-01158", "turn": 1, "kind": "generation", "finish": "eos", "prompt": 7035, "generated": 101, "reasoning": 34, "seconds": 34.4, "ttft": 9.9, "tool_calls": 0, "elapsed": 92.7}
+{"task": "bird23tf-01158", "final": "sql", "reason": "final SQL", "correct": 1, "elapsed": 92.76, "tokens": {"initial_prompt": 6595, "prefill": 13630, "generated": 302, "reasoning": 178, "content": 122, "tool_observation": 224}}
+{
+ "arm": "Q27",
+ "config_identity": "f29dcb31d1c98f2d444d71a280f50f80bb801c53ff2726e18a49b1a56ef5f0bc",
+ "requested": 48,
+ "correct": 36,
+ "quality": 0.75,
+ "answered": 48,
+ "abstained": 0,
+ "abstention_reasons": {},
+ "errors": 0,
+ "timeouts": 0,
+ "repairs": 0,
+ "tool_calls": 61,
+ "elapsed_seconds_total": 6775.733676845019,
+ "cost_seconds_per_correct": 188.21482435680608,
+ "tokens": {
+  "content": 9475,
+  "generated": 22056,
+  "initial_prompt": 156792,
+  "prefill": 400129,
+  "reasoning": 12474,
+  "tool_observation": 16307
+ },
+ "peak_memory_bytes_max": 58768780800
+}

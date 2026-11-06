@@ -33,6 +33,9 @@ from . import pilot as P
 PROTOCOL_PIN = C.PINS / "pilot_protocol_v1.json"
 DEVICE = "cuda"  # the tests run the whole pipeline on the CPU with a tiny backbone
 TRAIN_CHUNKS = ("0:1200", "1200:2400", "2400:3600", "3600:4741")  # the protocol's encoding reservations
+# the frozen pilot ran under authorization v1, the absolute 8-hour cumulative cap; its commands keep it (the
+# performance study's 32-hour authorization, v2, does not extend the pilot)
+PILOT_CAP_HOURS = ledger.cap_of(1)
 
 
 class PilotStop(RuntimeError):
@@ -209,6 +212,7 @@ def encode_cmd(args) -> None:
     identity.write_manifest(run_dir, config=config, require_clean=not args.allow_dirty,
                             extra={"model_identity": identity.model_identity("B4")})
     with ledger.Reservation(f"pilot-encode {label}", projected_hours=args.projected_hours,
+                            cap_hours=PILOT_CAP_HOURS,
                             extra={"run_dir": str(run_dir)}) as res:
         _rt, bb = _load_backbone()
         res.check()
@@ -294,6 +298,7 @@ def feasibility_cmd(args) -> None:
            "recorded_seconds_per_new_context": statistics.mean(written) if written else None}
     try:
         with ledger.Reservation("pilot-feasibility", projected_hours=args.projected_hours,
+                                cap_hours=PILOT_CAP_HOURS,
                                 extra={"run_dir": str(run_dir)}) as res:
             t_load = time.perf_counter()
             _rt, bb = _load_backbone()
@@ -372,8 +377,8 @@ def project(m: dict, n_pool: int, n_eval: int, n_sample: int, n_dev: int) -> dic
             for a in m["arms"].values())) / 3600,
     }
     needed = sum(items.values())
-    remaining = ledger.CAP_HOURS - used
-    return {"items_hours": items, "needed_hours": needed, "used_hours": used, "cap_hours": ledger.CAP_HOURS,
+    remaining = PILOT_CAP_HOURS - used
+    return {"items_hours": items, "needed_hours": needed, "used_hours": used, "cap_hours": PILOT_CAP_HOURS,
             "remaining_hours": remaining, "fits": needed <= remaining, "slack_hours": remaining - needed,
             "shortfall_hours": max(0.0, needed - remaining),
             "basis": "measured on the final code; each arm at its own measured update, save and fixed costs; "
@@ -502,6 +507,7 @@ def train_cmd(args) -> None:
                                                  "protocol": proto, "backbone": ident},
                                 require_clean=not args.allow_dirty)
         with ledger.Reservation(f"pilot-train {arm} s{args.seed}", projected_hours=args.projected_hours,
+                                cap_hours=PILOT_CAP_HOURS,
                                 extra={"run_dir": str(run_dir), "attempt": str(attempt)}) as res:
             res.check()
             from . import train
@@ -619,6 +625,7 @@ def eval_cmd(args) -> None:
     evals = {}
     cli._warm_databases([data.task(t).db_id for t in ids])
     with ledger.Reservation(f"pilot-eval s{args.seed}", projected_hours=args.projected_hours,
+                            cap_hours=PILOT_CAP_HOURS,
                             extra={"run_dir": str(run_dir)}) as res:
         _rt, bb = _load_backbone()
         if bb.identity() != ident:

@@ -104,6 +104,41 @@ def bundle_pilot(root: Path = None, l_runs=(), dest: Path = PILOT_BUNDLE) -> lis
     return copied
 
 
+PERF_BUNDLE = C.SCALING / "evidence" / "perf_v2"
+PERF_FILES = PILOT_FILES + ("decodes.json", "analysis.json", "diagnosis.json", "dev_requests.json",
+                            "train_requests.json", "table_mentions.json", "perf_diagnosis.json", "log.txt")
+PERF_BASELINES = ("B4_thinking_p16-64", "Q27_thinking_low_p16-64", "L_nonthinking_p64-128", "B4_thinking_p64-128",
+                  "Q27_thinking_low_p64-128")
+
+
+def bundle_perf(root: Path = None, dest: Path = PERF_BUNDLE) -> list:
+    """Copy the performance study's evidence (weight-free) into dest, keeping the run layout:
+    - the diagnosis, encode, feasibility, train (every attempt), eval (with the decodes) and analysis runs, and the
+      run logs (chains, co-tenancy);
+    - the B4/Q27 completion on positions 16-63 and every baseline on the new population;
+    - the ledger.
+    Checkpoints are not copied; their sha256 and digests are in checkpoints.jsonl. Then write SHA256SUMS."""
+    root = Path(root) if root is not None else C.RUNS / "perf_v2"
+    copied = []
+    for f in sorted(root.rglob("*")):
+        if f.is_file() and (f.name in PERF_FILES or f.parent.name == "logs"):
+            target = dest / f.relative_to(root)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, target)
+            copied.append(target)
+    for tag in PERF_BASELINES:
+        for d in sorted((C.RUNS / "baselines").glob(f"*_{tag}")):
+            for name in ("manifest.json", "summary.json", "records.jsonl"):
+                if (d / name).exists():
+                    target = dest / "baselines" / d.name / name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(d / name, target)
+                    copied.append(target)
+    shutil.copy2(C.RUNS / "gpu_ledger.jsonl", dest / "gpu_ledger.jsonl")
+    write_sums(dest)
+    return copied
+
+
 def write_sums(dest: Path) -> str:
     """(Re)write dest/SHA256SUMS over every file in dest; returns the new SHA256SUMS's own sha256."""
     dest = Path(dest)
@@ -225,7 +260,11 @@ def main(argv=None) -> int:
     b.add_argument("--repair", action="store_true", help="into evidence/repair_v1 instead of dev_v1")
     sub.add_parser("tables")
     sub.add_parser("timing")
+    sub.add_parser("bundle-perf", help="the performance study v2's runs into evidence/perf_v2")
     args = p.parse_args(argv)
+    if args.cmd == "bundle-perf":
+        print(len(bundle_perf()), "files")
+        return 0
     if args.cmd == "bundle":
         for path in bundle(args.run_dirs, args.verification, REPAIR_BUNDLE if args.repair else BUNDLE):
             print(path)

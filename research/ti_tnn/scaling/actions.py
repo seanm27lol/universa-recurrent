@@ -89,6 +89,22 @@ from dataclasses import dataclass, field
 from . import ir
 
 GRAMMAR_VERSION = "tirel-1/actions-v2"  # v2: the masks after the review of 641ff3c; gold traversals unchanged
+# Grounding versions (performance study v2). "v1" is the pilot's grammar, unchanged. "v2" (relational grounding) adds
+# one semantic constraint and records plan-relative pointer relations; its gold traversals are v1's, except that a
+# comparison in ON between one column reference and itself is not legal (see `Machine`).
+GROUNDINGS = ("v1", "v2")
+GROUNDING_GRAMMAR = {"v1": GRAMMAR_VERSION, "v2": GRAMMAR_VERSION + "+relational-grounding-v1"}
+# Plan-relative pointer relations, one bit each, for the candidate of a table or column pointer (grounding v2 only).
+POINTER_RELATIONS = (
+    "table already a source of this SELECT",
+    "table linked by a declared foreign key to a source of this SELECT",
+    "table shares a column name with a source of this SELECT (no declared key)",
+    "column is a declared foreign-key partner of the comparison's first operand",
+    "column has the first operand's name, on another table",
+    "column (at the chosen occurrence) belongs to the source this ON clause joins",
+    "column (at the chosen occurrence) already referenced in this SELECT",
+)
+N_POINTER_RELATIONS = len(POINTER_RELATIONS)
 
 FAMILIES = ("schema", "predicate", "aggregate", "projection")
 SCHEMA, PREDICATE, AGGREGATE, PROJECTION = 0, 1, 2, 3
@@ -394,10 +410,40 @@ def simple_regions(question: str, evidence: str, first_index: int = 0) -> SpanIn
 
 
 # --- the schema the pointers address -------------------------------------------------------------------------------
-class SchemaItems:
-    """Pointer targets: `SerializedSchema.items` (kind, table, column), in order; tables and columns by index."""
+class SchemaKeys:
+    """Declared keys of one database over the item indices of a `SchemaItems`: primary-key columns, foreign-key column
+    pairs (from -> to) and the tables each table is linked to by a foreign key (either direction). Names match
+    case-insensitively, as SQLite resolves them."""
 
-    def __init__(self, items):
+    def __init__(self, items: "SchemaItems", schema):
+        col = {(t.lower(), c.lower()): i for (t, c), i in items.column_item.items()}
+        self.pk, self.fk_out, self.fk_in, self.table_links = set(), {}, {}, {}
+        for t in schema.tables:
+            for c in t.columns:
+                i = col.get((t.name.lower(), c.name.lower()))
+                if c.primary_key and i is not None:
+                    self.pk.add(i)
+            for from_col, ref_table, to_col in t.foreign_keys:
+                a = col.get((t.name.lower(), str(from_col).lower()))
+                b = col.get((str(ref_table).lower(), str(to_col).lower()))
+                if a is None or b is None:
+                    continue
+                self.fk_out.setdefault(a, set()).add(b)
+                self.fk_in.setdefault(b, set()).add(a)
+                ta, tb = items.items[a].table, items.items[b].table
+                if ta != tb:
+                    self.table_links.setdefault(ta, set()).add(tb)
+                    self.table_links.setdefault(tb, set()).add(ta)
+
+    def partners(self, i: int) -> set:
+        return self.fk_out.get(i, set()) | self.fk_in.get(i, set())
+
+
+class SchemaItems:
+    """Pointer targets: `SerializedSchema.items` (kind, table, column), in order; tables and columns by index.
+    `keys` (a `SchemaKeys`, optional) is read by grounding v2 only."""
+
+    def __init__(self, items, schema=None):
         self.items = tuple(items)
         self.table_item, self.column_item, self.columns_of = {}, {}, {}
         tables: dict = {}
@@ -412,6 +458,10 @@ class SchemaItems:
                 self.columns_of.setdefault(it.table, []).append(i)
         self.index = ir.SchemaIndex(tables)
         self.tables = tuple(sorted(self.table_item.values()))
+        self.names_of = {}
+        for (t, c), i in self.column_item.items():
+            self.names_of.setdefault(c.lower(), set()).add(i)
+        self.keys = SchemaKeys(self, schema) if schema is not None and hasattr(schema, "tables") else None
 
     @classmethod
     def coerce(cls, schema) -> "SchemaItems":
@@ -801,12 +851,15 @@ class _ExprSlot(_Frame):
     """A scalar position. It accepts a leaf (column, literal, COUNT(*), *) or an operator that opens a _NodeFrame."""
 
     def __init__(self, ctx: _Ctx, kind: str, *, allow_none=False, allow_end=False, allow_scalar=True, stars=None,
-                 forbid=frozenset(), parent_op=None, child_index=0):
+                 forbid=frozenset(), parent_op=None, child_index=0, exclude: "ir.Column | None" = None,
+                 first: "ir.Column | None" = None):
         self.ctx, self.kind = ctx, kind
         self.allow_none, self.allow_end, self.allow_scalar = allow_none, allow_end, allow_scalar
         self.stars = stars or {}
         self.forbid = forbid
         self.parent_op, self.child_index = parent_op, child_index
+        self.exclude = exclude  # grounding v2: this column reference may not be chosen (it would compare with itself)
+        self.first = first      # grounding v2: the comparison's first operand, for the pointer relations
 
     def agg_ok(self) -> bool:
         ctx = self.ctx
@@ -827,7 +880,8 @@ class _ExprSlot(_Frame):
             return ops
         tables, derived = _visible(self.ctx)
         for k in range(OCCURRENCES):
-            cols = [c for t, occ in tables.items() if len(occ) > k for c in m.schema.columns_of[t]]
+            cols = [c for t, occ in tables.items() if len(occ) > k for c in m.schema.columns_of[t]
+                    if not self._excluded(m, c, occ[k])]
             if cols:
                 ops[f"COL{k}"] = ("column", tuple(sorted(cols)))
         for s, (_level, _idx, src) in enumerate(derived[:DERIVED_SOURCES]):
@@ -860,6 +914,11 @@ class _ExprSlot(_Frame):
         for op in self.forbid:
             ops.pop(op, None)
         return ops
+
+    def _excluded(self, m, item: int, occurrence: tuple) -> bool:
+        e = self.exclude
+        return e is not None and occurrence == (e.level, e.source) and \
+            m.schema.items[item].column.lower() == e.name.lower()
 
     def apply(self, action, m):
         op = action.op
@@ -944,8 +1003,14 @@ class _NodeFrame(_Frame):
         self.next_child(m)
 
     def push_scalar(self, m, *, kind="ARG", allow_end=False, allow_scalar=True, forbid=frozenset()):
+        first = exclude = None
+        if m.grounding == "v2" and self.op in COMPARE_ACTIONS and len(self.children) == 1 and \
+                isinstance(self.children[0], ir.Column):
+            first = self.children[0]
+            if self.ctx.clause == "ON":  # `X op X` in a join condition relates no two sources
+                exclude = first
         m.push(_ExprSlot(self.ctx, kind, allow_end=allow_end, allow_scalar=allow_scalar, forbid=forbid,
-                         parent_op=self.op, child_index=len(self.children)))
+                         parent_op=self.op, child_index=len(self.children), exclude=exclude, first=first))
 
     def push_query(self, m, want):
         m.push(_QuerySlot(self.ctx.scope, self.ctx.depth + 1, want=want, parent_op=self.op,
@@ -1038,6 +1103,15 @@ class _NodeFrame(_Frame):
         self.value, self.done = node, True
 
 
+def _same_select_nodes(node):
+    """The nodes of an expression, without entering subqueries (their columns belong to another SELECT)."""
+    if node is None or isinstance(node, (ir.Select, ir.Compound)):
+        return
+    yield node
+    for child in ir.children(node):
+        yield from _same_select_nodes(child)
+
+
 class Machine:
     """The grammar state: the partial plan and the stack of unfinished subproblems.
 
@@ -1045,10 +1119,13 @@ class Machine:
     `legal_families()` and `legal_ops(family)` derive the family and operator masks from it; `apply(action)` checks
     legality and advances. When the stack is empty the only legal decision is STOP and `plan` holds the result."""
 
-    def __init__(self, schema, spans: "SpanIndex | None" = None, *, max_steps: int = 512):
+    def __init__(self, schema, spans: "SpanIndex | None" = None, *, max_steps: int = 512, grounding: str = "v1"):
+        if grounding not in GROUNDINGS:
+            raise ValueError(f"grounding must be one of {GROUNDINGS}")
         self.schema = SchemaItems.coerce(schema)
         self.spans = spans
         self.max_steps = max_steps
+        self.grounding = grounding
         self.stack: list = []
         self.steps = 0
         self.plan = None
@@ -1109,6 +1186,94 @@ class Machine:
 
     def span_ends(self, op: str, start: int) -> tuple:
         return self.spans.ends("number" if op == "NUM" else "text", start)
+
+    def _current_select(self):
+        """The SELECT whose clause is being built (the innermost scope entry, or the SELECT frame itself)."""
+        top = self.top
+        if isinstance(top, _SelectFrame):
+            return top
+        scope = top.ctx.scope
+        return scope[-1].select if scope else None
+
+    def pointer_relations(self, op: str) -> dict:
+        """Grounding v2: {target item: bitmask over POINTER_RELATIONS} for a table or column pointer operator at this
+        step (targets with no relation are omitted). Empty for grounding v1, other operators, or no schema keys."""
+        kind = POINTER_KIND.get(op)
+        if self.grounding != "v2" or kind not in ("table", "column") or op not in self.options():
+            return {}
+        keys, items = self.schema.keys, self.schema.items
+        select = self._current_select()
+        sources = [src.table for src in select.sources if src.table is not None] if select is not None else []
+        source_set = {t.lower() for t in sources}
+        out = {}
+        targets = self.options()[op][1]
+        if kind == "table":
+            linked = set()
+            if keys is not None:
+                for t in sources:
+                    linked |= {x.lower() for x in keys.table_links.get(t, ())}
+            names = {items[c].column.lower() for t in sources for c in self.schema.columns_of.get(t, ())}
+            for i in targets:
+                t = items[i].table
+                bits = 0
+                if t.lower() in source_set:
+                    bits |= 1 << 0
+                if t.lower() in linked:
+                    bits |= 1 << 1
+                elif t.lower() not in source_set and any(items[c].column.lower() in names
+                                                         for c in self.schema.columns_of.get(t, ())):
+                    bits |= 1 << 2
+                if bits:
+                    out[i] = bits
+            return out
+        top = self.top
+        first = getattr(top, "first", None)
+        tables, _ = _visible(top.ctx)
+        first_item = None
+        if first is not None:
+            for t, occ in tables.items():
+                if (first.level, first.source) in occ:
+                    first_item = self.schema.column_item.get((t, first.name))
+        k = int(op[3:])  # COLk: the candidate's k-th visible occurrence of its table is the source it would read
+        joined = None
+        if top.ctx.clause == "ON" and isinstance(select, _SelectFrame) and select.current_on is not None and \
+                top.ctx.scope and top.ctx.scope[-1].select is select:
+            joined = (0, select.current_on)
+        used = self._referenced_columns(select)
+        partners = keys.partners(first_item) if keys is not None and first_item is not None else set()
+        for i in targets:
+            ref = tables[items[i].table][k]  # (level, source)
+            bits = 0
+            if i in partners:
+                bits |= 1 << 3
+            if first_item is not None and i != first_item and items[i].column.lower() == \
+                    items[first_item].column.lower() and items[i].table != items[first_item].table:
+                bits |= 1 << 4
+            if joined is not None and ref == joined:
+                bits |= 1 << 5
+            if ref[0] == 0 and (ref[1], items[i].column.lower()) in used:
+                bits |= 1 << 6
+            if bits:
+                out[i] = bits
+        return out
+
+    def _referenced_columns(self, select) -> set:
+        """(source, column name) pairs of this SELECT's own sources that its finished clauses, and the unfinished
+        operators of this SELECT on the stack, already reference. Subqueries are not entered, and an enclosing or
+        nested SELECT's operators are not read."""
+        if not isinstance(select, _SelectFrame):
+            return set()
+        parts = [o for o in select.ons if o is not None] + [select.where, select.having] + list(select.group) + \
+            [i for i in select.items if not isinstance(i, ir.Star)] + [o.expr for o in select.order]
+        for frame in self.stack:  # the operands of unfinished operators of this SELECT
+            if isinstance(frame, _NodeFrame) and frame.ctx.scope and frame.ctx.scope[-1].select is select:
+                parts.extend(frame.children)
+        out = set()
+        for part in parts:
+            for n in _same_select_nodes(part):
+                if isinstance(n, ir.Column) and n.level == 0 and n.source < len(select.sources):
+                    out.add((n.source, n.name.lower()))
+        return out
 
     def is_legal(self, action: Action) -> bool:
         opts = self.options()
@@ -1429,9 +1594,9 @@ def _unwild(value: str, wild: str):
     raise KeyError(wild)
 
 
-def encode(plan, schema, spans: "SpanIndex | None" = None) -> list:
+def encode(plan, schema, spans: "SpanIndex | None" = None, grounding: str = "v1") -> list:
     """The gold action sequence of a plan (without the final STOP), or NotEncodable."""
-    m = Machine(schema, spans)
+    m = Machine(schema, spans, grounding=grounding)
     enc = _Encoder(m)
     enc.query(plan)
     if not m.finished:
@@ -1439,9 +1604,9 @@ def encode(plan, schema, spans: "SpanIndex | None" = None) -> list:
     return enc.actions
 
 
-def decode(actions, schema, spans: "SpanIndex | None" = None):
+def decode(actions, schema, spans: "SpanIndex | None" = None, grounding: str = "v1"):
     """Replay actions through the machine and return the plan (raises IllegalAction on an illegal step)."""
-    m = Machine(schema, spans)
+    m = Machine(schema, spans, grounding=grounding)
     for a in actions:
         m.apply(a)
     if not m.finished:
@@ -1463,10 +1628,12 @@ class Step:
     end_legal: tuple            # span only: legal ends given the gold start
     features: dict = field(default_factory=dict)
     action: "Action | None" = None
+    relations: dict = field(default_factory=dict)  # grounding v2: {item: bitmask} for the pointer's candidates
 
 
-def trace(plan, schema, spans: "SpanIndex | None" = None) -> list:
-    """Teacher-forcing targets: every step of the gold traversal with its masks, then STOP."""
+def trace(plan, schema, spans: "SpanIndex | None" = None, grounding: str = "v1") -> list:
+    """Teacher-forcing targets: every step of the gold traversal with its masks (and, for grounding v2, the pointer
+    relations of its candidates), then STOP."""
     steps: list = []
 
     def record(m: Machine, action: Action):
@@ -1481,9 +1648,9 @@ def trace(plan, schema, spans: "SpanIndex | None" = None) -> list:
         steps.append(Step(family=family, op=action.op, union_id=UNION_INDEX[(family, action.op)],
                           legal_families=m.legal_families(), legal_union_ids=m.legal_union_ids(), pointer=pointer,
                           target=action.arg, pointer_legal=legal, end_legal=ends, features=m.features(),
-                          action=action))
+                          action=action, relations=m.pointer_relations(action.op)))
 
-    m = Machine(schema, spans)
+    m = Machine(schema, spans, grounding=grounding)
     _Encoder(m, record).query(plan)
     if not m.finished:
         raise NotEncodable("plan did not complete the grammar")

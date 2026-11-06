@@ -1,0 +1,45 @@
+{
+ "already_present": 0,
+ "encoded": 64,
+ "rechecked": [
+  {
+   "equal": true,
+   "task_id": "bird23tf-04392"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-00788"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-05697"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-04901"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-01627"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-03130"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-02636"
+  },
+  {
+   "equal": true,
+   "task_id": "bird23tf-06046"
+  }
+ ],
+ "requested": 64,
+ "reservation": {
+  "hours": 0.04358527837527718,
+  "id": "20261103T014916-7ae0ebef",
+  "projected_hours": 0.2
+ },
+ "seconds_per_new_context": 1.2060204510021322
+}

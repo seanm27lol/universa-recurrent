@@ -1,0 +1,26 @@
+The correction pass of 2026-11-03 (outputs copied by the producer session; the verifier and its runs are the
+reviewer's). README.txt, verify_perf.json and verify_perf_phase1.json are the earlier runs, kept as recorded.
+
+The verifier: independent/verify_perf.py, sha256 f7998d7f64ea1551..., run at checkout 4c73eec.
+
+verify_perf_public_relocated.json: public mode (--public), run from a fresh `git clone --no-local` of the branch
+with TI_TNN_SCALING_RUNS unset. It reads only the checkout: the pins, the git history, and the bundles perf_v2,
+dev_v1 and pilot_v1. 445 checks, 0 failures:
+  - bundles: every file listed at 0f2f9b1 unchanged, and the ledgers grow only by appending;
+  - pins_public;
+  - ledger;
+  - train: the reviewer's own sampling stream and the checkpoint records;
+  - eval: eligibility, anchors and the records' internal consistency;
+  - compare: 2,998 leaves of analysis.json, 0 differ;
+  - macs: the reviewer's own derivation of the executed controller MACs.
+  The strata, which need the databases, are checked only in their marginal sums. Run in place, the same 445 checks
+  also pass.
+
+verify_perf_local.json: local mode with the runs root, 835 checks, 0 failures (pins 37, history 36, ledger 17,
+baselines 266, train 349, eval 48, compare 61, macs 21). It re-executes every SQL and re-hashes the checkpoints and
+databases. The strata classifier is the producer's, run in a separate process (flagged).
+
+The reviewer also inspected the seven corrected claims at 4c73eec against 0f2f9b1 and passed all seven. It noted:
+  - a pre-existing rounding slip: Q27's new-population time to submission is 139.9 s, not 140.0;
+  - "another table of the gold program" also covers gold tables used only in a nested SELECT;
+  - a dead-end operator step would be charged no MACs by either count (no record here has one).

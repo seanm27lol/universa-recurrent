@@ -524,7 +524,8 @@ def encode_request(backbone: Backbone, task: C.Task, schema, examples=(), *, max
                  "schema_chars": len(serialized.text), "template": TEMPLATE_VERSION, **backbone.identity()})
     return Encoding(task_id=task.task_id, context=ctx, token_ids=ids, offsets=offsets, states=states,
                     item_ranges=ranges, token_types=token_types(ctx, offsets), spans=span_index(ctx, offsets),
-                    schema=actions.SchemaItems(serialized.items), cost=cost)
+                    schema=actions.SchemaItems(serialized.items, schema if isinstance(schema, C.Schema) else None),
+                    cost=cost)
 
 
 def encode_tasks(backbone: Backbone, tasks, *, schema_for=None, examples_for=None, k: "int | None" = None,

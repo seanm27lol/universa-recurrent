@@ -1,0 +1,25 @@
+T4-v1/100/historical: {'steps': 62, 'right': 33, 'wrong_in_gold_set': 19, 'wrong_irrelevant': 10, 'top_steps': 58, 'top_right': 31, 'top_wrong_in_gold_set': 17, 'top_wrong_irrelevant': 10}
+T4-v1/100/new: {'steps': 64, 'right': 36, 'wrong_in_gold_set': 16, 'wrong_irrelevant': 12, 'top_steps': 60, 'top_right': 34, 'top_wrong_in_gold_set': 14, 'top_wrong_irrelevant': 12}
+T4-v1/101/historical: {'steps': 62, 'right': 32, 'wrong_in_gold_set': 16, 'wrong_irrelevant': 14, 'top_steps': 58, 'top_right': 29, 'top_wrong_in_gold_set': 15, 'top_wrong_irrelevant': 14}
+T4-v1/101/new: {'steps': 64, 'right': 33, 'wrong_in_gold_set': 16, 'wrong_irrelevant': 15, 'top_steps': 60, 'top_right': 31, 'top_wrong_in_gold_set': 15, 'top_wrong_irrelevant': 14}
+T4-v1/102/historical: {'steps': 62, 'right': 34, 'wrong_in_gold_set': 17, 'wrong_irrelevant': 11, 'top_steps': 58, 'top_right': 31, 'top_wrong_in_gold_set': 17, 'top_wrong_irrelevant': 10}
+T4-v1/102/new: {'steps': 64, 'right': 31, 'wrong_in_gold_set': 19, 'wrong_irrelevant': 14, 'top_steps': 60, 'top_right': 30, 'top_wrong_in_gold_set': 18, 'top_wrong_irrelevant': 12}
+C4-v1/100/historical: {'steps': 62, 'right': 33, 'wrong_in_gold_set': 15, 'wrong_irrelevant': 14, 'top_steps': 58, 'top_right': 31, 'top_wrong_in_gold_set': 13, 'top_wrong_irrelevant': 14}
+C4-v1/100/new: {'steps': 64, 'right': 33, 'wrong_in_gold_set': 15, 'wrong_irrelevant': 16, 'top_steps': 60, 'top_right': 32, 'top_wrong_in_gold_set': 13, 'top_wrong_irrelevant': 15}
+C4-v1/101/historical: {'steps': 62, 'right': 35, 'wrong_in_gold_set': 18, 'wrong_irrelevant': 9, 'top_steps': 58, 'top_right': 33, 'top_wrong_in_gold_set': 16, 'top_wrong_irrelevant': 9}
+C4-v1/101/new: {'steps': 64, 'right': 34, 'wrong_in_gold_set': 17, 'wrong_irrelevant': 13, 'top_steps': 60, 'top_right': 33, 'top_wrong_in_gold_set': 15, 'top_wrong_irrelevant': 12}
+C4-v1/102/historical: {'steps': 62, 'right': 37, 'wrong_in_gold_set': 14, 'wrong_irrelevant': 11, 'top_steps': 58, 'top_right': 35, 'top_wrong_in_gold_set': 12, 'top_wrong_irrelevant': 11}
+C4-v1/102/new: {'steps': 64, 'right': 35, 'wrong_in_gold_set': 16, 'wrong_irrelevant': 13, 'top_steps': 60, 'top_right': 33, 'top_wrong_in_gold_set': 14, 'top_wrong_irrelevant': 13}
+T4-v2/100/historical: {'steps': 62, 'right': 26, 'wrong_in_gold_set': 20, 'wrong_irrelevant': 16, 'top_steps': 58, 'top_right': 23, 'top_wrong_in_gold_set': 19, 'top_wrong_irrelevant': 16}
+T4-v2/100/new: {'steps': 64, 'right': 32, 'wrong_in_gold_set': 21, 'wrong_irrelevant': 11, 'top_steps': 60, 'top_right': 30, 'top_wrong_in_gold_set': 19, 'top_wrong_irrelevant': 11}
+T4-v2/101/historical: {'steps': 62, 'right': 37, 'wrong_in_gold_set': 15, 'wrong_irrelevant': 10, 'top_steps': 58, 'top_right': 34, 'top_wrong_in_gold_set': 15, 'top_wrong_irrelevant': 9}
+T4-v2/101/new: {'steps': 64, 'right': 38, 'wrong_in_gold_set': 14, 'wrong_irrelevant': 12, 'top_steps': 60, 'top_right': 36, 'top_wrong_in_gold_set': 13, 'top_wrong_irrelevant': 11}
+T4-v2/102/historical: {'steps': 62, 'right': 31, 'wrong_in_gold_set': 22, 'wrong_irrelevant': 9, 'top_steps': 58, 'top_right': 28, 'top_wrong_in_gold_set': 22, 'top_wrong_irrelevant': 8}
+T4-v2/102/new: {'steps': 64, 'right': 37, 'wrong_in_gold_set': 20, 'wrong_irrelevant': 7, 'top_steps': 60, 'top_right': 35, 'top_wrong_in_gold_set': 18, 'top_wrong_irrelevant': 7}
+C4-v2/100/historical: {'steps': 62, 'right': 33, 'wrong_in_gold_set': 18, 'wrong_irrelevant': 11, 'top_steps': 58, 'top_right': 32, 'top_wrong_in_gold_set': 16, 'top_wrong_irrelevant': 10}
+C4-v2/100/new: {'steps': 64, 'right': 27, 'wrong_in_gold_set': 21, 'wrong_irrelevant': 16, 'top_steps': 60, 'top_right': 25, 'top_wrong_in_gold_set': 19, 'top_wrong_irrelevant': 16}
+C4-v2/101/historical: {'steps': 62, 'right': 34, 'wrong_in_gold_set': 15, 'wrong_irrelevant': 13, 'top_steps': 58, 'top_right': 31, 'top_wrong_in_gold_set': 15, 'top_wrong_irrelevant': 12}
+C4-v2/101/new: {'steps': 64, 'right': 29, 'wrong_in_gold_set': 21, 'wrong_irrelevant': 14, 'top_steps': 60, 'top_right': 27, 'top_wrong_in_gold_set': 19, 'top_wrong_irrelevant': 14}
+C4-v2/102/historical: {'steps': 62, 'right': 33, 'wrong_in_gold_set': 17, 'wrong_irrelevant': 12, 'top_steps': 58, 'top_right': 31, 'top_wrong_in_gold_set': 16, 'top_wrong_irrelevant': 11}
+C4-v2/102/new: {'steps': 64, 'right': 32, 'wrong_in_gold_set': 19, 'wrong_irrelevant': 13, 'top_steps': 60, 'top_right': 31, 'top_wrong_in_gold_set': 17, 'top_wrong_irrelevant': 12}
+exit 0

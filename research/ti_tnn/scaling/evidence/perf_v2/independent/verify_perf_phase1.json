@@ -1,0 +1,3135 @@
+{
+ "verifier": {
+  "file": "research/ti_tnn/scaling/independent/verify_perf.py",
+  "sha256": "56590710d5cafc0b2ac5cf0a3b1574085324e003c2bfdc3d4563f1dbd693e9f5",
+  "checkout_commit": "763e7f0eb5ad474a550cd457c187fca064e4ce2c",
+  "runs_root": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling",
+  "run_at": "2026-11-03T01:49:53+00:00",
+  "producer_modules_imported": []
+ },
+ "sections": {
+  "pins": {
+   "checks": [
+    {
+     "name": "protocol pin: PROTOCOL_perf_v2.md sha256 = pin",
+     "passed": true,
+     "detail": "ba696dfd39b731c652c2ea79961df0011a7930c7ff358ab282a1a6968014a75e vs ba696dfd39b731c652c2ea79961df0011a7930c7ff358ab282a1a6968014a75e"
+    },
+    {
+     "name": "protocol pin: perf_v2_train.json sha256 = pin",
+     "passed": true,
+     "detail": "9ba313926af659adf07d4ef7ab6728e38fdd721aac015c8f4acd71fc1aa8ff14 vs 9ba313926af659adf07d4ef7ab6728e38fdd721aac015c8f4acd71fc1aa8ff14"
+    },
+    {
+     "name": "protocol pin: perf_v2_eval.json sha256 = pin",
+     "passed": true,
+     "detail": "21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8 vs 21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8"
+    },
+    {
+     "name": "protocol pin: the three files at frozen_at hash to the pin",
+     "passed": true,
+     "detail": "{'protocol': 'ba696dfd39b731c652c2ea79961df0011a7930c7ff358ab282a1a6968014a75e', 'train': '9ba313926af659adf07d4ef7ab6728e38fdd721aac015c8f4acd71fc1aa8ff14', 'eval': '21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8'}"
+    },
+    {
+     "name": "protocol pin: frozen_at is an ancestor of HEAD",
+     "passed": true,
+     "detail": "01e3e28d6937006a8c96dfa6a19542fdeeaadeff"
+    },
+    {
+     "name": "protocol, train and eval pins unchanged by any commit after frozen_at",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no uncommitted change to the protocol or the pins",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "protocol pin: U = 3000",
+     "passed": true,
+     "detail": "3000"
+    },
+    {
+     "name": "eval pin names inventory_v1.json by its sha256",
+     "passed": true,
+     "detail": "6c164f63c27df7d1dd4c39a73201f931d8d9348b9dd92be9e4a8d1ebdb77885e vs 6c164f63c27df7d1dd4c39a73201f931d8d9348b9dd92be9e4a8d1ebdb77885e"
+    },
+    {
+     "name": "eval pin positions: [0,64) and [64,128)",
+     "passed": true,
+     "detail": "[0, 64] [64, 128]"
+    },
+    {
+     "name": "eval pin has exactly two populations",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "historical = inventory_v1 positions 0-63, in order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "new = inventory_v1 positions 64-127, in order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "historical = the pilot's 64 (evidence/pilot_v1 evaluation manifests), in order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each population: 64 distinct ids",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "historical and new do not overlap",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "raw release sha256 = contracts.TRAIN_RELEASE at frozen_at",
+     "passed": true,
+     "detail": "2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8"
+    },
+    {
+     "name": "inventory pin salt = contracts.INVENTORY salt at frozen_at",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "inventory and pilot_train pins name split_v1 at frozen_at",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "split pin's dev / train_pool databases = own split rule",
+     "passed": true,
+     "detail": "['public_review_platform', 'soccer_2016', 'hockey', 'image_and_language', 'simpson_episodes', 'world', 'ice_hockey_draft', 'professional_basketball', 'music_platform_2', 'software_company', 'disney', 'talkingdata', 'computer_student', 'food_inspection'] vs ['public_review_platform', 'soccer_2016', 'hockey', 'image_and_language', 'simpson_episodes', 'world', 'ice_hockey_draft', 'professional_basketball', 'music_platform_2', 'software_company', 'disney', 'talkingdata', 'computer_student', 'food_inspection']; keys {'version': 'split_v1', 'study': 'ti_tnn_qwen38_scaling_dev', 'rule': \"order the training release's databases by sha256(salt + ':' + db_id); the first round(0.2 * n) are development, the rest are the training pool. Split by database, never by question.\", 'salt': 'ti-tnn-scaling-dev-split-v1', 'dev_fraction': 0.2, 'source': {'repo': 'birdsql/bird23-train-filtered', 'revision': '4068469807b255fcfc0816bdd520946fe460d256', 'file': 'data/train-00000-of-00001.jsonl', 'sha256': '2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8'}, 'databases': 69, 'dev': 14, 'train_pool': 55, 'dev_questions': 1530, 'train_pool_questions': 5071, 'questions_per_database': {'public_review_platform': 256, 'soccer_2016': 190, 'hockey': 156, 'image_and_language': 95, 'simpson_episodes': 164, 'world': 73, 'ice_hockey_draft': 69, 'professional_basketball': 113, 'music_platform_2': 40, 'software_company': 56, 'disney': 82, 'talkingdata': 118, 'computer_student': 53, 'food_inspection': 65, 'mondial_geo': 211, 'retail_world': 38, 'genes': 11, 'cars': 73, 'cookbook': 49, 'college_completion': 45, 'language_corpus': 90, 'regional_sales': 108, 'student_loan': 162, 'sales_in_weather': 61, 'movie_platform': 102, 'cs_semester': 84, 'movie_3': 223, 'retails': 155, 'movie': 37, 'world_development_indicators': 105, 'shipping': 81, 'university': 120, 'donor': 88, 'citeseer': 14, 'social_media': 61, 'sales': 77, 'superstore': 82, 'olympics': 156, 'mental_health_survey': 37, 'beer_factory': 104, 'european_football_1': 42, 'trains': 30, 'app_store': 36, 'human_resources': 47, 'address': 126, 'video_games': 152, 'menu': 70, 'restaurant': 69, 'car_retails': 98, 'airline': 66, 'movielens': 70, 'music_tracker': 31, 'bike_share_1': 51, 'codebase_comments': 79, 'legislator': 128, 'shakespeare': 77, 'authors': 104, 'law_episode': 92, 'coinmarketcap': 37, 'books': 184, 'synthea': 141, 'food_inspection_2': 109, 'movies_4': 143, 'craftbeer': 5, 'works_cycles': 383, 'chicago_crime': 128, 'book_publishing_company': 63, 'shooting': 16, 'retail_complains': 120}}"
+    },
+    {
+     "name": "historical rebuilt from the raw release with the own rule = pin",
+     "passed": true,
+     "detail": "first difference at None"
+    },
+    {
+     "name": "new rebuilt from the raw release with the own rule = pin",
+     "passed": true,
+     "detail": "first difference at None"
+    },
+    {
+     "name": "every exclusion met while rebuilding is a pinned exclusion",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "historical: db_ids = the raw release's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "historical: every question from a development database",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "new: db_ids = the raw release's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "new: every question from a development database",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "perf_v2_train names pilot_train_v1.json by its sha256",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "bird23tf-00003 is in pilot_train_v1 exactly once",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "perf_v2_train = pilot_train_v1 minus exactly bird23tf-00003, in order",
+     "passed": true,
+     "detail": "len 4740 vs 4740; missing [], extra []"
+    },
+    {
+     "name": "perf_v2_train's dropped list is exactly bird23tf-00003",
+     "passed": true,
+     "detail": "{'bird23tf-00003': {'v2': 'not encodable: grammar rejects gold pointer'}}"
+    },
+    {
+     "name": "perf_v2_train counts 4741 -> 4740, ids distinct",
+     "passed": true,
+     "detail": "4741 4740 4740"
+    },
+    {
+     "name": "every training id from a training-pool database",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no evaluation id in perf_v2_train or pilot_train_v1",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "no evaluation database among the training databases",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "bird23tf-00003: gold SQL has the same-reference ON equality T2.list_id = T2.list_id",
+     "passed": true,
+     "detail": "found ['T2.list_id = T2.list_id']; SQL: SELECT T1.list_followers, T2.user_subscriber = 1 FROM lists AS T1 INNER JOIN lists_users AS T2 ON T1.user_id = T2.user_id AND T2.list_id = T2.list_id WHERE T2.user_id = 4208563 ORDER BY T1.list_followers DESC LIMIT 1"
+    },
+    {
+     "name": "no kept training question's gold has a same-reference ON equality",
+     "passed": true,
+     "detail": "[]"
+    }
+   ],
+   "passed": 37,
+   "failures": 0,
+   "info": {
+    "protocol_pin": {
+     "file": "research/ti_tnn/scaling/docs/PROTOCOL_perf_v2.md",
+     "sha256": "ba696dfd39b731c652c2ea79961df0011a7930c7ff358ab282a1a6968014a75e",
+     "frozen_at": "01e3e28d6937006a8c96dfa6a19542fdeeaadeff",
+     "frozen_on": "2026-11-02",
+     "train_pin_sha256": "9ba313926af659adf07d4ef7ab6728e38fdd721aac015c8f4acd71fc1aa8ff14",
+     "eval_pin_sha256": "21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8",
+     "updates": 3000,
+     "review": "independent review of 1f950ec (no defect invalidating training or the comparison); its fixes at 01e3e28d6937006a8c96dfa6a19542fdeeaadeff"
+    },
+    "exclusions_met_rebuilding_0_128": {},
+    "bird23tf-00003": {
+     "db_id": "movie_platform",
+     "gold_sql": "SELECT T1.list_followers, T2.user_subscriber = 1 FROM lists AS T1 INNER JOIN lists_users AS T2 ON T1.user_id = T2.user_id AND T2.list_id = T2.list_id WHERE T2.user_id = 4208563 ORDER BY T1.list_followers DESC LIMIT 1",
+     "on_clauses": [
+      "T1.user_id = T2.user_id AND T2.list_id = T2.list_id"
+     ],
+     "same_reference_equalities": [
+      "T2.list_id = T2.list_id"
+     ]
+    },
+    "population_dbs": {
+     "historical": [
+      "computer_student",
+      "disney",
+      "food_inspection",
+      "hockey",
+      "ice_hockey_draft",
+      "image_and_language",
+      "music_platform_2",
+      "professional_basketball",
+      "public_review_platform",
+      "simpson_episodes",
+      "soccer_2016",
+      "software_company",
+      "talkingdata",
+      "world"
+     ],
+     "new": [
+      "computer_student",
+      "disney",
+      "food_inspection",
+      "hockey",
+      "ice_hockey_draft",
+      "image_and_language",
+      "music_platform_2",
+      "professional_basketball",
+      "public_review_platform",
+      "simpson_episodes",
+      "soccer_2016",
+      "software_company",
+      "talkingdata",
+      "world"
+     ]
+    },
+    "seconds": 7.6
+   }
+  },
+  "history": {
+   "checks": [
+    {
+     "name": "9a534b5 (the pilot PR's head) is an ancestor of HEAD",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "git diff --stat 9a534b5 HEAD -- evidence/pilot_v1 evidence/dev_v1 is empty",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no uncommitted or untracked change in evidence/pilot_v1 or evidence/dev_v1",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "evidence/pilot_v1: every file matches SHA256SUMS and every file is listed",
+     "passed": true,
+     "detail": "mismatched [], unlisted []"
+    },
+    {
+     "name": "evidence/dev_v1: every file matches SHA256SUMS and every file is listed",
+     "passed": true,
+     "detail": "mismatched [], unlisted []"
+    },
+    {
+     "name": "every bundled pilot file equals its run original (SHA256SUMS)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every bundled pilot file still has its run original",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the bundled ledger is a byte prefix of the live ledger (append-only, nothing rewritten)",
+     "passed": true,
+     "detail": "bundled 130608 bytes, live 181550 bytes"
+    },
+    {
+     "name": "T4 s100: one final (update 1499) checkpoint recorded",
+     "passed": true,
+     "detail": "['7218aa08dfd4690f']"
+    },
+    {
+     "name": "T4 s100: recorded path is in the run's checkpoints dir",
+     "passed": true,
+     "detail": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/train/T4_s100/checkpoints/ckpt_u001499_7218aa08dfd4690f.pt"
+    },
+    {
+     "name": "T4 s100: the bundled evaluations name this final checkpoint",
+     "passed": true,
+     "detail": "{('7218aa08dfd4690fe1ec1cdb5a7c5b8ea538200c87cdf59a0687fdcc6a3f6cfe', '5443481c1a2e46d6b01f6df83e8cac79ddab1dfbcb9ad009d1acbe96530cd881', 1499)}"
+    },
+    {
+     "name": "T4 s100: final checkpoint re-hashes to its name and record",
+     "passed": true,
+     "detail": "ckpt_u001499_7218aa08dfd4690f.pt: 7218aa08dfd4690fe1ec1cdb5a7c5b8ea538200c87cdf59a0687fdcc6a3f6cfe"
+    },
+    {
+     "name": "T4 s100: final checkpoint size = record",
+     "passed": true,
+     "detail": "204520585 vs 204520585"
+    },
+    {
+     "name": "T4 s100: own model digest = checkpoints.jsonl",
+     "passed": true,
+     "detail": "5443481c1a2e46d6b01f6df83e8cac79ddab1dfbcb9ad009d1acbe96530cd881 vs 5443481c1a2e46d6b01f6df83e8cac79ddab1dfbcb9ad009d1acbe96530cd881"
+    },
+    {
+     "name": "T4 s100: checkpoint's own update = 1499",
+     "passed": true,
+     "detail": "1499"
+    },
+    {
+     "name": "c4_params s100: one final (update 1499) checkpoint recorded",
+     "passed": true,
+     "detail": "['af63f7c7646c7f4c']"
+    },
+    {
+     "name": "c4_params s100: recorded path is in the run's checkpoints dir",
+     "passed": true,
+     "detail": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/train/c4_params_s100/checkpoints/ckpt_u001499_af63f7c7646c7f4c.pt"
+    },
+    {
+     "name": "c4_params s100: the bundled evaluations name this final checkpoint",
+     "passed": true,
+     "detail": "{('af63f7c7646c7f4c59009d3e55028349453e29c4877ff115dc1206f91fd49ee7', '67bb0c4185db277832cc4624caa1e3c17663589f3866135a001f3fd7777ac1b8', 1499)}"
+    },
+    {
+     "name": "c4_params s100: final checkpoint re-hashes to its name and record",
+     "passed": true,
+     "detail": "ckpt_u001499_af63f7c7646c7f4c.pt: af63f7c7646c7f4c59009d3e55028349453e29c4877ff115dc1206f91fd49ee7"
+    },
+    {
+     "name": "c4_params s100: final checkpoint size = record",
+     "passed": true,
+     "detail": "204506409 vs 204506409"
+    },
+    {
+     "name": "c4_params s100: own model digest = checkpoints.jsonl",
+     "passed": true,
+     "detail": "67bb0c4185db277832cc4624caa1e3c17663589f3866135a001f3fd7777ac1b8 vs 67bb0c4185db277832cc4624caa1e3c17663589f3866135a001f3fd7777ac1b8"
+    },
+    {
+     "name": "c4_params s100: checkpoint's own update = 1499",
+     "passed": true,
+     "detail": "1499"
+    },
+    {
+     "name": "T4 s101: one final (update 1499) checkpoint recorded",
+     "passed": true,
+     "detail": "['23af16c346e71973']"
+    },
+    {
+     "name": "T4 s101: recorded path is in the run's checkpoints dir",
+     "passed": true,
+     "detail": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/train/T4_s101/checkpoints/ckpt_u001499_23af16c346e71973.pt"
+    },
+    {
+     "name": "T4 s101: the bundled evaluations name this final checkpoint",
+     "passed": true,
+     "detail": "{('23af16c346e71973364ae2031f89a6c20740b3f40bcab537625e6dc88e619bdd', '377e5cf90b3d6120a66d491ef0d32691acf764bf18266cdc8bdca50608f915c4', 1499)}"
+    },
+    {
+     "name": "T4 s101: final checkpoint re-hashes to its name and record",
+     "passed": true,
+     "detail": "ckpt_u001499_23af16c346e71973.pt: 23af16c346e71973364ae2031f89a6c20740b3f40bcab537625e6dc88e619bdd"
+    },
+    {
+     "name": "T4 s101: final checkpoint size = record",
+     "passed": true,
+     "detail": "204520649 vs 204520649"
+    },
+    {
+     "name": "T4 s101: own model digest = checkpoints.jsonl",
+     "passed": true,
+     "detail": "377e5cf90b3d6120a66d491ef0d32691acf764bf18266cdc8bdca50608f915c4 vs 377e5cf90b3d6120a66d491ef0d32691acf764bf18266cdc8bdca50608f915c4"
+    },
+    {
+     "name": "T4 s101: checkpoint's own update = 1499",
+     "passed": true,
+     "detail": "1499"
+    },
+    {
+     "name": "c4_params s101: one final (update 1499) checkpoint recorded",
+     "passed": true,
+     "detail": "['4267932128c3184e']"
+    },
+    {
+     "name": "c4_params s101: recorded path is in the run's checkpoints dir",
+     "passed": true,
+     "detail": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/pilot/train/c4_params_s101/checkpoints/ckpt_u001499_4267932128c3184e.pt"
+    },
+    {
+     "name": "c4_params s101: the bundled evaluations name this final checkpoint",
+     "passed": true,
+     "detail": "{('4267932128c3184e71c944d0f07745465cedec501992b003a0f87c24fa3589ca', '9e2c44c09b23d7c2ffb3897637fb5610d87ee2a4f1e8522983fa77aab5d7b409', 1499)}"
+    },
+    {
+     "name": "c4_params s101: final checkpoint re-hashes to its name and record",
+     "passed": true,
+     "detail": "ckpt_u001499_4267932128c3184e.pt: 4267932128c3184e71c944d0f07745465cedec501992b003a0f87c24fa3589ca"
+    },
+    {
+     "name": "c4_params s101: final checkpoint size = record",
+     "passed": true,
+     "detail": "204506473 vs 204506473"
+    },
+    {
+     "name": "c4_params s101: own model digest = checkpoints.jsonl",
+     "passed": true,
+     "detail": "9e2c44c09b23d7c2ffb3897637fb5610d87ee2a4f1e8522983fa77aab5d7b409 vs 9e2c44c09b23d7c2ffb3897637fb5610d87ee2a4f1e8522983fa77aab5d7b409"
+    },
+    {
+     "name": "c4_params s101: checkpoint's own update = 1499",
+     "passed": true,
+     "detail": "1499"
+    }
+   ],
+   "passed": 36,
+   "failures": 0,
+   "info": {
+    "pilot_v1_files": 91,
+    "dev_v1_files": 45,
+    "pilot_bundle_compared": {
+     "compared_with_originals": 84,
+     "differ": [],
+     "missing": [],
+     "verification_outputs_without_original": [
+      "independent/README.md",
+      "independent/final_bundle_verification.json",
+      "independent/pilot_verdict.json",
+      "independent/pilot_verdict_redecode.json",
+      "independent/pilot_verdict_summary.json",
+      "independent/verify_L64.json"
+     ]
+    },
+    "ledger_bytes": {
+     "bundled": 130608,
+     "live": 181550
+    },
+    "pilot_json_not_bundled": [],
+    "pilot_files_modified_after_pilot_head_commit_time": [],
+    "final_checkpoints": {
+     "T4/s100": {
+      "file": "ckpt_u001499_7218aa08dfd4690f.pt",
+      "sha256": "7218aa08dfd4690fe1ec1cdb5a7c5b8ea538200c87cdf59a0687fdcc6a3f6cfe",
+      "allowlisted_globals": [
+       "numpy._core.multiarray._reconstruct",
+       "numpy.ndarray",
+       "numpy.dtype",
+       "numpy.dtypes.UInt32DType"
+      ],
+      "model_digest": "5443481c1a2e46d6b01f6df83e8cac79ddab1dfbcb9ad009d1acbe96530cd881"
+     },
+     "c4_params/s100": {
+      "file": "ckpt_u001499_af63f7c7646c7f4c.pt",
+      "sha256": "af63f7c7646c7f4c59009d3e55028349453e29c4877ff115dc1206f91fd49ee7",
+      "allowlisted_globals": [
+       "numpy._core.multiarray._reconstruct",
+       "numpy.ndarray",
+       "numpy.dtype",
+       "numpy.dtypes.UInt32DType"
+      ],
+      "model_digest": "67bb0c4185db277832cc4624caa1e3c17663589f3866135a001f3fd7777ac1b8"
+     },
+     "T4/s101": {
+      "file": "ckpt_u001499_23af16c346e71973.pt",
+      "sha256": "23af16c346e71973364ae2031f89a6c20740b3f40bcab537625e6dc88e619bdd",
+      "allowlisted_globals": [
+       "numpy._core.multiarray._reconstruct",
+       "numpy.ndarray",
+       "numpy.dtype",
+       "numpy.dtypes.UInt32DType"
+      ],
+      "model_digest": "377e5cf90b3d6120a66d491ef0d32691acf764bf18266cdc8bdca50608f915c4"
+     },
+     "c4_params/s101": {
+      "file": "ckpt_u001499_4267932128c3184e.pt",
+      "sha256": "4267932128c3184e71c944d0f07745465cedec501992b003a0f87c24fa3589ca",
+      "allowlisted_globals": [
+       "numpy._core.multiarray._reconstruct",
+       "numpy.ndarray",
+       "numpy.dtype",
+       "numpy.dtypes.UInt32DType"
+      ],
+      "model_digest": "9e2c44c09b23d7c2ffb3897637fb5610d87ee2a4f1e8522983fa77aab5d7b409"
+     }
+    },
+    "seconds": 3.1
+   }
+  },
+  "ledger": {
+   "checks": [
+    {
+     "name": "ledger: every line JSON, one start per reservation, nothing after an end, monotone entries",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every start's used_before_hours = own sum of earlier charges (and names this ledger)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every start's limit_hours = min(cap, used_before + projected x 1.5)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every end's hours = its elapsed / 3600",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "no reservation ran past its limit (one heartbeat + 90 s grace allowed)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every unversioned start precedes every versioned one",
+     "passed": true,
+     "detail": "[28, 29, 30] [31, 32, 33]"
+    },
+    {
+     "name": "every entry before the versioning carries cap_hours 8",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every versioned entry carries authorization 2 and cap_hours 32",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "no unversioned reservation after the pilot's last reservation",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "pilot-era total (through the end of the pilot) = 6.878 h",
+     "passed": true,
+     "detail": "own 6.878170 h"
+    },
+    {
+     "name": "the first v2 start's used_before_hours = own pilot-era total",
+     "passed": true,
+     "detail": "6.878170164078087 vs 6.878170164078087"
+    },
+    {
+     "name": "pilot-era total within authorization v1's 8 h",
+     "passed": true,
+     "detail": "6.878170164078087"
+    },
+    {
+     "name": "total within authorization v2's 32 h",
+     "passed": true,
+     "detail": "10.223450005784196"
+    },
+    {
+     "name": "every open reservation since the pilot is live (recent heartbeat, pid alive)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "no two reservations overlap in wall-clock time (exactly one GPU owner)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "file order = wall-clock start order",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 16,
+   "failures": 0,
+   "info": {
+    "reservations": 34,
+    "pilot_era": {
+     "reservations": 31,
+     "hours": 6.878170164078087,
+     "pilot_commands_hours": 3.8988226043664493,
+     "never_ended (charged to last heartbeat + 30 s)": [
+      {
+       "id": "20261030T182008-e81ea738",
+       "command": "pilot-encode train_1200-2400",
+       "started": "2026-10-30T18:20:08+00:00",
+       "beats": 66,
+       "charged_hours": 0.558635
+      }
+     ],
+     "not_ok": [
+      {
+       "id": "20261026T193855-c94c2463",
+       "command": "baseline B4_nonthinking_p16-20",
+       "status": "budget_exceeded",
+       "hours": 0.150073,
+       "error": "BudgetExceeded('baseline B4_nonthinking_p16-20: stopped at the reservation limit (0.410 h aggregate) or after a failed heartbeat write')"
+      },
+      {
+       "id": "20261102T012723-6f8e3815",
+       "command": "pilot-encode train_1200-2400",
+       "status": "failed",
+       "hours": 0.031094,
+       "error": "SafetensorError('Error while deserializing header: invalid JSON in header: EOF while parsing a value at line 1 column 0')"
+      }
+     ],
+     "statuses": {
+      "budget_exceeded": 1,
+      "failed": 1,
+      "ok": 28
+     }
+    },
+    "since_pilot": [
+     {
+      "reservation": "20261102T222847-384be21d",
+      "command": "baseline B4_thinking_p16-64",
+      "started": "2026-11-02T22:28:47+00:00",
+      "ended": "2026-11-02T23:49:30+00:00",
+      "status": "ok",
+      "hours": 1.345118,
+      "projected_hours": 2.3171677466145613,
+      "limit_hours": 10.35392178399993,
+      "used_before_hours": 6.878170164078087,
+      "authorization": 2,
+      "cap_hours": 32.0,
+      "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/baselines/20261102T222845Z_B4_thinking_p16-64",
+      "pid": 1200335
+     },
+     {
+      "reservation": "20261102T234933-aa3ea772",
+      "command": "baseline Q27_thinking_low_p16-64",
+      "started": "2026-11-02T23:49:33+00:00",
+      "ended": "2026-11-03T01:48:33+00:00",
+      "status": "ok",
+      "hours": 1.983488,
+      "projected_hours": 3.18195576311309,
+      "limit_hours": 12.996221310786057,
+      "used_before_hours": 8.223287666116422,
+      "authorization": 2,
+      "cap_hours": 32.0,
+      "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/baselines/20261102T234931Z_Q27_thinking_low_p16-64",
+      "pid": 950138
+     },
+     {
+      "reservation": "20261103T014916-7ae0ebef",
+      "command": "perf-encode new",
+      "started": "2026-11-03T01:49:16+00:00",
+      "ended": null,
+      "status": "OPEN",
+      "hours": 0.016675,
+      "projected_hours": 0.2,
+      "limit_hours": 10.50677547510642,
+      "used_before_hours": 10.206775475106419,
+      "authorization": 2,
+      "cap_hours": 32.0,
+      "run_dir": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/perf_v2/encode/20261103T014916Z_new",
+      "pid": 1367132,
+      "last_heartbeat_age_seconds": 17.9,
+      "pid_alive": true,
+      "note": "open: charged to last heartbeat + 30 s; live"
+     }
+    ],
+    "totals_hours": {
+     "total": 10.223450005784196,
+     "pilot_era": 6.878170164078087,
+     "since_pilot": 3.345279841706109,
+     "remaining_under_32": 21.776549994215806,
+     "open_reservations": [
+      "20261103T014916-7ae0ebef"
+     ]
+    },
+    "wall_vs_monotonic_over_5s": [],
+    "smallest_gaps_seconds": [
+     [
+      0.8,
+      "20261102T033442-7d52e019",
+      "20261102T035049-2acc86b1"
+     ],
+     [
+      0.9,
+      "20261102T041156-924f58bc",
+      "20261102T042730-58613706"
+     ],
+     [
+      1.1,
+      "20261030T175857-a05136c6",
+      "20261030T180120-593ff07b"
+     ]
+    ],
+    "seconds": 0.0
+   }
+  },
+  "baselines": {
+   "checks": [
+    {
+     "name": "B4 16-63: research tree clean at the run's commit",
+     "passed": true,
+     "detail": "False []"
+    },
+    {
+     "name": "B4 16-63: the run's commit is an ancestor of HEAD",
+     "passed": true,
+     "detail": "f81944c79e47fd40ac0289f09b2f53e0b0299f8b"
+    },
+    {
+     "name": "B4 16-63: config hashes to config_identity (own canonical JSON)",
+     "passed": true,
+     "detail": "a45db24fd076531d9b86795ab0bcfff22bc96e3ed53168548fbfbbfb670aa397 vs a45db24fd076531d9b86795ab0bcfff22bc96e3ed53168548fbfbbfb670aa397"
+    },
+    {
+     "name": "B4 16-63: every record carries the manifest's config_identity and arm",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "B4 16-63: inventory_v1 pin hash (config vs the pin at the run's commit)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: snapshots_v1 pin hash (config vs the pin at the run's commit)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: model identity checked against models_v1.json at the run's commit",
+     "passed": true,
+     "detail": "4bfc2082f3a119aa8616db1944a65fba7ff6272878cc21bc2a38ba10c62919fc"
+    },
+    {
+     "name": "B4 16-63: model identity = configured model",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: configured model repo and revision are in models_v1.json",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: configuration = 20261029T203119Z_B4_thinking_p0-16's except positions and requested",
+     "passed": true,
+     "detail": "differs in ['positions', 'requested']"
+    },
+    {
+     "name": "B4 16-63: mode equal to the earlier run's",
+     "passed": true,
+     "detail": "thinking vs thinking"
+    },
+    {
+     "name": "B4 16-63: limits equal to the earlier run's",
+     "passed": true,
+     "detail": "{'lookup_max_values': 20, 'max_context_tokens': 32768, 'max_generated_tokens_nonthinking': 4096, 'max_generated_tokens_thinking': 16384, 'max_new_tokens_nonthinking': 1024, 'max_new_tokens_thinking': 4096, 'max_repairs_controller': 0, 'max_repairs_llm': 1, 'max_tool_calls': 8, 'preview_rows': 20, 'request_timeout_seconds_27b': 1800.0, 'request_timeout_seconds_4b': 600.0, 'retrieval_k': 3, 'sql_timeout_seconds': 30.0} vs {'lookup_max_values': 20, 'max_context_tokens': 32768, 'max_generated_tokens_nonthinking': 4096, 'max_generated_tokens_thinking': 16384, 'max_new_tokens_nonthinking': 1024, 'max_new_tokens_thinking': 4096, 'max_repairs_controller': 0, 'max_repairs_llm': 1, 'max_tool_calls': 8, 'preview_rows': 20, 'request_timeout_seconds_27b': 1800.0, 'request_timeout_seconds_4b': 600.0, 'retrieval_k': 3, 'sql_timeout_seconds': 30.0}"
+    },
+    {
+     "name": "B4 16-63: generation equal to the earlier run's",
+     "passed": true,
+     "detail": "{'max_new_tokens': 4096, 'model': 'B4', 'reasoning_effort': None, 'sampling': {'min_p': 0.0, 'presence_penalty': 0.0, 'repetition_penalty': 1.0, 'source': 'Qwen3.5-4B card: thinking mode for precise coding tasks', 'temperature': 0.6, 'top_k': 20, 'top_p': 0.95}, 'template_options': {'enable_thinking': True, 'preserve_thinking': \"not supported by the Qwen3.5 template (only the latest turn's reasoning is kept)\", 'reasoning_effort': 'not supported by the Qwen3.5 template'}, 'thinking': True} vs {'max_new_tokens': 4096, 'model': 'B4', 'reasoning_effort': None, 'sampling': {'min_p': 0.0, 'presence_penalty': 0.0, 'repetition_penalty': 1.0, 'source': 'Qwen3.5-4B card: thinking mode for precise coding tasks', 'temperature': 0.6, 'top_k': 20, 'top_p': 0.95}, 'template_options': {'enable_thinking': True, 'preserve_thinking': \"not supported by the Qwen3.5 template (only the latest turn's reasoning is kept)\", 'reasoning_effort': 'not supported by the Qwen3.5 template'}, 'thinking': True}"
+    },
+    {
+     "name": "B4 16-63: model equal to the earlier run's",
+     "passed": true,
+     "detail": "{'repo': 'Qwen/Qwen3.5-4B', 'revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a'} vs {'repo': 'Qwen/Qwen3.5-4B', 'revision': '851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a'}"
+    },
+    {
+     "name": "B4 16-63: reasoning_effort equal to the earlier run's",
+     "passed": true,
+     "detail": "None vs None"
+    },
+    {
+     "name": "B4 16-63: dtype equal to the earlier run's",
+     "passed": true,
+     "detail": "bfloat16 vs bfloat16"
+    },
+    {
+     "name": "B4 16-63: linear_attention equal to the earlier run's",
+     "passed": true,
+     "detail": "{'causal_conv1d': 'reference', 'configuration': 'reference', 'gated_delta_rule': 'reference'} vs {'causal_conv1d': 'reference', 'configuration': 'reference', 'gated_delta_rule': 'reference'}"
+    },
+    {
+     "name": "B4 16-63: retrieval equal to the earlier run's",
+     "passed": true,
+     "detail": "bm25-v1 vs bm25-v1"
+    },
+    {
+     "name": "B4 16-63: scorer equal to the earlier run's",
+     "passed": true,
+     "detail": "scorer-v1 vs scorer-v1"
+    },
+    {
+     "name": "B4 16-63: schema_text equal to the earlier run's",
+     "passed": true,
+     "detail": "schema-text-v1 vs schema-text-v1"
+    },
+    {
+     "name": "B4 16-63: schema_budget_chars equal to the earlier run's",
+     "passed": true,
+     "detail": "24000 vs 24000"
+    },
+    {
+     "name": "B4 16-63: seed_rule equal to the earlier run's",
+     "passed": true,
+     "detail": "int(sha256(arm:task_id)[:8], 16) vs int(sha256(arm:task_id)[:8], 16)"
+    },
+    {
+     "name": "B4 16-63: warm_up_task equal to the earlier run's",
+     "passed": true,
+     "detail": "bird23tf-01612 vs bird23tf-01612"
+    },
+    {
+     "name": "B4 16-63: runtime equal to the earlier run's",
+     "passed": true,
+     "detail": "transformers generate (batch 1) vs transformers generate (batch 1)"
+    },
+    {
+     "name": "B4 16-63: model_identity (every file hash) equal to the earlier run's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: software environment equal to the earlier run's",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "B4 16-63: agent/scorer sources equal to the earlier run's, or differing only in where `import torch` sits",
+     "passed": true,
+     "detail": "changed: ['llm_agent.py']; import-placement-only: ['llm_agent.py']"
+    },
+    {
+     "name": "B4 16-63: raw release sha256 = contracts at the run's commit",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: positions: this run [16,64), the earlier run [0,16)",
+     "passed": true,
+     "detail": "(16, 64) (0, 16)"
+    },
+    {
+     "name": "B4 16-63: requested = own inventory rebuild at [16,64)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: the earlier run's requested = own rebuild at [0,16)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: the two runs together request exactly the historical 64 of perf_v2_eval, in order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: every requested task exactly once, nothing else",
+     "passed": true,
+     "detail": "missing [], extra []"
+    },
+    {
+     "name": "B4 16-63: warm-up task is a training-pool question (excluded from records)",
+     "passed": true,
+     "detail": "bird23tf-01612"
+    },
+    {
+     "name": "B4 16-63: every record's db_id is the release's, and its snapshot, score and tool calls are on the pinned snapshot",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "B4 16-63: computer_student: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "617669575dff24ed08efacf95e05bb53347f2d895f053faa2dcbcd047b27a513"
+    },
+    {
+     "name": "B4 16-63: disney: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "0356fc508607fa20da3c94dc785705f05a4b8a9455bb4ac02fb1271fe3bd5c25"
+    },
+    {
+     "name": "B4 16-63: food_inspection: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "c76a6576ba7fe150e12b64a9eefa0ad418b10449f771f91830a87319e34f64c1"
+    },
+    {
+     "name": "B4 16-63: hockey: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "2987cba3921e2544fcd4603eccf5ff97b17f63103d8feb6fb908d55eb5bd9ba2"
+    },
+    {
+     "name": "B4 16-63: ice_hockey_draft: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "4b297d4b7f8c0ff3b751a4017c4d2355aa8eeb11159cf258600995a56f53bf18"
+    },
+    {
+     "name": "B4 16-63: image_and_language: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "e2fde5486e977b4fde2097bbfbb789be5950753872a3707956b946c92080d0f1"
+    },
+    {
+     "name": "B4 16-63: music_platform_2: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09"
+    },
+    {
+     "name": "B4 16-63: professional_basketball: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "11bc18807f9209e4fae852695907c77961a208639e25b59def05802c9f0b8839"
+    },
+    {
+     "name": "B4 16-63: public_review_platform: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "d87fa4bbcb2d5daec149330d5c47378b2c669222e616bfe2c04cc3624e7ad4ba"
+    },
+    {
+     "name": "B4 16-63: simpson_episodes: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "777172b55c622b0106dc4e0a03a1c1af61a0413d0a358f40e6210b8f0ca64f4d"
+    },
+    {
+     "name": "B4 16-63: soccer_2016: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "84651eed21dbfae9f36a15697a5df81f3cb6ad78740f7301096e99dd7c4c06d5"
+    },
+    {
+     "name": "B4 16-63: software_company: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "21b00d9d2b3bf20af55597c5e844223340ae35efb034797b34100681827e2ca2"
+    },
+    {
+     "name": "B4 16-63: talkingdata: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50"
+    },
+    {
+     "name": "B4 16-63: world: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "813faade795b875f6d46cf81d9651e2400524b414a407aa9d473aa9a8c142861"
+    },
+    {
+     "name": "B4 16-63: every recorded score (and status) re-derived by executing final and gold SQL with the own EX rule",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "B4 16-63: record rules: turn and tool budgets, finalize/repair labelling, token sums and limits, abstention reasons",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "B4 16-63: summary counts recomputed (requested, correct, answered, abstained, errors, timeouts, repairs, tool calls)",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "B4 16-63: quality = correct / requested",
+     "passed": true,
+     "detail": "0.6041666666666666 vs 0.6041666666666666"
+    },
+    {
+     "name": "B4 16-63: elapsed_seconds_total = sum of record elapsed",
+     "passed": true,
+     "detail": "4770.540083312997 vs 4770.540083312997"
+    },
+    {
+     "name": "B4 16-63: cost_seconds_per_correct = sum elapsed / correct",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: abstention_reasons recomputed",
+     "passed": true,
+     "detail": "{'tool-call budget exhausted without a final answer': 9} vs {'tool-call budget exhausted without a final answer': 9}"
+    },
+    {
+     "name": "B4 16-63: summary token totals = sums over records",
+     "passed": true,
+     "detail": "{'content': 18921, 'generated': 74918, 'initial_prompt': 155544, 'prefill': 1126481, 'reasoning': 55770, 'tool_observation': 50150} vs {'content': 18921, 'generated': 74918, 'initial_prompt': 155544, 'prefill': 1126481, 'reasoning': 55770, 'tool_observation': 50150}"
+    },
+    {
+     "name": "B4 16-63: peak_memory_bytes_max = max over records",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: summary names the run's arm and configuration",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: exactly one ledger reservation names this run directory",
+     "passed": true,
+     "detail": "['20261102T222847-384be21d']"
+    },
+    {
+     "name": "B4 16-63: summary's reservation id = the ledger's",
+     "passed": true,
+     "detail": "20261102T222847-384be21d vs 20261102T222847-384be21d"
+    },
+    {
+     "name": "B4 16-63: the run's reservation is under authorization 2 (cap 32)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "B4 16-63: the run's reservation ended ok",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "B4 16-63: summary's reservation hours within 60 s of the ledger charge",
+     "passed": true,
+     "detail": "1.345117366219444 vs 1.345117502038334"
+    },
+    {
+     "name": "B4 16-63: the records' elapsed time fits inside the reservation",
+     "passed": true,
+     "detail": "1.3252 vs 1.3451 h"
+    },
+    {
+     "name": "B4 16-63: the earlier run 20261029T203119Z_B4_thinking_p0-16: recorded scores re-derived",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "Q27 16-63: research tree clean at the run's commit",
+     "passed": true,
+     "detail": "False []"
+    },
+    {
+     "name": "Q27 16-63: the run's commit is an ancestor of HEAD",
+     "passed": true,
+     "detail": "f81944c79e47fd40ac0289f09b2f53e0b0299f8b"
+    },
+    {
+     "name": "Q27 16-63: config hashes to config_identity (own canonical JSON)",
+     "passed": true,
+     "detail": "f29dcb31d1c98f2d444d71a280f50f80bb801c53ff2726e18a49b1a56ef5f0bc vs f29dcb31d1c98f2d444d71a280f50f80bb801c53ff2726e18a49b1a56ef5f0bc"
+    },
+    {
+     "name": "Q27 16-63: every record carries the manifest's config_identity and arm",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "Q27 16-63: inventory_v1 pin hash (config vs the pin at the run's commit)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: snapshots_v1 pin hash (config vs the pin at the run's commit)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: model identity checked against models_v1.json at the run's commit",
+     "passed": true,
+     "detail": "4bfc2082f3a119aa8616db1944a65fba7ff6272878cc21bc2a38ba10c62919fc"
+    },
+    {
+     "name": "Q27 16-63: model identity = configured model",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: configured model repo and revision are in models_v1.json",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: configuration = 20261029T205933Z_Q27_thinking_low_p0-16's except positions and requested",
+     "passed": true,
+     "detail": "differs in ['positions', 'requested']"
+    },
+    {
+     "name": "Q27 16-63: mode equal to the earlier run's",
+     "passed": true,
+     "detail": "thinking vs thinking"
+    },
+    {
+     "name": "Q27 16-63: limits equal to the earlier run's",
+     "passed": true,
+     "detail": "{'lookup_max_values': 20, 'max_context_tokens': 32768, 'max_generated_tokens_nonthinking': 4096, 'max_generated_tokens_thinking': 16384, 'max_new_tokens_nonthinking': 1024, 'max_new_tokens_thinking': 4096, 'max_repairs_controller': 0, 'max_repairs_llm': 1, 'max_tool_calls': 8, 'preview_rows': 20, 'request_timeout_seconds_27b': 1800.0, 'request_timeout_seconds_4b': 600.0, 'retrieval_k': 3, 'sql_timeout_seconds': 30.0} vs {'lookup_max_values': 20, 'max_context_tokens': 32768, 'max_generated_tokens_nonthinking': 4096, 'max_generated_tokens_thinking': 16384, 'max_new_tokens_nonthinking': 1024, 'max_new_tokens_thinking': 4096, 'max_repairs_controller': 0, 'max_repairs_llm': 1, 'max_tool_calls': 8, 'preview_rows': 20, 'request_timeout_seconds_27b': 1800.0, 'request_timeout_seconds_4b': 600.0, 'retrieval_k': 3, 'sql_timeout_seconds': 30.0}"
+    },
+    {
+     "name": "Q27 16-63: generation equal to the earlier run's",
+     "passed": true,
+     "detail": "{'max_new_tokens': 4096, 'model': 'Q27', 'reasoning_effort': 'low', 'sampling': {'min_p': 0.0, 'presence_penalty': 0.0, 'repetition_penalty': 1.0, 'source': 'Qwen3.8-27B card: thinking mode', 'temperature': 1.0, 'top_k': 20, 'top_p': 0.95}, 'template_options': {'enable_thinking': True, 'preserve_thinking': True, 'reasoning_effort': 'low'}, 'thinking': True} vs {'max_new_tokens': 4096, 'model': 'Q27', 'reasoning_effort': 'low', 'sampling': {'min_p': 0.0, 'presence_penalty': 0.0, 'repetition_penalty': 1.0, 'source': 'Qwen3.8-27B card: thinking mode', 'temperature': 1.0, 'top_k': 20, 'top_p': 0.95}, 'template_options': {'enable_thinking': True, 'preserve_thinking': True, 'reasoning_effort': 'low'}, 'thinking': True}"
+    },
+    {
+     "name": "Q27 16-63: model equal to the earlier run's",
+     "passed": true,
+     "detail": "{'repo': 'Qwen/Qwen3.8-27B', 'revision': '1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0'} vs {'repo': 'Qwen/Qwen3.8-27B', 'revision': '1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0'}"
+    },
+    {
+     "name": "Q27 16-63: reasoning_effort equal to the earlier run's",
+     "passed": true,
+     "detail": "low vs low"
+    },
+    {
+     "name": "Q27 16-63: dtype equal to the earlier run's",
+     "passed": true,
+     "detail": "bfloat16 vs bfloat16"
+    },
+    {
+     "name": "Q27 16-63: linear_attention equal to the earlier run's",
+     "passed": true,
+     "detail": "{'causal_conv1d': 'reference', 'configuration': 'reference', 'gated_delta_rule': 'reference'} vs {'causal_conv1d': 'reference', 'configuration': 'reference', 'gated_delta_rule': 'reference'}"
+    },
+    {
+     "name": "Q27 16-63: retrieval equal to the earlier run's",
+     "passed": true,
+     "detail": "bm25-v1 vs bm25-v1"
+    },
+    {
+     "name": "Q27 16-63: scorer equal to the earlier run's",
+     "passed": true,
+     "detail": "scorer-v1 vs scorer-v1"
+    },
+    {
+     "name": "Q27 16-63: schema_text equal to the earlier run's",
+     "passed": true,
+     "detail": "schema-text-v1 vs schema-text-v1"
+    },
+    {
+     "name": "Q27 16-63: schema_budget_chars equal to the earlier run's",
+     "passed": true,
+     "detail": "24000 vs 24000"
+    },
+    {
+     "name": "Q27 16-63: seed_rule equal to the earlier run's",
+     "passed": true,
+     "detail": "int(sha256(arm:task_id)[:8], 16) vs int(sha256(arm:task_id)[:8], 16)"
+    },
+    {
+     "name": "Q27 16-63: warm_up_task equal to the earlier run's",
+     "passed": true,
+     "detail": "bird23tf-01612 vs bird23tf-01612"
+    },
+    {
+     "name": "Q27 16-63: runtime equal to the earlier run's",
+     "passed": true,
+     "detail": "transformers generate (batch 1) vs transformers generate (batch 1)"
+    },
+    {
+     "name": "Q27 16-63: model_identity (every file hash) equal to the earlier run's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: software environment equal to the earlier run's",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "Q27 16-63: agent/scorer sources equal to the earlier run's, or differing only in where `import torch` sits",
+     "passed": true,
+     "detail": "changed: ['llm_agent.py']; import-placement-only: ['llm_agent.py']"
+    },
+    {
+     "name": "Q27 16-63: raw release sha256 = contracts at the run's commit",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: positions: this run [16,64), the earlier run [0,16)",
+     "passed": true,
+     "detail": "(16, 64) (0, 16)"
+    },
+    {
+     "name": "Q27 16-63: requested = own inventory rebuild at [16,64)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: the earlier run's requested = own rebuild at [0,16)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: the two runs together request exactly the historical 64 of perf_v2_eval, in order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: every requested task exactly once, nothing else",
+     "passed": true,
+     "detail": "missing [], extra []"
+    },
+    {
+     "name": "Q27 16-63: warm-up task is a training-pool question (excluded from records)",
+     "passed": true,
+     "detail": "bird23tf-01612"
+    },
+    {
+     "name": "Q27 16-63: every record's db_id is the release's, and its snapshot, score and tool calls are on the pinned snapshot",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "Q27 16-63: computer_student: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "617669575dff24ed08efacf95e05bb53347f2d895f053faa2dcbcd047b27a513"
+    },
+    {
+     "name": "Q27 16-63: disney: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "0356fc508607fa20da3c94dc785705f05a4b8a9455bb4ac02fb1271fe3bd5c25"
+    },
+    {
+     "name": "Q27 16-63: food_inspection: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "c76a6576ba7fe150e12b64a9eefa0ad418b10449f771f91830a87319e34f64c1"
+    },
+    {
+     "name": "Q27 16-63: hockey: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "2987cba3921e2544fcd4603eccf5ff97b17f63103d8feb6fb908d55eb5bd9ba2"
+    },
+    {
+     "name": "Q27 16-63: ice_hockey_draft: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "4b297d4b7f8c0ff3b751a4017c4d2355aa8eeb11159cf258600995a56f53bf18"
+    },
+    {
+     "name": "Q27 16-63: image_and_language: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "e2fde5486e977b4fde2097bbfbb789be5950753872a3707956b946c92080d0f1"
+    },
+    {
+     "name": "Q27 16-63: music_platform_2: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09"
+    },
+    {
+     "name": "Q27 16-63: professional_basketball: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "11bc18807f9209e4fae852695907c77961a208639e25b59def05802c9f0b8839"
+    },
+    {
+     "name": "Q27 16-63: public_review_platform: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "d87fa4bbcb2d5daec149330d5c47378b2c669222e616bfe2c04cc3624e7ad4ba"
+    },
+    {
+     "name": "Q27 16-63: simpson_episodes: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "777172b55c622b0106dc4e0a03a1c1af61a0413d0a358f40e6210b8f0ca64f4d"
+    },
+    {
+     "name": "Q27 16-63: soccer_2016: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "84651eed21dbfae9f36a15697a5df81f3cb6ad78740f7301096e99dd7c4c06d5"
+    },
+    {
+     "name": "Q27 16-63: software_company: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "21b00d9d2b3bf20af55597c5e844223340ae35efb034797b34100681827e2ca2"
+    },
+    {
+     "name": "Q27 16-63: talkingdata: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50"
+    },
+    {
+     "name": "Q27 16-63: world: database file re-hashes to the pin",
+     "passed": true,
+     "detail": "813faade795b875f6d46cf81d9651e2400524b414a407aa9d473aa9a8c142861"
+    },
+    {
+     "name": "Q27 16-63: every recorded score (and status) re-derived by executing final and gold SQL with the own EX rule",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "Q27 16-63: record rules: turn and tool budgets, finalize/repair labelling, token sums and limits, abstention reasons",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "Q27 16-63: summary counts recomputed (requested, correct, answered, abstained, errors, timeouts, repairs, tool calls)",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "Q27 16-63: quality = correct / requested",
+     "passed": true,
+     "detail": "0.75 vs 0.75"
+    },
+    {
+     "name": "Q27 16-63: elapsed_seconds_total = sum of record elapsed",
+     "passed": true,
+     "detail": "6775.733676845019 vs 6775.733676845019"
+    },
+    {
+     "name": "Q27 16-63: cost_seconds_per_correct = sum elapsed / correct",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: abstention_reasons recomputed",
+     "passed": true,
+     "detail": "{} vs {}"
+    },
+    {
+     "name": "Q27 16-63: summary token totals = sums over records",
+     "passed": true,
+     "detail": "{'content': 9475, 'generated': 22056, 'initial_prompt': 156792, 'prefill': 400129, 'reasoning': 12474, 'tool_observation': 16307} vs {'content': 9475, 'generated': 22056, 'initial_prompt': 156792, 'prefill': 400129, 'reasoning': 12474, 'tool_observation': 16307}"
+    },
+    {
+     "name": "Q27 16-63: peak_memory_bytes_max = max over records",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: summary names the run's arm and configuration",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: exactly one ledger reservation names this run directory",
+     "passed": true,
+     "detail": "['20261102T234933-aa3ea772']"
+    },
+    {
+     "name": "Q27 16-63: summary's reservation id = the ledger's",
+     "passed": true,
+     "detail": "20261102T234933-aa3ea772 vs 20261102T234933-aa3ea772"
+    },
+    {
+     "name": "Q27 16-63: the run's reservation is under authorization 2 (cap 32)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "Q27 16-63: the run's reservation ended ok",
+     "passed": true,
+     "detail": "ok"
+    },
+    {
+     "name": "Q27 16-63: summary's reservation hours within 60 s of the ledger charge",
+     "passed": true,
+     "detail": "1.9834847038647219 vs 1.9834878089899979"
+    },
+    {
+     "name": "Q27 16-63: the records' elapsed time fits inside the reservation",
+     "passed": true,
+     "detail": "1.8821 vs 1.9835 h"
+    },
+    {
+     "name": "Q27 16-63: the earlier run 20261029T205933Z_Q27_thinking_low_p0-16: recorded scores re-derived",
+     "passed": true,
+     "detail": "[]"
+    }
+   ],
+   "passed": 132,
+   "failures": 0,
+   "info": {
+    "B4 16-63_sources_changed_since_20261029T203119Z_B4_thinking_p0-16": {
+     "all": [
+      "cli.py",
+      "controller.py",
+      "encode.py",
+      "evidence.py",
+      "identity.py",
+      "infer_controller.py",
+      "ledger.py",
+      "llm_agent.py",
+      "pilot.py",
+      "pilot_report.py",
+      "pilot_run.py",
+      "train.py",
+      "verify.py"
+     ],
+     "agent_relevant": [
+      "llm_agent.py"
+     ],
+     "agent_changes_only_import_torch_placement": [
+      "llm_agent.py"
+     ],
+     "commits": [
+      "92f01cdba816d9d270fa7b358593deb9ae5841a0",
+      "f81944c79e47fd40ac0289f09b2f53e0b0299f8b"
+     ]
+    },
+    "B4 16-63_reservation": {
+     "id": "20261102T222847-384be21d",
+     "hours": 1.345117502038334,
+     "projected": 2.3171677466145613
+    },
+    "B4_p16_64": {
+     "run": "20261102T222845Z_B4_thinking_p16-64",
+     "commit": "f81944c79e47fd40ac0289f09b2f53e0b0299f8b",
+     "reference_run": "20261029T203119Z_B4_thinking_p0-16",
+     "requested": 48,
+     "correct": 29,
+     "answered": 39,
+     "abstained": 9,
+     "timeouts": 0,
+     "errors": 0,
+     "abstention_reasons": {
+      "tool-call budget exhausted without a final answer": 9
+     },
+     "quality": 0.6041666666666666,
+     "elapsed_seconds_total": 4770.540083312997,
+     "cost_seconds_per_correct": 164.5013821832068,
+     "warnings": [],
+     "per_question": [
+      {
+       "position": 16,
+       "task_id": "bird23tf-03029",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.003,
+       "elapsed_seconds": 79.3,
+       "tool_calls": 4,
+       "repairs": 0,
+       "turns": 5,
+       "generated_tokens": 1046,
+       "timed_out": false
+      },
+      {
+       "position": 17,
+       "task_id": "bird23tf-04905",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 20.0,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 313,
+       "timed_out": false
+      },
+      {
+       "position": 18,
+       "task_id": "bird23tf-01628",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 85.9,
+       "tool_calls": 3,
+       "repairs": 1,
+       "turns": 5,
+       "generated_tokens": 1400,
+       "timed_out": false
+      },
+      {
+       "position": 19,
+       "task_id": "bird23tf-03134",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 82.9,
+       "tool_calls": 7,
+       "repairs": 0,
+       "turns": 8,
+       "generated_tokens": 1303,
+       "timed_out": false
+      },
+      {
+       "position": 20,
+       "task_id": "bird23tf-02664",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 28.4,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 443,
+       "timed_out": false
+      },
+      {
+       "position": 21,
+       "task_id": "bird23tf-04254",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 95.9,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1380,
+       "timed_out": false
+      },
+      {
+       "position": 22,
+       "task_id": "bird23tf-06518",
+       "db_id": "music_platform_2",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.651,
+       "elapsed_seconds": 113.6,
+       "tool_calls": 4,
+       "repairs": 0,
+       "turns": 5,
+       "generated_tokens": 1829,
+       "timed_out": false
+      },
+      {
+       "position": 23,
+       "task_id": "bird23tf-03434",
+       "db_id": "software_company",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.013,
+       "elapsed_seconds": 89.4,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1413,
+       "timed_out": false
+      },
+      {
+       "position": 24,
+       "task_id": "bird23tf-06228",
+       "db_id": "disney",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 46.7,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 755,
+       "timed_out": false
+      },
+      {
+       "position": 25,
+       "task_id": "bird23tf-00443",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.014,
+       "elapsed_seconds": 146.1,
+       "tool_calls": 5,
+       "repairs": 0,
+       "turns": 6,
+       "generated_tokens": 2269,
+       "timed_out": false
+      },
+      {
+       "position": 26,
+       "task_id": "bird23tf-05912",
+       "db_id": "computer_student",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 54.7,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 889,
+       "timed_out": false
+      },
+      {
+       "position": 27,
+       "task_id": "bird23tf-03525",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.007,
+       "elapsed_seconds": 54.3,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 872,
+       "timed_out": false
+      },
+      {
+       "position": 28,
+       "task_id": "bird23tf-01565",
+       "db_id": "public_review_platform",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.008,
+       "elapsed_seconds": 61.3,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 940,
+       "timed_out": false
+      },
+      {
+       "position": 29,
+       "task_id": "bird23tf-00840",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 45.4,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 623,
+       "timed_out": false
+      },
+      {
+       "position": 30,
+       "task_id": "bird23tf-03022",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 93.8,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1328,
+       "timed_out": false
+      },
+      {
+       "position": 31,
+       "task_id": "bird23tf-02969",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 55.1,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 902,
+       "timed_out": false
+      },
+      {
+       "position": 32,
+       "task_id": "bird23tf-01625",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 40.8,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 569,
+       "timed_out": false
+      },
+      {
+       "position": 33,
+       "task_id": "bird23tf-04970",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 22.2,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 335,
+       "timed_out": false
+      },
+      {
+       "position": 34,
+       "task_id": "bird23tf-02659",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 57.9,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 942,
+       "timed_out": false
+      },
+      {
+       "position": 35,
+       "task_id": "bird23tf-01167",
+       "db_id": "professional_basketball",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 202.4,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 2702,
+       "timed_out": false
+      },
+      {
+       "position": 36,
+       "task_id": "bird23tf-06520",
+       "db_id": "music_platform_2",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 406.8,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 6728,
+       "timed_out": false
+      },
+      {
+       "position": 37,
+       "task_id": "bird23tf-03442",
+       "db_id": "software_company",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.052,
+       "elapsed_seconds": 146.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 2582,
+       "timed_out": false
+      },
+      {
+       "position": 38,
+       "task_id": "bird23tf-04521",
+       "db_id": "disney",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 240.8,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 3905,
+       "timed_out": false
+      },
+      {
+       "position": 39,
+       "task_id": "bird23tf-05284",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 55.9,
+       "tool_calls": 2,
+       "repairs": 1,
+       "turns": 4,
+       "generated_tokens": 932,
+       "timed_out": false
+      },
+      {
+       "position": 40,
+       "task_id": "bird23tf-00417",
+       "db_id": "computer_student",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 34.9,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 601,
+       "timed_out": false
+      },
+      {
+       "position": 41,
+       "task_id": "bird23tf-03528",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.021,
+       "elapsed_seconds": 44.6,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 768,
+       "timed_out": false
+      },
+      {
+       "position": 42,
+       "task_id": "bird23tf-01479",
+       "db_id": "public_review_platform",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 105.1,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 8,
+       "generated_tokens": 1573,
+       "timed_out": false
+      },
+      {
+       "position": 43,
+       "task_id": "bird23tf-00809",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 40.9,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 673,
+       "timed_out": false
+      },
+      {
+       "position": 44,
+       "task_id": "bird23tf-05703",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.003,
+       "elapsed_seconds": 141.7,
+       "tool_calls": 5,
+       "repairs": 0,
+       "turns": 6,
+       "generated_tokens": 2120,
+       "timed_out": false
+      },
+      {
+       "position": 45,
+       "task_id": "bird23tf-02994",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 59.7,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 1023,
+       "timed_out": false
+      },
+      {
+       "position": 46,
+       "task_id": "bird23tf-01686",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 52.1,
+       "tool_calls": 1,
+       "repairs": 1,
+       "turns": 3,
+       "generated_tokens": 851,
+       "timed_out": false
+      },
+      {
+       "position": 47,
+       "task_id": "bird23tf-03127",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 56.1,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 940,
+       "timed_out": false
+      },
+      {
+       "position": 48,
+       "task_id": "bird23tf-02670",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 60.3,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 962,
+       "timed_out": false
+      },
+      {
+       "position": 49,
+       "task_id": "bird23tf-01149",
+       "db_id": "professional_basketball",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 160.1,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 2246,
+       "timed_out": false
+      },
+      {
+       "position": 50,
+       "task_id": "bird23tf-06507",
+       "db_id": "music_platform_2",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 3.407,
+       "elapsed_seconds": 66.1,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 1056,
+       "timed_out": false
+      },
+      {
+       "position": 51,
+       "task_id": "bird23tf-05748",
+       "db_id": "software_company",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 252.4,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 3947,
+       "timed_out": false
+      },
+      {
+       "position": 52,
+       "task_id": "bird23tf-04507",
+       "db_id": "disney",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 157.3,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 2319,
+       "timed_out": false
+      },
+      {
+       "position": 53,
+       "task_id": "bird23tf-05928",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.656,
+       "elapsed_seconds": 90.1,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1394,
+       "timed_out": false
+      },
+      {
+       "position": 54,
+       "task_id": "bird23tf-03953",
+       "db_id": "computer_student",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 201.1,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 3296,
+       "timed_out": false
+      },
+      {
+       "position": 55,
+       "task_id": "bird23tf-03551",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 52.7,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 877,
+       "timed_out": false
+      },
+      {
+       "position": 56,
+       "task_id": "bird23tf-01560",
+       "db_id": "public_review_platform",
+       "final": "abstain",
+       "reason": "tool-call budget exhausted without a final answer",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "abstain",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 253.4,
+       "tool_calls": 8,
+       "repairs": 0,
+       "turns": 9,
+       "generated_tokens": 4095,
+       "timed_out": false
+      },
+      {
+       "position": 57,
+       "task_id": "bird23tf-00851",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 57.6,
+       "tool_calls": 2,
+       "repairs": 1,
+       "turns": 4,
+       "generated_tokens": 904,
+       "timed_out": false
+      },
+      {
+       "position": 58,
+       "task_id": "bird23tf-03037",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 108.4,
+       "tool_calls": 4,
+       "repairs": 0,
+       "turns": 5,
+       "generated_tokens": 1632,
+       "timed_out": false
+      },
+      {
+       "position": 59,
+       "task_id": "bird23tf-02956",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 66.4,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 1156,
+       "timed_out": false
+      },
+      {
+       "position": 60,
+       "task_id": "bird23tf-01640",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 98.8,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1666,
+       "timed_out": false
+      },
+      {
+       "position": 61,
+       "task_id": "bird23tf-03139",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 41.8,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 693,
+       "timed_out": false
+      },
+      {
+       "position": 62,
+       "task_id": "bird23tf-02663",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 129.7,
+       "tool_calls": 5,
+       "repairs": 0,
+       "turns": 6,
+       "generated_tokens": 2115,
+       "timed_out": false
+      },
+      {
+       "position": 63,
+       "task_id": "bird23tf-01158",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 112.7,
+       "tool_calls": 5,
+       "repairs": 0,
+       "turns": 6,
+       "generated_tokens": 1611,
+       "timed_out": false
+      }
+     ],
+     "historical_64": {
+      "p0_16_correct": 11,
+      "p16_64_correct": 29,
+      "total_correct": 40,
+      "of": 64
+     }
+    },
+    "Q27 16-63_sources_changed_since_20261029T205933Z_Q27_thinking_low_p0-16": {
+     "all": [
+      "cli.py",
+      "controller.py",
+      "encode.py",
+      "evidence.py",
+      "identity.py",
+      "infer_controller.py",
+      "ledger.py",
+      "llm_agent.py",
+      "pilot.py",
+      "pilot_report.py",
+      "pilot_run.py",
+      "train.py",
+      "verify.py"
+     ],
+     "agent_relevant": [
+      "llm_agent.py"
+     ],
+     "agent_changes_only_import_torch_placement": [
+      "llm_agent.py"
+     ],
+     "commits": [
+      "92f01cdba816d9d270fa7b358593deb9ae5841a0",
+      "f81944c79e47fd40ac0289f09b2f53e0b0299f8b"
+     ]
+    },
+    "Q27 16-63_reservation": {
+     "id": "20261102T234933-aa3ea772",
+     "hours": 1.9834878089899979,
+     "projected": 3.18195576311309
+    },
+    "Q27_p16_64": {
+     "run": "20261102T234931Z_Q27_thinking_low_p16-64",
+     "commit": "f81944c79e47fd40ac0289f09b2f53e0b0299f8b",
+     "reference_run": "20261029T205933Z_Q27_thinking_low_p0-16",
+     "requested": 48,
+     "correct": 36,
+     "answered": 48,
+     "abstained": 0,
+     "timeouts": 0,
+     "errors": 0,
+     "abstention_reasons": {},
+     "quality": 0.75,
+     "elapsed_seconds_total": 6775.733676845019,
+     "cost_seconds_per_correct": 188.21482435680608,
+     "warnings": [],
+     "per_question": [
+      {
+       "position": 16,
+       "task_id": "bird23tf-03029",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.003,
+       "elapsed_seconds": 81.2,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 246,
+       "timed_out": false
+      },
+      {
+       "position": 17,
+       "task_id": "bird23tf-04905",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 38.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 138,
+       "timed_out": false
+      },
+      {
+       "position": 18,
+       "task_id": "bird23tf-01628",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 109.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 415,
+       "timed_out": false
+      },
+      {
+       "position": 19,
+       "task_id": "bird23tf-03134",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 51.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 190,
+       "timed_out": false
+      },
+      {
+       "position": 20,
+       "task_id": "bird23tf-02664",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 61.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 220,
+       "timed_out": false
+      },
+      {
+       "position": 21,
+       "task_id": "bird23tf-04254",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 183.4,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 672,
+       "timed_out": false
+      },
+      {
+       "position": 22,
+       "task_id": "bird23tf-06518",
+       "db_id": "music_platform_2",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.66,
+       "elapsed_seconds": 75.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 289,
+       "timed_out": false
+      },
+      {
+       "position": 23,
+       "task_id": "bird23tf-03434",
+       "db_id": "software_company",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.013,
+       "elapsed_seconds": 292.4,
+       "tool_calls": 3,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 1160,
+       "timed_out": false
+      },
+      {
+       "position": 24,
+       "task_id": "bird23tf-06228",
+       "db_id": "disney",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 54.2,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 196,
+       "timed_out": false
+      },
+      {
+       "position": 25,
+       "task_id": "bird23tf-00443",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.015,
+       "elapsed_seconds": 120.4,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 470,
+       "timed_out": false
+      },
+      {
+       "position": 26,
+       "task_id": "bird23tf-05912",
+       "db_id": "computer_student",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 68.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 266,
+       "timed_out": false
+      },
+      {
+       "position": 27,
+       "task_id": "bird23tf-03525",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.007,
+       "elapsed_seconds": 95.0,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 366,
+       "timed_out": false
+      },
+      {
+       "position": 28,
+       "task_id": "bird23tf-01565",
+       "db_id": "public_review_platform",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.008,
+       "elapsed_seconds": 61.3,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 212,
+       "timed_out": false
+      },
+      {
+       "position": 29,
+       "task_id": "bird23tf-00840",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 92.5,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 333,
+       "timed_out": false
+      },
+      {
+       "position": 30,
+       "task_id": "bird23tf-03022",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 84.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 266,
+       "timed_out": false
+      },
+      {
+       "position": 31,
+       "task_id": "bird23tf-02969",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 108.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 424,
+       "timed_out": false
+      },
+      {
+       "position": 32,
+       "task_id": "bird23tf-01625",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 66.0,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 235,
+       "timed_out": false
+      },
+      {
+       "position": 33,
+       "task_id": "bird23tf-04970",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 38.5,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 137,
+       "timed_out": false
+      },
+      {
+       "position": 34,
+       "task_id": "bird23tf-02659",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 99.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 381,
+       "timed_out": false
+      },
+      {
+       "position": 35,
+       "task_id": "bird23tf-01167",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 344.5,
+       "tool_calls": 5,
+       "repairs": 0,
+       "turns": 6,
+       "generated_tokens": 1144,
+       "timed_out": false
+      },
+      {
+       "position": 36,
+       "task_id": "bird23tf-06520",
+       "db_id": "music_platform_2",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.74,
+       "elapsed_seconds": 268.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 1084,
+       "timed_out": false
+      },
+      {
+       "position": 37,
+       "task_id": "bird23tf-03442",
+       "db_id": "software_company",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.052,
+       "elapsed_seconds": 225.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 906,
+       "timed_out": false
+      },
+      {
+       "position": 38,
+       "task_id": "bird23tf-04521",
+       "db_id": "disney",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 102.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 396,
+       "timed_out": false
+      },
+      {
+       "position": 39,
+       "task_id": "bird23tf-05284",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 141.2,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 557,
+       "timed_out": false
+      },
+      {
+       "position": 40,
+       "task_id": "bird23tf-00417",
+       "db_id": "computer_student",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 69.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 267,
+       "timed_out": false
+      },
+      {
+       "position": 41,
+       "task_id": "bird23tf-03528",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.021,
+       "elapsed_seconds": 70.2,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 268,
+       "timed_out": false
+      },
+      {
+       "position": 42,
+       "task_id": "bird23tf-01479",
+       "db_id": "public_review_platform",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.007,
+       "elapsed_seconds": 94.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 346,
+       "timed_out": false
+      },
+      {
+       "position": 43,
+       "task_id": "bird23tf-00809",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 102.9,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 337,
+       "timed_out": false
+      },
+      {
+       "position": 44,
+       "task_id": "bird23tf-05703",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.003,
+       "elapsed_seconds": 98.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 311,
+       "timed_out": false
+      },
+      {
+       "position": 45,
+       "task_id": "bird23tf-02994",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 89.4,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 340,
+       "timed_out": false
+      },
+      {
+       "position": 46,
+       "task_id": "bird23tf-01686",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 109.1,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 366,
+       "timed_out": false
+      },
+      {
+       "position": 47,
+       "task_id": "bird23tf-03127",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 69.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 206,
+       "timed_out": false
+      },
+      {
+       "position": 48,
+       "task_id": "bird23tf-02670",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 180.5,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 415,
+       "timed_out": false
+      },
+      {
+       "position": 49,
+       "task_id": "bird23tf-01149",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 249.9,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 566,
+       "timed_out": false
+      },
+      {
+       "position": 50,
+       "task_id": "bird23tf-06507",
+       "db_id": "music_platform_2",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 3.435,
+       "elapsed_seconds": 121.0,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 279,
+       "timed_out": false
+      },
+      {
+       "position": 51,
+       "task_id": "bird23tf-05748",
+       "db_id": "software_company",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.184,
+       "elapsed_seconds": 153.0,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 370,
+       "timed_out": false
+      },
+      {
+       "position": 52,
+       "task_id": "bird23tf-04507",
+       "db_id": "disney",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 305.4,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 745,
+       "timed_out": false
+      },
+      {
+       "position": 53,
+       "task_id": "bird23tf-05928",
+       "db_id": "talkingdata",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.671,
+       "elapsed_seconds": 153.5,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 369,
+       "timed_out": false
+      },
+      {
+       "position": 54,
+       "task_id": "bird23tf-03953",
+       "db_id": "computer_student",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 691.9,
+       "tool_calls": 4,
+       "repairs": 0,
+       "turns": 4,
+       "generated_tokens": 1735,
+       "timed_out": false
+      },
+      {
+       "position": 55,
+       "task_id": "bird23tf-03551",
+       "db_id": "food_inspection",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 77.6,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 177,
+       "timed_out": false
+      },
+      {
+       "position": 56,
+       "task_id": "bird23tf-01560",
+       "db_id": "public_review_platform",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 0,
+       "own_correct": 0,
+       "own_status": "incorrect",
+       "own_exec_seconds": 0.018,
+       "elapsed_seconds": 375.2,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 929,
+       "timed_out": false
+      },
+      {
+       "position": 57,
+       "task_id": "bird23tf-00851",
+       "db_id": "soccer_2016",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 123.4,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 429,
+       "timed_out": false
+      },
+      {
+       "position": 58,
+       "task_id": "bird23tf-03037",
+       "db_id": "hockey",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 106.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 357,
+       "timed_out": false
+      },
+      {
+       "position": 59,
+       "task_id": "bird23tf-02956",
+       "db_id": "image_and_language",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 95.5,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 373,
+       "timed_out": false
+      },
+      {
+       "position": 60,
+       "task_id": "bird23tf-01640",
+       "db_id": "simpson_episodes",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.0,
+       "elapsed_seconds": 273.0,
+       "tool_calls": 2,
+       "repairs": 0,
+       "turns": 3,
+       "generated_tokens": 1061,
+       "timed_out": false
+      },
+      {
+       "position": 61,
+       "task_id": "bird23tf-03139",
+       "db_id": "world",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.002,
+       "elapsed_seconds": 64.5,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 244,
+       "timed_out": false
+      },
+      {
+       "position": 62,
+       "task_id": "bird23tf-02663",
+       "db_id": "ice_hockey_draft",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 143.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 561,
+       "timed_out": false
+      },
+      {
+       "position": 63,
+       "task_id": "bird23tf-01158",
+       "db_id": "professional_basketball",
+       "final": "sql",
+       "reason": "final SQL",
+       "recorded_correct": 1,
+       "own_correct": 1,
+       "own_status": "correct",
+       "own_exec_seconds": 0.001,
+       "elapsed_seconds": 92.8,
+       "tool_calls": 1,
+       "repairs": 0,
+       "turns": 2,
+       "generated_tokens": 302,
+       "timed_out": false
+      }
+     ],
+     "historical_64": {
+      "p0_16_correct": 13,
+      "p16_64_correct": 36,
+      "total_correct": 49,
+      "of": 64
+     }
+    },
+    "seconds": 16.5
+   }
+  }
+ },
+ "failures": 0
+}

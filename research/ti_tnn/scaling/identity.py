@@ -67,7 +67,7 @@ def fsync_dir(directory) -> None:
         os.close(fd)
 
 
-RUN_KINDS = ("baselines", "pilot", "profiles", "smoke", "timing")  # the runs root's top-level run directories
+RUN_KINDS = ("baselines", "pilot", "perf_v2", "profiles", "smoke", "timing")  # the runs root's top-level run directories
 
 
 def run_ref(path, root=None) -> str:

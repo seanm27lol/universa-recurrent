@@ -1,0 +1,3213 @@
+{
+ "arms": {
+  "C4-v1": {
+   "arm": "c4_params",
+   "config_identity": "9ffb08f754f551fbaf3101d7ef6bc854c8e3ba3923bb8a21811e5ce1b2fa0f39",
+   "eval_peak_memory_bytes": 12244541440,
+   "fresh_states_all_equal_anchor": true,
+   "grounding": "v1",
+   "label": "C4-v1",
+   "reconstruction": [
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04097"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03029"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04905"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01628"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02664"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04254"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03434"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06228"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00443"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05912"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01565"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00840"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03022"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02969"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01625"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04970"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02659"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01167"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06520"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03442"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04521"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05284"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00417"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01479"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00809"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05703"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02994"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01686"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03127"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05748"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05928"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03953"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03551"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01560"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00851"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03037"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02956"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01640"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03139"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02663"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01158"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03426"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01838"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05932"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05268"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03519"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01450"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00784"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04922"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02962"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04433"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04963"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02680"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01113"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03440"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04524"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03980"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03949"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03537"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04385"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04133"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03099"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02979"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04436"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02661"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03445"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04513"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00472"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05910"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01576"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00736"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03060"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02989"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03126"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06049"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06516"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03432"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05282"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03938"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01506"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00765"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06499"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02964"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01698"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03121"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02673"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01110"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05715"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05090"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01847"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00451"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00430"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01546"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05321"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 128,
+    "arm": "C4_params",
+    "config_identity": "9ffb08f754f551fbaf3101d7ef6bc854c8e3ba3923bb8a21811e5ce1b2fa0f39",
+    "correct": 8,
+    "cost_seconds_per_correct": 20.001839940379796,
+    "elapsed_seconds_total": 160.01471952303837,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.0625,
+    "repairs": 0,
+    "requested": 128,
+    "timeouts": 0,
+    "tokens": {
+     "context": 402017
+    },
+    "tool_calls": 0
+   }
+  },
+  "C4-v2": {
+   "arm": "c4_params",
+   "config_identity": "ce3b62c71a7efb6ef6d0fc89d3ddb67af271692da350a8a4809e8a372d3ff052",
+   "eval_peak_memory_bytes": 12263625728,
+   "fresh_states_all_equal_anchor": true,
+   "grounding": "v2",
+   "label": "C4-v2",
+   "reconstruction": [
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04097"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03029"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04905"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01628"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02664"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04254"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03434"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06228"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00443"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05912"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01565"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00840"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03022"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02969"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01625"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04970"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02659"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01167"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06520"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03442"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04521"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05284"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00417"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01479"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00809"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05703"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02994"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01686"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03127"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05748"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05928"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03953"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03551"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01560"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00851"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03037"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02956"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01640"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03139"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02663"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01158"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03426"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01838"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05932"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05268"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03519"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01450"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00784"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04922"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02962"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04433"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04963"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02680"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01113"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03440"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04524"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03980"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03949"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03537"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04385"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04133"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03099"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02979"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04436"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02661"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03445"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04513"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00472"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05910"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01576"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00736"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03060"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02989"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03126"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06049"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06516"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03432"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05282"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03938"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01506"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00765"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06499"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02964"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01698"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03121"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02673"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01110"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05715"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05090"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01847"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00451"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00430"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01546"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05321"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 128,
+    "arm": "C4_params",
+    "config_identity": "ce3b62c71a7efb6ef6d0fc89d3ddb67af271692da350a8a4809e8a372d3ff052",
+    "correct": 23,
+    "cost_seconds_per_correct": 7.121837926784318,
+    "elapsed_seconds_total": 163.8022723160393,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.1796875,
+    "repairs": 0,
+    "requested": 128,
+    "timeouts": 0,
+    "tokens": {
+     "context": 402017
+    },
+    "tool_calls": 0
+   }
+  },
+  "T4-v1": {
+   "arm": "T4",
+   "config_identity": "3cf849c84b01d7587375527a2dd70435a77e92daed4717d33554db30ab644b6a",
+   "eval_peak_memory_bytes": 12244982272,
+   "fresh_states_all_equal_anchor": true,
+   "grounding": "v1",
+   "label": "T4-v1",
+   "reconstruction": [
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04097"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03029"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04905"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01628"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02664"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04254"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03434"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06228"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00443"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05912"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01565"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00840"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03022"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02969"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01625"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04970"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02659"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01167"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06520"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03442"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04521"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05284"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00417"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01479"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00809"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05703"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02994"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01686"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03127"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05748"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05928"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03953"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03551"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01560"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00851"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03037"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02956"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01640"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03139"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02663"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01158"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03426"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01838"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05932"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05268"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03519"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01450"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00784"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04922"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02962"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04433"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04963"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02680"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01113"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03440"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04524"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03980"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03949"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03537"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04385"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04133"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03099"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02979"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04436"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02661"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03445"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04513"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00472"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05910"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01576"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00736"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03060"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02989"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03126"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06049"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06516"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03432"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05282"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03938"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01506"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00765"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06499"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02964"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01698"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03121"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02673"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01110"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05715"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05090"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01847"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00451"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00430"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01546"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05321"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 128,
+    "arm": "T4",
+    "config_identity": "3cf849c84b01d7587375527a2dd70435a77e92daed4717d33554db30ab644b6a",
+    "correct": 14,
+    "cost_seconds_per_correct": 11.633948968566463,
+    "elapsed_seconds_total": 162.8752855599305,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.109375,
+    "repairs": 0,
+    "requested": 128,
+    "timeouts": 0,
+    "tokens": {
+     "context": 402017
+    },
+    "tool_calls": 0
+   }
+  },
+  "T4-v2": {
+   "arm": "T4",
+   "config_identity": "9bdceeeeef4dfbc721b7d708999dc101cfd8505362d8ad04d9ed8e70a8db4139",
+   "eval_peak_memory_bytes": 12263066112,
+   "fresh_states_all_equal_anchor": true,
+   "grounding": "v2",
+   "label": "T4-v2",
+   "reconstruction": [
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04392"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00788"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05697"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04901"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01627"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02636"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06046"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04982"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03420"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01859"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00469"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03943"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03526"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04345"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04097"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03029"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04905"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01628"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02664"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04254"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03434"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06228"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00443"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05912"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01565"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00840"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03022"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02969"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01625"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04970"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02659"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01167"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06520"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03442"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04521"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05284"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00417"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01479"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00809"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05703"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02994"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01686"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03127"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05748"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04507"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05928"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03953"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03551"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01560"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00851"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03037"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02956"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01640"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03139"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02663"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01158"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06525"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03426"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01838"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05932"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05268"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03519"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01450"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00784"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04922"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02962"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04433"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04963"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02680"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01113"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03149"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03440"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04524"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03980"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03949"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03537"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04385"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04133"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03099"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02979"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04436"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02661"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01130"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06528"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03445"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04513"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00472"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05910"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05138"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01576"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00736"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03060"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02989"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01670"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03126"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-04824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06049"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06516"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03432"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01824"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05282"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03938"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05134"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01506"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00765"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-06499"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02964"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01698"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03121"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-02673"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01110"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05715"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05090"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01847"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00451"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-00430"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-03518"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-01546"
+    },
+    {
+     "fresh_states_equal_anchor": true,
+     "same_actions": true,
+     "same_final": true,
+     "task_id": "bird23tf-05321"
+    }
+   ],
+   "reconstruction_all_equal": true,
+   "record_errors": [],
+   "summary": {
+    "abstained": 0,
+    "abstention_reasons": {},
+    "answered": 128,
+    "arm": "T4",
+    "config_identity": "9bdceeeeef4dfbc721b7d708999dc101cfd8505362d8ad04d9ed8e70a8db4139",
+    "correct": 19,
+    "cost_seconds_per_correct": 8.435664360265946,
+    "elapsed_seconds_total": 160.27762284505297,
+    "errors": 0,
+    "peak_memory_bytes_max": 0,
+    "quality": 0.1484375,
+    "repairs": 0,
+    "requested": 128,
+    "timeouts": 0,
+    "tokens": {
+     "context": 402017
+    },
+    "tool_calls": 0
+   }
+  }
+ },
+ "failures": [],
+ "passed": true,
+ "reservation": {
+  "hours": 0.21402643176972358,
+  "id": "20261103T083924-dd25269f",
+  "projected_hours": 0.4
+ },
+ "run_dir": "perf_v2/eval/s100_20261103T083919Z",
+ "states_differ_across_arms": []
+}

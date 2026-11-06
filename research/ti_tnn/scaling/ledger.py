@@ -1,5 +1,13 @@
 """The GPU-reservation ledger: one owner at a time, and an enforced cap on aggregate reservation hours.
 
+**Authorizations are versioned** (`AUTHORIZATIONS`). Each version names its cumulative cap, its date and what it
+covers; the newest one is in force. The cap is cumulative over the whole study, not per version: every reservation
+ever charged counts against it, whichever authorization it ran under.
+- **v1 (2026-10-26):** 8 h, the development study and the controllers-only pilot (6.878 h used).
+- **v2 (2026-11-02):** 32 h, the performance study; it supersedes v1, so about 25.1 h remain.
+Every start entry records the version and cap it ran under, and no historical entry is ever rewritten. The frozen
+pilot's commands keep v1's 8-hour cap (`cap_of(1)`).
+
 **Example.** The work order allows 8 aggregate GPU-reservation hours. Suppose earlier reservations used:
 - 0.4 h profiling the 4B;
 - 1.1 h profiling the 27B, including one failed load;
@@ -51,12 +59,35 @@ from pathlib import Path
 
 from . import contracts as C
 
-CAP_HOURS = 8.0
+AUTHORIZATIONS = (
+    {"version": 1, "cap_hours": 8.0, "date": "2026-10-26",
+     "scope": "the development study and the controllers-only pilot (absolute 8-hour cumulative cap)"},
+    {"version": 2, "cap_hours": 32.0, "date": "2026-11-02", "supersedes": 1,
+     "scope": "the performance study (ti-tnn-scaling-performance-v2): the B4/Q27 completion, the join-grounding "
+              "intervention, matched three-seed controller training and development evaluation; 32 cumulative "
+              "GPU-reservation hours, the 6.878 h already used included; no paid cloud resources"},
+)
+AUTHORIZATION = AUTHORIZATIONS[-1]
+CAP_HOURS = AUTHORIZATION["cap_hours"]
 HEARTBEAT_SECONDS = 30.0
 PROJECTION_MARGIN = 0.5      # a run is held to its own projection × 1.5, within the aggregate cap
 TERMINATION_GRACE_SECONDS = 90.0
 
 _ACTIVE = None               # the reservation this process holds, if any
+
+
+def cap_of(version: int) -> float:
+    """The cumulative cap of one authorization version (the frozen pilot runs under v1's 8 h)."""
+    for a in AUTHORIZATIONS:
+        if a["version"] == version:
+            return a["cap_hours"]
+    raise KeyError(f"no authorization version {version}")
+
+
+def authorization_for(cap_hours: float) -> "int | None":
+    """The newest authorization version with this cap, or None (a test's own cap)."""
+    found = [a["version"] for a in AUTHORIZATIONS if a["cap_hours"] == cap_hours]
+    return found[-1] if found else None
 
 
 class BudgetExceeded(BaseException):
@@ -164,7 +195,10 @@ def usage(path: Path | None = None, now: float | None = None) -> dict:
         r = res.setdefault(e["reservation"], {"reservation": e["reservation"], "start": None, "elapsed": 0.0,
                                               "ended": False, "status": None, "command": None})
         if e["event"] == "start":
-            r.update(start=e["t"], command=e.get("command"), projected_hours=e.get("projected_hours"))
+            r.update(start=e["t"], command=e.get("command"), projected_hours=e.get("projected_hours"),
+                     cap_hours=e.get("cap_hours"),
+                     # entries made before the versioning recorded only their cap (8 h: v1)
+                     authorization=e.get("authorization", authorization_for(e.get("cap_hours"))))
         elif e["event"] == "heartbeat":
             r["elapsed"] = max(r["elapsed"], float(e.get("elapsed", 0.0)))
         elif e["event"] == "end":
@@ -177,7 +211,8 @@ def usage(path: Path | None = None, now: float | None = None) -> dict:
         r["hours"] = seconds / 3600.0
         r["open"] = not r["ended"]
         total += r["hours"]
-    return {"ledger": str(path), "cap_hours": CAP_HOURS, "used_hours": total, "remaining_hours": CAP_HOURS - total,
+    return {"ledger": str(path), "cap_hours": CAP_HOURS, "authorization": AUTHORIZATION["version"],
+            "used_hours": total, "remaining_hours": CAP_HOURS - total,
             "reservations": sorted(res.values(), key=lambda r: r["start"] or 0)}
 
 
@@ -245,6 +280,7 @@ class Reservation:
         self._append({"event": "start", "reservation": self.id, "t": self.t_start, "iso": _iso(self.t_start),
                       "elapsed": 0.0, "command": self.command, "projected_hours": self.projected_hours,
                       "limit_hours": self.limit_hours, "cap_hours": self.cap_hours,
+                      "authorization": authorization_for(self.cap_hours),
                       "used_before_hours": self.used_before, "ledger": str(self.path), "anchor": self.anchor,
                       "pid": os.getpid(),
                       "host": socket.gethostname(), "foreign_gpu_processes": foreign_gpu_processes(),

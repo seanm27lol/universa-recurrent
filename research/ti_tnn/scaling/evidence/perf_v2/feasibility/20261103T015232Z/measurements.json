@@ -1,0 +1,149 @@
+{
+ "arms": {
+  "C4-v1": {
+   "checkpoint_reload_digest_equal": true,
+   "checkpoint_save_seconds_mean": 0.867512914002873,
+   "cold_epoch_update_seconds": 0.44195211960177405,
+   "decoded": 8,
+   "decoded_sql": 8,
+   "eval_seconds_per_request": 1.0614459832504508,
+   "first_update_seconds": 0.7706094690074679,
+   "fixed_seconds": 0.6850053149537416,
+   "grad_norm_finite": true,
+   "loss_first_last": [
+    5.0023240434362535,
+    0.8688421236554194
+   ],
+   "parameters": {
+    "arm": "c4_params",
+    "hidden": 1808,
+    "semantic": 5498847,
+    "semantic_active_max": 5498847,
+    "total": 17016548,
+    "trunk": 11517701
+   },
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.1124164423745242,
+   "timed_states_equal_reconstruction_states": 8,
+   "train_peak_memory_bytes": 17296961536,
+   "training_requests_ex_correct": 0,
+   "update_seconds_after_first": 0.4720193312361302,
+   "update_seconds_mean": 0.46816456051377686,
+   "warm_update_seconds": 0.4720193312361302
+  },
+  "C4-v2": {
+   "checkpoint_reload_digest_equal": true,
+   "checkpoint_save_seconds_mean": 0.5721043609955814,
+   "cold_epoch_update_seconds": 0.5096503878041403,
+   "decoded": 8,
+   "decoded_sql": 8,
+   "eval_seconds_per_request": 1.091130095124754,
+   "first_update_seconds": 0.8457171860063681,
+   "fixed_seconds": 0.7463286569836782,
+   "grad_norm_finite": true,
+   "loss_first_last": [
+    4.988128743273147,
+    0.827627374538663
+   ],
+   "parameters": {
+    "arm": "c4_params",
+    "hidden": 1808,
+    "semantic": 5498847,
+    "semantic_active_max": 5498847,
+    "total": 21234612,
+    "trunk": 15735765
+   },
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.12607621312417905,
+   "timed_states_equal_reconstruction_states": 8,
+   "train_peak_memory_bytes": 17829935104,
+   "training_requests_ex_correct": 0,
+   "update_seconds_after_first": 0.5485186244708636,
+   "update_seconds_mean": 0.5435355172058991,
+   "warm_update_seconds": 0.5485186244708636
+  },
+  "T4-v1": {
+   "checkpoint_reload_digest_equal": true,
+   "checkpoint_save_seconds_mean": 0.653714605505229,
+   "cold_epoch_update_seconds": 0.4580088497954421,
+   "decoded": 8,
+   "decoded_sql": 8,
+   "eval_seconds_per_request": 1.1122067814994807,
+   "first_update_seconds": 1.6932101359998342,
+   "fixed_seconds": 0.7395290690037655,
+   "grad_norm_finite": true,
+   "loss_first_last": [
+    4.9386655117603055,
+    0.8209140618428247
+   ],
+   "parameters": {
+    "arm": "T4",
+    "per_head": {
+     "aggregate": 1358424,
+     "predicate": 1391256,
+     "projection": 1380996,
+     "schema": 1368171
+    },
+    "semantic": 5498847,
+    "semantic_active_max": 1391256,
+    "total": 17016548,
+    "trunk": 11517701
+   },
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.11070976600058202,
+   "timed_states_equal_reconstruction_states": 8,
+   "train_peak_memory_bytes": 17227571712,
+   "training_requests_ex_correct": 0,
+   "update_seconds_after_first": 0.4703974787061109,
+   "update_seconds_mean": 0.4688091929483329,
+   "warm_update_seconds": 0.4703974787061109
+  },
+  "T4-v2": {
+   "checkpoint_reload_digest_equal": true,
+   "checkpoint_save_seconds_mean": 0.7415608584997244,
+   "cold_epoch_update_seconds": 0.5666207483940525,
+   "decoded": 8,
+   "decoded_sql": 8,
+   "eval_seconds_per_request": 1.0691568108741194,
+   "first_update_seconds": 0.9398409770074068,
+   "fixed_seconds": 0.718298335079453,
+   "grad_norm_finite": true,
+   "loss_first_last": [
+    4.930199968053939,
+    0.7912051276595885
+   ],
+   "parameters": {
+    "arm": "T4",
+    "per_head": {
+     "aggregate": 1358424,
+     "predicate": 1391256,
+     "projection": 1380996,
+     "schema": 1368171
+    },
+    "semantic": 5498847,
+    "semantic_active_max": 1391256,
+    "total": 21234612,
+    "trunk": 15735765
+   },
+   "reconstruction_equal": true,
+   "reconstruction_seconds_per_request": 0.12952186087568407,
+   "timed_states_equal_reconstruction_states": 8,
+   "train_peak_memory_bytes": 17808371712,
+   "training_requests_ex_correct": 0,
+   "update_seconds_after_first": 0.5666207483940525,
+   "update_seconds_mean": 0.5508167041773095,
+   "warm_update_seconds": 0.5484925800277886
+  }
+ },
+ "load_seconds": 65.00847903901013,
+ "pool_tokens_mean": 4624.9905063291135,
+ "prepare_seconds_per_example": 0.10723812872502095,
+ "reservation": {
+  "hours": 0.059060168508056246,
+  "id": "20261103T015250-fd32c225",
+  "projected_hours": 0.4
+ },
+ "run_dir": "perf_v2/feasibility/20261103T015232Z",
+ "sample_tokens_mean": 4637.3,
+ "wall_seconds": 229.8349714490032
+}

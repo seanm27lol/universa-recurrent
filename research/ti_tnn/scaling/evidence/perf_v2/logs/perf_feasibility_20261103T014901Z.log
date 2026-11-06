@@ -1,0 +1,159 @@
+Loading weights:   0%|          | 0/723 [00:00<?, ?it/s]Loading weights: 100%|██████████| 723/723 [00:00<00:00, 13866.20it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+{
+ "arms": {
+  "T4-v1": {
+   "first_update_seconds": 1.6932101359998342,
+   "update_seconds_mean": 0.4688091929483329,
+   "cold_epoch_update_seconds": 0.4580088497954421,
+   "warm_update_seconds": 0.4703974787061109,
+   "update_seconds_after_first": 0.4703974787061109,
+   "checkpoint_save_seconds_mean": 0.653714605505229,
+   "fixed_seconds": 0.7395290690037655,
+   "loss_first_last": [
+    4.9386655117603055,
+    0.8209140618428247
+   ],
+   "grad_norm_finite": true,
+   "train_peak_memory_bytes": 17227571712,
+   "checkpoint_reload_digest_equal": true,
+   "eval_seconds_per_request": 1.1122067814994807,
+   "reconstruction_seconds_per_request": 0.11070976600058202,
+   "reconstruction_equal": true,
+   "timed_states_equal_reconstruction_states": 8,
+   "decoded_sql": 8,
+   "training_requests_ex_correct": 0,
+   "decoded": 8,
+   "parameters": {
+    "arm": "T4",
+    "per_head": {
+     "aggregate": 1358424,
+     "predicate": 1391256,
+     "projection": 1380996,
+     "schema": 1368171
+    },
+    "semantic": 5498847,
+    "semantic_active_max": 1391256,
+    "total": 17016548,
+    "trunk": 11517701
+   }
+  },
+  "C4-v1": {
+   "first_update_seconds": 0.7706094690074679,
+   "update_seconds_mean": 0.46816456051377686,
+   "cold_epoch_update_seconds": 0.44195211960177405,
+   "warm_update_seconds": 0.4720193312361302,
+   "update_seconds_after_first": 0.4720193312361302,
+   "checkpoint_save_seconds_mean": 0.867512914002873,
+   "fixed_seconds": 0.6850053149537416,
+   "loss_first_last": [
+    5.0023240434362535,
+    0.8688421236554194
+   ],
+   "grad_norm_finite": true,
+   "train_peak_memory_bytes": 17296961536,
+   "checkpoint_reload_digest_equal": true,
+   "eval_seconds_per_request": 1.0614459832504508,
+   "reconstruction_seconds_per_request": 0.1124164423745242,
+   "reconstruction_equal": true,
+   "timed_states_equal_reconstruction_states": 8,
+   "decoded_sql": 8,
+   "training_requests_ex_correct": 0,
+   "decoded": 8,
+   "parameters": {
+    "arm": "c4_params",
+    "hidden": 1808,
+    "semantic": 5498847,
+    "semantic_active_max": 5498847,
+    "total": 17016548,
+    "trunk": 11517701
+   }
+  },
+  "T4-v2": {
+   "first_update_seconds": 0.9398409770074068,
+   "update_seconds_mean": 0.5508167041773095,
+   "cold_epoch_update_seconds": 0.5666207483940525,
+   "warm_update_seconds": 0.5484925800277886,
+   "update_seconds_after_first": 0.5666207483940525,
+   "checkpoint_save_seconds_mean": 0.7415608584997244,
+   "fixed_seconds": 0.718298335079453,
+   "loss_first_last": [
+    4.930199968053939,
+    0.7912051276595885
+   ],
+   "grad_norm_finite": true,
+   "train_peak_memory_bytes": 17808371712,
+   "checkpoint_reload_digest_equal": true,
+   "eval_seconds_per_request": 1.0691568108741194,
+   "reconstruction_seconds_per_request": 0.12952186087568407,
+   "reconstruction_equal": true,
+   "timed_states_equal_reconstruction_states": 8,
+   "decoded_sql": 8,
+   "training_requests_ex_correct": 0,
+   "decoded": 8,
+   "parameters": {
+    "arm": "T4",
+    "per_head": {
+     "aggregate": 1358424,
+     "predicate": 1391256,
+     "projection": 1380996,
+     "schema": 1368171
+    },
+    "semantic": 5498847,
+    "semantic_active_max": 1391256,
+    "total": 21234612,
+    "trunk": 15735765
+   }
+  },
+  "C4-v2": {
+   "first_update_seconds": 0.8457171860063681,
+   "update_seconds_mean": 0.5435355172058991,
+   "cold_epoch_update_seconds": 0.5096503878041403,
+   "warm_update_seconds": 0.5485186244708636,
+   "update_seconds_after_first": 0.5485186244708636,
+   "checkpoint_save_seconds_mean": 0.5721043609955814,
+   "fixed_seconds": 0.7463286569836782,
+   "loss_first_last": [
+    4.988128743273147,
+    0.827627374538663
+   ],
+   "grad_norm_finite": true,
+   "train_peak_memory_bytes": 17829935104,
+   "checkpoint_reload_digest_equal": true,
+   "eval_seconds_per_request": 1.091130095124754,
+   "reconstruction_seconds_per_request": 0.12607621312417905,
+   "reconstruction_equal": true,
+   "timed_states_equal_reconstruction_states": 8,
+   "decoded_sql": 8,
+   "training_requests_ex_correct": 0,
+   "decoded": 8,
+   "parameters": {
+    "arm": "c4_params",
+    "hidden": 1808,
+    "semantic": 5498847,
+    "semantic_active_max": 5498847,
+    "total": 21234612,
+    "trunk": 15735765
+   }
+  }
+ },
+ "projection": {
+  "updates_rule": 3000,
+  "fits_at_3000": true,
+  "per_fit_hours": {
+   "T4-v1": 0.3936325181882393,
+   "C4-v1": 0.39506851851253694,
+   "T4-v2": 0.47372309136023577,
+   "C4-v2": 0.4583422296658565
+  },
+  "evaluation_hours": 0.5675245541990444,
+  "needed_hours": 5.729823627379651,
+  "remaining_hours": 21.69057879074303,
+  "contingency_hours": 4.6,
+  "available_hours": 17.09057879074303,
+  "slack_hours": 11.360755163363379,
+  "stop": false,
+  "basis": "measured per-arm update, save and fixed costs on the frozen code; evaluation per request measured on training-pool requests; the 4.6 h contingency held back"
+ }
+}
