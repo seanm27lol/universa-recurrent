@@ -58,9 +58,12 @@ WORK_ORDER_LIMIT = min(32.0, WORK_ORDER_USED_AT_START + 6.0)
 PROTOCOL = C.SCALING / "docs" / "PROTOCOL_semantic_proposal_repair.md"
 PROTOCOL_PIN = C.PINS / "spr_protocol.json"
 NEW_PIN = C.PINS / "spr_new_eval.json"
-REVISE = ("Review your query against the question and the evidence, and correct it if needed. Reply with your final "
-          "query in a ```sql``` code block; it may be the same query.")
-PROMPT_VERSION = "spr-prompts-v1"
+# v1 (the first dev run) ended "Reply with your final query in a ```sql``` code block; it may be the same query." Its
+# revisions often argued at length first: 4 of 32 hit the 512-token ceiling before any SQL. v2 asks for the query
+# alone, the same for D1 and TI1.
+REVISE = ("Review your query against the question and the evidence, and correct it if needed. Reply with only the "
+          "final query in a ```sql``` code block, with no explanation; it may be the same query.")
+PROMPT_VERSION = "spr-prompts-v2"
 
 
 class SprStop(SystemExit):
@@ -306,6 +309,119 @@ def pin_new_cmd(args) -> None:
     print(json.dumps({"pinned": len(ids), "prior_use": hits}, indent=1))
 
 
+# --- analysis -------------------------------------------------------------------------------------------------------
+def _decision(cmp: dict) -> str:
+    """The work order's final decision, from the paired comparisons (TI1 - D1 is primary)."""
+    def lead(d):
+        return d["pooled"] >= LEAD and all(v > 0 for v in d["per_seed"].values()) and \
+            all(v > 0 for v in d["leave_one_database_out"].values())
+
+    def harm(d):
+        return d["pooled"] <= -LEAD and all(v < 0 for v in d["per_seed"].values()) and \
+            all(v < 0 for v in d["leave_one_database_out"].values())
+    if lead(cmp["TI1-D1"]):
+        return "TI1 beats D1: structured feedback has earned further investigation"
+    if harm(cmp["TI1-D1"]) or harm(cmp["TI1-D0"]):
+        return "TI1 harms correctness: inspect its rejected or revised correct proposals"
+    if lead(cmp["D1-D0"]) and lead(cmp["TI1-D0"]):
+        return "TI1 ties D1 but both beat D0: ordinary revision explains the improvement"
+    return "neither revision helps by the rule: retain direct Qwen and stop this repair direction"
+
+
+def analyze_cmd(args) -> None:
+    """Outcomes, lineage and costs of the frozen run (CPU)."""
+    from collections import Counter
+
+    from . import identity, pilot_run
+    from . import perf_analysis as PA
+    proto = protocol_identity()
+    run = sorted(d for d in (ROOT / "run").glob("*") if (d / "scores.jsonl").exists())[-1]
+    reqs = [json.loads(x) for x in (run / "requests.jsonl").read_text().splitlines() if x.strip()]
+    scores = [json.loads(x) for x in (run / "scores.jsonl").read_text().splitlines() if x.strip()]
+    pin = json.loads(NEW_PIN.read_text())
+    ids, db_of = pin["task_ids"], dict(zip(pin["task_ids"], pin["db_ids"]))
+    seeds = sorted({r["seed"] for r in reqs})
+    correct, sc = {}, {}
+    for x in scores:
+        correct.setdefault((x["policy"], x["seed"]), {})[x["task_id"]] = x["score"]["correct"]
+        sc[(x["policy"], x["seed"], x["task_id"])] = x
+    for k, v in correct.items():
+        if sorted(v) != sorted(ids):
+            raise SprStop(f"{k}: {len(v)} of {len(ids)} questions scored")
+    out = {"protocol": proto, "run": identity.run_ref(run), "seeds": seeds,
+           "requests_per_policy": len(ids) * len(seeds),
+           "counts": {f"{p}/{s}": sum(correct[(p, s)].values()) for p in POLICIES for s in seeds},
+           "pooled": {p: sum(sum(correct[(p, s)].values()) for s in seeds) for p in POLICIES}, "comparisons": {}}
+    for a, b in (("TI1", "D1"), ("D1", "D0"), ("TI1", "D0")):
+        d = PA.paired(correct, a, b, seeds, ids, db_of)
+        d["recoveries"] = sum(correct[(a, s)][t] > correct[(b, s)][t] for s in seeds for t in ids)
+        d["regressions"] = sum(correct[(a, s)][t] < correct[(b, s)][t] for s in seeds for t in ids)
+        out["comparisons"][f"{a}-{b}"] = d
+    out["decision"] = _decision(out["comparisons"])
+    out["by_database"] = {db: {p: sum(correct[(p, s)][t] for s in seeds for t in ids if db_of[t] == db)
+                               for p in POLICIES} | {"questions": sum(1 for t in ids if db_of[t] == db)}
+                          for db in sorted(set(db_of.values()))}
+    lineage = {}
+    for p in ("D1", "TI1"):
+        src = Counter(r[p]["source"] for r in reqs)
+        unchanged = sum(1 for r in reqs if r[p]["revised"]["sql"] == r["original"]["sql"])
+        lineage[p] = {"final_source": dict(src),
+                      "revision_rejected": sum(1 for r in reqs if r[p]["source"] != "revised"),
+                      "revision_unchanged_sql": unchanged,
+                      "revision_truncated": sum(1 for r in reqs if r[p]["revised"]["call"]["finish_reason"] != "eos"),
+                      "revised_typed": sum(1 for r in reqs if r[p]["revised"]["typed"]["typed"])}
+    out["lineage"] = lineage
+    out["initial"] = {"no_sql": sum(1 for r in reqs if not r["original"]["sql"]),
+                      "truncated": sum(1 for r in reqs if r["original"]["call"]["finish_reason"] != "eos"),
+                      "typed": sum(1 for r in reqs if r["original"]["typed"]["typed"]),
+                      "untyped_reasons": dict(Counter(r["original"]["typed"]["reason"] for r in reqs
+                                                      if not r["original"]["typed"]["typed"])),
+                      "execution": dict(Counter(r["original"]["execution"]["status"] for r in reqs)),
+                      "with_errors": sum(1 for r in reqs if r["original"]["typed"]["errors"]),
+                      "with_warnings": sum(1 for r in reqs if r["original"]["typed"]["warnings"])}
+    finals = {p: Counter(sc[(p, r["seed"], r["task_id"])]["score"]["predicted"]["status"] for r in reqs)
+              for p in POLICIES}
+    out["final_status"] = {p: dict(v) for p, v in finals.items()}
+    cost = {}
+    for p in POLICIES:
+        gen = sum(r["original"]["call"]["seconds"] for r in reqs)
+        tool = 0.0
+        valid = 0.0
+        if p != "D0":
+            gen += sum(r[p]["revised"]["call"]["seconds"] for r in reqs)
+            tool = sum(r["original"]["execution"]["seconds"] + r[p]["revised"]["execution"]["seconds"] for r in reqs)
+            if p == "TI1":
+                valid = sum(r["original"]["typed"]["seconds"] for r in reqs)
+        exe = sum(sc[(p, r["seed"], r["task_id"])]["score"]["predicted"]["elapsed_seconds"] for r in reqs)
+        ok = out["pooled"][p]
+        tokens_p = sum(r["original"]["call"]["prompt_tokens"] for r in reqs) + \
+            (sum(r[p]["revised"]["call"]["prompt_tokens"] for r in reqs) if p != "D0" else 0)
+        tokens_g = sum(r["original"]["call"]["generated_tokens"] for r in reqs) + \
+            (sum(r[p]["revised"]["call"]["generated_tokens"] for r in reqs) if p != "D0" else 0)
+        peak = max([r["original"]["call"]["peak_memory_bytes"] for r in reqs] +
+                   ([r[p]["revised"]["call"]["peak_memory_bytes"] for r in reqs] if p != "D0" else []))
+        total = gen + tool + valid + exe
+        cost[p] = {"generation_seconds": gen, "validation_seconds": valid, "tool_seconds": tool,
+                   "submitted_execution_seconds": exe, "total_seconds": total, "per_request_seconds": total / len(reqs),
+                   "per_ex_correct_seconds": total / ok if ok else None, "prompt_tokens": tokens_p,
+                   "generated_tokens": tokens_g, "peak_memory_bytes": peak,
+                   "calls_per_request": 1 if p == "D0" else 2}
+    out["cost"] = cost
+    from . import ledger
+    out["gpu_reservations"] = [{"command": r["command"], "id": r["reservation"], "hours": r["hours"],
+                                "status": r["status"]} for r in ledger.usage()["reservations"]
+                               if r["command"].startswith("spr ")]
+    out["ledger"] = {k: v for k, v in ledger.usage().items() if k != "reservations"}
+    run_dir = pilot_run._new_dir(ROOT / "analysis", "")
+    identity.write_manifest(run_dir, config={"command": "spr analyze", "protocol": proto,
+                                             "run": identity.run_ref(run)}, require_clean=not args.allow_dirty)
+    _write(run_dir / "analysis.json", out)
+    print(json.dumps({"counts": out["counts"], "pooled": out["pooled"],
+                      "comparisons": {k: (v["pooled"], v["per_seed"], v["recoveries"], v["regressions"])
+                                      for k, v in out["comparisons"].items()}, "decision": out["decision"]},
+                     indent=1, default=str))
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="command", required=True)
@@ -319,6 +435,9 @@ def main(argv=None) -> int:
         s.set_defaults(fn=fn)
     s = sub.add_parser("pin-new")
     s.set_defaults(fn=pin_new_cmd)
+    s = sub.add_parser("analyze")
+    s.add_argument("--allow-dirty", action="store_true")
+    s.set_defaults(fn=analyze_cmd)
     args = ap.parse_args(argv)
     args.fn(args)
     return 0
