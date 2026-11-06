@@ -243,9 +243,11 @@ Ledger at the analysis: 22.823 of 32.0 h (analysis.json's `gpu_hours` keeps one 
   - every one of the 1,152 timed decodes (a fresh backbone forward each) equals its anchor and its reconstruction
     from the cache.
 - **Timing conditions:**
-  - The new population's reservations were quiet: the one-minute load was 1.1-1.4 throughout.
-  - The two development grounding runs overlapped the producer's CPU work (load means 4.9 and 7.2). Their times are
-    development only.
+  - The new population's reservations were quiet: one-minute load means of 1.1-1.4, with maxima of 1.5-1.8.
+  - The development grounding runs were not quiet, and their times are development only:
+    - the second (load mean 7.2) overlapped the producer's first dev decode;
+    - the first (load mean 4.9, max 8.0) overlapped no run of this study, so its load came from other activity on
+      the host.
 
 ## What this does not establish
 
@@ -272,8 +274,56 @@ this one.
 
 ## Independent verification
 
-Pending: the independent reviewer's verifier (`independent/verify_gi.py`) is being completed. This section will
-give its check counts and findings.
+A separate reviewer session wrote `independent/verify_gi.py` (sha256 `b18c3882…`) and ran it at 429694a from an
+empty output directory: **295 checks, 0 failures.** It ran on the CPU only and wrote nothing under the runs root. Its
+main process imports no producer module. Producer code ran only in separate processes, flagged: the frozen code for
+the schema items, the prompt's schema text, the cached states and the decoding framework, and `gi_report`.
+
+The output is `evidence/grounding_interface_v1/independent/verify_gi.json`, summarized in `README.txt` there.
+
+**All ten items of the work order's list pass.**
+
+1. **Inventories.** Rebuilt from the raw release with the reviewer's own rule. Every run covers its population
+   exactly once. The prior-use scan of 1,203 files finds only the three expected files.
+2. **Input permissions.** The reviewer rebuilt 256 prompts with exactly the recorded token counts. Its own BM25
+   reproduces every retrieved list, all from other training databases. No evaluated question's gold SQL or task id
+   appears in any prompt. The oracle appears in no new-population run.
+3. **Consumption.** Its own bias vectors equal the recorded records' (732 of 732). A CPU re-decode of all 1,152 timed
+   decodes gives 1,149 equal. The 3 differences are G0 near ties, with logit margins of 0.0008-0.0072, likely TF32 on
+   the GPU; the GPU's own reconstruction was equal. Removing literals and flipping the status changes nothing (348 of
+   348).
+4. **Fallback.** Its own parser agrees on every record's validity. Every one of the 36 new-population fallback
+   decodes equals G0.
+5. **Scores.** All 2,058 distinct question-SQL pairs were re-executed with its own EX rule, and every recorded score
+   and status matches.
+6. **Timing.**
+   - `controller_seconds` spans the fresh forward, the Glex record and the decode.
+   - The G4 call is charged to every G4 request, fallbacks included.
+   - The six reservations ended ok, with no overlap, each within 1.5 times its projection. The worst case stayed at
+     or under 23.175 h against the 29.416 h limit.
+7. **Integrity.** All 64 new cache entries hash to their anchors, and all 1,152 fresh states equal them.
+8. **The constraint diagnostic.** Its own restricted machine reproduces the restricted decodes (768 of 768), and every
+   count matches.
+9. **The analysis.** Every count, comparison, condition, interaction, cost and reading equals `analysis.json`.
+10. **The dev phase.** The gate recomputes exactly. The freeze (fb4e342) postdates the last dev write, and the gate
+    rule was committed (e759e58) before both dev decodes.
+
+**Notes, none changing a result:**
+- The first dev grounding run (prompt v1) started before e759e58; the gate applies to the decodes, which both came
+  later.
+- Two constraint-diagnostic queries time out at 30 s on the efficiency cores and finish, incorrect as recorded, with
+  more time.
+- `analysis.json`'s `gpu_hours` keeps one entry per command name (the table above lists every reservation).
+- The reviewer's own reading of the record diagnostics agrees within tolerance, not exactly, because its gold parser
+  differs.
+- The protocol says "at least +10"; the reviewer applied |pooled| >= 10, as the performance study did. Here it changes
+  nothing.
+
+**Not checked independently:**
+- the GPU timings and the model replies, beyond their consistency;
+- the prompts byte for byte (by exact token count instead);
+- a re-implementation of Glex;
+- the sql_to_ir-based record diagnostics, exactly.
 
 ## Evidence and reproduction
 
