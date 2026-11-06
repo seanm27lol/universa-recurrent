@@ -281,7 +281,54 @@ Five statements of this study, and of the performance study it builds on, need n
 
 The next experiment must not be a larger controller or a larger ranking bias chosen after these results.
 
-⟨MARGIN DIAGNOSTIC⟩
+### The bounded margin diagnostic (CPU; post hoc; evaluator-only interventions)
+
+**Setup.** `python -m scaling.gi_margin` (a new module; the frozen producer is untouched) took a deterministic
+sample: the 32 dev questions with the smallest sha256 of `gi-margin-sample-v1:<task id>`. It used the saved seed-100
+T4-v2 and C4-v2 checkpoints and fitted nothing. The run, `margin/20261106T024526Z` from a clean f0b6def, is identical
+to an earlier uncommitted trial, which is kept and labelled.
+
+At every table and column pointer decision along the unbiased (G0) greedy trajectory it recorded:
+- the legal candidates' logits and the selected item's margin over the runner-up;
+- for the G4 record and the oracle record, the applied prior difference, and whether that prior could change the
+  selection with the prefix held fixed.
+
+**The prior could almost never change a decision.**
+
+| seed 100 | table decisions with margin > ln 2 | column decisions with margin > ln 2 | decisions G4's prior could change | decisions the oracle's prior could change |
+|---|---|---|---|---|
+| T4-v2 | 47 of 56 | 120 of 135 | 3 of 191 | 3 of 191 |
+| C4-v2 | 54 of 61 | 137 of 146 | 6 of 207 | 6 of 207 |
+
+The interface's small effect is explained mechanically. The controllers lead by more than ln 2 on 84-94% of their
+pointer decisions, which no record can overturn.
+
+**Two evaluator-only interventions** (they read the gold program; never deployable, not accuracy claims). EX-correct
+of 32:
+
+| seed 100 | G0 | reference-restricted tables and columns | forced reference prefix through the first divergence |
+|---|---|---|---|
+| T4-v2 | 6 | 7 (+2, -1) | 7, on 29 defined (G0 6 on the same) |
+| C4-v2 | 6 | 10 (+4, -0) | 8, on 28 defined (G0 5 on the same) |
+
+- **Reference restriction** removes every irrelevant first table:
+  - T4: 6 irrelevant of 32 under G0, 0 restricted (11 remain another gold table first);
+  - C4: 8 irrelevant, then 0 (12 remain).
+
+  No request had a step without a reference-supported legal candidate. Yet accuracy rises only from 6 to 7 and 10.
+  So even with the tables and columns right, most programs stay wrong: operators, literals, aggregates and structure
+  remain.
+- **Forced prefix:**
+  - Undefined for 3 requests per fit: the gold program is not representable. C4 had one request with no divergence.
+    No forced action was illegal.
+  - After the gold prefix through the first departure, the free suffix reproduces the gold program in only 2 of 29
+    (T4) and 5 of 28 (C4) cases.
+  - Most first departures are table decisions (18 and 20). Forcing them right recovers only 2 and 4 correct answers.
+
+  This is direct evidence that errors compound or recur after the first one: exposure to the model's own later
+  decisions is not ruled out as a cause (correction 4).
+
+This is a 32-question, one-seed diagnostic, and it is not a prerequisite for any further training study.
 
 ## Recommendation
 
