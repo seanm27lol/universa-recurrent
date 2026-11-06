@@ -1,0 +1,18 @@
+{
+ "both_failed_alike": 1,
+ "changed": [],
+ "ex_compiled_supported": 32,
+ "ex_original_supported": 32,
+ "preserved": 47,
+ "records": 64,
+ "same_result_set": 46,
+ "same_row_list": 46,
+ "supported": 47,
+ "unsupported": {
+  "ambiguous column": 2,
+  "function YEAR": 1,
+  "unknown column": 8,
+  "unknown table": 1,
+  "unresolved column": 5
+ }
+}
