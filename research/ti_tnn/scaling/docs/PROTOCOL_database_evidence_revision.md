@@ -135,7 +135,7 @@ V1 - D0 and D1 - D0 are secondary.
 **Decision, in order:**
 1. If V1 meets the rule against D1: "V1 meets the continuation rule against D1". The next investigation is proposed.
 2. If V1 harms by the rule against D1 or against D0: inspect its regressions.
-3. Otherwise: "V1 did not meet the prespecified threshold for further investment on this population", and this
+3. Otherwise: "V1 did not meet the prespecified continuation threshold on this population", and this
    version stops.
 
 A missed threshold is not reported as proof of no effect, nor as proof that the effect is small.

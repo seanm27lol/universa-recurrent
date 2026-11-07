@@ -112,7 +112,7 @@ def test_the_decision_uses_the_registered_plus_8_rule(wins, lead):
     cmp = {f"{a}-{b}": RULE.paired_rule(c, a, b, SEEDS, QIDS, DB_OF) for a, b in D.COMPARISONS}
     assert cmp["V1-D1"]["threshold"] == 8 and cmp["V1-D1"]["pooled"] == sum(wins.values())
     text = D.decision(cmp)
-    assert text.startswith("V1 meets") if lead else text.startswith("V1 did not meet the prespecified threshold")
+    assert text.startswith("V1 meets") if lead else text.startswith("V1 did not meet the prespecified continuation threshold")
     assert "no effect" not in text and "small" not in text
 
 
@@ -177,4 +177,4 @@ def test_a_gain_in_one_database_does_not_meet_the_rule():
     one_db = {(s, t) for s in SEEDS for t in QIDS if DB_OF[t] == "db1"}       # 8 questions x 2 seeds, all in db1
     out = D.analyze(*_records(one_db), QIDS, DB_OF, SEEDS)
     assert out["pooled"]["V1"] == 16 and not out["comparisons"]["V1-D1"]["all_conditions"]
-    assert out["decision"].startswith("V1 did not meet the prespecified threshold")
+    assert out["decision"].startswith("V1 did not meet the prespecified continuation threshold")

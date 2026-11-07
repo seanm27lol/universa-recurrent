@@ -318,8 +318,7 @@ def decision(cmp: dict) -> str:
         return "V1 meets the continuation rule against D1: database evidence has earned further investigation"
     if RULE.harm(cmp["V1-D1"]) or RULE.harm(cmp["V1-D0"]):
         return "V1 harms correctness by the rule: inspect its regressions"
-    return ("V1 did not meet the prespecified threshold for further investment on this population: "
-            "this version stops")
+    return "V1 did not meet the prespecified continuation threshold on this population: this version stops"
 
 
 def bootstrap_all(correct: dict, comparisons, seeds, ids: list, resamples: int = BOOTSTRAP_RESAMPLES,
