@@ -35,7 +35,7 @@ file but not its labels.)
   an unqualified column that a derived table or CTE of its scope might also supply was bound to the stored table
   (SQLite: ambiguous). Its outputs are under `retrieval_v1.2/` and `compare_v1.2/`.
 - **db-evidence-v1.3 (d04220b), superseded:** v1.2 with that column left unresolved, and correlated columns in
-  set-operation branches looked up outward; but a CTE or derived table with a column list was read by its select
+  set-operation branches looked up outward; but a CTE with a column list was read by its select
   names. Its outputs are under `retrieval_v1.3/` and `compare_v1.3/`.
 - **db-evidence-v1.4:** v1.3 reading the column list, as SQLite does. Its outputs are under `retrieval_v1.4/` and
   `compare_v1.4/`.
