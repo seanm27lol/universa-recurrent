@@ -211,7 +211,7 @@ a shorter country list than the evidence. Among Toronto's draftees only Belarus,
 occur. So once 'Czech Rep.' is used, the evidence's full list gives the reference's result, and the case is not an
 unresolved disagreement.
 
-## Correction: SQL scopes (db-evidence-v1.3)
+## Correction: SQL scopes (db-evidence-v1.4)
 
 **The defect (found in the owner's review).** db-evidence-v1's `parse_proposal` built one alias map for the whole
 SQL tree. A nested query that reuses an outer alias overwrote it. In
@@ -226,7 +226,8 @@ which is different from a bounded search missing a candidate.
 - **Qualified columns** bind to their own scope's source.
 - **Correlated columns** are looked up outward through enclosing subqueries and set-operation branches.
 - **Unqualified columns** bind to the one source of their scope that may have them, else outward. A derived table or
-  CTE counts as a possible source if it exposes that name, or a star.
+  CTE counts as a possible source if it exposes that name, or a star. A CTE exposes its column list if it has one,
+  else its select names.
 - **Unbindable columns** are recorded under `proposal.unresolved` with a reason and get no column-specific evidence.
   This covers columns that are ambiguous (including between a stored table and a derived table or CTE), come from a
   derived table or CTE, or cannot be bound at all.
@@ -238,12 +239,19 @@ Nothing else changed: no stopword, threshold, literal policy, candidate count or
 - correlated qualified and unqualified columns, including inside a UNION branch;
 - shadowing;
 - ambiguity, including between a stored and a derived source;
+- CTE column lists;
 - derived tables and CTEs, including a CTE named like a stored table;
 - ordinary joins and self-joins.
 
-The reviewer's own oracle of 36 SQL fixtures, each run through SQLite, gives 0 wrong bindings under v1.3. One case
-is left unresolved although SQLite binds it: an unqualified column read through a derived table that selects `*`,
-whose columns v1.3 does not expand. That is conservative: no evidence, rather than guessed evidence.
+The reviewer's own oracle gives 0 wrong bindings under v1.4. It has 57 SQL fixtures, each run through SQLite: 36
+from the second review and 21 adversarial ones added in the third.
+
+Some cases are left unresolved although SQLite binds them. These are conservative: no evidence rather than guessed
+evidence.
+- an unqualified column read through a derived table that selects `*`, whose columns are not expanded;
+- a derived table's unaliased expression;
+- outer references from inside a derived table nested in a correlated subquery. SQLite accepts these; v1.4 does not
+  look outward from a derived table.
 
 **Versions, all kept.** Every version's outputs are under SHA256SUMS in `evidence/evidence_coverage_v1/`.
 
@@ -252,10 +260,11 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
 | db-evidence-v1 | dd45591 | the original study | `retrieval/`, `compare/` |
 | db-evidence-v1.1 | 8e729cf | scopes, but by accident also the order of the proposal's tables (scope order instead of SQL order). That order drives the column search: in bird23tf-03051/201, 'L' and 'R' were no longer found. Superseded. | `retrieval_v1.1/`, `compare_v1.1/`, `impact/20261107T165734Z` |
 | db-evidence-v1.2 | 352284e | scopes, with the tables in SQL order as in v1; but a column that a derived table or CTE of its scope might also supply was bound to the stored table (SQLite: ambiguous), and set-operation branches did not look outward. Superseded, found by the second review. | `retrieval_v1.2/`, `compare_v1.2/`, `impact/20261107T165907Z` |
-| db-evidence-v1.3 | d04220b | v1.2 with both fixed | `retrieval_v1.3/`, `compare_v1.3/`, `impact/20261107T170718Z` |
+| db-evidence-v1.3 | d04220b | v1.2 with both fixed; but a CTE with a column list was read by its select names, so `WITH c(city) AS (SELECT name ...)` beside a stored `city` was bound instead of left ambiguous. Superseded, found by the third review. | `retrieval_v1.3/`, `compare_v1.3/`, `impact/20261107T170718Z` |
+| db-evidence-v1.4 | de246d7 | v1.3 reading the CTE's column list | `retrieval_v1.4/`, `compare_v1.4/`, `impact/20261107T171151Z` |
 
-**Impact on the 128 saved proposals (v1 to v1.3, CPU).** v1.3's packages equal v1.2's except one reason string, for
-`vacount` in bird23tf-01840/200; its rendered text is identical.
+**Impact on the 128 saved proposals (v1 to v1.4, CPU).** v1.4's packages equal v1.3's, which equal v1.2's except one
+reason string, for `vacount` in bird23tf-01840/200; its rendered text is identical.
 - **No literal, predicate, join, numeric-use or output binding changed in any proposal.** No proposal reused an alias
   across scopes, so no reported value lookup was affected.
 - **7 proposals gained column bindings, none lost one.** An unqualified column inside a subquery or join, such as
@@ -271,7 +280,7 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
     column no source has, and 1 (`vacount`) is a derived-table column, left unbound on purpose.
   - **The extra entries.** SQLite stops at the first error, so a proposal's other unresolved entries are columns it
     never reached.
-- **No coverage class changed.** Every table above holds for v1.3 as for v1.
+- **No coverage class changed.** Every table above holds for v1.4 as for v1.
 
 ## Proposed frozen comparison against ordinary revision (not launched)
 
@@ -281,13 +290,13 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
 |---|---|
 | D0 | none: the initial proposal |
 | D1 | ordinary revision: the raw execution observation (PR #71's D1, unchanged) |
-| V1 | D1's message plus the rendered db-evidence-v1.3 payload, and nothing else |
+| V1 | D1's message plus the rendered db-evidence-v1.4 payload, and nothing else |
 
 - **Held equal across D1 and V1:**
   - the revision seed, conversation prefix, token limits, deadline and alternating revision order;
   - the selection rule from PR #71: revised if extracted, read-only and executes; else original; else abstain.
   - The lookup's CPU time is charged to V1.
-- **The lookup is frozen as db-evidence-v1.3:** db-evidence-v1 with only the SQL-scope correction above.
+- **The lookup is frozen as db-evidence-v1.4:** db-evidence-v1 with only the SQL-scope correction above.
   - The misses above suggest changes: keep "name" as a term in column matching, search names the evidence mentions
     but does not quote, and widen or reorder the column search.
   - Making them now would fit the lookup to these 17 cases.
@@ -305,7 +314,7 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
     cost.
 - **The message, byte for byte.** V1's revision message is pinned with its sha256: the raw observation, then the
   payload under a fixed header, then the revision instruction (spr-prompts-v2).
-- **Freeze artefacts.** db-evidence-v1.3 is frozen by commit and file sha256, together with the population pin, before
+- **Freeze artefacts.** db-evidence-v1.4 is frozen by commit and file sha256, together with the population pin, before
   any run. The prior-use scan also covers the residual-audit and evidence-coverage bundles.
 - **Declared before the run:**
   - **recoveries and regressions,** with regressions on originally correct proposals as the harm measure for
@@ -322,9 +331,12 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
     this version stops.
 - **Interpreting a miss.** Missing a continuation threshold on a finite sample does not bound the underlying effect.
   - The report gives the observed V1 - D1, its recoveries and regressions, and its uncertainty, pinned before the run:
-    - a 95% percentile interval from a bootstrap over the 64 questions, each resampled with both its seeds;
-    - 10,000 resamples with a fixed seed;
-    - the paired sign-flip p-value, labelled exploratory.
+    - **A 95% percentile interval** for the pooled V1 - D1, from a bootstrap over the 64 questions: 10,000
+      resamples, random seed 20261107, each question resampled with both its seeds. It treats questions as
+      independent and does not account for clustering by database. The rule's leave-one-database-out condition
+      covers that separately.
+    - **The exact paired sign-flip p-value** over the per-database differences (`perf_analysis.paired`), labelled
+      exploratory.
   - A small positive result is not called zero.
   - A missed +8 is not called proof that a large effect is impossible.
   - In-sample, 17 grounding cases held about 10 that the evidence could repair, so +8 of 128 in both seeds and
@@ -346,7 +358,7 @@ whose columns v1.3 does not expand. That is conservative: no evidence, rather th
 
 ## Files
 
-- `db_evidence.py` (now db-evidence-v1.3), `evidence_coverage.py` and `tests/test_ti_tnn_scaling_db_evidence.py`.
+- `db_evidence.py` (now db-evidence-v1.4), `evidence_coverage.py` and `tests/test_ti_tnn_scaling_db_evidence.py`.
 - `coverage/requirements_v1.json`: the frozen requirements.
 - `evidence/evidence_coverage_v1/`, under SHA256SUMS:
   - `retrieval/20261107T075211Z/` holds every package, with its rendered text, ranks, provenance, payload size,
