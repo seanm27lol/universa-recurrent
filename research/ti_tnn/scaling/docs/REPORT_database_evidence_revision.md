@@ -149,7 +149,7 @@ They are not a policy or a causal account.
 |---|---|---|
 | bird23tf-01144, seed 200 (professional_basketball) | 0 / 1 / 0 | The initial SQL failed: `T3.award` does not exist. D1 dropped that condition and executed. V1 kept it, and changed `draftFrom = 'California'` to `LIKE 'California%'` after the payload listed 'California ...' values. Its revision failed, so V1 abstained. The payload did not mention the missing column. |
 | bird23tf-00441, seed 200 (talkingdata) | 1 / 1 / 0 | The initial SQL was correct. D1 added `DISTINCT`. V1 replaced `events` with `events_relevant`, the first table the payload listed as matching the question, which returned 0 rows. This is the one initially correct answer V1 broke. |
-| bird23tf-03981, seed 200 (talkingdata) | 0 / 0 / 1 | The initial SQL failed (`T1.device_id` does not exist). D1 resubmitted it unchanged and abstained. V1 joined `app_events` to `gender_age` through `events_relevant`, a table the payload listed, and executed. |
+| bird23tf-03981, seed 200 (talkingdata) | 0 / 0 / 1 | The initial SQL failed (`T1.device_id` does not exist). D1 resubmitted it unchanged and abstained. V1 joined `app_events` to `gender_age` through `events_relevant`, which appeared in the payload only in its declared keys (`events_relevant.device_id -> gender_age.device_id`), and executed. |
 | bird23tf-01645, seed 201 (simpson_episodes) | 0 / 1 / 0 | The initial SQL failed (`T1.name` does not exist). D1 used `Award.person` and executed. V1 kept `T1.name`, so its revision failed and V1 abstained. The payload did not mention the missing column. |
 | bird23tf-02677, seed 201 (ice_hockey_draft) | 0 / 0 / 1 | The initial SQL failed (`height_in_cm` is not in `PlayerInfo`). D1 averaged `PlayerInfo.height`, which is an id. V1 joined `height_info`, which the payload listed with the declared key `PlayerInfo.height -> height_info.height_id`. |
 | bird23tf-04913, seed 201 (image_and_language) | 0 / 0 / 1 | The initial SQL failed (`OBJ_CLASS` is not in `IMG_OBJ`). D1 resubmitted it unchanged and abstained. V1 joined `OBJ_CLASSES` on the declared key the payload listed. |
@@ -180,6 +180,32 @@ tokens against 684,238), the lookup (6.2 s) and tool and execution time. Peak me
 The run took 0.461 GPU-reservation hours, against 0.65 projected and the 1-hour allowance. The host load stayed at
 or below 3.0 throughout (co-tenancy log). An idle 533 MiB process from another project was on the GPU.
 
+## Independent reconstruction
+
+The independent reviewer wrote its own verifier, `independent/verify_dbe.py` (sha256 d71704da…). It ran 165 checks
+with 0 failures. Its outputs and limitations are in `evidence/dbe_v1/independent/`.
+
+**What it checked:**
+- **Scores:** every one of the 384 submitted SQL re-executed against its gold on the pinned snapshots, with its own
+  EX rule.
+- **Lineage:** the shared initial candidate and B4 extraction, D1's and V1's messages, and the prompt prefixes by
+  token count. The remaining time equals 180 s minus the initial call, execution and lookup. The revision order
+  follows the seed rule, and every selection, fallback and abstention re-derives.
+- **The lookup:** a fresh db-evidence-v1.4 lookup equals every recorded package, and no gold is reachable.
+- **Statistics:** every paired statistic, including its own bootstrap and sign-flip.
+- **Costs:** the cost totals, the single reservation within the 1-hour allowance, and the co-tenancy log.
+- **Integrity:** one request per question and seed, nothing dropped, no rerun.
+- **This report:** its numbers and statements. One wording point was corrected: in bird23tf-03981, `events_relevant`
+  appears only in the payload's declared keys.
+
+**Its stated limitations:**
+- model outputs are taken as recorded, not regenerated;
+- seed equality rests on the frozen code and the matching prefixes, since seeds are not recorded per call;
+- the fresh lookup and the prompt inputs ran from the producer's code in a separate, flagged process;
+- timings are checked for consistency only;
+- the foreign GPU process's activity between the reservation's start and end is not logged;
+- partial overlaps between a payload and a gold result cannot be told apart from legitimate database facts.
+
 ## What this does and does not show
 
 - **The rule was not met.** The frozen db-evidence-v1.4 payload, added to ordinary revision, did not meet the
@@ -200,6 +226,6 @@ or below 3.0 throughout (co-tenancy log). An idle 533 MiB process from another p
 ## Files and reproduction
 
 - `evidence/dbe_v1/`, under SHA256SUMS: the run (requests with every evidence package, candidate and selection, and
-  the scores), the analysis, the logs with co-tenancy, and the ledger.
+  the scores), the analysis, the logs with co-tenancy, the ledger, and the independent reconstruction.
 - To recompute from the bundle: `python -m scaling.dbe_report`. It checks the sums, validates the records,
   recomputes with the frozen `dbe_run.analyze` and refuses any disagreement.

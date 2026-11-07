@@ -1,0 +1,184 @@
+verify_dbe: 165 checks, 0 failures
+verifier sha256 d71704da35397982b572f1a036f7e91cb0ea8389128309d12cace5b475e502f4 (computed at run time); head c14764d7d23ad660e84ac83ac7d069957c58de99
+started 2026-11-07T23:24:34+00:00, ended 2026-11-07T23:25:08+00:00, runtime 34.5 s; 54 inputs hashed
+
+[0_discipline] 2 passed, 0 failed
+  PASS  nothing under dbe/, data/ or the ledger changed during this verification  -- []
+  PASS  the verifier did not change while it ran
+
+[1_scores] 7 passed, 0 failed
+  PASS  own sha256 and size of the 14 snapshot files = the snapshots pin  -- {}
+  PASS  scored SQL = the request's selected SQL (384 records)
+  PASS  score's snapshot sha256 = own hash (384 records)
+  PASS  recorded EX = own EX (384 records)
+  PASS  recorded status = own status (384 records)
+  PASS  recorded predicted status = own (384 records)
+  PASS  recorded gold status and row counts = own (384 records)
+
+[2_lineage] 32 passed, 0 failed
+  PASS  the frozen REVISE, header, NOTHING and FAILED texts = the protocol pin
+  PASS  run manifest: system, instruction, header, 512 tokens, non-thinking, db-evidence-v1.4
+  PASS  the local chat template = the run manifest's model identity
+  PASS  D0 = the shared initial proposal
+  PASS  own B4 extraction = the recorded SQL
+  PASS  generated tokens <= 512
+  PASS  revision order = the seed rule
+  PASS  D1 message = own raw observation + the frozen instruction
+  PASS  V1 message = D1's + exactly the header and the recorded payload
+  PASS  own execution of the initial SQL = the recorded execution
+  PASS  the raw observation rebuilt from own execution = the recorded one
+  PASS  own execution of each revision = the recorded execution
+  PASS  remaining time = 180 s - (initial call + execution + lookup), within 2 s
+  PASS  each revision within the shared remaining time
+  PASS  every selection, fallback and abstention = own rule on own execution
+  PASS  recorded payload = a fresh db-evidence-v1.4 lookup (worker; latency aside)
+  PASS  retrieved examples = the producer's retrieval (worker)
+  PASS  own user message = the producer's (worker)
+  PASS  initial prompt tokens = own rendering
+  PASS  D1 prompt tokens = own rendering of the shared prefix + its message
+  PASS  V1 prompt tokens = own rendering of the shared prefix + its message
+  PASS  code: one initial call per request with seed_of('initial')
+  PASS  code: both revisions use seed_of('revise') and time.monotonic() + remaining
+  PASS  code: both revisions = the shared base + the initial reply + their message
+  PASS  code: the lookup runs before the remaining time is taken, once
+  PASS  code: the order by seed_of('order') parity
+  PASS  code: selection is spr_run.select
+  PASS  code: the lookup is called once, failures recorded, no retry
+  PASS  spr_run.py at the run commit = #71's frozen spr_run.py (_call, _execute, select, seed_of, REVISE)
+  PASS  lookup failure and limit inventory (own) = analysis.json  -- {"failed": 0, "timeouts": 0, "with_scan_limits": 12, "truncated": 0, "with_unresolved": 30, "payload_chars_max": 1718, "wall_safety_stops": 0}
+  PASS  every package: db-evidence-v1.4, payload_chars = len(rendered), the protocol's default limits
+  PASS  lookup seconds total and max = analysis.json
+
+[3_paired] 17 passed, 0 failed
+  PASS  counts per policy and seed, and pooled = analysis.json  -- {"D0/200": 38, "D0/201": 32, "D1/200": 41, "D1/201": 39, "V1/200": 40, "V1/201": 40}
+  PASS  V1 - D1: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json  -- {"per_seed": {"200": -1, "201": 1}, "pooled": 0, "recoveries": 3, "regressions": 3}
+  PASS  V1 - D1: recoveries - regressions = pooled
+  PASS  D1 - D0: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json  -- {"per_seed": {"200": 3, "201": 7}, "pooled": 10, "recoveries": 10, "regressions": 0}
+  PASS  D1 - D0: recoveries - regressions = pooled
+  PASS  V1 - D0: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json  -- {"per_seed": {"200": 2, "201": 8}, "pooled": 10, "recoveries": 11, "regressions": 1}
+  PASS  V1 - D0: recoveries - regressions = pooled
+  PASS  own decision (protocol's branches, +8) = analysis.json  -- V1 did not meet the prespecified continuation threshold on this population: this version stops
+  PASS  bootstrap re-implemented from the protocol (Random(20261107).randrange, 10,000, floor/ceil indices) = analysis.json  -- {"V1-D1": {"observed": 0, "low": -5, "high": 5}, "D1-D0": {"observed": 10, "low": 4, "high": 18}, "V1-D0": {"observed": 10, "low": 3, "high": 18}}
+  PASS  the frozen harness's bootstrap constants = the protocol's
+  PASS  transitions = analysis.json  -- {"V1_fixes_D1_misses": 3, "D1_right_V1_breaks": 3, "initially_correct": 70, "initially_correct_broken_by": {"D1": 0, "V1": 1}, "initially_wrong_fixed_by": {"D1": 10, "V1": 11}}
+  PASS  signal groups (own reading of the rendered payload) = analysis.json  -- {"no signal": {"requests": 85, "D0": 49, "D1": 54, "V1": 56, "V1_fixes_D1_misses": 3, "D1_right_V1_breaks": 1, "D0_right_V1_breaks": 0}, "other signal": {"requests": 42, "D0": 21, "D1": 26, "V1": 24, "V1_fixes_D1_misses": 0, "D1_right_V1_breaks": 2, "D0_right_V1_breaks": 1}, "value not stored": {"requests": 1, "D0": 0, "D1": 0, "V1": 0, "V1_fixes_D1_misses": 0, "D1_right_V1_breaks": 0, "D0_right_V
+  PASS  per-question table = analysis.json
+  PASS  lineage tallies D1 = analysis.json  -- {"final_source": {"abstain": 14, "revised": 112, "original": 2}, "revision_unchanged_sql": 95, "revision_truncated": 0}
+  PASS  lineage tallies V1 = analysis.json  -- {"final_source": {"revised": 113, "abstain": 14, "original": 1}, "revision_unchanged_sql": 80, "revision_truncated": 0}
+  PASS  initial tallies (own execution) = analysis.json  -- {"no_sql": 0, "execution": {"error": 27, "ok": 101}}
+  PASS  final statuses (own) = analysis.json  -- {"D0": {"error": 27, "ok": 101}, "D1": {"abstain": 14, "ok": 114}, "V1": {"ok": 114, "abstain": 14}}
+
+[4_costs] 15 passed, 0 failed
+  PASS  D0: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)  -- {"generation_seconds": 517.0892513864674, "lookup_seconds": 0.0, "tool_seconds": 0.0, "submitted_execution_seconds": 3.3267800000000003, "total_seconds": 520.4160313864674, "per_request_seconds": 4.065750245206776, "per_ex_correct_seconds": 7.4345147340923905, "prompt_tokens": 332006, "generated_tokens": 7092, "peak_memory_bytes": 11059839488, "calls_per_request": 1}
+  PASS  D1: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)  -- {"generation_seconds": 1039.4766958706896, "lookup_seconds": 0.0, "tool_seconds": 8.597432936076075, "submitted_execution_seconds": 3.19055, "total_seconds": 1051.2646788067657, "per_request_seconds": 8.213005303177857, "per_ex_correct_seconds": 13.140808485084571, "prompt_tokens": 684238, "generated_tokens": 14154, "peak_memory_bytes": 11131628032, "calls_per_request": 2}
+  PASS  V1: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)  -- {"generation_seconds": 1063.0804598496761, "lookup_seconds": 6.166390574828256, "tool_seconds": 11.688177844276652, "submitted_execution_seconds": 6.129028, "total_seconds": 1087.064056268781, "per_request_seconds": 8.492687939599852, "per_ex_correct_seconds": 13.588300703359764, "prompt_tokens": 719542, "generated_tokens": 14308, "peak_memory_bytes": 11234487808, "calls_per_request": 2}
+  PASS  exactly one dbe reservation: 'dbe run'  -- ["dbe run"]
+  PASS  used at start = 23.489974 h (own cumulative = recorded)  -- 23.489974
+  PASS  projection 0.65 h; used + 1.5 x projection = 24.464974 <= 24.489974; watchdog limit = that
+  PASS  the run ended ok: 0.4615 h, cumulative 23.951426 <= 24.489974
+  PASS  heartbeats every ~30 s  -- max gap 30.0 s
+  PASS  no overlapping reservation  -- []
+  PASS  the run summary's reservation = the ledger's
+  PASS  load + every recorded call, execution and lookup fits inside the reservation  -- 1660.1 s of 1661.2 s
+  PASS  analysis.json's reservation = own
+  PASS  the run manifest's budget check = own  -- {"fits": true, "projected_hours": 0.65, "used_hours": 23.48997404698028, "work_order_limit_hours": 24.489974, "worst_case_hours": 24.46497404698028}
+  PASS  the co-tenancy log covers the run every ~30 s  -- 57 samples
+  PASS  co-tenancy: 1-minute load stayed low during the run  -- max 2.96
+
+[5_reference] 13 passed, 0 failed
+  PASS  no gold SQL in any prompt, feedback message or payload
+  PASS  no task id in any prompt, feedback message or payload
+  PASS  a gold result block appears in a message only where the model's own result shows it
+  PASS  code: the lookup sees only question, evidence, SQL, schema and snapshot
+  PASS  code: gold is read only after the reservation (scoring)  -- [301]
+  PASS  code: serve, lookup and v1_message never name gold
+  PASS  contracts.Task has no SQL field  -- ['task_id', 'db_id', 'question', 'evidence', 'split']
+  PASS  run manifest: commit 8e1ee1b, clean tree  -- {"branch": "HEAD", "commit": "8e1ee1b72b000e65fc1830cf5c4f90ee35cd9588", "dirty_paths": [], "research_tree_dirty": false, "worktree": "/home/seanjazm27/projects/universa-recurrent-dbe-frozen"}
+  PASS  analysis manifest: commit 8e1ee1b, clean tree  -- {"branch": "HEAD", "commit": "8e1ee1b72b000e65fc1830cf5c4f90ee35cd9588", "dirty_paths": [], "research_tree_dirty": false, "worktree": "/home/seanjazm27/projects/universa-recurrent-dbe-frozen"}
+  PASS  the frozen worktree is at 8e1ee1b and clean (now)
+  PASS  the run manifest names the frozen protocol (sha256, frozen_at 644c090)
+  PASS  the five pinned files at 8e1ee1b match dbe_protocol.json
+  PASS  the run manifest's source hashes = the pinned harness and lookup
+
+[6_integrity] 12 passed, 0 failed
+  PASS  population = inventory positions 256-319
+  PASS  one request per question and seed: 64 x 2, none missing or extra  -- 128
+  PASS  one score per policy, seed and question: 384  -- 384
+  PASS  every request on its pinned database
+  PASS  run manifest: requested = the pin, seeds [200, 201]
+  PASS  every policy's denominator is 128 (64 questions x 2 seeds)
+  PASS  one run directory and one analysis directory (no rerun)  -- ['20261107T182054Z']
+  PASS  the run log shows 128 requests once each, in the records' order
+  PASS  analysis.json names the run
+  PASS  SHA256SUMS verifies 11 files
+  PASS  the bundle = every file of <runs>/dbe/ (byte-identical) plus the ledger, all under SHA256SUMS
+  PASS  the bundled ledger = the live ledger (now)
+
+[7_report] 67 passed, 0 failed
+  PASS  report: D0 counts row  -- | D0 | 38 | 32 | 70 |
+  PASS  report: D1 counts row  -- | D1 | 41 | 39 | 80 |
+  PASS  report: V1 counts row  -- | V1 | 40 | 40 | 80 |
+  PASS  report: V1-D1 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)  -- | V1-D1 | +0 | -1, +1 | 3 | 3 | [-5, +5] | -1 | False | 1.000 |
+  PASS  report: D1-D0 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)  -- | D1-D0 | +10 | +3, +7 | 10 | 0 | [+4, +18] | +8 | True | 0.031 |
+  PASS  report: V1-D0 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)  -- | V1-D0 | +10 | +2, +8 | 11 | 1 | [+3, +18] | +7 | True | 0.031 |
+  PASS  report: V1-D1 interval and its percentage points  -- [-5, +5] correct answers out of 128, about -3.9 to +3.9
+  PASS  report: D1-D0 interval in percentage points  -- about +3.1 to +14.1 percentage points
+  PASS  report: V1-D0 interval in percentage points  -- about +2.3 to +14.1 points
+  PASS  report: transition V1 fixes  -- | V1 right where D1 is wrong | 3 |
+  PASS  report: transition D1 right V1 wrong  -- | D1 right where V1 is wrong | 3 |
+  PASS  report: initially correct  -- | initially correct (D0) | 70 |
+  PASS  report: broken by  -- | initially correct, broken by D1 / V1 | 0 / 1 |
+  PASS  report: fixed by  -- | initially wrong, fixed by D1 / V1 | 10 / 11 |
+  PASS  report: database row computer_student  -- | computer_student | 4 | 4 | 4 | 4 |
+  PASS  report: database row disney  -- | disney | 5 | 4 | 6 | 6 |
+  PASS  report: database row food_inspection  -- | food_inspection | 4 | 6 | 6 | 6 |
+  PASS  report: database row hockey  -- | hockey | 4 | 4 | 4 | 4 |
+  PASS  report: database row ice_hockey_draft  -- | ice_hockey_draft | 5 | 4 | 4 | 5 |
+  PASS  report: database row image_and_language  -- | image_and_language | 4 | 3 | 5 | 6 |
+  PASS  report: database row music_platform_2  -- | music_platform_2 | 5 | 8 | 8 | 8 |
+  PASS  report: database row professional_basketball  -- | professional_basketball | 5 | 1 | 3 | 2 |
+  PASS  report: database row public_review_platform  -- | public_review_platform | 4 | 4 | 6 | 6 |
+  PASS  report: database row simpson_episodes  -- | simpson_episodes | 5 | 6 | 7 | 6 |
+  PASS  report: database row soccer_2016  -- | soccer_2016 | 4 | 4 | 5 | 5 |
+  PASS  report: database row software_company  -- | software_company | 5 | 7 | 7 | 7 |
+  PASS  report: database row talkingdata  -- | talkingdata | 5 | 5 | 5 | 5 |
+  PASS  report: database row world  -- | world | 5 | 10 | 10 | 10 |
+  PASS  report: D0 cost row  -- | D0 | 517.1 | 0.0 | 0.0 | 3.3 | 520.4 | 4.07 | 7.4 | 332,006 | 7,092 | 11.06 |
+  PASS  report: D1 cost row  -- | D1 | 1039.5 | 0.0 | 8.6 | 3.2 | 1051.3 | 8.21 | 13.1 | 684,238 | 14,154 | 11.13 |
+  PASS  report: V1 cost row  -- | V1 | 1063.1 | 6.2 | 11.7 | 6.1 | 1087.1 | 8.49 | 13.6 | 719,542 | 14,308 | 11.23 |
+  PASS  report: V1's end-to-end cost increase  -- 3.4% higher than D1's
+  PASS  report: cost sentence  -- V1's end-to-end cost was 1,087 s, against D1's 1,051 s (+3.4%)
+  PASS  report: lookup seconds total, median, max  -- 6.2 s in total, median 0.008 s, maximum 0.55 s
+  PASS  lookup total = 6.2 s (own)  -- 6.166
+  PASS  report: payload median and maximum  -- the payload median was 786 characters, with a maximum of 1,718
+  PASS  report: scan-limit count  -- 12 hit a scan limit
+  PASS  report: unresolved count  -- 30 recorded unresolved columns
+  PASS  report: same final SQL count  -- V1 and D1 end on the same final SQL in 91 of 128
+  PASS  report: revisions that changed the initial SQL  -- (48 revisions changed it, against 33)
+  PASS  report: V1 - D1 leaving out one database is in {-1, 0, +1}  -- [-1, 0, 1]
+  PASS  report: V1 broke only bird23tf-00441/200, D1 none  -- [(200, 'bird23tf-00441')]
+  PASS  report: signal-group row no flagged signal  -- | no flagged signal | 85 | 49 | 54 | 56 | 3 | 1 | 0 |
+  PASS  report: signal-group row other signal  -- | other signal | 42 | 21 | 26 | 24 | 0 | 2 | 1 |
+  PASS  report: signal-group row value not stored  -- | value not stored | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+  PASS  report: all three V1-only recoveries are in the no-flagged-signal group (own grouping)  -- [((200, 'bird23tf-03981'), 'no signal'), ((201, 'bird23tf-02677'), 'no signal'), ((201, 'bird23tf-04913'), 'no signal')]
+  PASS  report: the one V1 regression of an initially correct answer is in the other-signal group
+  PASS  report: every no-flagged-signal payload (85) is non-empty and shows declared keys, column notes, near-miss columns or tables
+  PASS  report: the one 'value not stored' request stayed wrong under all three
+  PASS  report: the six discordant requests and their D0 / D1 / V1 correctness  -- [(200, 'bird23tf-00441'), (200, 'bird23tf-01144'), (200, 'bird23tf-03981'), (201, 'bird23tf-01645'), (201, 'bird23tf-02677'), (201, 'bird23tf-04913')]
+  PASS  report: six-request row bird23tf-01144/200  -- | bird23tf-01144, seed 200 (professional_basketball) | 0 / 1 / 0 |
+  PASS  report: six-request row bird23tf-00441/200  -- | bird23tf-00441, seed 200 (talkingdata) | 1 / 1 / 0 |
+  PASS  report: six-request row bird23tf-03981/200  -- | bird23tf-03981, seed 200 (talkingdata) | 0 / 0 / 1 |
+  PASS  report: six-request row bird23tf-01645/201  -- | bird23tf-01645, seed 201 (simpson_episodes) | 0 / 1 / 0 |
+  PASS  report: six-request row bird23tf-02677/201  -- | bird23tf-02677, seed 201 (ice_hockey_draft) | 0 / 0 / 1 |
+  PASS  report: six-request row bird23tf-04913/201  -- | bird23tf-04913, seed 201 (image_and_language) | 0 / 0 / 1 |
+  PASS  01144/200: as described (D1 drops T3.award; V1 keeps it, LIKE 'California%', fails, abstains; payload silent on the column, recorded unresolved)
+  PASS  00441/200: as described (D1 adds DISTINCT; V1 swaps in events_relevant, first listed table, 0 rows)
+  PASS  03981/200: as described (D1 unchanged, abstains; V1 joins through events_relevant, which the payload lists in its declared keys)
+  PASS  01645/201: as described (D1 uses Award.person; V1 keeps T1.name, abstains; payload silent, unresolved)
+  PASS  02677/201: as described (D1 averages PlayerInfo.height; V1 joins height_info on the listed key)
+  PASS  04913/201: as described (D1 unchanged, abstains; V1 joins OBJ_CLASSES on the listed key)
+  PASS  report: host load at or below 3.0  -- 2.96
+  PASS  report: a 533 MiB foreign process on the GPU, as the ledger recorded at start and end  -- [{'name': '.venv/bin/python', 'pid': 514236, 'used_memory': '533 MiB'}]
+  PASS  report: reservation hours  -- The run took 0.461 GPU-reservation hours
+  PASS  report: ledger total  -- ledger stands at 23.951
+  PASS  report: PR #71's D1 - D0 was +2
