@@ -178,3 +178,24 @@ def test_a_gain_in_one_database_does_not_meet_the_rule():
     out = D.analyze(*_records(one_db), QIDS, DB_OF, SEEDS)
     assert out["pooled"]["V1"] == 16 and not out["comparisons"]["V1-D1"]["all_conditions"]
     assert out["decision"].startswith("V1 did not meet the prespecified continuation threshold")
+
+
+# --- the post-run report (dbe_report) --------------------------------------------------------------------------------
+from scaling import dbe_report as R  # noqa: E402
+
+
+def test_the_report_validation_refuses_broken_records():
+    reqs, scores = _records(set())
+    for r in reqs:
+        r["D0"] = {"source": "original", "sql": r["original"]["sql"]}
+    R._validate(reqs, scores, QIDS, SEEDS)                                  # the intact records pass
+    with pytest.raises(R.Inconsistent, match="requests"):
+        R._validate(reqs + reqs[:1], scores, QIDS, SEEDS)
+    with pytest.raises(R.Inconsistent, match="scores"):
+        R._validate(reqs, scores[:-1], QIDS, SEEDS)
+    bad = [dict(x, score={**x["score"], "correct": True}) if i == 0 else x for i, x in enumerate(scores)]
+    with pytest.raises(R.Inconsistent, match="correctness"):
+        R._validate(reqs, bad, QIDS, SEEDS)
+    reqs[0]["evidence"] = {**reqs[0]["evidence"], "seconds": float("nan")}
+    with pytest.raises(R.Inconsistent, match="finite"):
+        R._validate(reqs, scores, QIDS, SEEDS)
