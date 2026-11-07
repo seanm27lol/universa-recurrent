@@ -224,3 +224,100 @@ def test_the_classes():
     assert EC.classify([1, 2], [yes, no], False) == "partial"
     assert EC.classify([1], [no], False) == "none"
     assert EC.classify([1], [yes], True) == "unresolved benchmark disagreement"
+
+
+# --- SQL scopes (db-evidence-v1.1) -------------------------------------------------------------------------------------
+@pytest.fixture
+def trade(tmp_path):
+    path = tmp_path / "trade.sqlite"
+    conn = sqlite3.connect(path)
+    conn.executescript("""
+        CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT, city TEXT, credit REAL);
+        CREATE TABLE suppliers (id INTEGER PRIMARY KEY, name TEXT, city TEXT);
+        CREATE TABLE orders (oid INTEGER PRIMARY KEY, cid INTEGER REFERENCES customers(id), total REAL);
+        INSERT INTO customers VALUES (1, 'Alice', 'Paris', 100.0);
+        INSERT INTO suppliers VALUES (1, 'Vendor', 'Rome');
+        INSERT INTO orders VALUES (1, 1, 50.0);
+    """)
+    conn.commit()
+    conn.close()
+    return path, _schema(path)
+
+
+def _preds(pkg):
+    return {(p["literal"], p["table"], p["column"]) for p in pkg["proposal"]["predicates"]}
+
+
+def test_a_reused_alias_in_a_nested_query_binds_to_its_own_table(trade):
+    """The review's regression: one global alias map sent 'Paris' to suppliers.city, where it is absent."""
+    sql = ("SELECT x.name FROM customers AS x WHERE x.city = 'Paris' AND EXISTS "
+           "(SELECT 1 FROM suppliers AS x WHERE x.city = 'Rome')")
+    path, schema = trade
+    assert sqlite3.connect(path).execute(sql).fetchall() == [("Alice",)]
+    pkg = _go(trade, sql)
+    assert _preds(pkg) == {("Paris", "customers", "city"), ("Rome", "suppliers", "city")}
+    values = {(i["subject"]["literal"], i["subject"]["table"]): i["verbatim_rows"] for i in _items(pkg, "value")}
+    assert values == {("Paris", "customers"): 1, ("Rome", "suppliers"): 1}
+    assert not _items(pkg, "value_elsewhere") and not pkg["proposal"]["unresolved"]
+
+
+def test_a_correlated_reference_binds_to_the_enclosing_scope(trade):
+    pkg = _go(trade, "SELECT c.name FROM customers AS c WHERE EXISTS "
+                     "(SELECT 1 FROM orders AS o WHERE o.cid = c.id AND o.total > c.credit - 60)")
+    assert ["customers", "credit"] in pkg["proposal"]["numeric"]
+    joins = [(tuple(j["left"]), tuple(j["right"])) for j in pkg["proposal"]["joins"]]
+    assert (("orders", "cid"), ("customers", "id")) in joins
+    (rel,) = _items(pkg, "relationship")
+    assert [j["status"] for j in rel["joins"]] == ["declared"]
+    # an unqualified column absent from the subquery's own table is looked up outward, as SQLite does
+    pkg = _go(trade, "SELECT name FROM customers WHERE EXISTS (SELECT 1 FROM orders WHERE credit > 10)")
+    assert ["customers", "credit"] in pkg["proposal"]["numeric"] and not pkg["proposal"]["unresolved"]
+
+
+def test_an_inner_column_shadows_an_outer_one(trade):
+    pkg = _go(trade, "SELECT name FROM customers WHERE id IN (SELECT id FROM suppliers WHERE city = 'Rome')")
+    assert _preds(pkg) == {("Rome", "suppliers", "city")}
+
+
+def test_an_ambiguous_unqualified_column_is_unresolved_and_gets_no_evidence(trade):
+    pkg = _go(trade, "SELECT customers.name FROM customers JOIN suppliers ON customers.id = suppliers.id "
+                     "WHERE city = 'Paris'")
+    assert not _preds(pkg) and not _items(pkg, "value")
+    (u,) = [u for u in pkg["proposal"]["unresolved"] if u["column"] == "city"]
+    assert u["reason"].startswith("ambiguous")
+    assert not any(i["subject"].get("column") == "city" for i in _items(pkg, "representation"))
+
+
+def test_derived_tables_and_ctes_are_not_bound_to_stored_columns(trade):
+    for sql in ("SELECT d.city FROM (SELECT city FROM customers) AS d WHERE d.city = 'Paris'",
+                "WITH d AS (SELECT city FROM customers) SELECT city FROM d WHERE city = 'Paris'"):
+        pkg = _go(trade, sql)
+        assert ("Paris", "customers", "city") not in _preds(pkg)
+        assert any("derived table" in u["reason"] for u in pkg["proposal"]["unresolved"])
+
+
+def test_ordinary_joins_and_self_joins_still_bind(trade):
+    pkg = _go(trade, "SELECT T1.name FROM customers AS T1 JOIN orders AS T2 ON T1.id = T2.cid WHERE T2.total > 10")
+    assert ["orders", "total"] in pkg["proposal"]["numeric"] and not pkg["proposal"]["unresolved"]
+    assert [(tuple(j["left"]), tuple(j["right"])) for j in pkg["proposal"]["joins"]] == \
+        [(("customers", "id"), ("orders", "cid"))]
+    pkg = _go(trade, "SELECT a.name FROM customers AS a JOIN customers AS b ON a.id = b.id")
+    assert len(pkg["proposal"]["joins"]) == 1          # two sources of one table: a join, not a tautology
+    pkg = _go(trade, "SELECT a.name FROM customers AS a WHERE a.id = a.id")
+    assert not pkg["proposal"]["joins"]
+
+
+def test_the_impact_report_names_changed_bindings_and_packages(trade):
+    sql = ("SELECT x.name FROM customers AS x WHERE x.city = 'Paris' AND EXISTS "
+           "(SELECT 1 FROM suppliers AS x WHERE x.city = 'Rome')")
+    new = _go(trade, sql)
+    old = {**new, "proposal": {**new["proposal"], "predicates": [
+        {"table": "suppliers", "column": "city", "op": "eq", "literal": "Paris", "string": True},
+        {"table": "suppliers", "column": "city", "op": "eq", "literal": "Rome", "string": True}]},
+        "rendered": new["rendered"] + "\nValue 'Paris' elsewhere: ..."}
+    row = lambda p: {"task_id": "t", "seed": 1, "sql_sha256": "s", "package": p}   # noqa: E731
+    cov = {"cases": [{"task_id": "t", "seed": 1, "class": "none"}]}
+    out = EC.impact([row(old)], [row(new)], cov, cov)
+    assert out["bindings_changed"] == 1 and out["rendered_changed"] == 1 and not out["class_changes"]
+    (r,) = out["rows"]
+    assert list(r["bindings_changed"]) == ["predicates"] and "Paris" in r["rendered_diff"]

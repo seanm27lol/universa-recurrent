@@ -17,13 +17,19 @@ retrieved the database facts each repair needs?
    - for every group, the payload, latency, queries, scan limits and timeouts. The groups are the 17 targeted cases,
      their 11 questions, the other wrong proposals and the originally correct ones.
 
-    python -m scaling.evidence_coverage retrieve
-    python -m scaling.evidence_coverage tables        # the report's tables, from the stored comparison
+    python -m scaling.evidence_coverage retrieve --version db-evidence-v1.1
+    python -m scaling.evidence_coverage tables [--version db-evidence-v1.1]   # the tables, from a stored comparison
+    python -m scaling.evidence_coverage impact        # what changed from db-evidence-v1 to v1.1, proposal by proposal
     git show 10d054a:research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json > /tmp/audit_cases.json
-    python -m scaling.evidence_coverage compare --audit /tmp/audit_cases.json
+    python -m scaling.evidence_coverage compare --version db-evidence-v1.1 --audit /tmp/audit_cases.json
 
 (The comparison pins the audit's cases at PR #72's 10d054a. A later correction to one note, e823303, changed the
 file but not its labels.)
+
+**Versions.** The original study ran db-evidence-v1 (code at dd45591). Its outputs are under `retrieval/` and
+`compare/` and are never replaced; rerun v1 from that commit. db-evidence-v1.1 changes only how columns are bound,
+now in their SQL scope. Its outputs are under `retrieval_v1.1/` and `compare_v1.1/`, and `impact/` records what
+changed proposal by proposal.
 
 An empty retrieval is not proof that a value is absent, and the lookup never substitutes a literal.
 """
@@ -46,6 +52,12 @@ REQUIREMENTS = C.SCALING / "coverage" / "requirements_v1.json"
 ROOT = C.RUNS / "evidence_coverage"
 AUDIT_CASES_SHA256 = "134a98163d548330b95d54667ca890cd76c966037420d5cb780aaa0fc2a6bc09"   # PR #72 at 10d054a
 GROUNDING = "schema/value grounding"
+# Each lookup version's outputs live in their own directories; db-evidence-v1's are the original study's.
+SUFFIX = {"db-evidence-v1": "", "db-evidence-v1.1": "_v1.1"}
+
+
+def _dir(kind: str, version: str) -> str:
+    return kind + SUFFIX[version]
 
 
 def _load(path: Path) -> list:
@@ -63,9 +75,13 @@ def _spr_run() -> Path:
 def retrieve_cmd(args) -> None:
     from . import data, db_evidence, evidence, identity, pilot_run
     from . import schema as schema_mod
+    if db_evidence.EVIDENCE_VERSION != args.version:
+        raise SystemExit(f"the code is {db_evidence.EVIDENCE_VERSION}, not {args.version}")
+    if any(BUNDLE.glob(_dir("retrieval", args.version) + "/*")):
+        raise SystemExit(f"{args.version} outputs already exist; they are never replaced")
     run = _spr_run()
     reqs = _load(run / "requests.jsonl")   # proposals only: the bundle check hashes scores.jsonl but nothing parses it
-    out_dir = pilot_run._new_dir(ROOT / "retrieval", "")
+    out_dir = pilot_run._new_dir(ROOT / _dir("retrieval", args.version), "")
     identity.write_manifest(out_dir, config={
         "command": "evidence_coverage retrieve", "version": db_evidence.EVIDENCE_VERSION,
         "limits": asdict(db_evidence.Limits()),
@@ -86,7 +102,7 @@ def retrieve_cmd(args) -> None:
                                 "sql_sha256": hashlib.sha256((sql or "").encode()).hexdigest(),
                                 "package": pkg}, sort_keys=True, default=str) + "\n")
             n += 1
-    dest = BUNDLE / "retrieval" / out_dir.name
+    dest = BUNDLE / _dir("retrieval", args.version) / out_dir.name
     dest.mkdir(parents=True)
     for name in ("retrieval.jsonl", "manifest.json"):
         shutil.copy2(out_dir / name, dest / name)
@@ -216,7 +232,7 @@ def compare(retrieval: list, scores: list, audit: list, spec: dict) -> dict:
 def compare_cmd(args) -> None:
     from . import evidence, identity, pilot_run
     evidence._checked(BUNDLE)
-    (ret_dir,) = sorted(BUNDLE.glob("retrieval/*"))
+    (ret_dir,) = sorted(BUNDLE.glob(_dir("retrieval", args.version) + "/*"))
     retrieval = _load(ret_dir / "retrieval.jsonl")
     audit_path = Path(args.audit)
     if identity.sha256_file(audit_path) != AUDIT_CASES_SHA256:
@@ -225,20 +241,84 @@ def compare_cmd(args) -> None:
     spec = json.loads(REQUIREMENTS.read_text())
     scores = _load(_spr_run() / "scores.jsonl")
     out = compare(retrieval, scores, audit, spec)
+    out["version"] = args.version
     out["inputs"] = {"retrieval": "evidence/evidence_coverage_v1/" + ret_dir.relative_to(BUNDLE).as_posix(),
                      "retrieval_sha256": identity.sha256_file(ret_dir / "retrieval.jsonl"),
                      "requirements_sha256": identity.sha256_file(REQUIREMENTS), "audit_sha256": AUDIT_CASES_SHA256}
-    out_dir = pilot_run._new_dir(ROOT / "compare", "")
+    out_dir = pilot_run._new_dir(ROOT / _dir("compare", args.version), "")
     identity.write_manifest(out_dir, config={"command": "evidence_coverage compare", **out["inputs"]},
                             require_clean=not args.allow_dirty)
     (out_dir / "coverage.json").write_text(json.dumps(out, indent=1, sort_keys=True, default=str) + "\n")
-    dest = BUNDLE / "compare" / out_dir.name
+    dest = BUNDLE / _dir("compare", args.version) / out_dir.name
     dest.mkdir(parents=True)
     for name in ("coverage.json", "manifest.json"):
         shutil.copy2(out_dir / name, dest / name)
     evidence.write_sums(BUNDLE)
     print(json.dumps({"class_counts": out["class_counts"], "question_class_counts": out["question_class_counts"],
                       "bundle": str(dest.relative_to(C.REPO))}, indent=1))
+
+
+BINDING_FIELDS = ("tables", "columns", "predicates", "numeric", "joins", "outputs")
+
+
+def _canon(items: list) -> list:
+    return sorted(json.dumps(x, sort_keys=True) for x in items)
+
+
+def impact(old: list, new: list, old_cov: dict, new_cov: dict) -> dict:
+    """Per proposal: which parsed bindings and which rendered packages differ between two lookup versions, and
+    which targeted classes change."""
+    key = lambda r: (r["task_id"], r["seed"])   # noqa: E731
+    a, b = {key(r): r for r in old}, {key(r): r for r in new}
+    if set(a) != set(b):
+        raise SystemExit("the two retrievals do not cover the same proposals")
+    rows = []
+    for k in sorted(a, key=lambda k: (k[1], k[0])):
+        if a[k]["sql_sha256"] != b[k]["sql_sha256"]:
+            raise SystemExit(f"{k}: the proposals differ")
+        pa, pb = a[k]["package"], b[k]["package"]
+        fields = {f: {"removed": sorted(set(_canon(pa["proposal"][f])) - set(_canon(pb["proposal"][f]))),
+                      "added": sorted(set(_canon(pb["proposal"][f])) - set(_canon(pa["proposal"][f])))}
+                  for f in BINDING_FIELDS}
+        changed = {f: d for f, d in fields.items() if d["removed"] or d["added"]}
+        rendered = pa["rendered"] != pb["rendered"]
+        diff = None
+        if rendered:
+            import difflib
+            diff = "\n".join(difflib.unified_diff(pa["rendered"].splitlines(), pb["rendered"].splitlines(),
+                                                   "v1", "v1.1", lineterm="", n=0))
+        rows.append({"task_id": k[0], "seed": k[1], "bindings_changed": changed,
+                     "unresolved": pb["proposal"].get("unresolved", []), "rendered_changed": rendered,
+                     "rendered_diff": diff, "items_changed": pa["items"] != pb["items"]})
+    old_class = {(c["task_id"], c["seed"]): c["class"] for c in old_cov["cases"]}
+    new_class = {(c["task_id"], c["seed"]): c["class"] for c in new_cov["cases"]}
+    return {"proposals": len(rows),
+            "bindings_changed": sum(1 for r in rows if r["bindings_changed"]),
+            "rendered_changed": sum(1 for r in rows if r["rendered_changed"]),
+            "with_unresolved": sum(1 for r in rows if r["unresolved"]),
+            "class_changes": [{"task_id": k[0], "seed": k[1], "v1": old_class[k], "v1.1": new_class[k]}
+                              for k in sorted(old_class) if old_class[k] != new_class[k]],
+            "rows": rows}
+
+
+def impact_cmd(args) -> None:
+    from . import evidence, identity, pilot_run
+    evidence._checked(BUNDLE)
+    load = lambda v: _load(next(BUNDLE.glob(_dir("retrieval", v) + "/*")) / "retrieval.jsonl")   # noqa: E731
+    cov = lambda v: json.loads(next(BUNDLE.glob(_dir("compare", v) + "/*/coverage.json")).read_text())  # noqa: E731
+    out = impact(load(args.old), load(args.new), cov(args.old), cov(args.new))
+    out.update(old=args.old, new=args.new)
+    out_dir = pilot_run._new_dir(ROOT / "impact", "")
+    identity.write_manifest(out_dir, config={"command": "evidence_coverage impact", "old": args.old,
+                                             "new": args.new}, require_clean=not args.allow_dirty)
+    (out_dir / "impact.json").write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
+    dest = BUNDLE / "impact" / out_dir.name
+    dest.mkdir(parents=True)
+    for name in ("impact.json", "manifest.json"):
+        shutil.copy2(out_dir / name, dest / name)
+    evidence.write_sums(BUNDLE)
+    print(json.dumps({k: out[k] for k in ("proposals", "bindings_changed", "rendered_changed", "with_unresolved",
+                                          "class_changes")}, indent=1))
 
 
 def _fact_label(f: dict) -> str:
@@ -288,20 +368,28 @@ def tables(cov: dict) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
+    versions = sorted(SUFFIX)
     r = sub.add_parser("retrieve")
+    r.add_argument("--version", required=True, choices=versions)
     r.add_argument("--allow-dirty", action="store_true")
     c = sub.add_parser("compare")
     c.add_argument("--audit", required=True)
+    c.add_argument("--version", required=True, choices=versions)
     c.add_argument("--allow-dirty", action="store_true")
-    sub.add_parser("tables")
+    t = sub.add_parser("tables")
+    t.add_argument("--version", default="db-evidence-v1", choices=versions)
+    i = sub.add_parser("impact")
+    i.add_argument("--old", default="db-evidence-v1", choices=versions)
+    i.add_argument("--new", default="db-evidence-v1.1", choices=versions)
+    i.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args(argv)
     if args.cmd == "tables":
         from . import evidence
         evidence._checked(BUNDLE)
-        (path,) = sorted(BUNDLE.glob("compare/*/coverage.json"))
+        (path,) = sorted(BUNDLE.glob(_dir("compare", args.version) + "/*/coverage.json"))
         print(tables(json.loads(path.read_text())))
         return 0
-    {"retrieve": retrieve_cmd, "compare": compare_cmd}[args.cmd](args)
+    {"retrieve": retrieve_cmd, "compare": compare_cmd, "impact": impact_cmd}[args.cmd](args)
     return 0
 
 

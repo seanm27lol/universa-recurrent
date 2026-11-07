@@ -52,7 +52,7 @@ import time
 import unicodedata
 from dataclasses import asdict, dataclass
 
-EVIDENCE_VERSION = "db-evidence-v1"
+EVIDENCE_VERSION = "db-evidence-v1.1"   # v1.1: columns bound in their SQL scope (v1: one global alias map)
 
 
 @dataclass(frozen=True)
@@ -189,46 +189,105 @@ def _q(name: str) -> str:
 # --- the proposal ----------------------------------------------------------------------------------------------------
 def parse_proposal(sql: "str | None", schema) -> dict:
     """Tables, columns, literal predicates, numeric uses and joins of the proposal, resolved against the schema.
-    Anything that does not resolve is left out; a parse failure gives an empty structure."""
+
+    **Scopes (db-evidence-v1.1).** Every column is bound in its own SELECT scope, as SQLite binds it:
+    - A qualified column `q.c` binds to the source named `q` in its scope. In a subquery, if `q` is not a source
+      there, the lookup moves outward through the enclosing scopes: a correlated column.
+    - An unqualified column binds to the one source of its scope that has it. If none has it, a subquery looks
+      outward; if two have it, the column is ambiguous.
+    - A source that is a derived table or a CTE is not a stored table: its columns are not bound.
+
+    A column that cannot be bound reliably is recorded under `unresolved` with the reason, and gets no
+    column-specific evidence; nothing is guessed. A parse failure gives an empty structure.
+
+    **Example.** In `SELECT x.name FROM customers AS x WHERE x.city = 'Paris' AND EXISTS (SELECT 1 FROM suppliers
+    AS x WHERE x.city = 'Rome')`, 'Paris' binds to customers.city and 'Rome' to suppliers.city."""
     out = {"parsed": False, "error": None, "tables": [], "columns": [], "predicates": [], "numeric": [],
-           "joins": [], "outputs": []}
+           "joins": [], "outputs": [], "unresolved": []}
     if not sql:
         out["error"] = "no SQL"
         return out
     import sqlglot
     from sqlglot import exp
+    from sqlglot.optimizer.scope import ScopeType, traverse_scope
     try:
         tree = sqlglot.parse_one(sql, read="sqlite")
-    except Exception as error:  # the parser itself failed: retrieval continues from the question and evidence
+        scopes = list(traverse_scope(tree)) if tree is not None else []
+    except Exception as error:  # the parser or the scope analysis failed: retrieval continues from the question
         out["error"] = f"{type(error).__name__}: {str(error)[:200]}"
         return out
     if tree is None:
         out["error"] = "empty parse"
         return out
     by_name = {t.name.lower(): t for t in schema.tables}
-    alias, used = {}, []
-    for t in tree.find_all(exp.Table):
-        real = by_name.get(t.name.lower())
-        if real is None:
-            continue
-        alias[t.name.lower()] = real.name
-        if t.alias:
-            alias[t.alias.lower()] = real.name
-        if real.name not in used:
-            used.append(real.name)
     cols_of = {t.name: {c.name.lower(): c.name for c in t.columns} for t in schema.tables}
+    used = []
 
-    def resolve(node) -> "tuple | None":
+    def sources(scope) -> dict:
+        """alias or name (lowercase) -> the schema table, or None for a derived table, CTE or unknown table."""
+        result = {}
+        for key, src in scope.sources.items():
+            real = by_name.get(src.name.lower()) if isinstance(src, exp.Table) else None
+            result[key.lower()] = (real.name, id(src)) if real is not None else None
+        return result
+
+    def outward(scope):
+        return scope.parent if scope.scope_type == ScopeType.SUBQUERY else None
+
+    binding = {}   # id(column node) -> (table, column, source id) or a reason it is unresolved
+
+    def bind(node, scope):
+        name, qual = node.name.lower(), (node.table or "").lower()
+        s = scope
+        while s is not None:
+            src = sources(s)
+            if qual:
+                if qual in src:
+                    hit = src[qual]
+                    if hit is None:
+                        return "the source is a derived table, a CTE or not in the schema"
+                    return (hit[0], cols_of[hit[0]][name], hit[1]) if name in cols_of[hit[0]] else \
+                        f"{hit[0]} has no column {node.name}"
+            else:
+                owners = [v for v in src.values() if v is not None and name in cols_of[v[0]]]
+                if len(owners) > 1:
+                    return "ambiguous: more than one source of its scope has this column"
+                if len(owners) == 1:
+                    return (owners[0][0], cols_of[owners[0][0]][name], owners[0][1])
+                if any(v is None for v in src.values()):
+                    return "may come from a derived table or CTE"
+            s = outward(s)
+        return "no source in its scope or an enclosing one" + (f" is named {node.table}" if qual else " has it")
+
+    for scope in scopes:                 # innermost scopes first: a node is bound where it appears
+        for key, src in scope.sources.items():
+            if isinstance(src, exp.Table) and src.name.lower() in by_name:
+                real = by_name[src.name.lower()].name
+                if real not in used:
+                    used.append(real)
+        for node in scope.columns:
+            if id(node) not in binding:
+                binding[id(node)] = bind(node, scope)
+    for node in tree.find_all(exp.Column):
+        b = binding.get(id(node), "outside any analysed scope (for example an alias of the select list)")
+        if not isinstance(b, tuple):
+            item = {"column": node.sql(dialect="sqlite"), "reason": b}
+            if item not in out["unresolved"]:
+                out["unresolved"].append(item)
+
+    def unwrap(node):
         while isinstance(node, (exp.Paren, exp.Lower, exp.Upper, exp.Trim, exp.Cast)):
             node = node.this
-        if not isinstance(node, exp.Column):
-            return None
-        name, qual = node.name.lower(), (node.table or "").lower()
-        if qual:
-            table = alias.get(qual)
-            return (table, cols_of[table][name]) if table and name in cols_of[table] else None
-        owners = [t for t in used if name in cols_of[t]]
-        return (owners[0], cols_of[owners[0]][name]) if len(owners) == 1 else None
+        return node
+
+    def resolve(node) -> "tuple | None":
+        node = unwrap(node)
+        b = binding.get(id(node)) if isinstance(node, exp.Column) else None
+        return (b[0], b[1]) if isinstance(b, tuple) else None
+
+    def source_of(node):
+        b = binding.get(id(unwrap(node)))
+        return b[2] if isinstance(b, tuple) else None
 
     def literal(node) -> "tuple | None":
         neg = False
@@ -260,7 +319,7 @@ def parse_proposal(sql: "str | None", schema) -> dict:
             a, b = resolve(node.this), resolve(node.expression)
             qa = (node.this.table or "").lower() if isinstance(node.this, exp.Column) else ""
             qb = (node.expression.table or "").lower() if isinstance(node.expression, exp.Column) else ""
-            if a and b and (a != b or qa != qb):
+            if a and b and (a != b or source_of(node.this) != source_of(node.expression)):
                 add("joins", {"left": list(a), "right": list(b), "left_alias": qa, "right_alias": qb})
     for node in tree.find_all(exp.In):
         col = resolve(node.this)
