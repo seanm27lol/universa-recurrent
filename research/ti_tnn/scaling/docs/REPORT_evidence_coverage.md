@@ -73,8 +73,12 @@ value is absent: every scan limit hit is recorded, and the text says "not proof 
      ask for.
 2. **The retrieval ran on all 128 saved initial proposals (02d3768).**
    - These are the semantic-proposal-repair study's frozen run: 64 questions, seeds 200 and 201.
-   - The run read only the bundled requests, the tasks' question and evidence, the schemas and the snapshots. It
-     opened no scores.
+   - The lookup itself received only each task's question and evidence, the schemas and the snapshots.
+   - The command builds each task from the release file, which also holds the references, but passes only the
+     question and evidence to the lookup.
+   - The bundle-integrity check hashes every file of the spr_v1 bundle, including `scores.jsonl`, but the scores are
+     never parsed.
+   - A reviewer re-ran the command with every reference replaced by a dummy query and got identical packages.
    - The outputs were committed under `evidence/evidence_coverage_v1/retrieval/` (SHA256SUMS) before any comparison.
 3. **The stored outputs were compared with the requirements and the audit (0cd8c18).** A fact counts only if its item
    is in the rendered payload a model would read.
@@ -88,6 +92,16 @@ value is absent: every scan limit hit is recorded, and the text says "not proof 
 - **Two changes followed the smoke run:**
   - a LIKE predicate is counted with its own pattern;
   - other columns are searched only for a literal its own column does not store.
+- **Narrow margins.** Some found facts cleared their thresholds narrowly:
+  - `Vote.votes` scored 0.325 against the column threshold of 0.3;
+  - the prefix length ratio for 'Gilbert' and 'Gilbert City' is 0.583 against 0.5. 'Czech Rep.' is 0.643 and 'GRC'
+    0.667.
+  The thresholds also cut the other way: at 0.25, `nameGiven` (0.258) would have been found.
+- **Docstring examples.** The docstring of the identifier splitter uses `nameGiven`, `award_category` and `TeamsSC`,
+  names from audited cases. It is a sign of the in-sample design, not of tailored logic. The frozen file is left
+  unchanged.
+- **Order sensitivity.** bird23tf-04816 is found partly because 'Czech Republic' is third in its IN list. Placed
+  after the eighth literal, it would fall outside the per-proposal literal limit. This is a known v1 limitation.
 - **The results are in-sample.** The cases are the ones the designer had read, so the coverage below is an
   optimistic estimate for a fresh population.
 
@@ -135,12 +149,17 @@ some in 3 and none in 1. Most were found at rank 1; `Vote.votes` was at rank 2.
 - **bird23tf-01840 (`director.director`).** The proposal returned `director.name`, which holds the movie. The
   `director` column scored 0.183 (closeness 0.167, terms 0.2), under the 0.3 threshold.
 - **bird23tf-03140 ('Greece').** The value item listed five codes, 'GRC', 'GRD', 'GRL', 'BGR' and 'GBR'. 'GRC' is
-  first only by the alphabetical tie-break among equal prefix matches, and nothing links it to Greece. The evidence
-  names Greece without quoting it, so the lookup never searched `Country.Name`. The requirement counts 'GRC' as
-  retrieved, which overstates how useful that fact is alone.
-- **bird23tf-04930 (`Master.pos` = 'G').** The column search for 'G' stopped at its limit, 40 of 182 columns, before
-  reaching `Master`. The limit hit is recorded. This is the case the "not proof of absence" wording exists for.
-  `Goalies` was not among the five tables shown.
+  first only by the alphabetical tie-break among equal prefix matches. The evidence names Greece without quoting it,
+  so the lookup never searched `Country.Name`, the second required fact.
+  - **An alternative route the requirement does not credit (found by the reviewer).** The payload also shows that
+    `Country.Code2` stores 'GR'. Joining `Country` on that, through the declared key, returns the reference result,
+    and so does `CountryCode = 'GRC'` alone.
+  - So the "partial" class is conservative here, not optimistic. The frozen requirement is left as written.
+- **bird23tf-04930 (`Master.pos` = 'G').** The column search for 'G' stopped at its limit, 40 of 182 columns: Teams'
+  18 text columns and 22 of Master's 31. `Master.pos` was 48th, because columns within the proposal's tables are
+  ordered by name similarity to the literal. The limit hit is recorded, and with a wider limit 'G' is found in
+  `Master.pos`. This is the case the "not proof of absence" wording exists for. `Goalies` ranked 7th among tables,
+  so it was not among the five shown.
 - **bird23tf-05527 seed 200.** The currency text format was flagged. The proposal's needless inner join to
   `characters` drops the answer, and no lookup kind detects that.
 
@@ -176,6 +195,9 @@ which is recorded in each package. No package was truncated: the largest is 2,18
     'R';
   - an aggregate in ORDER BY (`ORDER BY COUNT(text column)`) makes the lookup flag the counted text column as "used
     numerically".
+- **A known false flag.** A column inside a numeric aggregate's condition is flagged as "used numerically" even when
+  it is not. Two cases: a column counted inside ORDER BY (`ORDER BY COUNT(text column)`), and bird23tf-04816's
+  `nation` inside `SUM(IIF(nation IN (...), 1, 0))`.
 - **The risk.** Such distractors are the main way evidence could harm already-correct answers, and the proposed
   experiment measures that directly.
 
@@ -214,15 +236,27 @@ unresolved disagreement.
   for any diagnosis until the analysis is written.
 - **The rule.** The registered rule from `spr_rule`, applied consistently: V1 - D1 of at least +8 of 128, positive
   in both seeds and positive leaving any one database out. V1 - D0 and D1 - D0 are secondary.
+- **Timing.** The package is computed before the shared remaining-time snapshot, as #71 did for the typed analysis,
+  so the lookup does not eat into V1's revision deadline. Its time is charged to V1's cost only.
+- **The message, byte for byte.** V1's revision message is pinned with its sha256: the raw observation, then the
+  payload under a fixed header, then the revision instruction (spr-prompts-v2).
+- **Freeze artefacts.** db-evidence-v1 is frozen by commit and file sha256, together with the population pin, before
+  any run. The prior-use scan also covers the residual-audit and evidence-coverage bundles.
 - **Declared before the run:**
   - **recoveries and regressions,** with regressions on originally correct proposals as the harm measure for
     distractor evidence;
-  - **the evidence signals,** reported per request without any reference;
+  - **the evidence package per request:** its latency and its signals (above all "value not stored, candidates
+    shown"), recorded without any reference;
+  - **distractor regressions:** regressions on requests where a signal fired on an originally correct proposal,
+    counted separately;
   - **the costs,** in total: generation, lookup, tool and submitted-query execution, tokens and peak memory.
 - **The decision:**
   - if V1 meets the rule against D1, database evidence earns further work;
   - if V1 harms by the rule, inspect its regressions;
   - otherwise, stop this direction.
+- **Power.** In-sample, 17 grounding cases held about 10 that the evidence could repair. Even if every one were
+  repaired in a fresh population, +8 of 128 in both seeds and leaving out any one database is a demanding bar. A
+  "stop" is therefore weakly informative: it shows the effect is not large, not that it is absent.
 - **Budget.** PR #71's frozen run of three policies took 0.48 GPU hours. V1 adds one revision call per request, the
   same as TI1, so about 0.5 h is the estimate. The ledger stands at 23.49 of 32 h. This needs a new authorization,
   and nothing is requested by this report.

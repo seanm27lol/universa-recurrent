@@ -7,8 +7,8 @@ retrieved the database facts each repair needs?
 
 **Two steps, in this order:**
 1. `retrieve`: run `db_evidence.retrieve` on every saved initial proposal of the semantic-proposal-repair study's
-   frozen run (64 questions x seeds 200 and 201). It reads the bundled requests, the task's question and evidence, the
-   schema and the snapshot. It reads no score, reference SQL or audit label. The outputs are written to a run
+   frozen run (64 questions x seeds 200 and 201). The lookup receives only the task's question and evidence, the
+   proposal, the schema and the snapshot. No score is parsed, and no reference SQL or audit label reaches it. The outputs are written to a run
    directory and copied into `evidence/evidence_coverage_v1/` under SHA256SUMS before any comparison.
 2. `compare`: match the stored outputs against `coverage/requirements_v1.json`. That file names the facts each
    targeted repair needs, and was committed before step 1 ran. The comparison reports:
@@ -64,7 +64,7 @@ def retrieve_cmd(args) -> None:
     from . import data, db_evidence, evidence, identity, pilot_run
     from . import schema as schema_mod
     run = _spr_run()
-    reqs = _load(run / "requests.jsonl")                 # proposals only: scores.jsonl is not opened here
+    reqs = _load(run / "requests.jsonl")   # proposals only: the bundle check hashes scores.jsonl but nothing parses it
     out_dir = pilot_run._new_dir(ROOT / "retrieval", "")
     identity.write_manifest(out_dir, config={
         "command": "evidence_coverage retrieve", "version": db_evidence.EVIDENCE_VERSION,
