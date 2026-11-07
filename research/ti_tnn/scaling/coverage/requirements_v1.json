@@ -1,0 +1,351 @@
+{
+ "version": "evidence-coverage-requirements-v1",
+ "written": "after the retrieval code was frozen and before it was run on the 128 proposals",
+ "source": "the residual-error audit (PR #72, evidence/residual_audit_v1/cases.json at 10d054a), its reference SQL and read-only checks of the snapshots",
+ "matching": {
+  "value_candidate": "a value item for this literal and column lists this stored value",
+  "elsewhere_candidate": "a value_elsewhere item for this literal lists this table, column and value",
+  "column_candidate": "a column item lists this column",
+  "table_candidate": "the table item lists this table",
+  "join_flag": "the relationship item reports this join (either orientation) as not declared or with a note",
+  "representation_flag": "a representation item for this column says it is used numerically but stores text that is not a plain number",
+  "unavailable": "a database fact no retrieval kind produces; never matched",
+  "shown": "a fact counts only if its item is in the rendered payload a model would read"
+ },
+ "classes": {
+  "none": "no required fact retrieved",
+  "partial": "some, not all, required facts retrieved",
+  "complete": "every required fact retrieved: the evidence supports the repair (reasoning may still be needed, listed under other_changes)",
+  "unresolved benchmark disagreement": "matching the reference needs something the question does not ask for; facts are still reported"
+ },
+ "cases": [
+  {
+   "task_id": "bird23tf-01633",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "elsewhere_candidate",
+     "literal": "Best International TV Series",
+     "table": "Award",
+     "column": "award",
+     "value": "Best International TV Series"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-01633",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "elsewhere_candidate",
+     "literal": "Best International TV Series",
+     "table": "Award",
+     "column": "award",
+     "value": "Best International TV Series"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-01666",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "column_candidate",
+     "table": "Vote",
+     "column": "votes"
+    }
+   ],
+   "other_changes": [
+    "SUM(votes) instead of COUNT(*): reasoning once the column is known"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-03089",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "table_candidate",
+     "table": "TeamsSC"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-03089",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "table_candidate",
+     "table": "TeamsSC"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-03140",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "GR",
+     "table": "CountryLanguage",
+     "column": "CountryCode",
+     "value": "GRC"
+    },
+    {
+     "kind": "elsewhere_candidate",
+     "literal": "Greece",
+     "table": "Country",
+     "column": "Name",
+     "value": "Greece"
+    }
+   ],
+   "other_changes": [
+    "filter by the country's name, or by the code that name maps to"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-03140",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "GR",
+     "table": "CountryLanguage",
+     "column": "CountryCode",
+     "value": "GRC"
+    },
+    {
+     "kind": "elsewhere_candidate",
+     "literal": "Greece",
+     "table": "Country",
+     "column": "Name",
+     "value": "Greece"
+    }
+   ],
+   "other_changes": [
+    "filter by the country's name, or by the code that name maps to"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-04354",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "Gilbert City",
+     "table": "Business",
+     "column": "city",
+     "value": "Gilbert"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "audit_correction": "active stores 'true' (lowercase); the proposal's active = 'true' is right, and the reference's LIKE 'True' matches it case-insensitively. Only the city is a grounding error.",
+   "note": null
+  },
+  {
+   "task_id": "bird23tf-04354",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "Gilbert City",
+     "table": "Business",
+     "column": "city",
+     "value": "Gilbert"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "audit_correction": "active stores 'true' (lowercase); the proposal's active = 'true' is right, and the reference's LIKE 'True' matches it case-insensitively. Only the city is a grounding error.",
+   "note": null
+  },
+  {
+   "task_id": "bird23tf-04816",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "Czech Republic",
+     "table": "PlayerInfo",
+     "column": "nation",
+     "value": "Czech Rep."
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": "the reference's shorter country list gives the same result as the evidence's full list once 'Czech Rep.' is used: among Toronto's draftees only Belarus, Czech Rep., Slovakia and Ukraine occur",
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-04816",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "value_candidate",
+     "literal": "Czech Republic",
+     "table": "PlayerInfo",
+     "column": "nation",
+     "value": "Czech Rep."
+    }
+   ],
+   "other_changes": [],
+   "benchmark": null,
+   "note": "the reference's shorter country list gives the same result as the evidence's full list once 'Czech Rep.' is used: among Toronto's draftees only Belarus, Czech Rep., Slovakia and Ukraine occur",
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-04930",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "join_flag",
+     "left": [
+      "Teams",
+      "tmID"
+     ],
+     "right": [
+      "Master",
+      "playerID"
+     ]
+    },
+    {
+     "kind": "table_candidate",
+     "table": "Goalies"
+    },
+    {
+     "kind": "elsewhere_candidate",
+     "literal": "G",
+     "table": "Master",
+     "column": "pos",
+     "value": "G"
+    }
+   ],
+   "other_changes": [
+    "join Master through Goalies on (year, tmID)"
+   ],
+   "benchmark": {
+    "unresolved": true,
+    "why": "the reference adds deathYear IS NOT NULL, which the question does not ask for; a faithful repair need not match it"
+   },
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-05527",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "representation_flag",
+     "table": "movies_total_gross",
+     "column": "total_gross"
+    },
+    {
+     "kind": "unavailable",
+     "what": "that the inner join to characters drops the top-grossing action movie"
+    }
+   ],
+   "other_changes": [
+    "remove the join; strip '$' and ',' before casting"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-05527",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "representation_flag",
+     "table": "movies_total_gross",
+     "column": "total_gross"
+    }
+   ],
+   "other_changes": [
+    "strip '$' and ',' and cast before ordering"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-05954",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "table_candidate",
+     "table": "Ball_by_Ball"
+    }
+   ],
+   "other_changes": [],
+   "benchmark": {
+    "unresolved": true,
+    "why": "the question asks for overs; the reference counts balls (COUNT(Over_Id) = 124 against 20 distinct overs)"
+   },
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-06494",
+   "seed": 200,
+   "required": [
+    {
+     "kind": "column_candidate",
+     "table": "Master",
+     "column": "nameGiven"
+    }
+   ],
+   "other_changes": [
+    "order by birth date descending for the youngest"
+   ],
+   "benchmark": null,
+   "note": null,
+   "audit_correction": null
+  },
+  {
+   "task_id": "bird23tf-01840",
+   "seed": 201,
+   "required": [
+    {
+     "kind": "column_candidate",
+     "table": "director",
+     "column": "director"
+    }
+   ],
+   "other_changes": [
+    "count distinct voice actors"
+   ],
+   "benchmark": {
+    "unresolved": true,
+    "why": "the reference also returns the count as a second column, which the question does not ask for (the audit marks this uncertain)"
+   },
+   "note": null,
+   "audit_correction": null
+  }
+ ]
+}
