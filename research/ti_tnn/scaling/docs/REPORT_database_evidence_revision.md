@@ -1,9 +1,12 @@
 # Does database evidence improve ordinary revision? Results of the frozen D0 / D1 / V1 run
 
 **Result.** V1 did not meet the prespecified continuation threshold on this population, and this version stops.
+There was no measured net accuracy improvement over ordinary revision, at a higher cost.
 - **V1 against D1:** 80 of 128 each, a difference of 0 (-1 in seed 200, +1 in seed 201).
-- **Interval:** the 95% question-level bootstrap interval is [-5, +5].
+- **Interval:** the 95% question-level bootstrap interval is [-5, +5] correct answers out of 128, about -3.9 to +3.9
+  percentage points. It does not account for clustering by database.
 - **Discordant answers:** 3 recoveries and 3 regressions.
+- **Cost:** V1's end-to-end cost was 3.4% higher than D1's.
 
 This measures one frozen lookup on one fresh population. It is not proof that database evidence has no effect, and
 not proof that its effect is small.
@@ -53,7 +56,23 @@ The lookup is reference-blind and deterministic. V1's message is D1's with that 
 | D1 | 41 | 39 | 80 |
 | V1 | 40 | 40 | 80 |
 
-| comparison | pooled | per seed | recoveries | regressions | 95% interval (questions) | leave-one-database-out min | all conditions | sign-flip p (exploratory) |
+**By evidence signal.** The groups are computed from the shown payload without any reference, and are descriptive
+only.
+- **"Value not stored"** is a value item with no verbatim row and candidates shown.
+- **"Other signal"** is a value found elsewhere, a flagged join, or a flagged value representation.
+- **"No signal"** means no flagged signal. It does not mean the payload was empty: those payloads still showed declared
+  keys, column notes, near-miss columns and tables matching the question.
+
+| signal group (descriptive) | requests | D0 | D1 | V1 | V1 right, D1 wrong | D1 right, V1 wrong | D0 right, V1 wrong |
+|---|---|---|---|---|---|---|---|
+| no flagged signal | 85 | 49 | 54 | 56 | 3 | 1 | 0 |
+| other signal | 42 | 21 | 26 | 24 | 0 | 2 | 1 |
+| value not stored | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**All three V1-only recoveries occurred in the no-flagged-signal group.** The one V1 regression of an initially correct
+answer occurred in the other-signal group.
+
+| comparison | pooled | per seed | recoveries | regressions | 95% interval (correct answers of 128) | leave-one-database-out min | all conditions | sign-flip p (exploratory) |
 |---|---|---|---|---|---|---|---|---|
 | V1-D1 | +0 | -1, +1 | 3 | 3 | [-5, +5] | -1 | False | 1.000 |
 | D1-D0 | +10 | +3, +7 | 10 | 0 | [+4, +18] | +8 | True | 0.031 |
@@ -68,12 +87,6 @@ The lookup is reference-blind and deterministic. V1's message is D1's with that 
 | initially correct (D0) | 70 |
 | initially correct, broken by D1 / V1 | 0 / 1 |
 | initially wrong, fixed by D1 / V1 | 10 / 11 |
-
-| signal group (descriptive) | requests | D0 | D1 | V1 | V1 right, D1 wrong | D1 right, V1 wrong | D0 right, V1 wrong |
-|---|---|---|---|---|---|---|---|
-| no signal | 85 | 49 | 54 | 56 | 3 | 1 | 0 |
-| other signal | 42 | 21 | 26 | 24 | 0 | 2 | 1 |
-| value not stored | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
 
 | policy | generation s | lookup s | tool s | submitted execution s | total s | per request s | per EX-correct s | prompt tokens | generated tokens | peak memory GB |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -118,18 +131,44 @@ GPU reservations: dbe run 0.461 h (ok). Ledger: 23.951 of 32.0 h.
   - The signal groups are descriptive and computed without references. No subgroup is selected or proposed as a
     policy.
 - **Secondary: ordinary revision helps on this population.**
-  - D1 - D0 is +10, with 10 recoveries, no regressions and interval [+4, +18]. It meets the +8 rule in both seeds and
-    leaving out any one database.
-  - V1 - D0 is also +10 and meets the rule.
+  - D1 - D0 is +10, with 10 recoveries and no regressions. Its interval is [+4, +18] correct answers of 128, about
+    +3.1 to +14.1 percentage points.
+  - It meets the registered rule: at least +8 pooled, positive in both seeds (+3 and +7), and positive after leaving
+    out any one database (minimum +8).
+  - V1 - D0 is also +10 and meets the same rule: +2 and +8 by seed, minimum +7 leaving out one database, interval
+    [+3, +18], about +2.3 to +14.1 points.
   - In PR #71's population, D1 - D0 was +2. The difference between populations is not explained here.
-  - This is a secondary comparison, and it does not change the primary decision.
+  - These are secondary comparisons, and they do not change the primary decision.
+
+## The six requests where D1 and V1 disagree on correctness
+
+These are described from the saved records only: the initial SQL, each revision, the selection and the shown payload.
+They are not a policy or a causal account.
+
+| request | D0 / D1 / V1 | what the saved records show |
+|---|---|---|
+| bird23tf-01144, seed 200 (professional_basketball) | 0 / 1 / 0 | The initial SQL failed: `T3.award` does not exist. D1 dropped that condition and executed. V1 kept it, and changed `draftFrom = 'California'` to `LIKE 'California%'` after the payload listed 'California ...' values. Its revision failed, so V1 abstained. The payload did not mention the missing column. |
+| bird23tf-00441, seed 200 (talkingdata) | 1 / 1 / 0 | The initial SQL was correct. D1 added `DISTINCT`. V1 replaced `events` with `events_relevant`, the first table the payload listed as matching the question, which returned 0 rows. This is the one initially correct answer V1 broke. |
+| bird23tf-03981, seed 200 (talkingdata) | 0 / 0 / 1 | The initial SQL failed (`T1.device_id` does not exist). D1 resubmitted it unchanged and abstained. V1 joined `app_events` to `gender_age` through `events_relevant`, a table the payload listed, and executed. |
+| bird23tf-01645, seed 201 (simpson_episodes) | 0 / 1 / 0 | The initial SQL failed (`T1.name` does not exist). D1 used `Award.person` and executed. V1 kept `T1.name`, so its revision failed and V1 abstained. The payload did not mention the missing column. |
+| bird23tf-02677, seed 201 (ice_hockey_draft) | 0 / 0 / 1 | The initial SQL failed (`height_in_cm` is not in `PlayerInfo`). D1 averaged `PlayerInfo.height`, which is an id. V1 joined `height_info`, which the payload listed with the declared key `PlayerInfo.height -> height_info.height_id`. |
+| bird23tf-04913, seed 201 (image_and_language) | 0 / 0 / 1 | The initial SQL failed (`OBJ_CLASS` is not in `IMG_OBJ`). D1 resubmitted it unchanged and abstained. V1 joined `OBJ_CLASSES` on the declared key the payload listed. |
+
+**Patterns in the saved records, stated without interpretation:**
+- **The three V1-only recoveries.** In each, V1's revision used a table or key that the payload listed under its
+  tables or declared keys.
+- **The two V1 abstentions D1 avoided.** The initial query named a column that does not exist, and the payload said
+  nothing about that column. The lookup records such columns as unresolved but does not render them.
+- **The broken correct answer.** V1 swapped in a listed table.
+
+The sample is six requests, so no rate or effect is estimated from them.
 
 ## Uncertainty, as pinned
 
 - **Bootstrap.** One shared resampling of the 64 questions, each with both seeds and all policies: 10,000 replicates
-  with `random.Random(20261107)`. The 95% percentile intervals are in correct answers of the 128 question-seed pairs.
-  The interval treats questions as independent; leave-one-database-out is a sensitivity check, not a correction for
-  database clustering.
+  with `random.Random(20261107)`. The 95% percentile intervals are in correct answers of the 128 question-seed pairs;
+  one answer is about 0.78 percentage points. The interval treats questions as independent and does not account for
+  clustering by database. Leave-one-database-out is a sensitivity check, not a correction for that.
 - **Sign-flip.** The exact sign-flip over per-database differences is exploratory: p = 1.000 for V1 - D1 and 0.031
   for each D0 comparison.
 
@@ -144,8 +183,12 @@ or below 3.0 throughout (co-tenancy log). An idle 533 MiB process from another p
 ## What this does and does not show
 
 - **The rule was not met.** The frozen db-evidence-v1.4 payload, added to ordinary revision, did not meet the
-  prespecified continuation threshold against ordinary revision on this population. This version stops. The lookup
-  is not tuned against these results, and this population is not rerun.
+  prespecified continuation threshold against ordinary revision on this population. There was no measured net
+  accuracy improvement, at a higher cost. db-evidence-v1.4 is closed as a revision aid:
+  - the lookup is not tuned against these results;
+  - this population is not rerun;
+  - no further revision-prompt study is started from this result.
+- **The practical baselines stay D0 and D1.** D1 is the better of the two on this population.
 - **Not shown:**
   - that database evidence cannot help;
   - that its effect is small in general;
