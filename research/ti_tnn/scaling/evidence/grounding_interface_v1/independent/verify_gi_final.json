@@ -1,0 +1,2767 @@
+{
+ "checks": 331,
+ "failures": 0,
+ "repo_head": "1cae12416ba82bf85c42d86f2c84d0ef48025ebe",
+ "runs_root": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling",
+ "seconds": 1850.0,
+ "sections": {
+  "analysis": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "analysis: the eval-new run, clean tree at the run commit",
+     "passed": true
+    },
+    {
+     "detail": "{'C4-G0/100': 12, 'C4-G0/101': 11, 'C4-G0/102': 9, 'C4-G4/100': 12, 'C4-G4/101': 11, 'C4-G4/102': 9, 'C4-Glex/100': 12, 'C4-Glex/101': 10, 'C4-Glex/102': 9, 'T4-G0/100': 9, 'T4-G0/101': 13, 'T4-G0/102': 7, 'T4-G4/100': 10, 'T4-G4/101': 13, 'T4-G4/102': 8, 'T4-Glex/100': 9, 'T4-Glex/101': 13, 'T4-Glex/102': 7}",
+     "name": "EX counts per policy, architecture and seed = analysis.json",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "paired G4-G0, Glex-G0, G4-Glex per architecture and the interaction = analysis.json (per seed, pooled, conditions, per database, leave-one-out, histogram)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "no comparison and no interaction is a consistent difference",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "direct control = analysis.json (correct, abstentions, truncation, timeouts, best per seed, beats every seed)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct call mean seconds",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "decode diagnostics (changed decisions and SQL, recoveries, regressions, fallbacks) = analysis",
+     "passed": true
+    },
+    {
+     "detail": "{'decodes': 384, 'changed_sql': 34, 'own_correct': 63, 'swapped_correct': 58}",
+     "name": "swap check = analysis.json",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "swap partners = own rule (next same-database question, cyclic)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "analysis gpu_hours: each command's (last) reservation = own ledger",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "analysis gpu_hours names every gi command (the two dev ground runs share one key)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "analysis ledger used_hours = own total of the reservations ended when it was written (22.8228 h)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the readings: the direct control beats the best policy every seed; nothing improves consistently",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "G4 record table recall and precision: own (sqlglot gold tables) within 0.03 of analysis.json",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "G4 call mean seconds = analysis",
+     "passed": true
+    },
+    {
+     "detail": " 0.042 | ok |\n| gi ground new (20261103T195032-c2178282) | 0.179 | ok |\n| gi eval-new (20261103T200120-d90a321a) | 0.462 | ok |\n| gi direct-new (20261103T202939-534bbad7) | 0.098 | ok |\n| total | 1.407 | |\n\nLedger at the analysis: 22.823 of 32.0 h (analysis.json's `gpu_hours` keeps one entry per command name, so it shows only the second dev grounding run; the table above lists every reservation).\n",
+     "name": "python -m scaling.gi_report exits 0 on the bundle (producer code, flagged)",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "analysis_G4_record_tables": {
+     "first_in_gold_set": 0.9285714285714286,
+     "scored": 56,
+     "table_precision": 0.8601190476190476,
+     "table_recall": 0.9583333333333333
+    },
+    "comparisons": {
+     "C4": {
+      "G4-G0": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": false
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 0,
+        "101": 0,
+        "102": 0
+       },
+       "pooled": 0
+      },
+      "G4-Glex": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": false
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 0,
+        "101": 1,
+        "102": 0
+       },
+       "pooled": 1
+      },
+      "Glex-G0": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": false
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 0,
+        "101": -1,
+        "102": 0
+       },
+       "pooled": -1
+      }
+     },
+     "T4": {
+      "G4-G0": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": true
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 1,
+        "101": 0,
+        "102": 1
+       },
+       "pooled": 2
+      },
+      "G4-Glex": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": true
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 1,
+        "101": 0,
+        "102": 1
+       },
+       "pooled": 2
+      },
+      "Glex-G0": {
+       "conditions": {
+        "pooled_at_least_threshold": false,
+        "same_sign_every_seed": false,
+        "same_sign_without_any_one_database": false
+       },
+       "consistent": false,
+       "per_seed": {
+        "100": 0,
+        "101": 0,
+        "102": 0
+       },
+       "pooled": 0
+      }
+     }
+    },
+    "counts": {
+     "C4-G0/100": 12,
+     "C4-G0/101": 11,
+     "C4-G0/102": 9,
+     "C4-G4/100": 12,
+     "C4-G4/101": 11,
+     "C4-G4/102": 9,
+     "C4-Glex/100": 12,
+     "C4-Glex/101": 10,
+     "C4-Glex/102": 9,
+     "T4-G0/100": 9,
+     "T4-G0/101": 13,
+     "T4-G0/102": 7,
+     "T4-G4/100": 10,
+     "T4-G4/101": 13,
+     "T4-G4/102": 8,
+     "T4-Glex/100": 9,
+     "T4-Glex/101": 13,
+     "T4-Glex/102": 7
+    },
+    "decodes": {
+     "C4-G4": {
+      "changed_decisions_vs_G0": 14,
+      "changed_sql_vs_G0": 14,
+      "correct_to_wrong": 1,
+      "fallback_to_G0": 18,
+      "wrong_to_correct": 1
+     },
+     "C4-Glex": {
+      "changed_decisions_vs_G0": 19,
+      "changed_sql_vs_G0": 19,
+      "correct_to_wrong": 1,
+      "fallback_to_G0": 0,
+      "wrong_to_correct": 0
+     },
+     "T4-G4": {
+      "changed_decisions_vs_G0": 15,
+      "changed_sql_vs_G0": 15,
+      "correct_to_wrong": 0,
+      "fallback_to_G0": 18,
+      "wrong_to_correct": 2
+     },
+     "T4-Glex": {
+      "changed_decisions_vs_G0": 14,
+      "changed_sql_vs_G0": 14,
+      "correct_to_wrong": 0,
+      "fallback_to_G0": 0,
+      "wrong_to_correct": 0
+     }
+    },
+    "direct": {
+     "abstentions": 0,
+     "beats_best_controller_every_seed": true,
+     "best_controller_policy_per_seed": {
+      "100": 12,
+      "101": 13,
+      "102": 9
+     },
+     "correct": 32,
+     "requests": 64,
+     "timeouts": 1,
+     "truncated": 0
+    },
+    "direct_minus_policy_per_seed": {
+     "C4-G0": {
+      "100": 20,
+      "101": 21,
+      "102": 23
+     },
+     "C4-G4": {
+      "100": 20,
+      "101": 21,
+      "102": 23
+     },
+     "C4-Glex": {
+      "100": 20,
+      "101": 22,
+      "102": 23
+     },
+     "T4-G0": {
+      "100": 23,
+      "101": 19,
+      "102": 25
+     },
+     "T4-G4": {
+      "100": 22,
+      "101": 19,
+      "102": 24
+     },
+     "T4-Glex": {
+      "100": 23,
+      "101": 19,
+      "102": 25
+     }
+    },
+    "direct_only_vs_any_controller": {
+     "controller_some_correct_direct_wrong": 5,
+     "direct_correct_no_controller_correct": 14
+    },
+    "gi_report_tail": " SQL | wrong to correct | correct to wrong | fallback to G0 | EX-correct with another table set |\n|---|---|---|---|---|---|---|\n| C4-G4 | 14 | 14 | 1 | 1 | 18 | 5 |\n| C4-Glex | 19 | 19 | 0 | 1 | 0 | 5 |\n| T4-G4 | 15 | 15 | 2 | 0 | 18 | 6 |\n| T4-Glex | 14 | 14 | 0 | 0 | 0 | 5 |\n\n| record (new population) | valid of 64 | scored (gold convertible) | table recall | table precision | table set exact | first listed in gold set | first = gold first FROM | column coverage | literal value accuracy | literal pair accuracy |\n|---|---|---|---|---|---|---|---|---|---|---|\n| G4 | 58 | 56 | 0.96 | 0.86 | 0.68 | 0.93 | 0.64 | 0.53 | 0.73 | 0.63 |\n| Glex | 64 | 62 | 1.00 | 0.45 | 0.06 | 0.85 | 0.56 | 0.81 | \u2014 | \u2014 |\n\nSwap check: another question's G4 record (same database) changes the final SQL of 34 of 384 decodes; EX-correct 63 with the own record, 58 with the swapped one.\n\n| GPU reservation (this work order) | hours | status |\n|---|---|---|\n| gi ground dev (20261103T185105-14cc8a54) | 0.302 | ok |\n| gi ground dev (20261103T191242-e3686432) | 0.323 | ok |\n| gi encode-new (20261103T194759-50c68071) | 0.042 | ok |\n| gi ground new (20261103T195032-c2178282) | 0.179 | ok |\n| gi eval-new (20261103T200120-d90a321a) | 0.462 | ok |\n| gi direct-new (20261103T202939-534bbad7) | 0.098 | ok |\n| total | 1.407 | |\n\nLedger at the analysis: 22.823 of 32.0 h (analysis.json's `gpu_hours` keeps one entry per command name, so it shows only the second dev grounding run; the table above lists every reservation).\n",
+    "gpu_hours_by_command": {
+     "gi direct-new": [
+      0.098044906772775
+     ],
+     "gi encode-new": [
+      0.04213886407305027
+     ],
+     "gi eval-new": [
+      0.46244598098972345
+     ],
+     "gi ground dev": [
+      0.30219092510389195,
+      0.32344005279277754
+     ],
+     "gi ground new": [
+      0.1785831118891656
+     ]
+    },
+    "interaction": {
+     "conditions": {
+      "pooled_at_least_threshold": false,
+      "same_sign_every_seed": false,
+      "same_sign_without_any_one_database": false
+     },
+     "per_seed": {
+      "100": 1,
+      "101": 0,
+      "102": 1
+     },
+     "pooled": 2
+    },
+    "ledger_at_analysis": {
+     "own_hours": 22.82275088487141,
+     "reservations_after_the_analysis": {
+      "spr dev": 2,
+      "spr run": 1
+     }
+    },
+    "own_G4_record_tables_vs_gold (sqlglot)": {
+     "first_in_gold_set": 0.9137931034482759,
+     "scored": 58,
+     "table_precision": 0.8563218390804598,
+     "table_recall": 0.9597701149425287
+    },
+    "own_reading": [
+     "direct beats best controller policy in every seed",
+     "nothing improves consistently"
+    ],
+    "seconds": 0.2,
+    "swap": {
+     "changed_sql": 34,
+     "decodes": 384,
+     "own_correct": 63,
+     "swapped_correct": 58
+    },
+    "swap_own_G4_equals_eval_G4_actions": 384
+   },
+   "passed": 16
+  },
+  "bundle": {
+   "checks": [
+    {
+     "detail": "[]",
+     "name": "bundle: files are exactly SHA256SUMS's list",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "bundle: all 64 files hash to SHA256SUMS",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "bundle: every bundled study file exists in the runs root's grounding_interface/",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every runs-root file absent from the bundle was written after the bundle commit a16168e (a later addition, not an omission): 0 files",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "bundle: every bundled run file equals its runs-root original byte for byte",
+     "passed": true
+    },
+    {
+     "detail": "387421 vs 399644 bytes",
+     "name": "bundle: the bundled ledger is a prefix of the live ledger (append-only)",
+     "passed": true
+    },
+    {
+     "detail": "[['M', 'research/ti_tnn/scaling/evidence/grounding_interface_v1/SHA256SUMS'], ['A', 'research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/README.txt'], ['A', 'research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/verify_gi.json'], ['A', 'research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/verify_gi_summary.txt'], ['A', 'research/ti_tnn/scaling/evidence/grounding_interface_v1/logs/margin.log']]",
+     "name": "bundle since a16168e: files only added (SHA256SUMS rewritten); no existing file changed",
+     "passed": true
+    },
+    {
+     "detail": "[] ['independent/README.txt', 'independent/verify_gi.json', 'independent/verify_gi_summary.txt', 'logs/margin.log', 'margin/20261106T024418Z/manifest.json', 'margin/20261106T024418Z/records.jsonl', 'margin/20261106T024418Z/summary.json', 'margin/20261106T024526Z/manifest.json', 'margin/20261106T024526Z/records.jsonl', 'margin/20261106T024526Z/summary.json']",
+     "name": "every a16168e SHA256SUMS line is unchanged; the added lines are independent/, margin/ and logs/margin.log (10)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "study code, pins and protocol unchanged from 9c139ac to HEAD",
+     "passed": true
+    },
+    {
+     "detail": "9c139ac5c997a14a40dc4cd2b0e53286ddbaaf4e",
+     "name": "frozen worktree at 9c139ac",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "frozen worktree: research/ clean",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "bundle_changes_since_a16168e": [
+     "M SHA256SUMS",
+     "A independent/README.txt",
+     "A independent/verify_gi.json",
+     "A independent/verify_gi_summary.txt",
+     "A logs/margin.log",
+     "A margin/20261106T024418Z/manifest.json",
+     "A margin/20261106T024418Z/records.jsonl",
+     "A margin/20261106T024418Z/summary.json",
+     "A margin/20261106T024526Z/manifest.json",
+     "A margin/20261106T024526Z/records.jsonl",
+     "A margin/20261106T024526Z/summary.json"
+    ],
+    "bundle_independent_files": [
+     "independent/README.txt",
+     "independent/verify_gi.json",
+     "independent/verify_gi_summary.txt"
+    ],
+    "head": "1cae124",
+    "live_ledger_grew_since_bundle_bytes": 12223,
+    "runs_root_files_not_in_bundle": {},
+    "seconds": 0.1,
+    "sql_objects_in_runs_root_files_not_in_bundle (not verified here)": 0
+   },
+   "passed": 11
+  },
+  "constraint": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "constraint: clean tree, CPU",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_constraint.py at the run commit 812b148 = at 9c139ac",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "own SQL-level same-reference ON count agrees (present/absent) with every record",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "own SQL-level self-join count agrees (present/absent) with every record",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "no restricted decode has a same-reference ON comparison (own)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "constraint summary: every count (by fit and population, by architecture) = own tally",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "v2's push_scalar: second operand of a comparison in ON whose first operand is a column -> exclude",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "RestrictedV1Machine.push: the same four conditions, the same exclusion",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "RestrictedV1Machine sets no pointer-relation operand (`first`): nothing else of v2",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the slot's exclusion is honoured by any machine (no grounding check in _ExprSlot._excluded)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "constraint_cmd: v1 checkpoints, v1 preparation, the class swapped in",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the restricted machine is used only by the constraint command",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own CPU re-decode of v1 = the recorded v1 decode (768/768)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own restricted machine (v2's push_scalar on v1) = the recorded restricted decode (768/768)",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "own_redecode": {
+     "restricted_equal": 768,
+     "rows": 768,
+     "v1_equal": 768
+    },
+    "pooled_by_architecture": {
+     "C4-v1": {
+      "changed_decisions": 53,
+      "correct_to_wrong": 1,
+      "requests": 384,
+      "restricted_correct": 31,
+      "restricted_same_reference_outputs": 0,
+      "v1_correct": 32,
+      "v1_reproduces_saved_decode": 382,
+      "v1_same_reference_outputs": 53,
+      "wrong_to_correct": 0
+     },
+     "T4-v1": {
+      "changed_decisions": 64,
+      "correct_to_wrong": 1,
+      "requests": 384,
+      "restricted_correct": 39,
+      "restricted_same_reference_outputs": 0,
+      "v1_correct": 39,
+      "v1_reproduces_saved_decode": 383,
+      "v1_same_reference_outputs": 64,
+      "wrong_to_correct": 1
+     }
+    },
+    "seconds": 650.1
+   },
+   "passed": 14
+  },
+  "consumption": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "gi_record: MAX_TABLES 8, MAX_COLUMNS 16",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_record.rank_bias = ln 2 / rank",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "Grounding.biases: None if invalid; zeros; the first 8 tables and 16 columns at ln 2 / r",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "pointer_prior adds the vector to the item scores only (start/end untouched)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "resolve: literals are recorded beside the ranked tables and columns, which alone feed biases()",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: the timed decode and its cache reconstruction both run under the same prior",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: the vector is the record's biases over the encoding's items (None for G0)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode: table/column pointers read the item scores; legal targets come from the machine and mask after",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own bias vector = the vector of the recorded resolved record (732/732)",
+     "passed": true
+    },
+    {
+     "detail": "[{'id': 'eval|T4-v2/100|G0|bird23tf-04243', 'first_step': 12, 'cpu': [['COL0', 8], ['END', None]], 'gpu': [['COL0', 10], ['END', None]], 'sql_equal': False}, {'id': 'eval|T4-v2/101|G0|bird23tf-06511', 'first_step': 22, 'cpu': [['COL0', 5], ['END', None]], 'gpu': [['COL0', 14], ['END', None]], 'sql_equal': False}, {'id': 'eval|C4-v2/101|G0|bird23tf-01131', 'first_step': 8, 'cpu': [['COL0', 114], ['NUM', [500, 503]]], 'gpu': [['COL0', 88], ['NUM', [500, 503]]], 'sql_equal': False}]",
+     "name": "CPU re-decode with own biases reproduces the GPU actions (1149/1152; differences listed in info)",
+     "passed": true
+    },
+    {
+     "detail": "[('eval|T4-v2/100|G0|bird23tf-04243', 0.00719), ('eval|T4-v2/101|G0|bird23tf-06511', 0.00311), ('eval|C4-v2/101|G0|bird23tf-01131', 0.00084)]",
+     "name": "every CPU/GPU difference is a near-tie at its first differing pointer step (CPU margin < 0.05)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every table-pointer action chose a table item and every column action a column item",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the producer's resolve+biases (flagged) = own vector for every valid G4 record (348/348)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "literals removed and status flipped: identical bias vector (348/348)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "literals removed and status flipped: identical decode (348/348)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own-bias decode = producer-path decode for every valid G4 request (CPU)",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "redecode_differences_by_policy": {
+     "G0": 3
+    },
+    "redecode_eval": {
+     "actions_equal": 1149,
+     "decodes": 1152,
+     "differences": [
+      {
+       "cpu": [
+        [
+         "COL0",
+         8
+        ],
+        [
+         "END",
+         null
+        ]
+       ],
+       "cpu_high_precision_equals_gpu": false,
+       "cpu_margin_over_gpu_choice": 0.007190704345703125,
+       "first_step": 12,
+       "gpu": [
+        [
+         "COL0",
+         10
+        ],
+        [
+         "END",
+         null
+        ]
+       ],
+       "id": "eval|T4-v2/100|G0|bird23tf-04243",
+       "relative_margin": 0.00013148825663382668,
+       "sql_equal": false
+      },
+      {
+       "cpu": [
+        [
+         "COL0",
+         5
+        ],
+        [
+         "END",
+         null
+        ]
+       ],
+       "cpu_high_precision_equals_gpu": false,
+       "cpu_margin_over_gpu_choice": 0.003108978271484375,
+       "first_step": 22,
+       "gpu": [
+        [
+         "COL0",
+         14
+        ],
+        [
+         "END",
+         null
+        ]
+       ],
+       "id": "eval|T4-v2/101|G0|bird23tf-06511",
+       "relative_margin": 0.0001062561883636697,
+       "sql_equal": false
+      },
+      {
+       "cpu": [
+        [
+         "COL0",
+         114
+        ],
+        [
+         "NUM",
+         [
+          500,
+          503
+         ]
+        ]
+       ],
+       "cpu_high_precision_equals_gpu": false,
+       "cpu_margin_over_gpu_choice": 0.000835418701171875,
+       "first_step": 8,
+       "gpu": [
+        [
+         "COL0",
+         88
+        ],
+        [
+         "NUM",
+         [
+          500,
+          503
+         ]
+        ]
+       ],
+       "id": "eval|C4-v2/101|G0|bird23tf-01131",
+       "relative_margin": 1.3249740979664067e-05,
+       "sql_equal": false
+      }
+     ],
+     "sql_equal": 1149
+    },
+    "seconds": 857.6
+   },
+   "passed": 16
+  },
+  "coverage": {
+   "checks": [
+    {
+     "detail": "['20261103T194758Z_new']",
+     "name": "exactly one encode run *_new",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T195032Z_new']",
+     "name": "exactly one ground run *_new",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T200116Z_new']",
+     "name": "exactly one lexical run *_new",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T200119Z_new']",
+     "name": "exactly one eval run *_new",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T202939Z_new']",
+     "name": "exactly one direct run *_new",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T203613Z_new']",
+     "name": "exactly one swap run *_new",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "one analysis run",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T185104Z_dev: the 128 dev questions, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T185104Z_dev: manifest requested = dev",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: the 128 dev questions, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: manifest requested = dev",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "lexical 20261103T171431Z_dev: dev once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev 20261103T191216Z: 6 v2 fits x 128, once",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev 20261103T191216Z: policies G0, Glex, G4, oracle, G4-swap only",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev 20261103T193217Z: 6 v2 fits x 128, once",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev 20261103T193217Z: policies G0, Glex, G4, oracle, G4-swap only",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "constraint 20261103T170922Z: 6 v1 fits x 128, once",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "constraint 20261103T170922Z: population labels = perf_v2_eval",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "encode-new: the 64 new, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "encode-new manifest: ids = new, recheck = dev[:8]",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground_new: the 64 new, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground_new: manifest requested = new",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "lexical_new: the 64 new, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "lexical_new: manifest requested = new",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct_new: the 64 new, once, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct_new: manifest requested = new",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: 6 v2 fits x 3 policies x 64, once",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: decodes.json holds the same requests in the same order as records.jsonl",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: each record equals its decodes.json entry (minus plan) plus its score",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new manifest: requested = new, policies G0/Glex/G4, the six v2 fits",
+     "passed": true
+    },
+    {
+     "detail": "['T4-v2/100', 'C4-v2/100', 'T4-v2/101', 'C4-v2/101', 'T4-v2/102', 'C4-v2/102']",
+     "name": "eval-new ran by seed, both architectures together (T4, C4 per seed)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "swap-new: 6 fits x 64 (every new question has a partner), once",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/100: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/100: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/100: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/100: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/101: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/101: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/101: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/101: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/102: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v2/102: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/102: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v2/102: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/100: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/100: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/101: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/101: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/102: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "C4-v1/102: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/100: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/100: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/101: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/101: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/102: one final checkpoint u002999, the last",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "T4-v1/102: checkpoint bytes hash to its name",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "eval/20261103T200119Z_new: its six checkpoints = own hashes",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "decode_dev/20261103T191216Z: its six checkpoints = own hashes",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "decode_dev/20261103T193217Z: its six checkpoints = own hashes",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "constraint/20261103T170922Z: its six checkpoints = own hashes",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "runs": {
+     "constraint": [
+      "20261103T170922Z"
+     ],
+     "decode_dev": [
+      "20261103T191216Z",
+      "20261103T193217Z"
+     ],
+     "ground_dev": [
+      "20261103T185104Z_dev",
+      "20261103T191242Z_dev"
+     ],
+     "lexical_dev": [
+      "20261103T171431Z_dev"
+     ]
+    },
+    "seconds": 2.3
+   },
+   "passed": 60
+  },
+  "dev": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "the gate's decode run used the pinned dev ground run (v2 prompt)",
+     "passed": true
+    },
+    {
+     "detail": "{'Glex': {'changed_sql': 80, 'share': 0.10416666666666667}, 'G4': {'changed_sql': 78, 'share': 0.1015625}, 'oracle': {'changed_sql': 68, 'share': 0.08854166666666667}}",
+     "name": "gate: own changed-SQL counts = dev_summary",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gate: Glex 80, G4 78, oracle 68 of 768, as the protocol states",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gate shares = the pin's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the gate passes (some share >= 10%)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev EX per policy = dev_summary",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev EX table = the protocol's (C4 68/69/71/74, T4 70/71/69/69)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "swap check: another question's record changes 36 of 768 (protocol: 36)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "G0 on the CPU = the saved GPU decode: own 766/768",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev G4 records valid: own 124/128 (protocol 124)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev swap partners = own rule",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "fb4e342 postdates every dev run's last write (latest 2026-11-03T19:46:51+00:00, freeze 2026-11-03T19:47:43+00:00)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "both dev decode runs started after e759e58 (2026-11-03T19:00:11+00:00): ['2026-11-03T19:12:16+00:00', '2026-11-03T19:32:17+00:00']",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "e759e58: GATE_SHARE = 0.10",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "e759e58: the protocol draft states the 10% gate and the stop",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "GATE_SHARE = 0.10 at 9d2475a",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "GATE_SHARE = 0.10 at fb4e342",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "GATE_SHARE = 0.10 at 9c139ac",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "e759e58 is an ancestor of the decode runs' commit 9d2475a",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "changed_actions": {
+     "G4": 78,
+     "Glex": 80,
+     "oracle": 68
+    },
+    "dev_ex": {
+     "C4-v2": {
+      "G0": 68,
+      "G4": 71,
+      "G4-swap": 68,
+      "Glex": 69,
+      "oracle": 74
+     },
+     "T4-v2": {
+      "G0": 70,
+      "G4": 69,
+      "G4-swap": 71,
+      "Glex": 71,
+      "oracle": 69
+     }
+    },
+    "dev_run_ends": {
+     "20261103T171431Z_dev": "2026-11-03T17:14:32+00:00",
+     "20261103T185104Z_dev": "2026-11-03T19:09:13+00:00",
+     "20261103T191216Z": "2026-11-03T19:44:23+00:00",
+     "20261103T191242Z_dev": "2026-11-03T19:32:07+00:00",
+     "20261103T193217Z": "2026-11-03T19:46:51+00:00"
+    },
+    "dev_v1_prompt_valid": 115,
+    "freeze_commit_time": "2026-11-03T19:47:43+00:00",
+    "gate_commit_time": "2026-11-03T19:00:11+00:00",
+    "gate_margin": {
+     "G4": 1.2000000000000028,
+     "Glex": 3.200000000000003,
+     "oracle": -8.799999999999997
+    },
+    "influence": {
+     "G4": {
+      "changed_sql": 78,
+      "share": 0.1015625
+     },
+     "Glex": {
+      "changed_sql": 80,
+      "share": 0.10416666666666667
+     },
+     "oracle": {
+      "changed_sql": 68,
+      "share": 0.08854166666666667
+     }
+    },
+    "note_first_ground_dev_before_gate_commit": true,
+    "seconds": 0.4
+   },
+   "passed": 19
+  },
+  "fallback": {
+   "checks": [
+    {
+     "detail": "[]",
+     "name": "ground 20261103T191242Z_dev: own parse/validation agrees on validity and reason (128/128; 4 invalid)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: own resolution = recorded item indexes for every valid record",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: own literal check = recorded valid/invalid bindings",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "ground 20261103T195032Z_new: own parse/validation agrees on validity and reason (64/64; 6 invalid)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T195032Z_new: own resolution = recorded item indexes for every valid record",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T195032Z_new: own literal check = recorded valid/invalid bindings",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: every invalid G4 request (36) decodes exactly as G0 of the same fit and records an invalid grounding",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "eval-new: every G4 request's recorded validity = own validation",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev v2 decode: every invalid G4 request (24) = G0",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "analysis: fallback_to_G0 = 3 x 6 per architecture",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "analysis: G4 valid, fallback reasons and truncation counts = own",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every fallback is a parse, key, type, name or truncation failure (never a literal)",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "20261103T185104Z_dev (gi-g4-prompt-v1, parser before the repairs)": {
+     "disagreements": [
+      [
+       "bird23tf-02636",
+       null,
+       "not JSON: Invalid \\escape"
+      ],
+      [
+       "bird23tf-02636",
+       "parsed record differs"
+      ],
+      [
+       "bird23tf-06228",
+       null,
+       "unknown table '`voice-actors`'"
+      ],
+      [
+       "bird23tf-00851",
+       null,
+       "unknown table '`Match`'"
+      ],
+      [
+       "bird23tf-04133",
+       null,
+       "unknown table '`Match`'"
+      ]
+     ],
+     "own_valid_with_repaired_parser": 115,
+     "recorded_valid": 111
+    },
+    "20261103T191242Z_dev": {
+     "invalid": 4,
+     "reasons": {
+      "unknown column": 4
+     },
+     "truncated": 0,
+     "valid": 124
+    },
+    "20261103T195032Z_new": {
+     "invalid": 6,
+     "reasons": {
+      "unknown column": 6
+     },
+     "truncated": 0,
+     "valid": 58
+    },
+    "new_invalid": [
+     "bird23tf-05751",
+     "bird23tf-03018",
+     "bird23tf-01607",
+     "bird23tf-04978",
+     "bird23tf-05085",
+     "bird23tf-04907"
+    ],
+    "seconds": 0.4
+   },
+   "passed": 12
+  },
+  "integrity": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "encode-new: clean tree, the frozen protocol (its anchors are accepted)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "own hash of every new cache entry's tensor bytes = its anchor (64)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every new cache entry's metadata records its anchor sha256",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every new cache entry: bf16 [tokens, 2560]",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "encode-new: 8 dev contexts re-encoded equal to their anchors, 64 written fresh",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the 8 rechecked dev contexts have earlier anchors",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: every fresh GPU forward's states sha256 = its anchor (1152)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: every request's context has its anchored cache key",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: every record's anchor_equal and reconstruction_equal flags are true",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new summary: 0 failures",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new: precision high, clean tree, frozen protocol",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the CPU re-decodes read cached states equal to the anchors",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "cpu_redecode_from_cache": {
+     "distinct_states": 64,
+     "equal": 1149,
+     "of": 1152
+    },
+    "seconds": 0.6
+   },
+   "passed": 12
+  },
+  "margin": {
+   "checks": [
+    {
+     "detail": "['20261106T024418Z', '20261106T024526Z']",
+     "name": "two margin runs in the bundle (a trial and the counted run)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "one clean run (counted) and one dirty-tree run (the trial)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the counted run's commit f0b6def holds the current gi_margin.py",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the sample = own rule: the 32 dev questions with the smallest sha256('gi-margin-sample-v1:' + task_id)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the margin run used the pinned dev G4 run (prompt v2)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the counted run's two checkpoints (seed 100, T4-v2 and C4-v2) = own hashes",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the counted run covers 2 fits x 32 questions, once each",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every margin row names its task's db",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the counted run's summary.json = own tally of its records (own EX bits)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the counted run's summary.json = own tally of its records (the recorded EX bits)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every step: 'unchangeable' iff margin > ln 2; a prior can change a step only if its advantage exceeds the margin",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "g4_record_valid = own validation of the dev G4 record",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the margin run's G0 SQL = the gate's dev decode G0 SQL (64/64)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "restricted decoding is undefined exactly where the gold program is not convertible",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "no forced action was illegal",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the trial's records equal the counted run's (64 rows)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the trial's summary equals the counted run's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the trial's configuration equals the counted run's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every margin SQL record maps to an executed key with an equal result (370/370)",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "counted": {
+     "commit": "f0b6def80c04832939bca888cdb7b262ed52bda0",
+     "run": "20261106T024526Z",
+     "worktree": "/home/seanjazm27/projects/universa-recurrent-gi-run4"
+    },
+    "counted_summary_headline": {
+     "C4-v2/100": {
+      "forced": 28,
+      "forced_correct": 8,
+      "g0_correct": 6,
+      "g4_could_change": {
+       "count": 6,
+       "n": 207
+      },
+      "margin_above_ln2": {
+       "column": {
+        "count": 137,
+        "n": 146
+       },
+       "table": {
+        "count": 54,
+        "n": 61
+       }
+      },
+      "oracle_could_change": {
+       "count": 6,
+       "n": 207
+      },
+      "restricted_correct": 10,
+      "restricted_defined": 32
+     },
+     "T4-v2/100": {
+      "forced": 29,
+      "forced_correct": 7,
+      "g0_correct": 6,
+      "g4_could_change": {
+       "count": 3,
+       "n": 191
+      },
+      "margin_above_ln2": {
+       "column": {
+        "count": 120,
+        "n": 135
+       },
+       "table": {
+        "count": 47,
+        "n": 56
+       }
+      },
+      "oracle_could_change": {
+       "count": 3,
+       "n": 191
+      },
+      "restricted_correct": 7,
+      "restricted_defined": 32
+     }
+    },
+    "mapping_lines": {
+     "margin/20261106T024418Z forced": 57,
+     "margin/20261106T024418Z g0": 64,
+     "margin/20261106T024418Z restricted": 64,
+     "margin/20261106T024526Z forced": 57,
+     "margin/20261106T024526Z g0": 64,
+     "margin/20261106T024526Z restricted": 64
+    },
+    "seconds": 0.1,
+    "trial": {
+     "commit": "21e8060121bd9a466a1e0a627714295b573c1c95",
+     "dirty": [
+      "M research/ti_tnn/scaling/docs/REPORT_grounding_interface.md",
+      " M research/ti_tnn/scaling/docs/REPORT_perf_v2_diagnosis.md",
+      " M research/ti_tnn/scaling/independent/verify_gi.py",
+      "?? research/ti_tnn/scaling/gi_margin.py"
+     ],
+     "run": "20261106T024418Z"
+    }
+   },
+   "passed": 19
+  },
+  "permissions": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "ground-new: system prompt = gi_llm.SYSTEM_GROUND (v2) at the run commit",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct-new: system prompt = gi_llm.SYSTEM_DIRECT at the run commit",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T185104Z_dev: system prompt = its commit's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: system prompt = its commit's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the v2 dev ground run used the frozen system prompt",
+     "passed": true
+    },
+    {
+     "detail": "{'thinking': False, 'max_new_tokens': 512}",
+     "name": "ground-new generation: non-thinking, 512 new tokens",
+     "passed": true
+    },
+    {
+     "detail": "{'thinking': False, 'max_new_tokens': 512}",
+     "name": "direct-new generation: non-thinking, 512 new tokens",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "ground 20261103T185104Z_dev: recorded retrieved ids = own BM25 top 3 (128)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T185104Z_dev: every retrieved example from the training pool, another database, outside the dev inventory",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "ground 20261103T191242Z_dev: recorded retrieved ids = own BM25 top 3 (128)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T191242Z_dev: every retrieved example from the training pool, another database, outside the dev inventory",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "ground 20261103T195032Z_new: recorded retrieved ids = own BM25 top 3 (64)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground 20261103T195032Z_new: every retrieved example from the training pool, another database, outside the dev inventory",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the encoder contexts' retrieved examples (producer, flagged) = own BM25",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "tokenizer files hash to the run manifest's model identity",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "G4-new: every rebuilt prompt has the recorded prompt_tokens (64/64)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "direct-new: every rebuilt prompt has the recorded prompt_tokens (64/64)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "G4-dev-v2: every rebuilt prompt has the recorded prompt_tokens (128/128)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "no evaluated question's gold SQL (192) or task id occurs in any rebuilt G4 or direct prompt",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_run.ground_cmd: nothing named gold before scoring",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_run.direct_new_cmd: nothing named gold before scoring",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_llm.ground_call: reads no gold, data or scorer",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_llm.direct_call: reads no gold, data or scorer",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_llm.messages: reads no gold, data or scorer",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "llm_agent.user_message takes the task, the schema text and the examples only",
+     "passed": true
+    },
+    {
+     "detail": "['.:gi_record', '.:grounding', '__future__:annotations']",
+     "name": "gi_lexical imports only gi_record and grounding",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_lexical.ground(question, evidence, schema, items) reads no gold, data, scorer or plan",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "grounding.name_tokens is a text function",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "grounding._mentions is a text function",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new computes Glex from the question, evidence, schema and the encoding's items",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval-new's decode path names no oracle and no gold before scoring",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every eval Glex record (6 fits) equals the lexical-new record of its question (deterministic)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "no lexical record outside Glex requests",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "Glex proposes no literal bindings",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "no new-population run file holds an oracle key",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the oracle appears in the dev diagnostic decode",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "bm25": {
+     "b": 0.75,
+     "documents": 5071,
+     "k1": 1.2,
+     "stopwords": 109
+    },
+    "note": "analysis.json uses gold annotations (gold_reference/oracle_record) only for the diagnostics (record recall, alternative table sets), after scoring",
+    "prompts_rebuilt_and_matched": 256,
+    "seconds": 6.8
+   },
+   "passed": 36
+  },
+  "pins": {
+   "checks": [
+    {
+     "detail": "d3215e69684741de24610b4c6070400eb98dc3eb939740f100d52c7bff3013a7",
+     "name": "protocol text hashes to the pin's sha256",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_new_eval.json hashes to the pin's sha256",
+     "passed": true
+    },
+    {
+     "detail": "fb4e342af2ebe11aa806a6a93d73fc0818972d2b",
+     "name": "the pin's frozen_at is fb4e342",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "protocol text and new pin at fb4e342 equal the pinned ones",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "9c139ac (the run commit) is fb4e342's child and holds this protocol pin",
+     "passed": true
+    },
+    {
+     "detail": "2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8",
+     "name": "raw release sha256 equals contracts.TRAIN_RELEASE",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own split: 14 development, 55 pool databases",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "own split order equals split_v1.json's dev list",
+     "passed": true
+    },
+    {
+     "detail": "first difference at None",
+     "name": "own inventory rebuild: positions 0-191 equal inventory_v1.json",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "inventory db_ids 0-191 equal",
+     "passed": true
+    },
+    {
+     "detail": "[] vs {'bird23tf-03541'}",
+     "name": "own exclusions within 0-191 are the pin's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev = perf_v2_eval historical + new = own inventory positions 0-127",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "new = own inventory positions 128-191, in order",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_new_eval: positions [128, 192) of the pinned inventory",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi_new_eval db_ids from the release",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "dev (128) and new (64) are disjoint and duplicate-free",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "all 192 from development databases",
+     "passed": true
+    },
+    {
+     "detail": "192",
+     "name": "every evaluated question's gold SQL executes within 30 s (own run)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the 14 development snapshots hash to snapshots_v1.json",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "new_databases": {
+     "computer_student": 4,
+     "disney": 4,
+     "food_inspection": 4,
+     "hockey": 5,
+     "ice_hockey_draft": 5,
+     "image_and_language": 5,
+     "music_platform_2": 5,
+     "professional_basketball": 5,
+     "public_review_platform": 4,
+     "simpson_episodes": 5,
+     "soccer_2016": 4,
+     "software_company": 5,
+     "talkingdata": 4,
+     "world": 5
+    },
+    "own_inventory_excluded_within_192": {},
+    "seconds": 14.2
+   },
+   "passed": 19
+  },
+  "prior_use": {
+   "checks": [
+    {
+     "detail": "[{'root': 'runs', 'file': 'spr/preserve/20261106T150505Z/records.jsonl', 'ids': 64, 'written': '2026-11-06T15:07:21+00:00'}]",
+     "name": "every file written after the freeze that names a new id was written after the study's analysis (2026-11-03T20:39:08+00:00): post-freeze reuse, 1 files",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "no file written before the freeze outside grounding_interface/ names a new id except the three expected (1228 files scanned)",
+     "passed": true
+    },
+    {
+     "detail": "[('pins', 'inventory_v1.json'), ('runs', 'data/gold_check_dev_v1.json'), ('runs', 'ir/coverage_details_v1.json')]",
+     "name": "own hits equal gi_new_eval.json's prior_use list",
+     "passed": true
+    },
+    {
+     "detail": "{}",
+     "name": "no file outside the three expected (and the raw release) contains a new question's text",
+     "passed": true
+    },
+    {
+     "detail": "['20261103T194758Z_new']",
+     "name": "exactly one encode run *_new",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "no new context's cache key exists in cache/encodings (never encoded by another run)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every new context's pilot_v1 cache entry was written after encode-new started",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "id_hits": [
+     {
+      "file": "data/gold_check_dev_v1.json",
+      "ids": 64,
+      "root": "runs"
+     },
+     {
+      "file": "ir/coverage_details_v1.json",
+      "ids": 64,
+      "root": "runs"
+     },
+     {
+      "file": "inventory_v1.json",
+      "ids": 64,
+      "root": "pins"
+     }
+    ],
+    "new_questions_with_identical_text_elsewhere": {},
+    "post_freeze_reuse": [
+     {
+      "file": "spr/preserve/20261106T150505Z/records.jsonl",
+      "ids": 64,
+      "root": "runs",
+      "written": "2026-11-06T15:07:21+00:00"
+     }
+    ],
+    "question_text_hits": {},
+    "scanned_files": 1228,
+    "seconds": 9.8
+   },
+   "passed": 7
+  },
+  "producer_code": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "this process imported no producer module",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "separate_processes": [
+     {
+      "cmd": "/home/seanjazm27/projects/universa-recurrent-gi/research/ti_tnn/scaling/independent/verify_gi.py --worker items",
+      "exit": 0,
+      "mode": "items",
+      "seconds": 7.7,
+      "tag": "items"
+     },
+     {
+      "cmd": "/home/seanjazm27/projects/universa-recurrent-gi/research/ti_tnn/scaling/independent/verify_gi.py --worker decode",
+      "exit": 0,
+      "mode": "decode",
+      "seconds": 847.8,
+      "tag": "decode_eval"
+     },
+     {
+      "cmd": "/home/seanjazm27/projects/universa-recurrent-gi/research/ti_tnn/scaling/independent/verify_gi.py --worker decode",
+      "exit": 0,
+      "mode": "decode",
+      "seconds": 9.7,
+      "tag": "decode_margin"
+     },
+     {
+      "cmd": "/home/seanjazm27/projects/universa-recurrent-gi/research/ti_tnn/scaling/independent/verify_gi.py --worker decode",
+      "exit": 0,
+      "mode": "decode",
+      "seconds": 648.8,
+      "tag": "decode_constraint"
+     },
+     {
+      "cmd": "python -m scaling.gi_report",
+      "exit": 0,
+      "tag": "gi_report"
+     }
+    ]
+   },
+   "passed": 1
+  },
+  "scores": {
+   "checks": [
+    {
+     "detail": "[]",
+     "name": "every SQL-carrying object in the bundle is classified (12786 found)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "every record names a task of the release, and any database it names is that task's",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the mapping has one line per enumerated record (12786)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every record maps to exactly one executed key (none unmapped)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every key's snapshot = the pinned snapshot of the record's database = the file hashed in this run",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every key names its task's gold SQL by sha256",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the runs carrying SQL are exactly eval, direct, swap, constraint, both dev decodes and the margin runs",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "constraint/20261103T170922Z: 1536 SQL records = the population's count 1536, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "constraint/20261103T170922Z: own result = recorded result for every record (1536/1536)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev/20261103T191216Z: 3840 SQL records = the population's count 3840, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "decode_dev/20261103T191216Z: own result = recorded result for every record (3840/3840)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "decode_dev/20261103T193217Z: 3840 SQL records = the population's count 3840, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "decode_dev/20261103T193217Z: own result = recorded result for every record (3840/3840)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct/20261103T202939Z_new: 128 SQL records = the population's count 128, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "direct/20261103T202939Z_new: own result = recorded result for every record (128/128)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval/20261103T200119Z_new: 2304 SQL records = the population's count 2304, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "eval/20261103T200119Z_new: own result = recorded result for every record (2304/2304)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "margin/20261106T024418Z: 185 SQL records = the population's count 185, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "margin/20261106T024418Z: own result = recorded result for every record (185/185)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "margin/20261106T024526Z: 185 SQL records = the population's count 185, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "margin/20261106T024526Z: own result = recorded result for every record (185/185)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "swap/20261103T203613Z_new: 768 SQL records = the population's count 768, all mapped",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "swap/20261103T203613Z_new: own result = recorded result for every record (768/768)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct: every row-level sql equals its final.sql",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "direct: own extraction of the final SQL from every reply = the recorded SQL (64)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "the gold SQL executed cleanly in every pair whose prediction left it time",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "db_id_sources": {
+     "constraint/20261103T170922Z: record": 1536,
+     "decode_dev/20261103T191216Z: record": 3840,
+     "decode_dev/20261103T193217Z: record": 3840,
+     "direct/20261103T202939Z_new: the record's score": 128,
+     "eval/20261103T200119Z_new: record": 2304,
+     "margin/20261106T024418Z: record": 185,
+     "margin/20261106T024526Z: record": 185,
+     "swap/20261103T203613Z_new: release (the record names none)": 768
+    },
+    "distinct_execution_keys": 2143,
+    "executed_now": 2145,
+    "host_speed_timeouts": [
+     {
+      "at_120s": "incorrect",
+      "at_30s": "timeout",
+      "key": "music_platform_2|5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09|bird23tf-03149|b72b82e24a90ccbb5133e9a6668b56660e9cd4b78e7559443a7181084094ecf6|d0ba0db354a750fe91455bb9fc8517edf81887cab644d8c3ede06f2e7bfd15d5",
+      "seconds_at_120s": 31.0
+     },
+     {
+      "at_120s": "incorrect",
+      "at_30s": "timeout",
+      "key": "talkingdata|a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50|bird23tf-00472|08128737d7cfc7e54908de01244cc0d6447cd1233cec165c3c1a136b1f9969c7|7e846f06006e7bf277138e670cd0a0a64cd29b7749da33deccb5aff9ea8d5a91",
+      "seconds_at_120s": 30.8
+     }
+    ],
+    "per_run": {
+     "constraint/20261103T170922Z": {
+      "distinct_keys": 822,
+      "equal": 1536,
+      "expected": 1536,
+      "mapped": 1536,
+      "records": 1536,
+      "scored": 1536
+     },
+     "decode_dev/20261103T191216Z": {
+      "distinct_keys": 823,
+      "equal": 3840,
+      "expected": 3840,
+      "mapped": 3840,
+      "records": 3840,
+      "scored": 3840
+     },
+     "decode_dev/20261103T193217Z": {
+      "distinct_keys": 828,
+      "equal": 3840,
+      "expected": 3840,
+      "mapped": 3840,
+      "records": 3840,
+      "scored": 3840
+     },
+     "direct/20261103T202939Z_new": {
+      "distinct_keys": 64,
+      "equal": 128,
+      "expected": 128,
+      "mapped": 128,
+      "records": 128,
+      "scored": 64
+     },
+     "eval/20261103T200119Z_new": {
+      "distinct_keys": 384,
+      "equal": 2304,
+      "expected": 2304,
+      "mapped": 2304,
+      "records": 2304,
+      "scored": 1152
+     },
+     "margin/20261106T024418Z": {
+      "distinct_keys": 145,
+      "equal": 185,
+      "expected": 185,
+      "mapped": 185,
+      "records": 185,
+      "scored": 185
+     },
+     "margin/20261106T024526Z": {
+      "distinct_keys": 145,
+      "equal": 185,
+      "expected": 185,
+      "mapped": 185,
+      "records": 185,
+      "scored": 185
+     },
+     "swap/20261103T203613Z_new": {
+      "distinct_keys": 368,
+      "equal": 768,
+      "expected": 768,
+      "mapped": 768,
+      "records": 768,
+      "scored": 768
+     }
+    },
+    "seconds": 299.6,
+    "status_counts": {
+     "constraint/20261103T170922Z": {
+      "correct": 141,
+      "error": 4,
+      "incorrect": 1379,
+      "timeout": 12
+     },
+     "decode_dev/20261103T191216Z": {
+      "correct": 699,
+      "error": 30,
+      "incorrect": 3111
+     },
+     "decode_dev/20261103T193217Z": {
+      "correct": 700,
+      "error": 30,
+      "incorrect": 3109,
+      "timeout": 1
+     },
+     "direct/20261103T202939Z_new": {
+      "correct": 32,
+      "error": 17,
+      "incorrect": 14,
+      "timeout": 1
+     },
+     "eval/20261103T200119Z_new": {
+      "correct": 184,
+      "error": 17,
+      "incorrect": 951
+     },
+     "margin/20261106T024418Z": {
+      "correct": 44,
+      "error": 6,
+      "incorrect": 135
+     },
+     "margin/20261106T024526Z": {
+      "correct": 44,
+      "error": 6,
+      "incorrect": 135
+     },
+     "swap/20261103T203613Z_new": {
+      "correct": 121,
+      "error": 11,
+      "incorrect": 636
+     }
+    }
+   },
+   "passed": 26
+  },
+  "timing": {
+   "checks": [
+    {
+     "detail": "{'t0 = time.perf_counter()': 2834, 'enc = encode.encode_request(bb, task, schema, examples, use_cache=False)': 2879, 'lex = gi_lexical.ground(': 3017, 'dec = infer_controller._decode_at(': 3487, 'torch.cuda.synchronize()': 3765, 'elapsed = time.perf_counter() - t0': 3810, 'digest = hashlib.sha256(': 3865, 'cached = encode.encode_request(reader': 3982}",
+     "name": "eval-new timed span: t0, fresh forward, Glex record, decode, synchronize, elapsed; digest and cache reconstruction after",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every eval request ran its own fresh GPU forward (no cache read)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "controller_seconds >= the encode span + the decode span for every request",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every G4 call records its own seconds",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "own ledger parse: well-formed, one start per reservation, nothing after an end",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "six gi reservations (2 ground dev, encode/ground/eval/direct new), all ended ok",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "no foreign GPU process at the start or end of any gi reservation",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "every gi start entry: authorization v2, cap 32 h, the work order's limit 29.415907 h",
+     "passed": true
+    },
+    {
+     "detail": "642.3 s vs 642.9 s",
+     "name": "ground-new: the calls and the load fit inside its own reservation",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.04213878486416232, 'id': '20261103T194759-50c68071', 'projected_hours': 0.15} vs ('gi encode-new', 0.04213886407305027)",
+     "name": "encode/20261103T194758Z_new: summary reservation = ledger (gi encode-new, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T194758Z_new: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T194758Z_new: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "22.041538021146692",
+     "name": "gi encode-new 20261103T194759-50c68071: used_before_hours = own cumulative (22.041538)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi encode-new 20261103T194759-50c68071: cumulative 22.042 + 1.5 x 0.15 = 22.267 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi encode-new: charged 0.0421 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.17858303828861002, 'id': '20261103T195032-c2178282', 'projected_hours': 0.3} vs ('gi ground new', 0.1785831118891656)",
+     "name": "ground/20261103T195032Z_new: summary reservation = ledger (gi ground new, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T195032Z_new: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T195032Z_new: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "22.08367688521974",
+     "name": "gi ground new 20261103T195032-c2178282: used_before_hours = own cumulative (22.083677)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground new 20261103T195032-c2178282: cumulative 22.084 + 1.5 x 0.3 = 22.534 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground new: charged 0.1786 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.46244585154472184, 'id': '20261103T200120-d90a321a', 'projected_hours': 0.6} vs ('gi eval-new', 0.46244598098972345)",
+     "name": "eval/20261103T200119Z_new: summary reservation = ledger (gi eval-new, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T200119Z_new: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T200119Z_new: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "22.262259997108906",
+     "name": "gi eval-new 20261103T200120-d90a321a: used_before_hours = own cumulative (22.262260)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi eval-new 20261103T200120-d90a321a: cumulative 22.262 + 1.5 x 0.6 = 23.162 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi eval-new: charged 0.4624 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.09804465929528103, 'id': '20261103T202939-534bbad7', 'projected_hours': 0.3} vs ('gi direct-new', 0.098044906772775)",
+     "name": "direct/20261103T202939Z_new: summary reservation = ledger (gi direct-new, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T202939Z_new: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T202939Z_new: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "22.72470597809863",
+     "name": "gi direct-new 20261103T202939-534bbad7: used_before_hours = own cumulative (22.724706)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi direct-new 20261103T202939-534bbad7: cumulative 22.725 + 1.5 x 0.3 = 23.175 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi direct-new: charged 0.0980 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.30219087338833356, 'id': '20261103T185105-14cc8a54', 'projected_hours': 0.6} vs ('gi ground dev', 0.30219092510389195)",
+     "name": "ground/20261103T185104Z_dev: summary reservation = ledger (gi ground dev, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T185104Z_dev: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T185104Z_dev: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "21.415907043250023",
+     "name": "gi ground dev 20261103T185105-14cc8a54: used_before_hours = own cumulative (21.415907)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground dev 20261103T185105-14cc8a54: cumulative 21.416 + 1.5 x 0.6 = 22.316 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground dev: charged 0.3022 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "{'hours': 0.3234399896536181, 'id': '20261103T191242-e3686432', 'projected_hours': 0.6} vs ('gi ground dev', 0.32344005279277754)",
+     "name": "ground/20261103T191242Z_dev: summary reservation = ledger (gi ground dev, run_dir, hours)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "20261103T191242Z_dev: run directory created before its reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "20261103T191242Z_dev: its GPU outputs were written by the reservation's end (within 2 s)",
+     "passed": true
+    },
+    {
+     "detail": "21.718097968353916",
+     "name": "gi ground dev 20261103T191242-e3686432: used_before_hours = own cumulative (21.718098)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground dev 20261103T191242-e3686432: cumulative 21.718 + 1.5 x 0.6 = 22.618 <= 29.416",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground dev: charged 0.3234 h within 1.5 x its projection",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "no two reservations in the ledger overlap",
+     "passed": true
+    },
+    {
+     "detail": "21.415907 vs 21.415907043250023",
+     "name": "gi_run.WORK_ORDER_USED_AT_START = own cumulative before the first gi reservation",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "cumulative at the freeze commit = 22.042 h (own 22.0415)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "cumulative 23.4900 h within 32; the study 1.4068 h within 8",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "encode_new manifest budget block = own ledger arithmetic",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "ground_new manifest budget block = own ledger arithmetic",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "eval_new manifest budget block = own ledger arithmetic",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "direct_new manifest budget block = own ledger arithmetic",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi encode-new: co-tenancy log covers the window; 1-min load stays below 2.5 (max 1.61, mean 1.41)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi ground new: co-tenancy log covers the window; 1-min load stays below 2.5 (max 1.5, mean 1.21)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi eval-new: co-tenancy log covers the window; 1-min load stays below 2.5 (max 1.81, mean 1.17)",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "gi direct-new: co-tenancy log covers the window; 1-min load stays below 2.5 (max 1.21, mean 1.12)",
+     "passed": true
+    },
+    {
+     "detail": "{'gi ground dev 20261103T191242-e3686432': ['decode_dev/20261103T191216Z']}",
+     "name": "no CPU run of the study overlapped a new-population timed reservation",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "analysis costs = own arithmetic: controller seconds + the G4 call for every G4 request (fallbacks included) + submitted-query execution",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "G4's controller_seconds excludes the G4 call (mean within 0.5 s of G0's; a call is ~9 s): {'G0': 1.279079767109503, 'Glex': 1.2865251935631932, 'G4': 1.2902883115680197}",
+     "passed": true
+    },
+    {
+     "detail": "",
+     "name": "the G4 call is charged once per seed for each of the 64 questions",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "controller_seconds_mean": {
+     "G0": 1.279079767109503,
+     "G4": 1.2902883115680197,
+     "Glex": 1.2865251935631932
+    },
+    "controller_seconds_minus_encode_and_decode": {
+     "G0": {
+      "max": 0.2233403940044809,
+      "mean": 0.050239915133488466
+     },
+     "G4": {
+      "max": 0.21907285298220813,
+      "mean": 0.0523582727757154
+     },
+     "Glex": {
+      "max": 0.2291925200552214,
+      "mean": 0.053457160259540615
+     }
+    },
+    "cotenancy": {
+     "gi direct-new 20261103T202939-534bbad7": {
+      "covered": true,
+      "max_load1": 1.21,
+      "max_running": 5,
+      "mean_load1": 1.125,
+      "samples": 12
+     },
+     "gi encode-new 20261103T194759-50c68071": {
+      "covered": true,
+      "max_load1": 1.61,
+      "max_running": 3,
+      "mean_load1": 1.408,
+      "samples": 5
+     },
+     "gi eval-new 20261103T200120-d90a321a": {
+      "covered": true,
+      "max_load1": 1.81,
+      "max_running": 6,
+      "mean_load1": 1.1723214285714287,
+      "samples": 56
+     },
+     "gi ground dev 20261103T185105-14cc8a54": {
+      "covered": true,
+      "max_load1": 8.03,
+      "max_running": 22,
+      "mean_load1": 4.8566666666666665,
+      "samples": 36
+     },
+     "gi ground dev 20261103T191242-e3686432": {
+      "covered": true,
+      "max_load1": 8.55,
+      "max_running": 14,
+      "mean_load1": 7.202894736842104,
+      "samples": 38
+     },
+     "gi ground new 20261103T195032-c2178282": {
+      "covered": true,
+      "max_load1": 1.5,
+      "max_running": 4,
+      "mean_load1": 1.2085714285714286,
+      "samples": 21
+     }
+    },
+    "gi_reservations": [
+     {
+      "command": "gi ground dev",
+      "end": "2026-11-03T19:09:12+00:00",
+      "hours": 0.30219092510389195,
+      "id": "20261103T185105-14cc8a54",
+      "projected": 0.6,
+      "run_dir": "grounding_interface/ground/20261103T185104Z_dev",
+      "start": "2026-11-03T18:51:05+00:00"
+     },
+     {
+      "command": "gi ground dev",
+      "end": "2026-11-03T19:32:07+00:00",
+      "hours": 0.32344005279277754,
+      "id": "20261103T191242-e3686432",
+      "projected": 0.6,
+      "run_dir": "grounding_interface/ground/20261103T191242Z_dev",
+      "start": "2026-11-03T19:12:42+00:00"
+     },
+     {
+      "command": "gi encode-new",
+      "end": "2026-11-03T19:50:31+00:00",
+      "hours": 0.04213886407305027,
+      "id": "20261103T194759-50c68071",
+      "projected": 0.15,
+      "run_dir": "grounding_interface/encode/20261103T194758Z_new",
+      "start": "2026-11-03T19:47:59+00:00"
+     },
+     {
+      "command": "gi ground new",
+      "end": "2026-11-03T20:01:15+00:00",
+      "hours": 0.1785831118891656,
+      "id": "20261103T195032-c2178282",
+      "projected": 0.3,
+      "run_dir": "grounding_interface/ground/20261103T195032Z_new",
+      "start": "2026-11-03T19:50:32+00:00"
+     },
+     {
+      "command": "gi eval-new",
+      "end": "2026-11-03T20:29:05+00:00",
+      "hours": 0.46244598098972345,
+      "id": "20261103T200120-d90a321a",
+      "projected": 0.6,
+      "run_dir": "grounding_interface/eval/20261103T200119Z_new",
+      "start": "2026-11-03T20:01:20+00:00"
+     },
+     {
+      "command": "gi direct-new",
+      "end": "2026-11-03T20:35:32+00:00",
+      "hours": 0.098044906772775,
+      "id": "20261103T202939-534bbad7",
+      "projected": 0.3,
+      "run_dir": "grounding_interface/direct/20261103T202939Z_new",
+      "start": "2026-11-03T20:29:39+00:00"
+     }
+    ],
+    "ledger": {
+     "at_freeze": 22.041538021146696,
+     "new_population_hours": 0.7812128637247143,
+     "study_hours": 1.4068438416213838,
+     "total_hours": 23.489974046980283
+    },
+    "seconds": 0.1,
+    "study_cpu_runs_overlapping_timed_windows": {
+     "gi ground dev 20261103T191242-e3686432": [
+      "decode_dev/20261103T191216Z"
+     ]
+    }
+   },
+   "passed": 61
+  },
+  "worker_items": {
+   "checks": [
+    {
+     "detail": "",
+     "name": "the encoding's schema items equal the unbudgeted serialization's (the ground run's items)",
+     "passed": true
+    },
+    {
+     "detail": "[]",
+     "name": "each new context, rebuilt, has its anchored cache key and token count",
+     "passed": true
+    }
+   ],
+   "failures": 0,
+   "info": {
+    "seconds": 7.7
+   },
+   "passed": 2
+  }
+ },
+ "verifier": "research/ti_tnn/scaling/independent/verify_gi.py",
+ "verifier_sha256": "8ceff14c4afe129120e30bd7ea749924f261986ba5d65acb031a05913ebc1e3d"
+}

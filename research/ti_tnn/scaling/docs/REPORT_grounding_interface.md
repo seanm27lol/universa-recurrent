@@ -344,8 +344,16 @@ this one.
 
 ## Independent verification
 
-A separate reviewer session wrote `independent/verify_gi.py` (sha256 `b18c3882…`) and ran it at 429694a from an
-empty output directory: **295 checks, 0 failures.** It ran on the CPU only and wrote nothing under the runs root. Its
+A separate reviewer session wrote `independent/verify_gi.py`.
+
+**The final run** (sha256 `8ceff14c…`, at 1cae124): **331 checks, 0 failures.**
+- **Every submitted SQL record:** all 12,416 SQL-carrying records of all seven runs (the margin diagnostic
+  included) map to the executed snapshot and SQL. The mapping is `independent/sql_record_map.jsonl`.
+- **Prior use:** checked before the freeze. The later reuse by the semantic-repair study's preservation test is
+  listed separately.
+
+**The earlier run**, kept as recorded (sha256 `b18c3882…`, at 429694a, from an empty output directory): **295
+checks, 0 failures.** It ran on the CPU only and wrote nothing under the runs root. Its
 main process imports no producer module. Producer code ran only in separate processes, flagged: the frozen code for
 the schema items, the prompt's schema text, the cached states and the decoding framework, and `gi_report`.
 
