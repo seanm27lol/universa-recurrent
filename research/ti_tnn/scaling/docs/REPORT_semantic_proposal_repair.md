@@ -21,7 +21,8 @@ this population. The branch is built on PR #70, which is not yet merged, and thi
 
 ## The decision
 
-**Neither revision helps by the rule: retain direct Qwen and stop this repair direction.**
+**Neither revision meets the registered useful-improvement rule.** By the protocol's decision, the direct Qwen proposal
+is retained and this repair direction is not continued.
 
 EX-correct of 64 per seed, every request in the denominator:
 
@@ -31,15 +32,19 @@ EX-correct of 64 per seed, every request in the denominator:
 | D1 | 38 | 38 | 76 |
 | TI1 | 38 | 40 | 78 |
 
-| comparison | per seed | pooled | leaving one database out | recoveries | regressions |
-|---|---|---|---|---|---|
-| **TI1 - D1 (primary)** | 0, +2 | **+2** | 0 .. +3 | 4 | 2 |
-| D1 - D0 | +1, +1 | +2 | -2 .. +4 | 6 | 4 |
-| TI1 - D0 | +1, +3 | +4 | +1 .. +4 | 4 | 0 |
+| comparison | per seed | pooled | leaving one database out | recoveries | regressions | rule conditions met: at least +8 / both seeds / every database left out |
+|---|---|---|---|---|---|---|
+| **TI1 - D1 (primary)** | 0, +2 | **+2** | 0 .. +3 | 4 | 2 | no / no / no |
+| D1 - D0 | +1, +1 | +2 | -2 .. +4 | 6 | 4 | no / yes / no |
+| TI1 - D0 | +1, +3 | +4 | +1 .. +4 | 4 | 0 | no / yes / yes |
 
 **The rule.** A useful lead needs at least +8 of 128, positive in both seeds and still positive leaving any one
 database out. TI1 - D1 is +2: positive in one seed, zero in the other. Neither revision meets the rule against D0
 either.
+
+**What the measured differences are.** They are positive, +2, +2 and +4, and they are reported as measured. They are
+neither established benefits nor proof that the revisions have no effect. With 128 requests and two seeds, this study
+can only say that none reaches the registered bar.
 
 **The narrower engineering effect, reported as such:**
 - 18 of the 128 initial proposals failed to execute; 16 of those named identifiers the database does not have.
@@ -48,8 +53,8 @@ either.
   - D1: 8 abstentions, 120 executed;
   - TI1: 7 abstentions, 121 executed.
 - That recovered EX for only 2 of the 18 under either policy.
-- TI1 regressed no answer that D0 had right; D1 regressed 4 and recovered 6. On these counts, TI1 looks the more
-  conservative revision.
+- TI1 regressed no answer that D0 had right; D1 regressed 4 and recovered 6. These counts are small, and they are a
+  description, not an established property of either policy.
 
 None of this is a capability gain by the rule. A non-erroring query is not a correct one.
 
@@ -75,7 +80,7 @@ This shows that the typed path preserves answers. It cannot improve semantics by
 
 ## Lineage and costs
 
-Recomputed from the bundled records and equal to analysis.json (seeds [200, 201]).
+Recomputed from the bundled raw records (inventory validated: seeds [200, 201], the 64 pinned questions, 3 policies), equal to the corrected analysis (spr-rule-v2) and to the original analysis outside its rule fields.
 
 | policy | seed 200 (of 64) | seed 201 (of 64) | pooled (of 128) |
 |---|---|---|---|
@@ -83,13 +88,13 @@ Recomputed from the bundled records and equal to analysis.json (seeds [200, 201]
 | D1 | 38 | 38 | 76 |
 | TI1 | 38 | 40 | 78 |
 
-| comparison | seed 200 | seed 201 | pooled | leaving one database out (min .. max) | recoveries | regressions |
-|---|---|---|---|---|---|---|
-| TI1-D1 | +0 | +2 | +2 | +0 .. +3 | 4 | 2 |
-| D1-D0 | +1 | +1 | +2 | -2 .. +4 | 6 | 4 |
-| TI1-D0 | +1 | +3 | +4 | +1 .. +4 | 4 | 0 |
+| comparison | seed 200 | seed 201 | pooled | leaving one database out (min .. max) | recoveries | regressions | rule (+8): pooled / seeds / databases | meets the rule |
+|---|---|---|---|---|---|---|---|---|
+| TI1-D1 | +0 | +2 | +2 | +0 .. +3 | 4 | 2 | no / no / no | no |
+| D1-D0 | +1 | +1 | +2 | -2 .. +4 | 6 | 4 | no / yes / no | no |
+| TI1-D0 | +1 | +3 | +4 | +1 .. +4 | 4 | 0 | no / yes / yes | no |
 
-Decision (the protocol's rule): neither revision helps by the rule: retain direct Qwen and stop this repair direction.
+Decision (the registered rule): neither revision helps by the rule: retain direct Qwen and stop this repair direction.
 
 | database | questions | D0, both seeds | D1, both seeds | TI1, both seeds |
 |---|---|---|---|---|
@@ -108,7 +113,7 @@ Decision (the protocol's rule): neither revision helps by the rule: retain direc
 | talkingdata | 5 | 7 | 5 | 7 |
 | world | 4 | 4 | 4 | 4 |
 
-Initial proposals (shared): 128 requests; no SQL 0; truncated 0; typed 109; untyped reasons {'ambiguous column': 2, 'row value': 1, 'unknown column': 11, 'unresolved column': 5}; execution {'error': 18, 'ok': 110}; with typed errors 18; with warnings 13.
+Initial proposals (shared): 128 requests; no SQL 0; truncated 0; typed 109; untyped reasons {'unknown column': 11, 'unresolved column': 5, 'ambiguous column': 2, 'row value': 1}; execution {'ok': 110, 'error': 18}; with typed errors 18; with warnings 13.
 
 | repair policy | final: revised / original / abstain | revision rejected | revision unchanged SQL | revision truncated | revised typed |
 |---|---|---|---|---|---|
@@ -117,9 +122,9 @@ Initial proposals (shared): 128 requests; no SQL 0; truncated 0; typed 109; unty
 
 | policy | final execution status | generation s | validation s | tool s | submitted execution s | total s | per request s | per EX-correct s | prompt tokens | generated tokens | peak GB |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| D0 | {'error': 18, 'ok': 110} | 516 | 0.0 | 0.0 | 8.7 | 525 | 4.10 | 7.1 | 335,824 | 6,836 | 11.1 |
-| D1 | {'abstain': 8, 'ok': 120} | 1039 | 0.0 | 49.8 | 8.7 | 1098 | 8.58 | 14.4 | 690,144 | 13,665 | 11.1 |
-| TI1 | {'abstain': 7, 'ok': 121} | 1048 | 0.1 | 56.2 | 15.0 | 1119 | 8.75 | 14.4 | 708,372 | 13,680 | 11.2 |
+| D0 | {'ok': 110, 'error': 18} | 516 | 0.0 | 0.0 | 8.7 | 525 | 4.10 | 7.1 | 335,824 | 6,836 | 11.1 |
+| D1 | {'ok': 120, 'abstain': 8} | 1039 | 0.0 | 49.8 | 8.7 | 1098 | 8.58 | 14.4 | 690,144 | 13,665 | 11.1 |
+| TI1 | {'ok': 121, 'abstain': 7} | 1048 | 0.1 | 56.2 | 15.0 | 1119 | 8.75 | 14.4 | 708,372 | 13,680 | 11.2 |
 
 | GPU reservation (this work order) | hours | status |
 |---|---|---|
@@ -128,7 +133,7 @@ Initial proposals (shared): 128 requests; no SQL 0; truncated 0; typed 109; unty
 | spr run (20261106T204616-df38ecaa) | 0.480 | ok |
 | total | 0.667 | |
 
-Ledger at the analysis: 23.490 of 32.0 h.
+Ledger total in the bundled ledger: 23.490 of 32.0 h.
 
 **Timing boundary:**
 - Generation is every model call.
@@ -157,6 +162,44 @@ Their EX was not read.
   - the typed analysis: a one-source ON is a warning; a real self-join gets none; an unknown column is an error; an
     empty result and an absent literal are warnings; a construct outside the IR is an untyped warning, never a
     rejection.
+
+## Correction pass of 2026-11-07 (CPU only; no observed count or verdict changed)
+
+**A. The exported decision rule.** The frozen `analysis.json` took each comparison's `threshold`, `conditions` and
+`all_conditions` from the shared paired-comparison helper. That helper scales the performance study's +10-of-192 rule
+to 7 of 128. Its `decision` string used the study's own +8 rule. The two disagreed in what they exported, though not
+in the outcome.
+
+`spr_rule.py` (rule `spr-rule-v2`) applies the registered +8 rule to every one of those fields. It wrote a versioned
+corrected analysis, `analysis/<stamp>_corrected_v2/analysis_v2.json`, derived from the same scores. Every count and
+the decision are unchanged. Left unchanged:
+- the original `analysis.json`;
+- the frozen `spr_run.py`;
+- the shared helper's defaults, which the performance study uses;
+- the reviewer's earlier output.
+
+After that run, one print statement of `spr_rule.py` was re-wrapped, with no change in behavior. The run's manifest
+therefore hashes the version just before.
+
+Tests cover:
+- +7 against +8, and -7 against -8;
+- a zero-difference seed;
+- a gain concentrated in one database;
+- the four decision branches.
+
+**B. Public reconstruction.** `spr_report.reconstruct` now validates the exact frozen inventory before building
+anything: one request per (seed, question), one score per (policy, seed, question), every record on its pinned
+database, and no duplicate, missing or extra record. It then recomputes every displayed quantity from the raw records
+and the bundled ledger:
+- the counts and comparisons;
+- the database table;
+- the selected candidates;
+- the lineage, the initial-proposal tallies and the final statuses;
+- the costs, the reservations and the ledger total.
+
+It checks the corrected analysis in full, and the original outside its known rule-field defect. Corruption tests
+change a cost, a database, a selected candidate, the seed inventory or a score's multiplicity, regenerate the
+checksums, and confirm that each is refused. The tables in "Lineage and costs" above come from this reconstruction.
 
 ## Independent verification
 
@@ -189,9 +232,9 @@ leave-one-database-out values, not those two fields.
 
 ## Recommendation
 
-Retain the direct Qwen3.5-4B proposal as the baseline, and stop this repair direction, as the protocol's rule says.
-The one observation worth keeping is narrow: TI1 produced no regressions against D0 on 128 requests. It is not a lead
-by the rule and should not by itself justify a larger study.
+As the protocol's decision says, retain the direct Qwen3.5-4B proposal as the baseline and do not continue this repair
+direction. TI1's zero regressions against D0 on 128 requests is a measured count, not a lead by the rule, and should
+not by itself justify a larger study.
 
 ## Evidence and reproduction
 
