@@ -226,7 +226,7 @@ def test_the_classes():
     assert EC.classify([1], [yes], True) == "unresolved benchmark disagreement"
 
 
-# --- SQL scopes (db-evidence-v1.2) -------------------------------------------------------------------------------------
+# --- SQL scopes (db-evidence-v1.3) -------------------------------------------------------------------------------------
 @pytest.fixture
 def trade(tmp_path):
     path = tmp_path / "trade.sqlite"
@@ -329,3 +329,36 @@ def test_tables_keep_the_order_the_sql_names_them(trade):
     assert pkg["proposal"]["tables"] == ["orders", "customers", "suppliers"]
     cte = _go(trade, "WITH customers AS (SELECT * FROM suppliers) SELECT name FROM customers")
     assert cte["proposal"]["tables"] == ["suppliers"]      # a CTE named like a table is not that table
+
+
+@pytest.mark.parametrize("sql", [
+    "SELECT customers.name FROM customers, (SELECT city FROM suppliers) AS d WHERE city = 'Paris'",
+    "WITH d AS (SELECT city FROM suppliers) SELECT customers.name FROM customers, d WHERE city = 'Paris'",
+    "SELECT customers.name FROM customers, (SELECT * FROM suppliers) AS d WHERE city = 'Paris'"])
+def test_a_column_a_derived_table_or_cte_may_also_supply_is_ambiguous(trade, sql):
+    """The second review's finding: SQLite raises 'ambiguous column name: city'; v1.2 bound it to customers."""
+    path, _schema_ = trade
+    with pytest.raises(sqlite3.OperationalError, match="ambiguous"):
+        sqlite3.connect(path).execute(sql).fetchall()
+    pkg = _go(trade, sql)
+    assert not _preds(pkg) and not _items(pkg, "value")
+    assert any(u["column"] == "city" and u["reason"].startswith("ambiguous") for u in pkg["proposal"]["unresolved"])
+
+
+def test_a_derived_table_that_lacks_the_column_does_not_block_it(trade):
+    sql = "SELECT customers.name FROM customers, (SELECT name AS n FROM suppliers) AS d WHERE city = 'Paris'"
+    path, _schema_ = trade
+    assert sqlite3.connect(path).execute(sql).fetchall() == [("Alice",)]
+    assert _preds(_go(trade, sql)) == {("Paris", "customers", "city")}
+
+
+def test_a_correlated_column_in_a_set_operation_branch_binds_outward(trade):
+    sql = ("SELECT c.name FROM customers AS c WHERE c.id IN (SELECT cid FROM orders WHERE total < c.credit "
+           "UNION SELECT id FROM suppliers WHERE city = c.city)")
+    path, _schema_ = trade
+    assert sqlite3.connect(path).execute(sql).fetchall() == [("Alice",)]
+    pkg = _go(trade, sql)
+    assert ["customers", "credit"] in pkg["proposal"]["columns"]
+    assert ("customers", "city") in {(tuple(j["right"]) if j["left"] == ["suppliers", "city"] else tuple(j["left"]))
+                                     for j in pkg["proposal"]["joins"]}
+    assert not pkg["proposal"]["unresolved"]

@@ -52,8 +52,9 @@ import time
 import unicodedata
 from dataclasses import asdict, dataclass
 
-EVIDENCE_VERSION = "db-evidence-v1.2"   # columns bound in their SQL scope, tables kept in SQL order
+EVIDENCE_VERSION = "db-evidence-v1.3"   # columns bound in their SQL scope, tables kept in SQL order
 # v1: one global alias map. v1.1 (8e729cf, superseded): scopes, but the table order changed by accident.
+# v1.2 (352284e, superseded): bound a column a derived table or CTE of its scope might also supply.
 
 
 @dataclass(frozen=True)
@@ -191,11 +192,12 @@ def _q(name: str) -> str:
 def parse_proposal(sql: "str | None", schema) -> dict:
     """Tables, columns, literal predicates, numeric uses and joins of the proposal, resolved against the schema.
 
-    **Scopes (db-evidence-v1.2).** Every column is bound in its own SELECT scope, as SQLite binds it:
+    **Scopes (db-evidence-v1.3).** Every column is bound in its own SELECT scope, as SQLite binds it:
     - A qualified column `q.c` binds to the source named `q` in its scope. In a subquery, if `q` is not a source
       there, the lookup moves outward through the enclosing scopes: a correlated column.
-    - An unqualified column binds to the one source of its scope that has it. If none has it, a subquery looks
-      outward; if two have it, the column is ambiguous.
+    - An unqualified column binds to the one source of its scope that has it. If two may have it, it is ambiguous,
+      including when one of them is a derived table or CTE exposing that name (or a star). If none has it, a
+      subquery or a set-operation branch looks outward.
     - A source that is a derived table or a CTE is not a stored table: its columns are not bound.
 
     A column that cannot be bound reliably is recorded under `unresolved` with the reason, and gets no
@@ -225,15 +227,24 @@ def parse_proposal(sql: "str | None", schema) -> dict:
     used = []
 
     def sources(scope) -> dict:
-        """alias or name (lowercase) -> the schema table, or None for a derived table, CTE or unknown table."""
+        """alias or name (lowercase) -> ("stored", table, source id), or ("derived", names) for a derived table or CTE,
+        where names is the set of columns it exposes or None when unknown (a star, or a table not in the schema)."""
         result = {}
         for key, src in scope.sources.items():
-            real = by_name.get(src.name.lower()) if isinstance(src, exp.Table) else None
-            result[key.lower()] = (real.name, id(src)) if real is not None else None
+            if isinstance(src, exp.Table):
+                real = by_name.get(src.name.lower())
+                result[key.lower()] = ("stored", real.name, id(src)) if real is not None else ("derived", None)
+            else:
+                named = [n.lower() for n in getattr(src.expression, "named_selects", None) or ["*"]]
+                result[key.lower()] = ("derived", None if "*" in named else frozenset(named))
         return result
 
     def outward(scope):
-        return scope.parent if scope.scope_type == ScopeType.SUBQUERY else None
+        """The scope a correlated column is looked up in next: a subquery's enclosing scope; a set-operation branch's
+        set operation (itself looked through if it is a subquery). Derived tables and CTEs see no outer scope."""
+        if scope.scope_type in (ScopeType.SUBQUERY, ScopeType.SET_OPERATION):
+            return scope.parent
+        return None
 
     binding = {}   # id(column node) -> (table, column, source id) or a reason it is unresolved
 
@@ -245,18 +256,20 @@ def parse_proposal(sql: "str | None", schema) -> dict:
             if qual:
                 if qual in src:
                     hit = src[qual]
-                    if hit is None:
+                    if hit[0] == "derived":
                         return "the source is a derived table, a CTE or not in the schema"
-                    return (hit[0], cols_of[hit[0]][name], hit[1]) if name in cols_of[hit[0]] else \
-                        f"{hit[0]} has no column {node.name}"
+                    return (hit[1], cols_of[hit[1]][name], hit[2]) if name in cols_of[hit[1]] else \
+                        f"{hit[1]} has no column {node.name}"
             else:
-                owners = [v for v in src.values() if v is not None and name in cols_of[v[0]]]
-                if len(owners) > 1:
-                    return "ambiguous: more than one source of its scope has this column"
-                if len(owners) == 1:
-                    return (owners[0][0], cols_of[owners[0][0]][name], owners[0][1])
-                if any(v is None for v in src.values()):
-                    return "may come from a derived table or CTE"
+                owners = [v for v in src.values() if v[0] == "stored" and name in cols_of[v[1]]]
+                maybe = [v for v in src.values() if v[0] == "derived" and (v[1] is None or name in v[1])]
+                if len(owners) + len(maybe) > 1:
+                    return "ambiguous: more than one source of its scope has this column" if not maybe else \
+                        "ambiguous: a derived table or CTE of its scope may also have this column"
+                if owners:
+                    return (owners[0][1], cols_of[owners[0][1]][name], owners[0][2])
+                if maybe:
+                    return "comes from a derived table or CTE"
             s = outward(s)
         return "no source in its scope or an enclosing one" + (f" is named {node.table}" if qual else " has it")
 

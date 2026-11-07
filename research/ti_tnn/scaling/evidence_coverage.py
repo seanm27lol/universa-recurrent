@@ -17,11 +17,11 @@ retrieved the database facts each repair needs?
    - for every group, the payload, latency, queries, scan limits and timeouts. The groups are the 17 targeted cases,
      their 11 questions, the other wrong proposals and the originally correct ones.
 
-    python -m scaling.evidence_coverage retrieve --version db-evidence-v1.2
-    python -m scaling.evidence_coverage tables [--version db-evidence-v1.2]   # the tables, from a stored comparison
-    python -m scaling.evidence_coverage impact        # what changed from db-evidence-v1 to v1.2, proposal by proposal
+    python -m scaling.evidence_coverage retrieve --version db-evidence-v1.3
+    python -m scaling.evidence_coverage tables [--version db-evidence-v1.3]   # the tables, from a stored comparison
+    python -m scaling.evidence_coverage impact        # what changed from db-evidence-v1 to v1.3, proposal by proposal
     git show 10d054a:research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json > /tmp/audit_cases.json
-    python -m scaling.evidence_coverage compare --version db-evidence-v1.2 --audit /tmp/audit_cases.json
+    python -m scaling.evidence_coverage compare --version db-evidence-v1.3 --audit /tmp/audit_cases.json
 
 (The comparison pins the audit's cases at PR #72's 10d054a. A later correction to one note, e823303, changed the
 file but not its labels.)
@@ -31,8 +31,11 @@ file but not its labels.)
 - **db-evidence-v1.1 (8e729cf), superseded:** bound columns in their SQL scope, but by accident also changed the
   order of the proposal's tables, which drives the column search. Its outputs are under `retrieval_v1.1/` and
   `compare_v1.1/`.
-- **db-evidence-v1.2:** the scope fix with the tables kept in the order the SQL names them. Its outputs are under
-  `retrieval_v1.2/` and `compare_v1.2/`.
+- **db-evidence-v1.2 (352284e), superseded:** the scope fix with the tables kept in the order the SQL names them, but
+  an unqualified column that a derived table or CTE of its scope might also supply was bound to the stored table
+  (SQLite: ambiguous). Its outputs are under `retrieval_v1.2/` and `compare_v1.2/`.
+- **db-evidence-v1.3:** v1.2 with that column left unresolved, and correlated columns in set-operation branches
+  looked up outward. Its outputs are under `retrieval_v1.3/` and `compare_v1.3/`.
 
 Each `impact/` run records what changed from v1, proposal by proposal.
 
@@ -58,7 +61,8 @@ ROOT = C.RUNS / "evidence_coverage"
 AUDIT_CASES_SHA256 = "134a98163d548330b95d54667ca890cd76c966037420d5cb780aaa0fc2a6bc09"   # PR #72 at 10d054a
 GROUNDING = "schema/value grounding"
 # Each lookup version's outputs live in their own directories; db-evidence-v1's are the original study's.
-SUFFIX = {"db-evidence-v1": "", "db-evidence-v1.1": "_v1.1", "db-evidence-v1.2": "_v1.2"}
+SUFFIX = {"db-evidence-v1": "", "db-evidence-v1.1": "_v1.1", "db-evidence-v1.2": "_v1.2",
+          "db-evidence-v1.3": "_v1.3"}
 
 
 def _dir(kind: str, version: str) -> str:
@@ -385,7 +389,7 @@ def main(argv=None) -> int:
     t.add_argument("--version", default="db-evidence-v1", choices=versions)
     i = sub.add_parser("impact")
     i.add_argument("--old", default="db-evidence-v1", choices=versions)
-    i.add_argument("--new", default="db-evidence-v1.2", choices=versions)
+    i.add_argument("--new", default="db-evidence-v1.3", choices=versions)
     i.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args(argv)
     if args.cmd == "tables":
