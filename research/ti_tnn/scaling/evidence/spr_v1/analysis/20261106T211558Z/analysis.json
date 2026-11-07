@@ -1,0 +1,435 @@
+{
+ "by_database": {
+  "computer_student": {
+   "D0": 5,
+   "D1": 5,
+   "TI1": 5,
+   "questions": 5
+  },
+  "disney": {
+   "D0": 4,
+   "D1": 4,
+   "TI1": 4,
+   "questions": 5
+  },
+  "food_inspection": {
+   "D0": 7,
+   "D1": 6,
+   "TI1": 7,
+   "questions": 5
+  },
+  "hockey": {
+   "D0": 4,
+   "D1": 4,
+   "TI1": 4,
+   "questions": 5
+  },
+  "ice_hockey_draft": {
+   "D0": 4,
+   "D1": 5,
+   "TI1": 5,
+   "questions": 4
+  },
+  "image_and_language": {
+   "D0": 5,
+   "D1": 5,
+   "TI1": 5,
+   "questions": 5
+  },
+  "music_platform_2": {
+   "D0": 8,
+   "D1": 8,
+   "TI1": 8,
+   "questions": 4
+  },
+  "professional_basketball": {
+   "D0": 5,
+   "D1": 5,
+   "TI1": 5,
+   "questions": 4
+  },
+  "public_review_platform": {
+   "D0": 4,
+   "D1": 5,
+   "TI1": 4,
+   "questions": 5
+  },
+  "simpson_episodes": {
+   "D0": 4,
+   "D1": 8,
+   "TI1": 7,
+   "questions": 4
+  },
+  "soccer_2016": {
+   "D0": 7,
+   "D1": 6,
+   "TI1": 7,
+   "questions": 5
+  },
+  "software_company": {
+   "D0": 6,
+   "D1": 6,
+   "TI1": 6,
+   "questions": 4
+  },
+  "talkingdata": {
+   "D0": 7,
+   "D1": 5,
+   "TI1": 7,
+   "questions": 5
+  },
+  "world": {
+   "D0": 4,
+   "D1": 4,
+   "TI1": 4,
+   "questions": 4
+  }
+ },
+ "comparisons": {
+  "D1-D0": {
+   "a": "D1",
+   "all_conditions": false,
+   "b": "D0",
+   "conditions": {
+    "pooled_at_least_threshold": false,
+    "same_sign_every_seed": true,
+    "same_sign_without_any_one_database": false
+   },
+   "exploratory_sign_flip": {
+    "assignments": 64,
+    "blocks": 14,
+    "nonzero_blocks": 6,
+    "observed": 2,
+    "p_two_sided": 0.875,
+    "smallest_attainable_p": 0.03125
+   },
+   "leave_one_database_out": {
+    "computer_student": 2,
+    "disney": 2,
+    "food_inspection": 3,
+    "hockey": 2,
+    "ice_hockey_draft": 1,
+    "image_and_language": 2,
+    "music_platform_2": 2,
+    "professional_basketball": 2,
+    "public_review_platform": 1,
+    "simpson_episodes": -2,
+    "soccer_2016": 3,
+    "software_company": 2,
+    "talkingdata": 4,
+    "world": 2
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 0,
+    "food_inspection": -1,
+    "hockey": 0,
+    "ice_hockey_draft": 1,
+    "image_and_language": 0,
+    "music_platform_2": 0,
+    "professional_basketball": 0,
+    "public_review_platform": 1,
+    "simpson_episodes": 4,
+    "soccer_2016": -1,
+    "software_company": 0,
+    "talkingdata": -2,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "-1": 2,
+    "-2": 1,
+    "0": 57,
+    "1": 2,
+    "2": 2
+   },
+   "per_seed": {
+    "200": 1,
+    "201": 1
+   },
+   "pooled": 2,
+   "pooled_out_of": 128,
+   "recoveries": 6,
+   "regressions": 4,
+   "sign": 1,
+   "threshold": 7
+  },
+  "TI1-D0": {
+   "a": "TI1",
+   "all_conditions": false,
+   "b": "D0",
+   "conditions": {
+    "pooled_at_least_threshold": false,
+    "same_sign_every_seed": true,
+    "same_sign_without_any_one_database": true
+   },
+   "exploratory_sign_flip": {
+    "assignments": 4,
+    "blocks": 14,
+    "nonzero_blocks": 2,
+    "observed": 4,
+    "p_two_sided": 0.5,
+    "smallest_attainable_p": 0.5
+   },
+   "leave_one_database_out": {
+    "computer_student": 4,
+    "disney": 4,
+    "food_inspection": 4,
+    "hockey": 4,
+    "ice_hockey_draft": 3,
+    "image_and_language": 4,
+    "music_platform_2": 4,
+    "professional_basketball": 4,
+    "public_review_platform": 4,
+    "simpson_episodes": 1,
+    "soccer_2016": 4,
+    "software_company": 4,
+    "talkingdata": 4,
+    "world": 4
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 0,
+    "food_inspection": 0,
+    "hockey": 0,
+    "ice_hockey_draft": 1,
+    "image_and_language": 0,
+    "music_platform_2": 0,
+    "professional_basketball": 0,
+    "public_review_platform": 0,
+    "simpson_episodes": 3,
+    "soccer_2016": 0,
+    "software_company": 0,
+    "talkingdata": 0,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "0": 61,
+    "1": 2,
+    "2": 1
+   },
+   "per_seed": {
+    "200": 1,
+    "201": 3
+   },
+   "pooled": 4,
+   "pooled_out_of": 128,
+   "recoveries": 4,
+   "regressions": 0,
+   "sign": 1,
+   "threshold": 7
+  },
+  "TI1-D1": {
+   "a": "TI1",
+   "all_conditions": false,
+   "b": "D1",
+   "conditions": {
+    "pooled_at_least_threshold": false,
+    "same_sign_every_seed": false,
+    "same_sign_without_any_one_database": false
+   },
+   "exploratory_sign_flip": {
+    "assignments": 32,
+    "blocks": 14,
+    "nonzero_blocks": 5,
+    "observed": 2,
+    "p_two_sided": 0.75,
+    "smallest_attainable_p": 0.0625
+   },
+   "leave_one_database_out": {
+    "computer_student": 2,
+    "disney": 2,
+    "food_inspection": 1,
+    "hockey": 2,
+    "ice_hockey_draft": 2,
+    "image_and_language": 2,
+    "music_platform_2": 2,
+    "professional_basketball": 2,
+    "public_review_platform": 3,
+    "simpson_episodes": 3,
+    "soccer_2016": 1,
+    "software_company": 2,
+    "talkingdata": 0,
+    "world": 2
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 0,
+    "food_inspection": 1,
+    "hockey": 0,
+    "ice_hockey_draft": 0,
+    "image_and_language": 0,
+    "music_platform_2": 0,
+    "professional_basketball": 0,
+    "public_review_platform": -1,
+    "simpson_episodes": -1,
+    "soccer_2016": 1,
+    "software_company": 0,
+    "talkingdata": 2,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "-1": 2,
+    "0": 59,
+    "1": 2,
+    "2": 1
+   },
+   "per_seed": {
+    "200": 0,
+    "201": 2
+   },
+   "pooled": 2,
+   "pooled_out_of": 128,
+   "recoveries": 4,
+   "regressions": 2,
+   "sign": 1,
+   "threshold": 7
+  }
+ },
+ "cost": {
+  "D0": {
+   "calls_per_request": 1,
+   "generated_tokens": 6836,
+   "generation_seconds": 516.429302929726,
+   "peak_memory_bytes": 11064100352,
+   "per_ex_correct_seconds": 7.095959526077378,
+   "per_request_seconds": 4.102351601013484,
+   "prompt_tokens": 335824,
+   "submitted_execution_seconds": 8.671702,
+   "tool_seconds": 0.0,
+   "total_seconds": 525.101004929726,
+   "validation_seconds": 0.0
+  },
+  "D1": {
+   "calls_per_request": 2,
+   "generated_tokens": 13665,
+   "generation_seconds": 1039.4436582308845,
+   "peak_memory_bytes": 11094368256,
+   "per_ex_correct_seconds": 14.447405139949034,
+   "per_request_seconds": 8.578146801844738,
+   "prompt_tokens": 690144,
+   "submitted_execution_seconds": 8.731221,
+   "tool_seconds": 49.82791140524205,
+   "total_seconds": 1098.0027906361265,
+   "validation_seconds": 0.0
+  },
+  "TI1": {
+   "calls_per_request": 2,
+   "generated_tokens": 13680,
+   "generation_seconds": 1048.0892227806617,
+   "peak_memory_bytes": 11165238272,
+   "per_ex_correct_seconds": 14.350821037137452,
+   "per_request_seconds": 8.745031569505635,
+   "prompt_tokens": 708372,
+   "submitted_execution_seconds": 15.03309,
+   "tool_seconds": 56.16129960305989,
+   "total_seconds": 1119.3640408967212,
+   "validation_seconds": 0.08042851299978793
+  }
+ },
+ "counts": {
+  "D0/200": 37,
+  "D0/201": 37,
+  "D1/200": 38,
+  "D1/201": 38,
+  "TI1/200": 38,
+  "TI1/201": 40
+ },
+ "decision": "neither revision helps by the rule: retain direct Qwen and stop this repair direction",
+ "final_status": {
+  "D0": {
+   "error": 18,
+   "ok": 110
+  },
+  "D1": {
+   "abstain": 8,
+   "ok": 120
+  },
+  "TI1": {
+   "abstain": 7,
+   "ok": 121
+  }
+ },
+ "gpu_reservations": [
+  {
+   "command": "spr dev",
+   "hours": 0.11685483145972184,
+   "id": "20261106T150737-7404232e",
+   "status": "ok"
+  },
+  {
+   "command": "spr dev",
+   "hours": 0.07045054163471731,
+   "id": "20261106T151520-4ba102ec",
+   "status": "ok"
+  },
+  {
+   "command": "spr run",
+   "hours": 0.47991778901443466,
+   "id": "20261106T204616-df38ecaa",
+   "status": "ok"
+  }
+ ],
+ "initial": {
+  "execution": {
+   "error": 18,
+   "ok": 110
+  },
+  "no_sql": 0,
+  "truncated": 0,
+  "typed": 109,
+  "untyped_reasons": {
+   "ambiguous column": 2,
+   "row value": 1,
+   "unknown column": 11,
+   "unresolved column": 5
+  },
+  "with_errors": 18,
+  "with_warnings": 13
+ },
+ "ledger": {
+  "authorization": 2,
+  "cap_hours": 32.0,
+  "ledger": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/gpu_ledger.jsonl",
+  "remaining_hours": 8.51002595301972,
+  "used_hours": 23.48997404698028
+ },
+ "lineage": {
+  "D1": {
+   "final_source": {
+    "abstain": 8,
+    "original": 4,
+    "revised": 116
+   },
+   "revised_typed": 117,
+   "revision_rejected": 12,
+   "revision_truncated": 0,
+   "revision_unchanged_sql": 94
+  },
+  "TI1": {
+   "final_source": {
+    "abstain": 7,
+    "original": 1,
+    "revised": 120
+   },
+   "revised_typed": 121,
+   "revision_rejected": 8,
+   "revision_truncated": 0,
+   "revision_unchanged_sql": 98
+  }
+ },
+ "pooled": {
+  "D0": 74,
+  "D1": 76,
+  "TI1": 78
+ },
+ "protocol": {
+  "frozen_at": "6e1003f336864ce897825a1ebf180717b9f7b223",
+  "sha256": "e5cd55dba2f035db2f9d2ae8d0201f4fc5dfbfa1b110450b21272bf75d79c55c"
+ },
+ "requests_per_policy": 128,
+ "run": "spr/run/20261106T204616Z",
+ "seeds": [
+  200,
+  201
+ ]
+}

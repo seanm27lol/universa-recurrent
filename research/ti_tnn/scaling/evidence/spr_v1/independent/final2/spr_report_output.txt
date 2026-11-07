@@ -1,0 +1,54 @@
+Recomputed from the bundled raw records (inventory validated: seeds [200, 201], the 64 pinned questions, 3 policies), equal to the corrected analysis (spr-rule-v2) and to the original analysis outside its rule fields.
+
+| policy | seed 200 (of 64) | seed 201 (of 64) | pooled (of 128) |
+|---|---|---|---|
+| D0 | 37 | 37 | 74 |
+| D1 | 38 | 38 | 76 |
+| TI1 | 38 | 40 | 78 |
+
+| comparison | seed 200 | seed 201 | pooled | leaving one database out (min .. max) | recoveries | regressions | rule (+8): pooled / seeds / databases | meets the rule |
+|---|---|---|---|---|---|---|---|---|
+| TI1-D1 | +0 | +2 | +2 | +0 .. +3 | 4 | 2 | no / no / no | no |
+| D1-D0 | +1 | +1 | +2 | -2 .. +4 | 6 | 4 | no / yes / no | no |
+| TI1-D0 | +1 | +3 | +4 | +1 .. +4 | 4 | 0 | no / yes / yes | no |
+
+Decision (the registered rule): neither revision helps by the rule: retain direct Qwen and stop this repair direction.
+
+| database | questions | D0, both seeds | D1, both seeds | TI1, both seeds |
+|---|---|---|---|---|
+| computer_student | 5 | 5 | 5 | 5 |
+| disney | 5 | 4 | 4 | 4 |
+| food_inspection | 5 | 7 | 6 | 7 |
+| hockey | 5 | 4 | 4 | 4 |
+| ice_hockey_draft | 4 | 4 | 5 | 5 |
+| image_and_language | 5 | 5 | 5 | 5 |
+| music_platform_2 | 4 | 8 | 8 | 8 |
+| professional_basketball | 4 | 5 | 5 | 5 |
+| public_review_platform | 5 | 4 | 5 | 4 |
+| simpson_episodes | 4 | 4 | 8 | 7 |
+| soccer_2016 | 5 | 7 | 6 | 7 |
+| software_company | 4 | 6 | 6 | 6 |
+| talkingdata | 5 | 7 | 5 | 7 |
+| world | 4 | 4 | 4 | 4 |
+
+Initial proposals (shared): 128 requests; no SQL 0; truncated 0; typed 109; untyped reasons {'unknown column': 11, 'unresolved column': 5, 'ambiguous column': 2, 'row value': 1}; execution {'ok': 110, 'error': 18}; with typed errors 18; with warnings 13.
+
+| repair policy | final: revised / original / abstain | revision rejected | revision unchanged SQL | revision truncated | revised typed |
+|---|---|---|---|---|---|
+| D1 | 116 / 4 / 8 | 12 | 94 | 0 | 117 |
+| TI1 | 120 / 1 / 7 | 8 | 98 | 0 | 121 |
+
+| policy | final execution status | generation s | validation s | tool s | submitted execution s | total s | per request s | per EX-correct s | prompt tokens | generated tokens | peak GB |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| D0 | {'ok': 110, 'error': 18} | 516 | 0.0 | 0.0 | 8.7 | 525 | 4.10 | 7.1 | 335,824 | 6,836 | 11.1 |
+| D1 | {'ok': 120, 'abstain': 8} | 1039 | 0.0 | 49.8 | 8.7 | 1098 | 8.58 | 14.4 | 690,144 | 13,665 | 11.1 |
+| TI1 | {'ok': 121, 'abstain': 7} | 1048 | 0.1 | 56.2 | 15.0 | 1119 | 8.75 | 14.4 | 708,372 | 13,680 | 11.2 |
+
+| GPU reservation (this work order) | hours | status |
+|---|---|---|
+| spr dev (20261106T150737-7404232e) | 0.117 | ok |
+| spr dev (20261106T151520-4ba102ec) | 0.070 | ok |
+| spr run (20261106T204616-df38ecaa) | 0.480 | ok |
+| total | 0.667 | |
+
+Ledger total in the bundled ledger: 23.490 of 32.0 h.

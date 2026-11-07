@@ -1,0 +1,22 @@
+Loading weights:   0%|          | 0/723 [00:00<?, ?it/s]Loading weights:  44%|████▍     | 320/723 [00:00<00:00, 3190.52it/s]Loading weights: 100%|██████████| 723/723 [00:00<00:00, 4030.36it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+[transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+{"seed": 900, "task": "bird23tf-01628", "D1": "revised", "TI1": "revised", "seconds": 19.3}
+{"seed": 900, "task": "bird23tf-05748", "D1": "abstain", "TI1": "abstain", "seconds": 7.9}
+{"seed": 900, "task": "bird23tf-04436", "D1": "revised", "TI1": "revised", "seconds": 12.1}
+{"seed": 900, "task": "bird23tf-05912", "D1": "revised", "TI1": "revised", "seconds": 9.9}
+{"seed": 900, "task": "bird23tf-05703", "D1": "revised", "TI1": "revised", "seconds": 15.6}
+{"seed": 900, "task": "bird23tf-02979", "D1": "revised", "TI1": "revised", "seconds": 10.2}
+{"seed": 900, "task": "bird23tf-02636", "D1": "abstain", "TI1": "abstain", "seconds": 7.2}
+{"seed": 900, "task": "bird23tf-01670", "D1": "original", "TI1": "revised", "seconds": 46.3}
+{"seed": 900, "task": "bird23tf-06228", "D1": "original", "TI1": "original", "seconds": 49.4}
+{"seed": 900, "task": "bird23tf-03130", "D1": "revised", "TI1": "revised", "seconds": 8.7}
+{"seed": 900, "task": "bird23tf-03134", "D1": "original", "TI1": "revised", "seconds": 68.5}
+{"seed": 900, "task": "bird23tf-01167", "D1": "original", "TI1": "revised", "seconds": 54.0}
+{"seed": 900, "task": "bird23tf-03518", "D1": "revised", "TI1": "revised", "seconds": 17.1}
+{"seed": 900, "task": "bird23tf-05138", "D1": "revised", "TI1": "revised", "seconds": 12.6}
+{"seed": 900, "task": "bird23tf-02663", "D1": "abstain", "TI1": "abstain", "seconds": 16.8}
+{"seed": 900, "task": "bird23tf-00765", "D1": "revised", "TI1": "revised", "seconds": 12.0}
+exit 0

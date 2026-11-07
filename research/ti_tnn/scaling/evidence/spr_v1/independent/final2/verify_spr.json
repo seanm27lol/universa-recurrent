@@ -1,0 +1,2196 @@
+{
+ "run": {
+  "verifier": "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/independent/verify_spr.py",
+  "verifier_sha256": "daa612c3d6ba2324df82d78d03e59429fa3ce6a2631088e11d7db6632985a6c3",
+  "verifier_sha256_how": "sha256 of the script's bytes read by the running process at start (and re-read at the end: equal)",
+  "started_utc": "2026-11-07T03:08:16+00:00",
+  "ended_utc": "2026-11-07T03:14:21+00:00",
+  "runtime_seconds": 364.7,
+  "repo_head": "d0eec03a06bef2923a92fef8a5003b2a90e140f2",
+  "runs_root": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling",
+  "python": "3.12.3",
+  "sqlite_version": "3.45.1",
+  "argv": [
+   "--runs-root",
+   "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling",
+   "--out",
+   "/tmp/claude-1000/-home-seanjazm27/7be45db0-2608-4151-8825-79c9a73be53e/scratchpad/verify_spr/final2",
+   "--frozen-tree",
+   "/home/seanjazm27/projects/universa-recurrent-spr-frozen",
+   "--workers",
+   "4",
+   "--producer-report"
+  ]
+ },
+ "known_defects": [
+  {
+   "id": "spr-analysis-v1-rule-fields",
+   "found_by": "the first review (167 checks, 1 failure, 81935f4b...)",
+   "file": "spr/analysis/20261106T211558Z/analysis.json",
+   "sha256": "ceb208f628c5224b17f42be9c34ee61b6e3dc747395339794106434e604f349f",
+   "fields": "comparisons.*.threshold, conditions, all_conditions (from perf_analysis.paired)",
+   "recorded_threshold": {
+    "D1-D0": 7,
+    "TI1-D0": 7,
+    "TI1-D1": 7
+   },
+   "registered_threshold": 8,
+   "status": "present and unchanged, as known",
+   "changes_a_condition_or_the_decision": false,
+   "corrected_by": "spr/analysis/20261107T030307Z_corrected_v2/analysis_v2.json (spr-rule-v2)"
+  }
+ ],
+ "sections": {
+  "0_discipline": {
+   "checks": [
+    {
+     "name": "nothing under spr/, data/ or the ledger changed during this verification",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the verifier file did not change while it ran",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 2,
+   "failures": 0,
+   "info": {
+    "runs_root_changes_elsewhere": [],
+    "producer_code": {
+     "worker": {
+      "frozen_tree": "/home/seanjazm27/projects/universa-recurrent-spr-frozen",
+      "head": "2f76bb7f6dd41d5c41a2f14ee68ef65698abffde",
+      "research_dirty": "",
+      "modules": {
+       "gi_llm": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/gi_llm.py",
+       "gi_run": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/gi_run.py",
+       "spr_feedback": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/spr_feedback.py",
+       "spr_typed": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/spr_typed.py",
+       "retrieval": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/retrieval.py",
+       "data": "/home/seanjazm27/projects/universa-recurrent-spr-frozen/research/ti_tnn/scaling/data.py"
+      },
+      "seconds": 0.9
+     },
+     "use": "schema text and retrieval for the prompts; the typed analysis recomputed; the preservation compile. Compared with the records only."
+    },
+    "seconds": 364.5,
+    "verifier_sha256": "daa612c3d6ba2324df82d78d03e59429fa3ce6a2631088e11d7db6632985a6c3",
+    "cpu_affinity": [
+     5,
+     6,
+     7,
+     8,
+     9,
+     15,
+     16,
+     17,
+     18,
+     19
+    ],
+    "cuda_visible_devices": ""
+   }
+  },
+  "10_bundle": {
+   "checks": [
+    {
+     "name": "SHA256SUMS: 33 files verified",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every bundled file is under SHA256SUMS",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the bundle holds every file of <runs>/spr/ and nothing else (plus the ledger and independent/)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "independent/: the first review's four outputs, byte-identical to that run, plus the producer's README",
+     "passed": true,
+     "detail": "{\"README.txt\": \"fe0751c6282de4acbc3f8792fb012fdd7b0e7bac1b8fa021c39771a6a68526e3\", \"preservation_own.jsonl\": \"523fc506da5a8791690980dc27e692c6c39ff91b9618e141f3023bc973d143a0\", \"score_mapping.jsonl\": \"809850b3e5489d8fc8603f9beefb4c7faa5ee6a0a5848acc76a4b344cfaa1815\", \"verify_spr.json\": \"97f30334204e046e9eb88480e9fc084e55921ef754c501937d35416428d5e411\", \"verify_spr_summary.txt\": \"3931a84236232bfe6958476682e3111e908848a2d841df44da4e464283792518\"}"
+    },
+    {
+     "name": "the committed verifier at 760eef5 = the first review's script (81935f4b...)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "every bundled file = its runs-root original",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the bundled ledger = the live ledger (now)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "every bundle file is committed",
+     "passed": true,
+     "detail": "34 tracked"
+    }
+   ],
+   "passed": 8,
+   "failures": 0,
+   "info": {}
+  },
+  "11_correction": {
+   "checks": [
+    {
+     "name": "the original analysis.json is kept unchanged (sha256 ceb208f6...) in the runs root and the bundle",
+     "passed": true,
+     "detail": "ceb208f628c5224b17f42be9c34ee61b6e3dc747395339794106434e604f349f"
+    },
+    {
+     "name": "KNOWN DEFECT (historical, recorded as known, not a new failure): the original's rule fields still carry threshold 7 with conditions and all_conditions computed at 7, exactly as found by the first review",
+     "passed": true,
+     "detail": "{\"D1-D0\": 7, \"TI1-D0\": 7, \"TI1-D1\": 7}"
+    },
+    {
+     "name": "the known defect changes no condition: with pooled +2, +2, +4, every condition is the same at 7 and at 8",
+     "passed": true,
+     "detail": "{\"D1-D0\": false, \"TI1-D0\": false, \"TI1-D1\": false}"
+    },
+    {
+     "name": "the corrected analysis and its manifest: runs root = bundle",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the corrected analysis is versioned spr-rule-v2 (top level and every comparison)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the corrected analysis uses +8 in every comparison's threshold",
+     "passed": true,
+     "detail": "{\"D1-D0\": 8, \"TI1-D0\": 8, \"TI1-D1\": 8}"
+    },
+    {
+     "name": "the corrected conditions, all_conditions and sign = own computation at +8 (each comparison)",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the corrected per-seed, pooled, per-database, leave-one-out, recoveries, regressions and histogram = own",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "every non-rule field of each corrected comparison = the original's",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the corrected decision = the original's = own = the decision implied by the corrected fields",
+     "passed": true,
+     "detail": "neither revision helps by the rule: retain direct Qwen and stop this repair direction"
+    },
+    {
+     "name": "the corrected counts and pooled counts = the original's = own",
+     "passed": true,
+     "detail": "{\"D0/200\": 37, \"D0/201\": 37, \"D1/200\": 38, \"D1/201\": 38, \"TI1/200\": 38, \"TI1/201\": 40}"
+    },
+    {
+     "name": "every other field of the corrected analysis = the original's; it adds only rule_version, corrects, inputs",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the corrected analysis names the original (sha256) and the frozen run's scores (sha256)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the corrected run's manifest: commit 1d042a0, clean",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the manifest's spr_rule.py hash = the file at 1d042a0",
+     "passed": true,
+     "detail": "e2d14de8e6fddf78257550312048b98944e5532c9a8ccab0c8c0008c41331e1e"
+    },
+    {
+     "name": "spr_rule.py at the head differs from 1d042a0 only in layout (identical syntax trees: the print re-wrap)",
+     "passed": true,
+     "detail": "e2d14de8e6fd -> 9bd3e6ab7dc6"
+    },
+    {
+     "name": "spr_rule: LEAD 8, RULE_VERSION spr-rule-v2",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr_run.py unchanged from the frozen commit to the head",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "perf_analysis.py unchanged from the frozen commit to the head",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 19,
+   "failures": 0,
+   "info": {
+    "corrected": {
+     "D1-D0": {
+      "threshold": 8,
+      "conditions": {
+       "pooled_at_least_lead": false,
+       "same_sign_every_seed": true,
+       "same_sign_without_any_one_database": false
+      },
+      "all_conditions": false
+     },
+     "TI1-D0": {
+      "threshold": 8,
+      "conditions": {
+       "pooled_at_least_lead": false,
+       "same_sign_every_seed": true,
+       "same_sign_without_any_one_database": true
+      },
+      "all_conditions": false
+     },
+     "TI1-D1": {
+      "threshold": 8,
+      "conditions": {
+       "pooled_at_least_lead": false,
+       "same_sign_every_seed": false,
+       "same_sign_without_any_one_database": false
+      },
+      "all_conditions": false
+     }
+    }
+   }
+  },
+  "12_producer_report": {
+   "checks": [
+    {
+     "name": "python -m scaling.spr_report (TI_TNN_SCALING_RUNS unset): exit 0, reconstructs, the decision and TI1 - D1 = +0/+2/+2",
+     "passed": true,
+     "detail": "exit 0; "
+    },
+    {
+     "name": "the spr tests pass (none skipped)",
+     "passed": true,
+     "detail": "19 passed in 0.86s"
+    }
+   ],
+   "passed": 2,
+   "failures": 0,
+   "info": {
+    "spr_report": {
+     "exit": 0,
+     "stdout_sha256": "462d7d037251cdcd0e566e0a79e16545e784dde1ecca39a4c1c9c6510170214f",
+     "seconds": 0.1
+    },
+    "tests": {
+     "exit": 0,
+     "summary": "19 passed in 0.86s",
+     "seconds": 1.0
+    },
+    "flag": "producer code, run in separate processes; not used for any of this verifier's own verdicts"
+   }
+  },
+  "1_inventories": {
+   "checks": [
+    {
+     "name": "raw release sha256 = contracts pin",
+     "passed": true,
+     "detail": "2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8"
+    },
+    {
+     "name": "release rows and databases",
+     "passed": true,
+     "detail": "6601 rows"
+    },
+    {
+     "name": "own split = split pin (14 dev databases, same order)",
+     "passed": true,
+     "detail": "['public_review_platform', 'soccer_2016', 'hockey', 'image_and_language', 'simpson_episodes', 'world', 'ice_hockey_draft', 'professional_basketball', 'music_platform_2', 'software_company', 'disney', 'talkingdata', 'computer_student', 'food_inspection']"
+    },
+    {
+     "name": "the inventory pin's exclusions = the gold check's non-ok entries",
+     "passed": true,
+     "detail": "['bird23tf-03541']"
+    },
+    {
+     "name": "own inventory (512) = inventory pin",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "positions 192-255 rebuilt from the release = spr_new_eval.json",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr_new_eval db_ids = the release's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "64 distinct ids at positions [192, 256)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the excluded bird23tf-03541's gold times out under the own executor",
+     "passed": true,
+     "detail": "timeout"
+    },
+    {
+     "name": "the earlier dev questions (perf_v2 historical + new) = positions 0-127",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "gi_new_eval = positions 128-191",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no file outside the pins, gold check, coverage analysis and this study's own run names a new-population task id",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "no file outside the release (and those) holds a new-population question text",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "the three declared prior uses are found (inventory pin, gold check, coverage analysis)",
+     "passed": true,
+     "detail": "{\"pins:inventory_v1.json\": 64, \"pins:spr_new_eval.json\": 64, \"runs:data/gold_check_dev_v1.json\": 64, \"runs:ir/coverage_details_v1.json\": 64}"
+    },
+    {
+     "name": "frozen run: 64 questions x seeds 200, 201, each request exactly once",
+     "passed": true,
+     "detail": "128 requests"
+    },
+    {
+     "name": "frozen run scores: 64 x 2 x 3 policies, each exactly once",
+     "passed": true,
+     "detail": "384 scores"
+    },
+    {
+     "name": "every request carries all three policies",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "run manifest: requested = the pin, seeds [200, 201]",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "every request's db_id = the release's",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 19,
+   "failures": 0,
+   "info": {
+    "exclusion_changes_positions_0_255": false,
+    "new_population_by_db": {
+     "disney": 5,
+     "talkingdata": 5,
+     "computer_student": 5,
+     "food_inspection": 5,
+     "public_review_platform": 5,
+     "soccer_2016": 5,
+     "hockey": 5,
+     "image_and_language": 5,
+     "simpson_episodes": 4,
+     "world": 4,
+     "ice_hockey_draft": 4,
+     "professional_basketball": 4,
+     "music_platform_2": 4,
+     "software_company": 4
+    },
+    "prior_use": {
+     "files_scanned": 6478,
+     "safetensors_headers": 5081,
+     "id_hits": {
+      "runs:data/gold_check_dev_v1.json": 64,
+      "runs:ir/coverage_details_v1.json": 64,
+      "runs:spr/logs/run_20261106T204616Z.log": 64,
+      "runs:spr/run/20261106T204616Z/manifest.json": 64,
+      "runs:spr/run/20261106T204616Z/requests.jsonl": 64,
+      "runs:spr/run/20261106T204616Z/scores.jsonl": 64,
+      "evidence:spr_v1/independent/score_mapping.jsonl": 64,
+      "evidence:spr_v1/independent/verify_spr.json": 4,
+      "evidence:spr_v1/logs/run_20261106T204616Z.log": 64,
+      "evidence:spr_v1/run/20261106T204616Z/manifest.json": 64,
+      "evidence:spr_v1/run/20261106T204616Z/requests.jsonl": 64,
+      "evidence:spr_v1/run/20261106T204616Z/scores.jsonl": 64,
+      "pins:inventory_v1.json": 64,
+      "pins:spr_new_eval.json": 64
+     },
+     "question_hits": {
+      "runs:data/raw/hf/bird23_train_filtered.train-00000-of-00001.jsonl": 64
+     },
+     "scan_digest": "c4f46274a3244427176277762369f56476877b704598383d2830dd420ecd4dae",
+     "duplicated_question_texts_in_release": []
+    }
+   }
+  },
+  "2_lineage": {
+   "checks": [
+    {
+     "name": "the local chat template = the run manifest's model identity",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "run manifest's system prompt and revision instruction = the frozen source's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "512 new tokens, non-thinking",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 1 used the v1 instruction (d73c30e), dev run 2 the frozen v2",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D0 = the initial proposal",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own extraction = the recorded SQL",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "generated tokens <= 512",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "revision order = the declared hash rule",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 message = own raw observation + the instruction",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "TI1 message = D1's raw observation + own rendering of the recorded analysis + the instruction",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "TI1 message = D1's plus the analysis only (prefix/suffix)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own execution of the initial SQL = the recorded execution",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the raw observation rebuilt from own execution = the recorded one (ok and error statuses)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own execution of each revision = the recorded execution",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "remaining time = 180 s - (initial call + execution + analysis), within 2 s",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each revision finished within the shared remaining time",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: errors only of the declared definite kinds",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: warnings only of the declared observational kinds",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: execution errors and timeouts reported iff the execution failed",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: the empty-result warning iff ok with 0 rows",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: own literal-occurrence test = each literal line",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "typed analysis: untyped iff a reason; identifier reasons as errors, others as warnings",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "retrieved examples = the producer's retrieval (worker)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "retrieved examples from training-pool databases only",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own user message = the producer's (worker)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "system prompt = SYSTEM_DIRECT",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "initial prompt tokens = own rendering",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 revision prompt tokens = own rendering of the shared prefix + its message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "TI1 revision prompt tokens = own rendering of the shared prefix + its message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded typed analysis = recomputed (worker)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: both revisions call with seed_of('revise', seed, task_id) and time.monotonic() + remaining",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the remaining time is computed once, before the revision loop",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: both revisions = the shared base messages + the initial reply + their own message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the D1 and TI1 messages differ only by the rendered analysis of the initial proposal",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the revision order by seed_of('order', ...) parity",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: one initial call per question and seed, seed_of('initial', ...)",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 36,
+   "failures": 0,
+   "info": {
+    "stats": {
+     "run": {
+      "requests": 128,
+      "extract_fence": 384,
+      "D1_first": 61,
+      "max_deadline_gap": 0.032792251964565367,
+      "literal_lines": 495,
+      "D1_revised": 116,
+      "TI1_revised": 120,
+      "D1_abstain": 8,
+      "TI1_abstain": 7,
+      "D1_original": 4,
+      "TI1_original": 1
+     },
+     "20261106T150736Z": {
+      "requests": 16,
+      "extract_fence": 44,
+      "D1_first": 7,
+      "max_deadline_gap": 0.029546956007834524,
+      "literal_lines": 62,
+      "D1_revised": 9,
+      "TI1_revised": 12,
+      "D1_abstain": 3,
+      "TI1_abstain": 3,
+      "raw_rebuild_skipped_rejected": 1,
+      "extract_none": 4,
+      "D1_not_eos": 3,
+      "D1_original": 4,
+      "TI1_not_eos": 1,
+      "TI1_original": 1
+     },
+     "20261106T151520Z": {
+      "requests": 16,
+      "extract_fence": 48,
+      "D1_first": 7,
+      "max_deadline_gap": 0.011043170001357794,
+      "literal_lines": 72,
+      "D1_revised": 12,
+      "TI1_revised": 14,
+      "D1_abstain": 4,
+      "TI1_abstain": 2,
+      "raw_rebuild_skipped_rejected": 1
+     }
+    },
+    "revision_seeds_sample": {
+     "200|bird23tf-05527": {
+      "initial": 2149798784,
+      "revise": 4161437820
+     },
+     "200|bird23tf-00439": {
+      "initial": 4210982241,
+      "revise": 3970874106
+     },
+     "200|bird23tf-00412": {
+      "initial": 3141140071,
+      "revise": 3769490163
+     }
+    },
+    "identifier_errors_vs_sqlite": {
+     "run: unknown column -> recorded execution error": 11,
+     "run: unresolved column -> recorded execution error": 5,
+     "run: ambiguous column -> recorded execution error": 2,
+     "dev: unresolved column -> recorded execution error": 2,
+     "dev: ambiguous column -> recorded execution error": 2
+    }
+   }
+  },
+  "3_selection": {
+   "checks": [
+    {
+     "name": "selection (own execution) = recorded (D1)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "selection (own execution) = recorded (TI1)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "selection (recorded executions) = recorded (D1)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "selection (recorded executions) = recorded (TI1)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: select, _valid and _execute never read gold or the scorer",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the rule is revised if valid, else original if valid, else abstain; valid = SQL, read-only, ok",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 6,
+   "failures": 0,
+   "info": {}
+  },
+  "4_scores": {
+   "checks": [
+    {
+     "name": "own sha256 and size of the 14 snapshot files = the snapshots pin",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "scored SQL = the request's final SQL (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "scored SQL = own selection (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "score's snapshot sha256 = own hash (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded EX = own EX (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded status = own status (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded predicted status = own (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded gold status and row counts = own (480 records: run 384, dev 96)",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 8,
+   "failures": 0,
+   "info": {
+    "records_mapped": 480,
+    "own_status_counts_run": {
+     "incorrect": 123,
+     "correct": 228,
+     "predicted_error": 18,
+     "abstain": 15
+    },
+    "reruns": {
+     "observe": [
+      {
+       "key": [
+        "image_and_language",
+        "SELECT AVG(T2.OBJ_SAMPLE_ID) FROM IMG_OBJ AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.OBJ_SAMPLE_ID = T2.OBJ_SAMPLE_ID WHERE T1.IMG_ID IN (SELECT IMG_ID FROM IMG_OBJ_ATT GROUP BY IMG_ID)"
+       ],
+       "first": "timeout",
+       "first_seconds": 30.0,
+       "serial": "timeout",
+       "serial_seconds": 30.0
+      },
+      {
+       "key": [
+        "image_and_language",
+        "SELECT AVG(T1.OBJ_SAMPLE_ID) FROM IMG_OBJ AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.OBJ_SAMPLE_ID = T2.OBJ_SAMPLE_ID WHERE T1.IMG_ID IN (SELECT IMG_ID FROM IMG_OBJ_ATT GROUP BY IMG_ID)"
+       ],
+       "first": "timeout",
+       "first_seconds": 30.0,
+       "serial": "timeout",
+       "serial_seconds": 30.0
+      },
+      {
+       "key": [
+        "food_inspection",
+        "SELECT b.name\nFROM businesses AS b\nINNER JOIN inspections AS i ON b.business_id = i.business_id\nINNER JOIN violations AS v ON b.business_id = v.business_id\nWHERE strftime('%Y', i.date) = '2014' AND v.risk_category = 'Low Risk'\nGROUP BY b.business_id\nORDER BY COUNT(*) DESC\nLIMIT 1"
+       ],
+       "first": "ok",
+       "first_seconds": 6.46,
+       "serial": "ok",
+       "serial_seconds": 6.45
+      },
+      {
+       "key": [
+        "image_and_language",
+        "SELECT COUNT(*) \nFROM IMG_REL AS T1 \nINNER JOIN PRED_CLASSES AS T2 ON T1.PRED_CLASS_ID = T2.PRED_CLASS_ID \nINNER JOIN IMG_OBJ AS T3 ON T1.OBJ1_SAMPLE_ID = T3.OBJ_SAMPLE_ID \nINNER JOIN IMG_OBJ_ATT AS T4 ON T3.OBJ_SAMPLE_ID = T4.OBJ_SAMPLE_ID \nWHERE T1.IMG_ID = 107 \n  AND T2.PRED_CLASS = 'has'"
+       ],
+       "first": "timeout",
+       "first_seconds": 30.0,
+       "serial": "timeout",
+       "serial_seconds": 30.0
+      },
+      {
+       "key": [
+        "image_and_language",
+        "SELECT COUNT(*) FROM \"IMG_REL\" AS \"T1\" INNER JOIN \"PRED_CLASSES\" AS \"T2\" ON \"T1\".\"PRED_CLASS_ID\" = \"T2\".\"PRED_CLASS_ID\" INNER JOIN \"IMG_OBJ\" AS \"T3\" ON \"T1\".\"OBJ1_SAMPLE_ID\" = \"T3\".\"OBJ_SAMPLE_ID\" INNER JOIN \"IMG_OBJ_ATT\" AS \"T4\" ON \"T3\".\"OBJ_SAMPLE_ID\" = \"T4\".\"OBJ_SAMPLE_ID\" WHERE \"T1\".\"IMG_ID\" = 107 AND \"T2\".\"PRED_CLASS\" = 'has'"
+       ],
+       "first": "timeout",
+       "first_seconds": 30.0,
+       "serial": "timeout",
+       "serial_seconds": 30.0
+      }
+     ],
+     "ex": [
+      {
+       "key": [
+        "bird23tf-03540",
+        "SELECT b.name\nFROM businesses AS b\nINNER JOIN inspections AS i ON b.business_id = i.business_id\nINNER JOIN violations AS v ON b.business_id = v.business_id\nWHERE strftime('%Y', i.date) = '2014' AND v.risk_category = 'Low Risk'\nGROUP BY b.business_id\nORDER BY COUNT(*) DESC\nLIMIT 1"
+       ],
+       "first": "incorrect",
+       "first_seconds": 6.47,
+       "serial": "incorrect",
+       "serial_seconds": 6.45
+      },
+      {
+       "key": [
+        "bird23tf-03006",
+        "SELECT COUNT(*) \nFROM IMG_REL AS T1 \nINNER JOIN PRED_CLASSES AS T2 ON T1.PRED_CLASS_ID = T2.PRED_CLASS_ID \nINNER JOIN IMG_OBJ AS T3 ON T1.OBJ1_SAMPLE_ID = T3.OBJ_SAMPLE_ID \nINNER JOIN IMG_OBJ_ATT AS T4 ON T3.OBJ_SAMPLE_ID = T4.OBJ_SAMPLE_ID \nWHERE T1.IMG_ID = 107 \n  AND T2.PRED_CLASS = 'has'"
+       ],
+       "first": "predicted_timeout",
+       "first_seconds": 30.0,
+       "serial": "predicted_timeout",
+       "serial_seconds": 30.0
+      },
+      {
+       "key": [
+        "bird23tf-03006",
+        "SELECT COUNT(*) FROM \"IMG_REL\" AS \"T1\" INNER JOIN \"PRED_CLASSES\" AS \"T2\" ON \"T1\".\"PRED_CLASS_ID\" = \"T2\".\"PRED_CLASS_ID\" INNER JOIN \"IMG_OBJ\" AS \"T3\" ON \"T1\".\"OBJ1_SAMPLE_ID\" = \"T3\".\"OBJ_SAMPLE_ID\" INNER JOIN \"IMG_OBJ_ATT\" AS \"T4\" ON \"T3\".\"OBJ_SAMPLE_ID\" = \"T4\".\"OBJ_SAMPLE_ID\" WHERE \"T1\".\"IMG_ID\" = 107 AND \"T2\".\"PRED_CLASS\" = 'has'"
+       ],
+       "first": "predicted_timeout",
+       "first_seconds": 30.0,
+       "serial": "predicted_timeout",
+       "serial_seconds": 30.0
+      }
+     ]
+    },
+    "execution_seconds": 323.6,
+    "sqlite_version": "3.45.1",
+    "dev_counts": {
+     "20261106T150736Z": {
+      "D0": 8,
+      "D1": 8,
+      "TI1": 8
+     },
+     "20261106T151520Z": {
+      "D0": 8,
+      "D1": 8,
+      "TI1": 9
+     }
+    }
+   }
+  },
+  "5_gold_isolation": {
+   "checks": [
+    {
+     "name": "code: no function reachable from the diagnostic and serving path names gold, Gold or the scorer",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "code: _serve_population reads gold only after every request is served and written",
+     "passed": true,
+     "detail": "gold at lines [268], serving block 245-264"
+    },
+    {
+     "name": "no gold SQL in any prompt, message or analysis",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no evaluated task id in any prompt, message or analysis",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no task id of any kind in any prompt, message or analysis",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "a gold result block appears only where the model's own result shows it",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 6,
+   "failures": 0,
+   "info": {
+    "reachable": {
+     "spr_feedback": 5,
+     "spr_typed": 2,
+     "diagnose": 15,
+     "sql_to_ir": 32,
+     "ir": 73,
+     "schema": 19,
+     "tools": 17,
+     "gi_llm": 2,
+     "llm_agent": 3,
+     "spr_run": 6
+    },
+    "requests_mtime": "2026-11-06T21:15:04+00:00",
+    "scores_mtime": "2026-11-06T21:15:57+00:00",
+    "texts_checked": 960,
+    "gold_result_block_in_message_explained_by_own_result": 172,
+    "prompts_checked": true
+   }
+  },
+  "6_preservation": {
+   "checks": [
+    {
+     "name": "source records sha256 = the manifest's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "64 records = the grounding-interface new population's 64 saved direct outputs",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each record's SQL = the saved output",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each record's snapshot sha256 = own hash",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own outcome = recorded",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own EX of original and compiled = recorded",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own result-set and row-list comparisons = recorded",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own execution statuses = recorded",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own EX of the original = the grounding-interface study's recorded score",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "unsupported outputs: none was EX-correct (own)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "compilation recomputed (worker) = recorded",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "47 supported and preserved, 0 unexplained changes, 17 unsupported",
+     "passed": true,
+     "detail": "{\"ex_original\": 32, \"ex_compiled\": 32, \"same_set\": 46, \"same_list\": 46, \"both_failed\": 1, \"preserved\": 47, \"unsupported\": 17}"
+    },
+    {
+     "name": "46 identical result sets and row lists, 1 failing alike both ways, 32 EX-correct either way",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "unsupported: 16 identifier reasons, 1 YEAR",
+     "passed": true,
+     "detail": "{\"unresolved column\": 5, \"sqlite error\": 17, \"unknown column\": 8, \"function YEAR\": 1, \"ambiguous column\": 2, \"unknown table\": 1}"
+    },
+    {
+     "name": "summary.json agrees",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 15,
+   "failures": 0,
+   "info": {
+    "own": {
+     "ex_original": 32,
+     "ex_compiled": 32,
+     "same_set": 46,
+     "same_list": 46,
+     "both_failed": 1,
+     "preserved": 47,
+     "unsupported": 17
+    },
+    "unsupported": {
+     "unresolved column": 5,
+     "sqlite error": 17,
+     "unknown column": 8,
+     "function YEAR": 1,
+     "ambiguous column": 2,
+     "unknown table": 1
+    }
+   }
+  },
+  "7_paired": {
+   "checks": [
+    {
+     "name": "own counts per policy and seed = analysis.json",
+     "passed": true,
+     "detail": "{\"D0/200\": 37, \"D0/201\": 37, \"D1/200\": 38, \"D1/201\": 38, \"TI1/200\": 38, \"TI1/201\": 40}"
+    },
+    {
+     "name": "own pooled counts = analysis.json",
+     "passed": true,
+     "detail": "{\"D0\": 74, \"D1\": 76, \"TI1\": 78}"
+    },
+    {
+     "name": "TI1 - D1: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": 0, \"201\": 2}, \"pooled\": 2, \"per_database\": {\"computer_student\": 0, \"disney\": 0, \"food_inspection\": 1, \"hockey\": 0, \"ice_hockey_draft\": 0, \"image_and_language\": 0, \"music_platform_2\": 0, \"professional_basketball\": 0, \"public_review_platform\": -1, \"simpson_episodes\": -1, \"soccer_2016\": 1, \"software_company\": 0, \"talkingdata\": 2, \"world\": 0}, \"leave_one_database_out\": {\"computer_student\": 2, \"disney\": 2, \"food_inspection\": 1, \"hockey\": 2, \"ice_hockey_draft\": 2, \"image_and_language\": 2, \"music_platform_2\": 2, \"professional_basketball\": 2, \"public_review_platform\": 3, \"simpson_episodes\": 3, \"soccer_2016\": 1, \"software_company\": 2, \"talkingdata\": 0, \"world\": 2}, \"recoveries\": 4, \"regressions\": 2, \"histogram\": {\"-1\": 2, \"0\": 59, \"1\": 2, \"2\": 1}, \"lead\": false, \"harm\": false}"
+    },
+    {
+     "name": "TI1 - D1: recoveries - regressions = pooled difference",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 - D0: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": 1, \"201\": 1}, \"pooled\": 2, \"per_database\": {\"computer_student\": 0, \"disney\": 0, \"food_inspection\": -1, \"hockey\": 0, \"ice_hockey_draft\": 1, \"image_and_language\": 0, \"music_platform_2\": 0, \"professional_basketball\": 0, \"public_review_platform\": 1, \"simpson_episodes\": 4, \"soccer_2016\": -1, \"software_company\": 0, \"talkingdata\": -2, \"world\": 0}, \"leave_one_database_out\": {\"computer_student\": 2, \"disney\": 2, \"food_inspection\": 3, \"hockey\": 2, \"ice_hockey_draft\": 1, \"image_and_language\": 2, \"music_platform_2\": 2, \"professional_basketball\": 2, \"public_review_platform\": 1, \"simpson_episodes\": -2, \"soccer_2016\": 3, \"software_company\": 2, \"talkingdata\": 4, \"world\": 2}, \"recoveries\": 6, \"regressions\": 4, \"histogram\": {\"-2\": 1, \"-1\": 2, \"0\": 57, \"1\": 2, \"2\": 2}, \"lead\": false, \"harm\": false}"
+    },
+    {
+     "name": "D1 - D0: recoveries - regressions = pooled difference",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "TI1 - D0: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": 1, \"201\": 3}, \"pooled\": 4, \"per_database\": {\"computer_student\": 0, \"disney\": 0, \"food_inspection\": 0, \"hockey\": 0, \"ice_hockey_draft\": 1, \"image_and_language\": 0, \"music_platform_2\": 0, \"professional_basketball\": 0, \"public_review_platform\": 0, \"simpson_episodes\": 3, \"soccer_2016\": 0, \"software_company\": 0, \"talkingdata\": 0, \"world\": 0}, \"leave_one_database_out\": {\"computer_student\": 4, \"disney\": 4, \"food_inspection\": 4, \"hockey\": 4, \"ice_hockey_draft\": 3, \"image_and_language\": 4, \"music_platform_2\": 4, \"professional_basketball\": 4, \"public_review_platform\": 4, \"simpson_episodes\": 1, \"soccer_2016\": 4, \"software_company\": 4, \"talkingdata\": 4, \"world\": 4}, \"recoveries\": 4, \"regressions\": 0, \"histogram\": {\"0\": 61, \"1\": 2, \"2\": 1}, \"lead\": false, \"harm\": false}"
+    },
+    {
+     "name": "TI1 - D0: recoveries - regressions = pooled difference",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the rule's lead is 8 of 128 (frozen spr_run.LEAD)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own decision (protocol's four branches, +8 rule) = analysis.json",
+     "passed": true,
+     "detail": "neither revision helps by the rule: retain direct Qwen and stop this repair direction"
+    },
+    {
+     "name": "lineage tallies D1 = analysis.json",
+     "passed": true,
+     "detail": "{\"final_source\": {\"revised\": 116, \"abstain\": 8, \"original\": 4}, \"revision_rejected\": 12, \"revision_unchanged_sql\": 94, \"revision_truncated\": 0, \"revised_typed\": 117}"
+    },
+    {
+     "name": "lineage tallies TI1 = analysis.json",
+     "passed": true,
+     "detail": "{\"final_source\": {\"revised\": 120, \"abstain\": 7, \"original\": 1}, \"revision_rejected\": 8, \"revision_unchanged_sql\": 98, \"revision_truncated\": 0, \"revised_typed\": 121}"
+    },
+    {
+     "name": "initial-proposal tallies (execution from own runs) = analysis.json",
+     "passed": true,
+     "detail": "{\"no_sql\": 0, \"truncated\": 0, \"typed\": 109, \"untyped_reasons\": {\"unknown column\": 11, \"unresolved column\": 5, \"ambiguous column\": 2, \"row value\": 1}, \"execution\": {\"ok\": 110, \"error\": 18}, \"with_errors\": 18, \"with_warnings\": 13}"
+    },
+    {
+     "name": "final execution statuses (own) = analysis.json",
+     "passed": true,
+     "detail": "{\"D0\": {\"ok\": 110, \"error\": 18}, \"D1\": {\"ok\": 120, \"abstain\": 8}, \"TI1\": {\"ok\": 121, \"abstain\": 7}}"
+    },
+    {
+     "name": "by-database counts = analysis.json",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 15,
+   "failures": 0,
+   "info": {
+    "original_rule_fields": {
+     "threshold": {
+      "D1-D0": 7,
+      "TI1-D0": 7,
+      "TI1-D1": 7
+     },
+     "status": "known historical defect (see 11_correction)"
+    },
+    "own": {
+     "TI1-D1": {
+      "per_seed": {
+       "200": 0,
+       "201": 2
+      },
+      "pooled": 2,
+      "per_database": {
+       "computer_student": 0,
+       "disney": 0,
+       "food_inspection": 1,
+       "hockey": 0,
+       "ice_hockey_draft": 0,
+       "image_and_language": 0,
+       "music_platform_2": 0,
+       "professional_basketball": 0,
+       "public_review_platform": -1,
+       "simpson_episodes": -1,
+       "soccer_2016": 1,
+       "software_company": 0,
+       "talkingdata": 2,
+       "world": 0
+      },
+      "leave_one_database_out": {
+       "computer_student": 2,
+       "disney": 2,
+       "food_inspection": 1,
+       "hockey": 2,
+       "ice_hockey_draft": 2,
+       "image_and_language": 2,
+       "music_platform_2": 2,
+       "professional_basketball": 2,
+       "public_review_platform": 3,
+       "simpson_episodes": 3,
+       "soccer_2016": 1,
+       "software_company": 2,
+       "talkingdata": 0,
+       "world": 2
+      },
+      "recoveries": 4,
+      "regressions": 2,
+      "histogram": {
+       "-1": 2,
+       "0": 59,
+       "1": 2,
+       "2": 1
+      },
+      "lead": false,
+      "harm": false
+     },
+     "D1-D0": {
+      "per_seed": {
+       "200": 1,
+       "201": 1
+      },
+      "pooled": 2,
+      "per_database": {
+       "computer_student": 0,
+       "disney": 0,
+       "food_inspection": -1,
+       "hockey": 0,
+       "ice_hockey_draft": 1,
+       "image_and_language": 0,
+       "music_platform_2": 0,
+       "professional_basketball": 0,
+       "public_review_platform": 1,
+       "simpson_episodes": 4,
+       "soccer_2016": -1,
+       "software_company": 0,
+       "talkingdata": -2,
+       "world": 0
+      },
+      "leave_one_database_out": {
+       "computer_student": 2,
+       "disney": 2,
+       "food_inspection": 3,
+       "hockey": 2,
+       "ice_hockey_draft": 1,
+       "image_and_language": 2,
+       "music_platform_2": 2,
+       "professional_basketball": 2,
+       "public_review_platform": 1,
+       "simpson_episodes": -2,
+       "soccer_2016": 3,
+       "software_company": 2,
+       "talkingdata": 4,
+       "world": 2
+      },
+      "recoveries": 6,
+      "regressions": 4,
+      "histogram": {
+       "-2": 1,
+       "-1": 2,
+       "0": 57,
+       "1": 2,
+       "2": 2
+      },
+      "lead": false,
+      "harm": false
+     },
+     "TI1-D0": {
+      "per_seed": {
+       "200": 1,
+       "201": 3
+      },
+      "pooled": 4,
+      "per_database": {
+       "computer_student": 0,
+       "disney": 0,
+       "food_inspection": 0,
+       "hockey": 0,
+       "ice_hockey_draft": 1,
+       "image_and_language": 0,
+       "music_platform_2": 0,
+       "professional_basketball": 0,
+       "public_review_platform": 0,
+       "simpson_episodes": 3,
+       "soccer_2016": 0,
+       "software_company": 0,
+       "talkingdata": 0,
+       "world": 0
+      },
+      "leave_one_database_out": {
+       "computer_student": 4,
+       "disney": 4,
+       "food_inspection": 4,
+       "hockey": 4,
+       "ice_hockey_draft": 3,
+       "image_and_language": 4,
+       "music_platform_2": 4,
+       "professional_basketball": 4,
+       "public_review_platform": 4,
+       "simpson_episodes": 1,
+       "soccer_2016": 4,
+       "software_company": 4,
+       "talkingdata": 4,
+       "world": 4
+      },
+      "recoveries": 4,
+      "regressions": 0,
+      "histogram": {
+       "0": 61,
+       "1": 2,
+       "2": 1
+      },
+      "lead": false,
+      "harm": false
+     }
+    },
+    "decision": "neither revision helps by the rule: retain direct Qwen and stop this repair direction",
+    "submitted_invalid": {
+     "D0": 18,
+     "D1": 8,
+     "TI1": 7
+    }
+   }
+  },
+  "8_costs": {
+   "checks": [
+    {
+     "name": "D0 costs, tokens and peak memory re-derived = analysis.json",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 516.429302929726, \"validation_seconds\": 0.0, \"tool_seconds\": 0.0, \"submitted_execution_seconds\": 8.671702, \"total_seconds\": 525.101004929726, \"per_request_seconds\": 4.102351601013484, \"per_ex_correct_seconds\": 7.095959526077378, \"prompt_tokens\": 335824, \"generated_tokens\": 6836, \"peak_memory_bytes\": 11064100352, \"calls_per_request\": 1}"
+    },
+    {
+     "name": "D1 costs, tokens and peak memory re-derived = analysis.json",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 1039.4436582308845, \"validation_seconds\": 0.0, \"tool_seconds\": 49.82791140524205, \"submitted_execution_seconds\": 8.731221, \"total_seconds\": 1098.0027906361265, \"per_request_seconds\": 8.578146801844738, \"per_ex_correct_seconds\": 14.447405139949034, \"prompt_tokens\": 690144, \"generated_tokens\": 13665, \"peak_memory_bytes\": 11094368256, \"calls_per_request\": 2}"
+    },
+    {
+     "name": "TI1 costs, tokens and peak memory re-derived = analysis.json",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 1048.0892227806617, \"validation_seconds\": 0.08042851299978793, \"tool_seconds\": 56.16129960305989, \"submitted_execution_seconds\": 15.03309, \"total_seconds\": 1119.3640408967212, \"per_request_seconds\": 8.745031569505635, \"per_ex_correct_seconds\": 14.350821037137452, \"prompt_tokens\": 708372, \"generated_tokens\": 13680, \"peak_memory_bytes\": 11165238272, \"calls_per_request\": 2}"
+    },
+    {
+     "name": "three spr reservations: dev, dev, run",
+     "passed": true,
+     "detail": "[\"spr dev\", \"spr dev\", \"spr run\"]"
+    },
+    {
+     "name": "the work order's starting usage (22.822751 h) = own ledger total before the first spr reservation",
+     "passed": true,
+     "detail": "22.822751"
+    },
+    {
+     "name": "spr dev 20261106T150737-7404232e: recorded used_before = own cumulative",
+     "passed": true,
+     "detail": "22.822751 vs 22.822751"
+    },
+    {
+     "name": "spr dev 20261106T150737-7404232e: used + 1.5 x projection (0.2 h) = 23.123 h <= 28.823",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr dev 20261106T150737-7404232e: ended ok within its own limit",
+     "passed": true,
+     "detail": "0.1169 h"
+    },
+    {
+     "name": "spr dev 20261106T150737-7404232e: heartbeats every ~30 s, wall time = monotonic elapsed",
+     "passed": true,
+     "detail": "max gap 30.0 s"
+    },
+    {
+     "name": "spr dev 20261106T150737-7404232e: no overlapping reservation; no foreign GPU process at start or end",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "spr dev 20261106T151520-4ba102ec: recorded used_before = own cumulative",
+     "passed": true,
+     "detail": "22.939606 vs 22.939606"
+    },
+    {
+     "name": "spr dev 20261106T151520-4ba102ec: used + 1.5 x projection (0.2 h) = 23.240 h <= 28.823",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr dev 20261106T151520-4ba102ec: ended ok within its own limit",
+     "passed": true,
+     "detail": "0.0705 h"
+    },
+    {
+     "name": "spr dev 20261106T151520-4ba102ec: heartbeats every ~30 s, wall time = monotonic elapsed",
+     "passed": true,
+     "detail": "max gap 30.0 s"
+    },
+    {
+     "name": "spr dev 20261106T151520-4ba102ec: no overlapping reservation; no foreign GPU process at start or end",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "spr run 20261106T204616-df38ecaa: recorded used_before = own cumulative",
+     "passed": true,
+     "detail": "23.010056 vs 23.010056"
+    },
+    {
+     "name": "spr run 20261106T204616-df38ecaa: used + 1.5 x projection (0.6 h) = 23.910 h <= 28.823",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr run 20261106T204616-df38ecaa: ended ok within its own limit",
+     "passed": true,
+     "detail": "0.4799 h"
+    },
+    {
+     "name": "spr run 20261106T204616-df38ecaa: heartbeats every ~30 s, wall time = monotonic elapsed",
+     "passed": true,
+     "detail": "max gap 30.3 s"
+    },
+    {
+     "name": "spr run 20261106T204616-df38ecaa: no overlapping reservation; no foreign GPU process at start or end",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "cumulative after the frozen run 23.4900 h <= 28.823",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run's summary reservation = the ledger's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "load + every recorded call, execution and analysis fits inside the reservation",
+     "passed": true,
+     "detail": "1726.5 s of 1727.7 s"
+    },
+    {
+     "name": "analysis.json's spr reservations = own",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "analysis.json's ledger total (at analysis time) ~ own total after the run",
+     "passed": true,
+     "detail": "23.489974 vs 23.489974"
+    },
+    {
+     "name": "spr reservations total <= the work order's 6 h",
+     "passed": true,
+     "detail": "0.6672 h"
+    },
+    {
+     "name": "the run manifest's budget check = own",
+     "passed": true,
+     "detail": "{\"fits\": true, \"projected_hours\": 0.6, \"used_hours\": 23.010056257965843, \"work_order_limit_hours\": 28.822751, \"worst_case_hours\": 23.91005625796584}"
+    },
+    {
+     "name": "the co-tenancy log covers the frozen run every ~30 s",
+     "passed": true,
+     "detail": "59 samples"
+    },
+    {
+     "name": "co-tenancy: 1-minute load stayed low (< 8 on 20 cores) during the run",
+     "passed": true,
+     "detail": "max 3.07"
+    }
+   ],
+   "passed": 29,
+   "failures": 0,
+   "info": {
+    "D0": {
+     "generation_seconds": 516.429302929726,
+     "validation_seconds": 0.0,
+     "tool_seconds": 0.0,
+     "submitted_execution_seconds": 8.671702,
+     "total_seconds": 525.101004929726,
+     "per_request_seconds": 4.102351601013484,
+     "per_ex_correct_seconds": 7.095959526077378,
+     "prompt_tokens": 335824,
+     "generated_tokens": 6836,
+     "peak_memory_bytes": 11064100352,
+     "calls_per_request": 1
+    },
+    "D1": {
+     "generation_seconds": 1039.4436582308845,
+     "validation_seconds": 0.0,
+     "tool_seconds": 49.82791140524205,
+     "submitted_execution_seconds": 8.731221,
+     "total_seconds": 1098.0027906361265,
+     "per_request_seconds": 8.578146801844738,
+     "per_ex_correct_seconds": 14.447405139949034,
+     "prompt_tokens": 690144,
+     "generated_tokens": 13665,
+     "peak_memory_bytes": 11094368256,
+     "calls_per_request": 2
+    },
+    "TI1": {
+     "generation_seconds": 1048.0892227806617,
+     "validation_seconds": 0.08042851299978793,
+     "tool_seconds": 56.16129960305989,
+     "submitted_execution_seconds": 15.03309,
+     "total_seconds": 1119.3640408967212,
+     "per_request_seconds": 8.745031569505635,
+     "per_ex_correct_seconds": 14.350821037137452,
+     "prompt_tokens": 708372,
+     "generated_tokens": 13680,
+     "peak_memory_bytes": 11165238272,
+     "calls_per_request": 2
+    },
+    "note_validation": "validation_seconds counts only the initial proposal's typed analysis for TI1; the revised candidates' analyses (diagnostic only, computed for D1 too) are not charged to any policy",
+    "revised_typed_seconds_uncharged": 0.1535624829120934,
+    "recorded_work_seconds": 1666.2397095049382,
+    "load_seconds": 60.30526465398725,
+    "ledger_total_hours": 23.48997404698028,
+    "open_reservations": [
+     {
+      "id": "20261030T182008-e81ea738",
+      "command": "pilot-encode train_1200-2400",
+      "charged_hours": 0.5586347438679594
+     }
+    ],
+    "spr dev 20261106T150737-7404232e": {
+     "hours": 0.11685483145972184,
+     "projected": 0.2,
+     "cum_before": 22.822750884871404,
+     "run_dir": "spr/dev/20261106T150736Z",
+     "start": "2026-11-06T15:07:37+00:00",
+     "end": "2026-11-06T15:14:38+00:00"
+    },
+    "spr dev 20261106T151520-4ba102ec": {
+     "hours": 0.07045054163471731,
+     "projected": 0.2,
+     "cum_before": 22.939605716331126,
+     "run_dir": "spr/dev/20261106T151520Z",
+     "start": "2026-11-06T15:15:20+00:00",
+     "end": "2026-11-06T15:19:34+00:00"
+    },
+    "spr run 20261106T204616-df38ecaa": {
+     "hours": 0.47991778901443466,
+     "projected": 0.6,
+     "cum_before": 23.010056257965843,
+     "run_dir": "spr/run/20261106T204616Z",
+     "start": "2026-11-06T20:46:16+00:00",
+     "end": "2026-11-06T21:15:04+00:00"
+    },
+    "cotenancy": {
+     "samples": 59,
+     "load1_max": 3.07,
+     "load1_mean": 2.397966101694915,
+     "running_max": 8,
+     "fields": "loadavg 1/5/15 min, running/total tasks (no GPU process list)"
+    }
+   }
+  },
+  "9_freeze": {
+   "checks": [
+    {
+     "name": "protocol at frozen_at 6e1003f: sha256 = the pin",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr_new_eval.json at 6e1003f: sha256 = the pin",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the protocol pin is unchanged from 2f76bb7 to the head",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the protocol and the population pin are unchanged at the head",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "pin frozen_at = 6e1003f",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the 20 modules the run, scoring and analysis executed are unchanged from 2f76bb7 to the head d0eec03",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "no pin changed from the frozen commit to the head",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "03759ac is an ancestor of the frozen commit 2f76bb7",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "d73c30e is an ancestor of the frozen commit 2f76bb7",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "6e1003f is an ancestor of the frozen commit 2f76bb7",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the freeze commits (2026-11-06T15:20:07+00:00, 2026-11-06T15:20:07+00:00) precede the frozen run (2026-11-06T20:46:16+00:00)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run's manifest: commit 2f76bb7, clean tree",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run's manifest: the pinned protocol and spr-prompts-v2",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the v2 instruction committed at 03759ac = the frozen one",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each dev run started at or after its commit",
+     "passed": true,
+     "detail": "2026-11-06T15:05:05+00:00 / 2026-11-06T15:15:20+00:00"
+    },
+    {
+     "name": "the preservation test and both dev runs precede the freeze",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the frozen worktree is at 2f76bb7 with a clean research tree (now)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 20261106T150736Z: the 16 own-sampled earlier dev questions at seed 900",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 20261106T150736Z: within positions 0-127, none of 192-255",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 20261106T151520Z: the 16 own-sampled earlier dev questions at seed 900",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 20261106T151520Z: within positions 0-127, none of 192-255",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 1 and the preservation test at d73c30e, dev run 2 at 03759ac",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 1: 4 of 32 revisions hit the ceiling (3 D1, 1 TI1)",
+     "passed": true,
+     "detail": "{\"D1\": 3, \"TI1\": 1}"
+    },
+    {
+     "name": "dev run 2: no truncation",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "dev run 2 EX (own) = 8, 8, 9",
+     "passed": true,
+     "detail": "{\"D0\": 8, \"D1\": 8, \"TI1\": 9}"
+    },
+    {
+     "name": "dev run 2: ~50 generated tokens, 4.1-4.3 s revisions, 4.1 s initial, 11.1 GB",
+     "passed": true,
+     "detail": "{\"revisions_not_eos\": {\"D1\": 0, \"TI1\": 0}, \"revision_generated_mean\": 49.3125, \"revision_seconds_mean\": {\"D1\": 4.116934387511719, \"TI1\": 4.34806702181595}, \"initial_seconds_mean\": 4.145766367877513, \"peak_gb\": 11.165410816, \"ex\": {\"D0\": 8, \"D1\": 8, \"TI1\": 9}}"
+    }
+   ],
+   "passed": 26,
+   "failures": 0,
+   "info": {
+    "changed_since_frozen": {
+     "spr": [
+      "research/ti_tnn/scaling/independent/verify_spr.py",
+      "research/ti_tnn/scaling/spr_report.py",
+      "research/ti_tnn/scaling/spr_rule.py"
+     ],
+     "evidence_spr_v1": 34,
+     "other": [
+      "research/ti_tnn/scaling/docs/REPORT_grounding_interface.md",
+      "research/ti_tnn/scaling/docs/REPORT_semantic_proposal_repair.md",
+      "research/ti_tnn/scaling/evidence/grounding_interface_v1/SHA256SUMS",
+      "research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/README_2026-11-06.txt",
+      "research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/sql_record_map.jsonl",
+      "research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/verify_gi_final.json",
+      "research/ti_tnn/scaling/evidence/grounding_interface_v1/independent/verify_gi_final_summary.txt",
+      "research/ti_tnn/scaling/independent/verify_gi.py"
+     ]
+    },
+    "dev_claims": {
+     "20261106T150736Z": {
+      "revisions_not_eos": {
+       "D1": 3,
+       "TI1": 1
+      },
+      "revision_generated_mean": 131.5,
+      "revision_seconds_mean": {
+       "D1": 10.895457780574361,
+       "TI1": 7.976104257126281
+      },
+      "initial_seconds_mean": 4.101137036432192,
+      "peak_gb": 11.165114368,
+      "ex": {
+       "D0": 8,
+       "D1": 8,
+       "TI1": 8
+      }
+     },
+     "20261106T151520Z": {
+      "revisions_not_eos": {
+       "D1": 0,
+       "TI1": 0
+      },
+      "revision_generated_mean": 49.3125,
+      "revision_seconds_mean": {
+       "D1": 4.116934387511719,
+       "TI1": 4.34806702181595
+      },
+      "initial_seconds_mean": 4.145766367877513,
+      "peak_gb": 11.165410816,
+      "ex": {
+       "D0": 8,
+       "D1": 8,
+       "TI1": 9
+      }
+     }
+    }
+   }
+  }
+ },
+ "checks": 191,
+ "failures": 0,
+ "inputs": {
+  "/home/seanjazm27/.cache/huggingface/hub/blobs/8f/8f06040c24d0d6efc263cf398806debbf20d732031ba128349d086f6a7b8bab2": {
+   "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+   "bytes": 12807982
+  },
+  "/home/seanjazm27/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/blobs/0aa0ce0658d60ac4a5d609f4eadb0e8e43514176": {
+   "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+   "bytes": 6722759
+  },
+  "/home/seanjazm27/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/blobs/a494e019ca1502219fd0128658b979e5f05ae8e8": {
+   "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+   "bytes": 3353259
+  },
+  "/home/seanjazm27/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/blobs/a585dec894e63da457d9440ec6aa7caa16d20860": {
+   "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+   "bytes": 7756
+  },
+  "/home/seanjazm27/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/blobs/eda48d3e75a8e59a8479ee4ec8b37f76e711d9c1": {
+   "sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+   "bytes": 16710
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/computer_student/computer_student.sqlite": {
+   "sha256": "617669575dff24ed08efacf95e05bb53347f2d895f053faa2dcbcd047b27a513",
+   "bytes": 45056
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/disney/disney.sqlite": {
+   "sha256": "0356fc508607fa20da3c94dc785705f05a4b8a9455bb4ac02fb1271fe3bd5c25",
+   "bytes": 258048
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/food_inspection/food_inspection.sqlite": {
+   "sha256": "c76a6576ba7fe150e12b64a9eefa0ad418b10449f771f91830a87319e34f64c1",
+   "bytes": 5021696
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/hockey/hockey.sqlite": {
+   "sha256": "2987cba3921e2544fcd4603eccf5ff97b17f63103d8feb6fb908d55eb5bd9ba2",
+   "bytes": 6893568
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/ice_hockey_draft/ice_hockey_draft.sqlite": {
+   "sha256": "4b297d4b7f8c0ff3b751a4017c4d2355aa8eeb11159cf258600995a56f53bf18",
+   "bytes": 1028096
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/image_and_language/image_and_language.sqlite": {
+   "sha256": "e2fde5486e977b4fde2097bbfbb789be5950753872a3707956b946c92080d0f1",
+   "bytes": 138891264
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/music_platform_2/music_platform_2.sqlite": {
+   "sha256": "5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09",
+   "bytes": 1554345984
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/professional_basketball/professional_basketball.sqlite": {
+   "sha256": "11bc18807f9209e4fae852695907c77961a208639e25b59def05802c9f0b8839",
+   "bytes": 6668288
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/public_review_platform/public_review_platform.sqlite": {
+   "sha256": "d87fa4bbcb2d5daec149330d5c47378b2c669222e616bfe2c04cc3624e7ad4ba",
+   "bytes": 65339392
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/simpson_episodes/simpson_episodes.sqlite": {
+   "sha256": "777172b55c622b0106dc4e0a03a1c1af61a0413d0a358f40e6210b8f0ca64f4d",
+   "bytes": 753664
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/soccer_2016/soccer_2016.sqlite": {
+   "sha256": "84651eed21dbfae9f36a15697a5df81f3cb6ad78740f7301096e99dd7c4c06d5",
+   "bytes": 17170432
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/software_company/software_company.sqlite": {
+   "sha256": "21b00d9d2b3bf20af55597c5e844223340ae35efb034797b34100681827e2ca2",
+   "bytes": 342118400
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/talkingdata/talkingdata.sqlite": {
+   "sha256": "a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50",
+   "bytes": 1903886336
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/world/world.sqlite": {
+   "sha256": "813faade795b875f6d46cf81d9651e2400524b414a407aa9d473aa9a8c142861",
+   "bytes": 253952
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/gold_check_dev_v1.json": {
+   "sha256": "3cec1e70f04082f264bb0160a46f7f793fceef15aaaf8bc70a7bf7fcd3d963f2",
+   "bytes": 253154
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/raw/hf/bird23_train_filtered.train-00000-of-00001.jsonl": {
+   "sha256": "2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8",
+   "bytes": 2654294
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/gpu_ledger.jsonl": {
+   "sha256": "712edbba63fac8e6b5e1e74fdea9eba4e74b26eeebd443812554a6dc5ea8c138",
+   "bytes": 399644
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/grounding_interface/direct/20261103T202939Z_new/records.jsonl": {
+   "sha256": "c8e64663403ba0e29c773e8dba7184df18716599eb417baa21fa4aff2bd1d12c",
+   "bytes": 98999
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/analysis/20261106T211558Z/analysis.json": {
+   "sha256": "ceb208f628c5224b17f42be9c34ee61b6e3dc747395339794106434e604f349f",
+   "bytes": 8775
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/analysis/20261106T211558Z/manifest.json": {
+   "sha256": "60498a225e066c9c7a4e43349a05dd54a8e8c71837a05aa41f2daa85a9c1fc4b",
+   "bytes": 4863
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/analysis/20261107T030307Z_corrected_v2/analysis_v2.json": {
+   "sha256": "4e200c53c11004351fabeb9fc1a11bfa02757eba0ffe60d29a238eb938c208ea",
+   "bytes": 9286
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/analysis/20261107T030307Z_corrected_v2/manifest.json": {
+   "sha256": "fa0ea8aabb0dde0c84ccc30fb11ae6c0e77e7c84d825f32393bc817f4b795735",
+   "bytes": 5255
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T150736Z/manifest.json": {
+   "sha256": "ec9f12fe1454f2d107b83fd207cca84b6bb50c56af8f546e1512d884120ca69a",
+   "bytes": 9195
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T150736Z/requests.jsonl": {
+   "sha256": "21d2089542b3aaaa5589b8e8f47c13225f90c888cfba98950513b2a369f2bb3a",
+   "bytes": 98856
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T150736Z/scores.jsonl": {
+   "sha256": "a7d38f64aa7024d1ad7eca0906efcd18130293673b56786e54eec6dc39be642d",
+   "bytes": 45349
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T150736Z/summary.json": {
+   "sha256": "319fc70c24db4feab653a6d4f125c8c59f529ece7c366b55171fee1f61939539",
+   "bytes": 152
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T151520Z/manifest.json": {
+   "sha256": "c645ec41af756f744d3179b90a3d29fcc4369847b1ecac81f1877bdb2995f07a",
+   "bytes": 9220
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T151520Z/requests.jsonl": {
+   "sha256": "f06dbe7b8ed91542d7856cf208e40e90708fe5f1707a1ca8dc3b4636a1b09d97",
+   "bytes": 91170
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T151520Z/scores.jsonl": {
+   "sha256": "21c58b6a9dec88c9373adecf6a38f9d01757dc8e14de2084b8b0abd23b875f36",
+   "bytes": 45284
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/dev/20261106T151520Z/summary.json": {
+   "sha256": "7412e710632c324cf7357c733a85fd38691644b70926d86480e1a0eac273bd2a",
+   "bytes": 154
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/analyze_20261106T204616Z.log": {
+   "sha256": "dafc9ab76d41b2df149d70f50012a4f3baddafad3ced6e5cea764f08589a6e14",
+   "bytes": 514
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/chain_new_20261106T204616Z.log": {
+   "sha256": "22df18422b97ad7d729f5b0a582613b6e915e00f376ef72a49d76b85b9269451",
+   "bytes": 79
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/cotenancy_dev_20261106T150736Z.log": {
+   "sha256": "4cdaae19a64d7856df93aa72bbaf0babde00121d0181e8ef9863cfc3285df350",
+   "bytes": 765
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/cotenancy_dev_20261106T151520Z.log": {
+   "sha256": "5a17b09bc14848587273780b53f50da80a566ffda3925e49fe791b8fa99ea0c7",
+   "bytes": 459
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/cotenancy_new_20261106T204616Z.log": {
+   "sha256": "eb141267242219f0642c9729c61a486c319d8c6cd644eb163029ce910d3863c8",
+   "bytes": 3060
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/dev_20261106T150736Z.log": {
+   "sha256": "42bd99f02ff676807e5dec7534ce57edfac333199eb381ebc9b0c405a23119b8",
+   "bytes": 2628
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/dev_20261106T151520Z.log": {
+   "sha256": "51eeb1773a6112b833dcd3b27b644a2b59ccd2e5a0c3af63935fe791b699f782",
+   "bytes": 2543
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/logs/run_20261106T204616Z.log": {
+   "sha256": "366c1663c0939b6537628db64354c7e8f4ab6f54e875159561661209a8baee74",
+   "bytes": 12803
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/preserve/20261106T150505Z/manifest.json": {
+   "sha256": "54b91a20495c6e66c760b92aeaafc85369dccf9f85fbc2b97b52f78c417c5eac",
+   "bytes": 4840
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/preserve/20261106T150505Z/records.jsonl": {
+   "sha256": "1d60bf49a29b55431c43f124f421e62486f9f2f74e853b3f1327c4d8aa668096",
+   "bytes": 50510
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/preserve/20261106T150505Z/summary.json": {
+   "sha256": "f814245d0d9c01cfe4dccfa912e13f01b72e3dcc27ca26493ab93c75e28049d5",
+   "bytes": 341
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/run/20261106T204616Z/manifest.json": {
+   "sha256": "f18160d6b98de3aff7a2cb3fbb2f0853262a50f95f343a2e60a4a56d3274eb4b",
+   "bytes": 10379
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/run/20261106T204616Z/requests.jsonl": {
+   "sha256": "38aa05a6026fa8e87b326a7f33585af03587ea08f9540f0076b7a4452f36a583",
+   "bytes": 727049
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/run/20261106T204616Z/scores.jsonl": {
+   "sha256": "552f5c590b429d0d501d3eb365dd0721b51739d53b55e64a20ddad35ba5d1a01",
+   "bytes": 369820
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/spr/run/20261106T204616Z/summary.json": {
+   "sha256": "90f90e19e832a1b96438d95a2a711bb903a7fa49d39dc1710e27068dd509621f",
+   "bytes": 154
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/SHA256SUMS": {
+   "sha256": "f234b742e9b8c82ab2538aa31de0e42ca78b1091dfb306e9b643236043787700",
+   "bytes": 3353
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/analysis/20261106T211558Z/analysis.json": {
+   "sha256": "ceb208f628c5224b17f42be9c34ee61b6e3dc747395339794106434e604f349f",
+   "bytes": 8775
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/analysis/20261106T211558Z/manifest.json": {
+   "sha256": "60498a225e066c9c7a4e43349a05dd54a8e8c71837a05aa41f2daa85a9c1fc4b",
+   "bytes": 4863
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/analysis/20261107T030307Z_corrected_v2/analysis_v2.json": {
+   "sha256": "4e200c53c11004351fabeb9fc1a11bfa02757eba0ffe60d29a238eb938c208ea",
+   "bytes": 9286
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/analysis/20261107T030307Z_corrected_v2/manifest.json": {
+   "sha256": "fa0ea8aabb0dde0c84ccc30fb11ae6c0e77e7c84d825f32393bc817f4b795735",
+   "bytes": 5255
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/manifest.json": {
+   "sha256": "ec9f12fe1454f2d107b83fd207cca84b6bb50c56af8f546e1512d884120ca69a",
+   "bytes": 9195
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/requests.jsonl": {
+   "sha256": "21d2089542b3aaaa5589b8e8f47c13225f90c888cfba98950513b2a369f2bb3a",
+   "bytes": 98856
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/scores.jsonl": {
+   "sha256": "a7d38f64aa7024d1ad7eca0906efcd18130293673b56786e54eec6dc39be642d",
+   "bytes": 45349
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/summary.json": {
+   "sha256": "319fc70c24db4feab653a6d4f125c8c59f529ece7c366b55171fee1f61939539",
+   "bytes": 152
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T151520Z/manifest.json": {
+   "sha256": "c645ec41af756f744d3179b90a3d29fcc4369847b1ecac81f1877bdb2995f07a",
+   "bytes": 9220
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T151520Z/requests.jsonl": {
+   "sha256": "f06dbe7b8ed91542d7856cf208e40e90708fe5f1707a1ca8dc3b4636a1b09d97",
+   "bytes": 91170
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T151520Z/scores.jsonl": {
+   "sha256": "21c58b6a9dec88c9373adecf6a38f9d01757dc8e14de2084b8b0abd23b875f36",
+   "bytes": 45284
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T151520Z/summary.json": {
+   "sha256": "7412e710632c324cf7357c733a85fd38691644b70926d86480e1a0eac273bd2a",
+   "bytes": 154
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/gpu_ledger.jsonl": {
+   "sha256": "712edbba63fac8e6b5e1e74fdea9eba4e74b26eeebd443812554a6dc5ea8c138",
+   "bytes": 399644
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/independent/README.txt": {
+   "sha256": "fe0751c6282de4acbc3f8792fb012fdd7b0e7bac1b8fa021c39771a6a68526e3",
+   "bytes": 1353
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/independent/preservation_own.jsonl": {
+   "sha256": "523fc506da5a8791690980dc27e692c6c39ff91b9618e141f3023bc973d143a0",
+   "bytes": 25506
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/independent/score_mapping.jsonl": {
+   "sha256": "809850b3e5489d8fc8603f9beefb4c7faa5ee6a0a5848acc76a4b344cfaa1815",
+   "bytes": 225974
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/independent/verify_spr.json": {
+   "sha256": "97f30334204e046e9eb88480e9fc084e55921ef754c501937d35416428d5e411",
+   "bytes": 46796
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/independent/verify_spr_summary.txt": {
+   "sha256": "3931a84236232bfe6958476682e3111e908848a2d841df44da4e464283792518",
+   "bytes": 17556
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/analyze_20261106T204616Z.log": {
+   "sha256": "dafc9ab76d41b2df149d70f50012a4f3baddafad3ced6e5cea764f08589a6e14",
+   "bytes": 514
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/chain_new_20261106T204616Z.log": {
+   "sha256": "22df18422b97ad7d729f5b0a582613b6e915e00f376ef72a49d76b85b9269451",
+   "bytes": 79
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/cotenancy_dev_20261106T150736Z.log": {
+   "sha256": "4cdaae19a64d7856df93aa72bbaf0babde00121d0181e8ef9863cfc3285df350",
+   "bytes": 765
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/cotenancy_dev_20261106T151520Z.log": {
+   "sha256": "5a17b09bc14848587273780b53f50da80a566ffda3925e49fe791b8fa99ea0c7",
+   "bytes": 459
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/cotenancy_new_20261106T204616Z.log": {
+   "sha256": "eb141267242219f0642c9729c61a486c319d8c6cd644eb163029ce910d3863c8",
+   "bytes": 3060
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/dev_20261106T150736Z.log": {
+   "sha256": "42bd99f02ff676807e5dec7534ce57edfac333199eb381ebc9b0c405a23119b8",
+   "bytes": 2628
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/dev_20261106T151520Z.log": {
+   "sha256": "51eeb1773a6112b833dcd3b27b644a2b59ccd2e5a0c3af63935fe791b699f782",
+   "bytes": 2543
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/logs/run_20261106T204616Z.log": {
+   "sha256": "366c1663c0939b6537628db64354c7e8f4ab6f54e875159561661209a8baee74",
+   "bytes": 12803
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/preserve/20261106T150505Z/manifest.json": {
+   "sha256": "54b91a20495c6e66c760b92aeaafc85369dccf9f85fbc2b97b52f78c417c5eac",
+   "bytes": 4840
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/preserve/20261106T150505Z/records.jsonl": {
+   "sha256": "1d60bf49a29b55431c43f124f421e62486f9f2f74e853b3f1327c4d8aa668096",
+   "bytes": 50510
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/preserve/20261106T150505Z/summary.json": {
+   "sha256": "f814245d0d9c01cfe4dccfa912e13f01b72e3dcc27ca26493ab93c75e28049d5",
+   "bytes": 341
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/run/20261106T204616Z/manifest.json": {
+   "sha256": "f18160d6b98de3aff7a2cb3fbb2f0853262a50f95f343a2e60a4a56d3274eb4b",
+   "bytes": 10379
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/run/20261106T204616Z/requests.jsonl": {
+   "sha256": "38aa05a6026fa8e87b326a7f33585af03587ea08f9540f0076b7a4452f36a583",
+   "bytes": 727049
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/run/20261106T204616Z/scores.jsonl": {
+   "sha256": "552f5c590b429d0d501d3eb365dd0721b51739d53b55e64a20ddad35ba5d1a01",
+   "bytes": 369820
+  },
+  "/home/seanjazm27/projects/universa-recurrent-spr/research/ti_tnn/scaling/evidence/spr_v1/run/20261106T204616Z/summary.json": {
+   "sha256": "90f90e19e832a1b96438d95a2a711bb903a7fa49d39dc1710e27068dd509621f",
+   "bytes": 154
+  },
+  "/tmp/claude-1000/-home-seanjazm27/7be45db0-2608-4151-8825-79c9a73be53e/scratchpad/verify_spr/final2/worker_out.json": {
+   "sha256": "b32927170604d6e309998cd4e4d2f84e44326dfd1d6ed2fbeb85776721627544",
+   "bytes": 1875026
+  },
+  "git:03759ac:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "184456817ca126efdb772f6b53937e519c36b9966c225e4e2f3bca097b075cb5",
+   "bytes": 24870
+  },
+  "git:1d042a0:research/ti_tnn/scaling/spr_rule.py": {
+   "sha256": "e2d14de8e6fddf78257550312048b98944e5532c9a8ccab0c8c0008c41331e1e",
+   "bytes": 6532
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/contracts.py": {
+   "sha256": "091c928b93722c515e31e9dac0a381eace6a1de3a7ba08ef3fc95cb2c53a7206",
+   "bytes": 11598
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/diagnose.py": {
+   "sha256": "8e5a86ffb61928b98431c006c7e483eea3f3039ef187d6bfa568bdc53fc588f9",
+   "bytes": 65028
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/gi_llm.py": {
+   "sha256": "b8b7f7388312a86a834436613e428ace37826b626aa448a8c082fdf3b624a672",
+   "bytes": 5555
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/ir.py": {
+   "sha256": "82fd2fbcf64b046e0579e78304110d260dfb60dd45374e2b1907a5f3e30d8f5d",
+   "bytes": 45307
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/llm_agent.py": {
+   "sha256": "4f34b263bc3d6b529077438fb90004cd52f1008cf071718c4b3498cabdd27174",
+   "bytes": 19098
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/perf_analysis.py": {
+   "sha256": "6d7411305f77f73c4d36019eeb0784c667baef7f813f9ccd2875ee122eb45a38",
+   "bytes": 6909
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/gi_new_eval.json": {
+   "sha256": "f00898f02362d0ecbbb9881e503049ea49f3fd95d565f23509040ef5cc463a42",
+   "bytes": 3222
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/inventory_v1.json": {
+   "sha256": "6c164f63c27df7d1dd4c39a73201f931d8d9348b9dd92be9e4a8d1ebdb77885e",
+   "bytes": 22624
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/perf_v2_eval.json": {
+   "sha256": "21b8cf437824ed5bb76bc3b381bcf7135ba28eca448107351c138f08350dcce8",
+   "bytes": 6240
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/snapshots_v1.json": {
+   "sha256": "9450b33e8eec4968d6e9493276ed386ea16eec2a86bdaebfdcb27e0028766aa0",
+   "bytes": 20898
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/split_v1.json": {
+   "sha256": "5e4e34b93f8baf6386a43b29e72eca77f1c58972e65f002fa10c304f376f18e5",
+   "bytes": 3436
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/spr_new_eval.json": {
+   "sha256": "88750fb9b496b06b57ecca735db860534ae42c03ba567ac8374ff2e5c53b3dde",
+   "bytes": 3164
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/pins/spr_protocol.json": {
+   "sha256": "0920fb3e13f365a67ee732b6116600ec352876132793f27e4860aae5cf3d5b50",
+   "bytes": 832
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/schema.py": {
+   "sha256": "12e24931623d7aadea4d3d1c4597e3b413435841b250a189bb60e448c74d26b2",
+   "bytes": 20013
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/spr_feedback.py": {
+   "sha256": "f155afcae482b0b3bfcd37abf8608ecb115bac1079f906655f25e063b89f577c",
+   "bytes": 7263
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "184456817ca126efdb772f6b53937e519c36b9966c225e4e2f3bca097b075cb5",
+   "bytes": 24870
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/spr_typed.py": {
+   "sha256": "445081686bd39d8af75fd8ebd5a9afce903450afcee29fbc1056f4344c90712b",
+   "bytes": 5667
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/sql_to_ir.py": {
+   "sha256": "90211497bdc5f714e02d27529142a0f107b8a3032d28c7d9227ad390ac94a38d",
+   "bytes": 44367
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/tools.py": {
+   "sha256": "6e6326b888a54958db5c7a74e4739bc7035a890b0849b12a61441debe996ac42",
+   "bytes": 18010
+  },
+  "git:6e1003f:research/ti_tnn/scaling/docs/PROTOCOL_semantic_proposal_repair.md": {
+   "sha256": "e5cd55dba2f035db2f9d2ae8d0201f4fc5dfbfa1b110450b21272bf75d79c55c",
+   "bytes": 8642
+  },
+  "git:6e1003f:research/ti_tnn/scaling/pins/spr_new_eval.json": {
+   "sha256": "88750fb9b496b06b57ecca735db860534ae42c03ba567ac8374ff2e5c53b3dde",
+   "bytes": 3164
+  },
+  "git:760eef5:research/ti_tnn/scaling/independent/verify_spr.py": {
+   "sha256": "81935f4be0f3ed163e02fa98b6ff911cd31b27e03e9a98c2f6c8f55581799fe0",
+   "bytes": 100938
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/docs/PROTOCOL_semantic_proposal_repair.md": {
+   "sha256": "e5cd55dba2f035db2f9d2ae8d0201f4fc5dfbfa1b110450b21272bf75d79c55c",
+   "bytes": 8642
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/perf_analysis.py": {
+   "sha256": "6d7411305f77f73c4d36019eeb0784c667baef7f813f9ccd2875ee122eb45a38",
+   "bytes": 6909
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/pins/spr_new_eval.json": {
+   "sha256": "88750fb9b496b06b57ecca735db860534ae42c03ba567ac8374ff2e5c53b3dde",
+   "bytes": 3164
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/pins/spr_protocol.json": {
+   "sha256": "0920fb3e13f365a67ee732b6116600ec352876132793f27e4860aae5cf3d5b50",
+   "bytes": 832
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/spr_rule.py": {
+   "sha256": "9bd3e6ab7dc6b2db0d3c2d6145110a1b42ffb7889b33d1de5aeae01d2132db37",
+   "bytes": 6553
+  },
+  "git:d0eec03a06bef2923a92fef8a5003b2a90e140f2:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "184456817ca126efdb772f6b53937e519c36b9966c225e4e2f3bca097b075cb5",
+   "bytes": 24870
+  },
+  "git:d73c30e:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "a7ff704098c5e693ba942996aca20b5d2b03984fde5e264317c2a48c378a4483",
+   "bytes": 17019
+  },
+  "prior-use scan (runs root, evidence bundles, pins; text files and safetensors headers)": {
+   "sha256": "c4f46274a3244427176277762369f56476877b704598383d2830dd420ecd4dae",
+   "bytes": 6478
+  }
+ }
+}

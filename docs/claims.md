@@ -865,3 +865,23 @@ the 128 earlier questions. It used 1.407 GPU-reservation hours of the 8 allotted
 | The fixed ln 2 / rank prior can change the controllers' decisions | Rarely (post hoc, CPU, 32 questions, seed 100) | 84-94% of table and column pointer decisions along G0 trajectories lead by more than ln 2, which no record can overturn; G4's and the oracle's priors could change 3 of 191 (T4-v2) and 6 of 207 (C4-v2) decisions. Evaluator-only: restricting pointers to the gold program's tables and columns lifts EX from 6 to 7 (T4) and 10 (C4) of 32; forcing the gold prefix through the first divergence gives 7 and 8, and the suffix reproduces gold in 2 of 29 and 5 of 28 |
 | The study's evidence is intact | Verified (in-process gates; an independent reconstruction, 331 checks, 0 failures, every one of 12,416 SQL records mapped) | All 1,152 timed decodes equal their anchors and cache reconstructions; 8 of 8 earlier contexts re-encode equal; `python -m scaling.gi_report` rebuilds the tables from the bundle and refuses any disagreement with `analysis.json` |
 
+## TI-TNN semantic proposal and typed repair (development, 2026-11-06)
+
+A frozen development protocol ([protocol](../research/ti_tnn/scaling/docs/PROTOCOL_semantic_proposal_repair.md),
+[report](../research/ti_tnn/scaling/docs/REPORT_semantic_proposal_repair.md)). The pinned Qwen3.5-4B proposed SQL
+once per question and seed, shared by three policies:
+- D0: the proposal as it is;
+- D1: one self-revision with the raw execution observation;
+- TI1: the same plus a typed analysis.
+
+The run covered 64 new development questions (positions 192-255) at seeds 200 and 201, using 0.667 GPU-hours of the
+6 allotted, for a cumulative 23.490 of 32.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| The typed path preserves the direct model's answers | Supported (64 saved outputs, no model call) | 47 supported queries keep their EX outcome when compiled and executed (32 correct either way); 0 unexplained changes; 17 unsupported reported apart (16 identifier errors, 1 `YEAR`). A preservation result, not a capability gain |
+| One revision with structured typed feedback (TI1) beats one ordinary revision (D1) | Not supported by the registered rule (development, two seeds) | EX-correct of 128: D0 74, D1 76, TI1 78. TI1 - D1 = +2 (0, +2), recoveries 4, regressions 2; the rule needs +8, positive in both seeds and leaving any one database out, and none of the three conditions holds. The measured difference is neither an established benefit nor proof of no effect |
+| Either revision meets the registered useful-improvement rule against the direct proposal | No (development, two seeds) | D1 - D0 = +2 (6 recoveries, 4 regressions; positive in both seeds, not leaving every database out); TI1 - D0 = +4 (4 recoveries, 0 regressions; positive in both seeds and leaving any database out, below +8). The positive differences are measured, not established benefits. The protocol's decision: retain direct Qwen, do not continue this repair direction. The exported rule fields were corrected on 2026-11-07 (spr-rule-v2); counts and verdict unchanged |
+| Revision turns failing queries into executable ones | Observed (development) | 18 initial proposals failed to execute (16 named nonexistent identifiers). Final statuses: D0 18 errors; D1 8 abstentions, 120 executed; TI1 7 abstentions, 121 executed. EX recovered for only 2 of the 18 under either policy. Execution success is not correctness |
+| Anything about semantic equivalence, Qwen3.8 or the reserved BIRD Mini-Dev 500 | Not established | Not tested here |
+

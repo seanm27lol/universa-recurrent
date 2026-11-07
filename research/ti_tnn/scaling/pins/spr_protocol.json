@@ -1,0 +1,28 @@
+{
+ "protocol": "docs/PROTOCOL_semantic_proposal_repair.md",
+ "sha256": "e5cd55dba2f035db2f9d2ae8d0201f4fc5dfbfa1b110450b21272bf75d79c55c",
+ "new_eval_pin_sha256": "88750fb9b496b06b57ecca735db860534ae42c03ba567ac8374ff2e5c53b3dde",
+ "frozen_at": "6e1003f336864ce897825a1ebf180717b9f7b223",
+ "policies": [
+  "D0",
+  "D1",
+  "TI1"
+ ],
+ "seeds": [
+  200,
+  201
+ ],
+ "prompts": "spr-prompts-v2",
+ "typed": "spr-typed-v1",
+ "feedback": "spr-feedback-v1",
+ "max_new_tokens": 512,
+ "request_deadline_seconds": 180.0,
+ "selection": "revised if extracted, read-only and executes; else original if so; else abstain",
+ "rule": "TI1 - D1 >= 8 of 128, positive in both seeds and leaving any one database out",
+ "scorer": "scorer-v1",
+ "budget": {
+  "used_at_freeze_hours": 23.01,
+  "work_order_limit_hours": 28.823,
+  "projected_hours": 0.6
+ }
+}
