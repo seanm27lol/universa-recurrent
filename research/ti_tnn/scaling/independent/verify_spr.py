@@ -3,7 +3,7 @@
 from the producers.
 
     CUDA_VISIBLE_DEVICES= taskset -c 5-9,15-19 nice -n 10 python verify_spr.py --runs-root RUNS --out DIR
-        [--repo REPO] [--frozen-tree TREE] [--workers 4] [--no-worker]
+        [--repo REPO] [--frozen-tree TREE] [--workers 4] [--no-worker] [--producer-report]
     (no machine default for --runs-root or --out; --repo defaults to the checkout holding this file)
 
 Nothing is written under the runs root; a stat listing of the runs root before and after is compared.
@@ -26,7 +26,22 @@ Nothing is written under the runs root; a stat listing of the runs root before a
 7. paired differences, the rule and the decision, from own scores; agreement with analysis.json.
 8. costs (from records), the ledger (own parse), the co-tenancy log.
 9. freeze order (git), the dev runs' populations and claims.
-10. the bundle: SHA256SUMS and identity with the runs-root originals.
+10. the bundle: SHA256SUMS and identity with the runs-root originals; independent/ = the first review's outputs.
+11. the correction pass (2026-11-07): the known historical defect (the original analysis.json's rule fields at 7 of
+    128) checked as still present exactly as known and recorded under "known_defects", not as a failure; the
+    corrected analysis (spr-rule-v2) checked for +8 everywhere, its conditions against own computation, and its counts,
+    comparison values and decision against the original's and own.
+12. (--producer-report) `python -m scaling.spr_report` with TI_TNN_SCALING_RUNS unset, and the spr tests: producer
+    code in separate processes, flagged; their outcome is recorded, never used for an own verdict.
+
+**The run record** (verify_spr.json "run", "inputs"): the verifier's sha256 computed by the running process from its
+own bytes at start (re-read at the end), the start and end times and runtime, the head, and the sha256 of every input
+read (release, pins, manifests, records, analyses, ledger, logs, snapshots, tokenizer files, git objects; the
+prior-use scan as one digest). Nothing relies on file modification times.
+
+History: first run at 1289d7e (sha256 81935f4b..., 167 checks, 1 failure: the rule fields); its outputs are in
+evidence/spr_v1/independent/. This version adds items 11-12 and the run record; the failure is now item 11's known
+defect.
 
 **Discipline.** No producer module is imported by this process; producer constants are read from git
 (`git show <commit>:path`, ast). One flagged exception, the worker (`--worker`), a separate process importing the
@@ -59,7 +74,22 @@ REPO_DEFAULT = Path(__file__).resolve().parents[4]
 H = "research/ti_tnn/scaling/"
 FROZEN = "2f76bb7"          # the commit the frozen run ran at (the brief)
 FREEZE_AT = "6e1003f"       # the protocol's frozen_at (the brief)
-HEAD = "1289d7e"            # the reviewed head (the bundle)
+CORRECTED = "20261107T030307Z_corrected_v2"   # the correction pass's versioned analysis (spr-rule-v2)
+CORRECTION_COMMIT = "1d042a0"                 # the commit the corrected analysis ran at
+FIRST_REVIEW = {                              # this verifier's first run at 1289d7e (167 checks, 1 failure)
+    "verify_spr.py": "81935f4be0f3ed163e02fa98b6ff911cd31b27e03e9a98c2f6c8f55581799fe0",
+    "verify_spr.json": "97f30334204e046e9eb88480e9fc084e55921ef754c501937d35416428d5e411",
+    "verify_spr_summary.txt": "3931a84236232bfe6958476682e3111e908848a2d841df44da4e464283792518",
+    "score_mapping.jsonl": "809850b3e5489d8fc8603f9beefb4c7faa5ee6a0a5848acc76a4b344cfaa1815",
+    "preservation_own.jsonl": "523fc506da5a8791690980dc27e692c6c39ff91b9618e141f3023bc973d143a0"}
+# The known historical defect, found by the first run: the original analysis.json's per-comparison rule fields came
+# from perf_analysis.paired (threshold 7 of 128), not the study's +8. Recorded as known, not as a new failure.
+KNOWN_DEFECT_ANALYSIS_SHA256 = "ceb208f628c5224b17f42be9c34ee61b6e3dc747395339794106434e604f349f"
+KNOWN_DEFECT_THRESHOLD = 7
+# Modules the frozen run, the scoring and the analysis executed (they must be unchanged from 2f76bb7 to the head).
+RUN_MODULES = ("spr_run", "spr_typed", "spr_feedback", "gi_llm", "gi_run", "llm_agent", "tools", "scorer", "contracts",
+               "data", "schema", "retrieval", "sql_to_ir", "ir", "diagnose", "runtime", "ledger", "identity",
+               "perf_analysis", "pilot_run")
 WORK_ORDER_LIMIT = 28.823   # the brief's limit
 RUN, ANALYSIS, PRESERVE = "20261106T204616Z", "20261106T211558Z", "20261106T150505Z"
 DEVS = ("20261106T150736Z", "20261106T151520Z")
@@ -89,7 +119,9 @@ def git(repo, *args):
 
 
 def git_show(repo, commit, path) -> bytes:
-    return subprocess.run(["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True, check=True).stdout
+    b = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=repo, capture_output=True, check=True).stdout
+    record_input(f"git:{commit}:{path}", sha_b(b), len(b))
+    return b
 
 
 def sha_b(b: bytes) -> str:
@@ -100,13 +132,34 @@ def sha_t(s: str) -> str:
     return hashlib.sha256(s.encode()).hexdigest()
 
 
+# --- the inputs this run read (path or git object -> sha256, bytes), recorded in the output ---------------------------
+INPUTS: dict = {}
+
+
+def record_input(label: str, sha: str, size: int) -> None:
+    INPUTS[label] = {"sha256": sha, "bytes": size}
+
+
+def rd(p) -> bytes:
+    """Read an input file's bytes and record its sha256."""
+    b = Path(p).read_bytes()
+    record_input(str(Path(p).resolve()), sha_b(b), len(b))
+    return b
+
+
+def rt(p) -> str:
+    return rd(p).decode("utf-8")
+
+
 def sha_f(p) -> str:
     with open(p, "rb") as f:
-        return hashlib.file_digest(f, "sha256").hexdigest()
+        h = hashlib.file_digest(f, "sha256").hexdigest()
+    record_input(str(Path(p).resolve()), h, os.path.getsize(p))
+    return h
 
 
 def jl(p) -> list:
-    return [json.loads(x) for x in Path(p).read_text().splitlines() if x.strip()]
+    return [json.loads(x) for x in rt(p).splitlines() if x.strip()]
 
 
 def utc(name: str) -> float:
@@ -468,6 +521,8 @@ class V:
     def __init__(self, a):
         self.repo, self.runs, self.out = Path(a.repo).resolve(), Path(a.runs_root).resolve(), Path(a.out).resolve()
         self.frozen_tree, self.workers, self.no_worker = a.frozen_tree, a.workers, a.no_worker
+        self.producer_report = a.producer_report
+        self.known_defects = []
         self.out.mkdir(parents=True, exist_ok=True)
         if self.runs in self.out.parents or self.out == self.runs:
             raise SystemExit("--out must not be under the runs root")
@@ -497,7 +552,7 @@ class V:
         # the raw release, own parse
         rel = self.runs / RELEASE
         self.release_sha = sha_f(rel)
-        lines = rel.read_text(encoding="utf-8").split("\n")
+        lines = rt(rel).split("\n")
         if lines and lines[-1] == "":
             lines = lines[:-1]
         self.rows = {}
@@ -512,12 +567,12 @@ class V:
         self.scores = jl(self.run_dir / "scores.jsonl")
         self.dev = {d: {"reqs": jl(self.spr / "dev" / d / "requests.jsonl"),
                         "scores": jl(self.spr / "dev" / d / "scores.jsonl"),
-                        "manifest": json.loads((self.spr / "dev" / d / "manifest.json").read_text())} for d in DEVS}
-        self.manifest = json.loads((self.run_dir / "manifest.json").read_text())
-        self.analysis = json.loads((self.spr / "analysis" / ANALYSIS / "analysis.json").read_text())
+                        "manifest": json.loads(rt(self.spr / "dev" / d / "manifest.json"))} for d in DEVS}
+        self.manifest = json.loads(rt(self.run_dir / "manifest.json"))
+        self.analysis = json.loads(rt(self.spr / "analysis" / ANALYSIS / "analysis.json"))
         self.pres = jl(self.spr / "preserve" / PRESERVE / "records.jsonl")
-        self.pres_summary = json.loads((self.spr / "preserve" / PRESERVE / "summary.json").read_text())
-        self.pres_manifest = json.loads((self.spr / "preserve" / PRESERVE / "manifest.json").read_text())
+        self.pres_summary = json.loads(rt(self.spr / "preserve" / PRESERVE / "summary.json"))
+        self.pres_manifest = json.loads(rt(self.spr / "preserve" / PRESERVE / "manifest.json"))
         self.new_ids = self.pins["spr_new_eval"]["task_ids"]
 
     def stat_listing(self):
@@ -543,7 +598,7 @@ class V:
         dev = dbs[:n_dev]
         s.check(dev == self.pins["split_v1"]["dev"], "own split = split pin (14 dev databases, same order)", str(dev))
         excluded = {e["task_id"] for e in self.pins["inventory_v1"]["excluded"]}
-        gc = json.loads((self.runs / "data" / "gold_check_dev_v1.json").read_text())["results"]
+        gc = json.loads(rt(self.runs / "data" / "gold_check_dev_v1.json"))["results"]
         s.check({t for t, v in gc.items() if v["status"] != "ok"} == excluded,
                 "the inventory pin's exclusions = the gold check's non-ok entries", str(sorted(excluded)))
 
@@ -606,6 +661,7 @@ class V:
         dup = {t for t, q in qtexts.items() if sum(1 for r in self.rows.values() if r["question"] == q) > 1}
         idpat = re.compile(r"bird23tf-\d{5}")
         hits_id, hits_q, scanned, headers = {}, {}, 0, 0
+        scan_digest = hashlib.sha256()
         roots = [("runs", self.runs), ("evidence", self.repo / H / "evidence"), ("pins", self.repo / H / "pins")]
         binary = {".sqlite", ".pt", ".zip", ".npy", ".bin", ".gguf"}
         for rname, root in roots:
@@ -618,13 +674,16 @@ class V:
                 if p.suffix == ".safetensors":
                     with open(p, "rb") as f:
                         n = int.from_bytes(f.read(8), "little")
-                        text = f.read(min(n, 50_000_000)).decode("utf-8", "ignore")
+                        raw = f.read(min(n, 50_000_000))
+                    text = raw.decode("utf-8", "ignore")
                     headers += 1
                 else:
                     if p.stat().st_size > 400_000_000:
                         continue
-                    text = p.read_bytes().decode("utf-8", "ignore")
+                    raw = p.read_bytes()
+                    text = raw.decode("utf-8", "ignore")
                 scanned += 1
+                scan_digest.update(f"{rel}\0{sha_b(raw)}\n".encode())
                 n_id = len(ids & set(idpat.findall(text)))
                 if n_id:
                     hits_id[rel] = n_id
@@ -638,7 +697,8 @@ class V:
             return rel.startswith("runs:spr/run/") or rel.startswith("runs:spr/analysis/") or \
                 rel.startswith("runs:spr/logs/run_") or rel.startswith("runs:spr/logs/analyze_") or \
                 rel.startswith("evidence:spr_v1/run/") or rel.startswith("evidence:spr_v1/analysis/") or \
-                rel.startswith("evidence:spr_v1/logs/run_") or rel.startswith("evidence:spr_v1/logs/analyze_")
+                rel.startswith("evidence:spr_v1/logs/run_") or rel.startswith("evidence:spr_v1/logs/analyze_") or \
+                rel.startswith("evidence:spr_v1/independent/")   # this verifier's own first-run output
         unexpected_id = {k: v for k, v in hits_id.items() if k not in expected and not own_study(k)}
         q_expected = {"runs:" + RELEASE}
         unexpected_q = {k: v for k, v in hits_q.items() if k not in q_expected and k not in expected and not own_study(k)}
@@ -648,7 +708,10 @@ class V:
                 json.dumps(unexpected_q)[:2000])
         s.check(expected - {"pins:spr_new_eval.json"} <= set(hits_id),
                 "the three declared prior uses are found (inventory pin, gold check, coverage analysis)", json.dumps({k: hits_id.get(k) for k in sorted(expected)}))
+        record_input("prior-use scan (runs root, evidence bundles, pins; text files and safetensors headers)",
+                     scan_digest.hexdigest(), scanned)
         return {"files_scanned": scanned, "safetensors_headers": headers, "id_hits": hits_id, "question_hits": hits_q,
+                "scan_digest": scan_digest.hexdigest(),
                 "duplicated_question_texts_in_release": sorted(dup)}
 
     # -- executions (own) --
@@ -711,7 +774,7 @@ class V:
                             str(self.frozen_tree)], cwd=self.out, env=env, capture_output=True, text=True)
         if p.returncode != 0:
             raise SystemExit(f"worker failed: {p.stderr[-3000:]}")
-        self.W = json.loads(res.read_text())
+        self.W = json.loads(rt(res))
         self.worker_seconds = time.time() - t0
         frozen_head = git(Path(self.frozen_tree), "rev-parse", "HEAD").strip()
         dirty = git(Path(self.frozen_tree), "status", "--porcelain", "--", "research/ti_tnn").strip()
@@ -726,6 +789,9 @@ class V:
         d = root / f"models--{m['repo'].replace('/', '--')}" / "snapshots" / m["revision"]
         tok = AutoTokenizer.from_pretrained(str(d), local_files_only=True)
         tpl = sha_f(d / "chat_template.jinja")
+        for f in ("tokenizer.json", "tokenizer_config.json", "vocab.json", "merges.txt"):
+            if (d / f).exists():
+                sha_f(d / f)
         rec = self.manifest["model_identity"]["files"]["chat_template.jinja"]["sha256"]
         return tok, tpl == rec, tpl
 
@@ -1302,12 +1368,10 @@ class V:
             decision = "neither revision helps by the rule: retain direct Qwen and stop this repair direction"
         s.check(lead == 8, "the rule's lead is 8 of 128 (frozen spr_run.LEAD)")
         s.check(decision == A["decision"], "own decision (protocol's four branches, +8 rule) = analysis.json", decision)
+        # the original's rule fields: the known historical defect (section 11 checks it and the correction)
         thr = {k: v.get("threshold") for k, v in A["comparisons"].items()}
-        s.check(all(t == lead for t in thr.values()),
-                "analysis.json's per-comparison 'threshold' / 'all_conditions' fields use the study's +8 rule",
-                f"they carry perf_analysis.paired's threshold {thr} (the perf-v2 rule scaled to 2 seeds), not 8; "
-                "the decision string itself uses LEAD = 8; with pooled differences of 2, 2 and 4, neither threshold "
-                "changes any outcome")
+        s.info["original_rule_fields"] = {"threshold": thr, "status": "known historical defect (see 11_correction)"
+                                          if all(t == KNOWN_DEFECT_THRESHOLD for t in thr.values()) else "UNKNOWN"}
         s.info["own"] = own
         s.info["decision"] = decision
         # lineage tallies against analysis.json
@@ -1376,7 +1440,7 @@ class V:
         work = sum(r["original"]["call"]["seconds"] + r["original"]["execution"]["seconds"] + r["original"]["typed"]["seconds"]
                    + sum(r[p]["revised"]["call"]["seconds"] + r[p]["revised"]["execution"]["seconds"] +
                          r[p]["revised"]["typed"]["seconds"] for p in ("D1", "TI1")) for r in R)
-        summ = json.loads((self.run_dir / "summary.json").read_text())
+        summ = json.loads(rt(self.run_dir / "summary.json"))
         s.info["recorded_work_seconds"] = work
         s.info["load_seconds"] = summ["load_seconds"]
         # ledger
@@ -1454,7 +1518,7 @@ class V:
         s.check(abs(m["used_hours"] - run_res["cum_before"]) < 1e-6 and m["projected_hours"] == 0.6 and
                 m["fits"], "the run manifest's budget check = own", json.dumps(m))
         # co-tenancy
-        log = (self.spr / "logs" / f"cotenancy_new_{RUN}.log").read_text().splitlines()
+        log = rt(self.spr / "logs" / f"cotenancy_new_{RUN}.log").splitlines()
         samples = []
         for ln in log:
             p = ln.split()
@@ -1482,6 +1546,7 @@ class V:
         newpin = git_show(R, FREEZE_AT, H + "pins/spr_new_eval.json")
         s.check(sha_b(proto) == pin["sha256"], "protocol at frozen_at 6e1003f: sha256 = the pin")
         s.check(sha_b(newpin) == pin["new_eval_pin_sha256"], "spr_new_eval.json at 6e1003f: sha256 = the pin")
+        HEAD = self.head
         s.check(git_show(R, FROZEN, H + "pins/spr_protocol.json") == git_show(R, HEAD, H + "pins/spr_protocol.json"),
                 "the protocol pin is unchanged from 2f76bb7 to the head")
         s.check(sha_b(git_show(R, HEAD, H + "docs/PROTOCOL_semantic_proposal_repair.md")) == pin["sha256"] and
@@ -1489,8 +1554,13 @@ class V:
                 "the protocol and the population pin are unchanged at the head")
         s.check(pin["frozen_at"].startswith(FREEZE_AT), "pin frozen_at = 6e1003f")
         changed = git(R, "diff", "--name-only", FROZEN, HEAD, "--", H).split()
-        s.check(all(c.startswith(H + "evidence/spr_v1/") or c == H + "spr_report.py" for c in changed),
-                "between the frozen commit and the head only spr_report.py and the bundle change", str(changed[:5]))
+        touched = [m for m in RUN_MODULES if H + f"{m}.py" in changed]
+        s.check(not touched, f"the {len(RUN_MODULES)} modules the run, scoring and analysis executed are unchanged "
+                f"from {FROZEN} to the head {HEAD[:7]}", str(touched))
+        s.check(not [c for c in changed if c.startswith(H + "pins/")], "no pin changed from the frozen commit to the head")
+        s.info["changed_since_frozen"] = {"spr": sorted(c for c in changed if "spr" in c and "/evidence/" not in c),
+                                          "evidence_spr_v1": sum(c.startswith(H + "evidence/spr_v1/") for c in changed),
+                                          "other": sorted(c for c in changed if "spr" not in c)[:40]}
         for c in ("03759ac", "d73c30e", FREEZE_AT):
             ok = subprocess.run(["git", "merge-base", "--is-ancestor", c, FROZEN], cwd=R).returncode == 0
             s.check(ok, f"{c} is an ancestor of the frozen commit {FROZEN}")
@@ -1554,14 +1624,14 @@ class V:
                 "dev run 2: ~50 generated tokens, 4.1-4.3 s revisions, 4.1 s initial, 11.1 GB", json.dumps(c2))
 
     def manifest_res_id(self):
-        return json.loads((self.run_dir / "summary.json").read_text())["reservation"]["id"]
+        return json.loads(rt(self.run_dir / "summary.json"))["reservation"]["id"]
 
     # -- 10. the bundle --
     def bundle(self):
         s = self.sec("10_bundle")
         b = self.repo / H / "evidence" / "spr_v1"
         sums = {}
-        for ln in (b / "SHA256SUMS").read_text().splitlines():
+        for ln in rt(b / "SHA256SUMS").splitlines():
             h, p = ln.split(None, 1)
             sums[p.strip()] = h
         bad = [p for p, h in sums.items() if sha_f(b / p) != h]
@@ -1569,8 +1639,15 @@ class V:
         files = sorted(str(p.relative_to(b)) for p in b.rglob("*") if p.is_file() and p.name != "SHA256SUMS")
         s.check(files == sorted(sums), "every bundled file is under SHA256SUMS")
         orig = sorted(str(p.relative_to(self.spr)) for p in self.spr.rglob("*") if p.is_file())
-        s.check(sorted(f for f in files if f != "gpu_ledger.jsonl") == orig,
-                "the bundle holds every file of <runs>/spr/ and nothing else (plus the ledger)")
+        s.check(sorted(f for f in files if f != "gpu_ledger.jsonl" and not f.startswith("independent/")) == orig,
+                "the bundle holds every file of <runs>/spr/ and nothing else (plus the ledger and independent/)")
+        ind = {f.split("/", 1)[1]: sums[f] for f in sums if f.startswith("independent/")}
+        first = {k: v for k, v in FIRST_REVIEW.items() if k != "verify_spr.py"}
+        s.check(all(ind.get(k) == v for k, v in first.items()) and set(ind) == set(first) | {"README.txt"},
+                "independent/: the first review's four outputs, byte-identical to that run, plus the producer's README",
+                json.dumps(ind))
+        s.check(sha_b(git_show(self.repo, "760eef5", H + "independent/verify_spr.py")) == FIRST_REVIEW["verify_spr.py"],
+                "the committed verifier at 760eef5 = the first review's script (81935f4b...)")
         diff = [f for f in orig if sha_f(b / f) != sha_f(self.spr / f)]
         s.check(not diff, "every bundled file = its runs-root original", str(diff))
         s.check(sha_f(b / "gpu_ledger.jsonl") == sha_f(self.runs / "gpu_ledger.jsonl"),
@@ -1578,9 +1655,164 @@ class V:
         tracked = git(self.repo, "ls-files", H + "evidence/spr_v1").split()
         s.check(len(tracked) == len(sums) + 1, "every bundle file is committed", f"{len(tracked)} tracked")
 
+    # -- 11. the correction pass: the known historical defect apart from the corrected analysis --
+    def correction(self):
+        s = self.sec("11_correction")
+        A = self.analysis
+        rule_fields = ("threshold", "conditions", "all_conditions", "sign", "rule_version")
+        own = self.sections["7_paired"].info["own"]
+        orig_path = self.spr / "analysis" / ANALYSIS / "analysis.json"
+        bund = self.repo / H / "evidence" / "spr_v1" / "analysis"
+        orig_sha = sha_f(orig_path)
+        s.check(orig_sha == KNOWN_DEFECT_ANALYSIS_SHA256 and sha_f(bund / ANALYSIS / "analysis.json") == orig_sha,
+                "the original analysis.json is kept unchanged (sha256 ceb208f6...) in the runs root and the bundle",
+                orig_sha)
+
+        def conds(d, lead):
+            sign = 1 if d["pooled"] > 0 else -1 if d["pooled"] < 0 else 0
+            return sign, {"at_least": abs(d["pooled"]) >= lead,
+                          "same_sign_every_seed": sign != 0 and all(v * sign > 0 for v in d["per_seed"].values()),
+                          "same_sign_without_any_one_database": sign != 0 and all(
+                              v * sign > 0 for v in d["leave_one_database_out"].values())}
+        # the known defect: present, exactly as known (threshold 7 and conditions computed with 7)
+        thr = {k: v.get("threshold") for k, v in A["comparisons"].items()}
+        as_known = True
+        flips = {}
+        for k, d in A["comparisons"].items():
+            sign7, c7 = conds(own[k], KNOWN_DEFECT_THRESHOLD)
+            _s8, c8 = conds(own[k], self.S["LEAD"])
+            rec = d.get("conditions", {})
+            as_known &= d.get("threshold") == KNOWN_DEFECT_THRESHOLD and rec == {
+                "pooled_at_least_threshold": c7["at_least"], "same_sign_every_seed": c7["same_sign_every_seed"],
+                "same_sign_without_any_one_database": c7["same_sign_without_any_one_database"]} and \
+                d.get("all_conditions") == all(c7.values()) and d.get("sign") == sign7
+            flips[k] = c7 != c8
+        s.check(as_known, "KNOWN DEFECT (historical, recorded as known, not a new failure): the original's rule fields "
+                "still carry threshold 7 with conditions and all_conditions computed at 7, exactly as found by the "
+                "first review", json.dumps(thr))
+        s.check(not any(flips.values()), "the known defect changes no condition: with pooled +2, +2, +4, every "
+                "condition is the same at 7 and at 8", json.dumps(flips))
+        self.known_defects.append({
+            "id": "spr-analysis-v1-rule-fields", "found_by": "the first review (167 checks, 1 failure, 81935f4b...)",
+            "file": f"spr/analysis/{ANALYSIS}/analysis.json", "sha256": orig_sha,
+            "fields": "comparisons.*.threshold, conditions, all_conditions (from perf_analysis.paired)",
+            "recorded_threshold": thr, "registered_threshold": self.S["LEAD"],
+            "status": "present and unchanged, as known" if as_known else "CHANGED FROM THE KNOWN FORM",
+            "changes_a_condition_or_the_decision": any(flips.values()),
+            "corrected_by": f"spr/analysis/{CORRECTED}/analysis_v2.json (spr-rule-v2)"})
+        # the corrected analysis
+        cdir = self.spr / "analysis" / CORRECTED
+        C2 = json.loads(rt(cdir / "analysis_v2.json"))
+        M2 = json.loads(rt(cdir / "manifest.json"))
+        s.check(sha_f(cdir / "analysis_v2.json") == sha_f(bund / CORRECTED / "analysis_v2.json") and
+                sha_f(cdir / "manifest.json") == sha_f(bund / CORRECTED / "manifest.json"),
+                "the corrected analysis and its manifest: runs root = bundle")
+        s.check(C2.get("rule_version") == "spr-rule-v2" and all(d.get("rule_version") == "spr-rule-v2"
+                                                              for d in C2["comparisons"].values()),
+                "the corrected analysis is versioned spr-rule-v2 (top level and every comparison)")
+        s.check(all(d.get("threshold") == self.S["LEAD"] == 8 for d in C2["comparisons"].values()),
+                "the corrected analysis uses +8 in every comparison's threshold",
+                json.dumps({k: d.get("threshold") for k, d in C2["comparisons"].items()}))
+        cond_bad, val_bad, rest_bad = [], [], []
+        for k, d in C2["comparisons"].items():
+            sign8, c8 = conds(own[k], self.S["LEAD"])
+            want = {"pooled_at_least_lead": c8["at_least"], "same_sign_every_seed": c8["same_sign_every_seed"],
+                    "same_sign_without_any_one_database": c8["same_sign_without_any_one_database"]}
+            if d["conditions"] != want or d["all_conditions"] != all(want.values()) or d["sign"] != sign8:
+                cond_bad.append(k)
+            mine = own[k]
+            if (d["per_seed"], d["pooled"], d["per_database"], d["leave_one_database_out"], d["recoveries"],
+                    d["regressions"], d["per_question_histogram"]) != (
+                    mine["per_seed"], mine["pooled"], mine["per_database"], mine["leave_one_database_out"],
+                    mine["recoveries"], mine["regressions"], mine["histogram"]):
+                val_bad.append(k)
+            o = {f: v for f, v in A["comparisons"][k].items() if f not in rule_fields}
+            n = {f: v for f, v in d.items() if f not in rule_fields}
+            if o != n:
+                rest_bad.append(f"{k}: {sorted(set(o) ^ set(n)) or [f for f in o if o[f] != n.get(f)]}")
+        s.check(not cond_bad, "the corrected conditions, all_conditions and sign = own computation at +8 (each "
+                "comparison)", str(cond_bad))
+        s.check(not val_bad, "the corrected per-seed, pooled, per-database, leave-one-out, recoveries, regressions and "
+                "histogram = own", str(val_bad))
+        s.check(not rest_bad, "every non-rule field of each corrected comparison = the original's", str(rest_bad))
+        own_dec = self.sections["7_paired"].info["decision"]
+
+        def lead(d):
+            return d["all_conditions"] and d["sign"] > 0
+
+        def harm(d):
+            return d["all_conditions"] and d["sign"] < 0
+        cc = C2["comparisons"]
+        dec_from_fields = ("TI1 beats D1: structured feedback has earned further investigation" if lead(cc["TI1-D1"])
+                           else "TI1 harms correctness: inspect its rejected or revised correct proposals"
+                           if harm(cc["TI1-D1"]) or harm(cc["TI1-D0"])
+                           else "TI1 ties D1 but both beat D0: ordinary revision explains the improvement"
+                           if lead(cc["D1-D0"]) and lead(cc["TI1-D0"])
+                           else "neither revision helps by the rule: retain direct Qwen and stop this repair direction")
+        s.check(C2["decision"] == A["decision"] == own_dec == dec_from_fields,
+                "the corrected decision = the original's = own = the decision implied by the corrected fields", own_dec)
+        counts = {f"{p}/{sd}": sum(self.correct[("run", p, sd, t)] for t in self.new_ids) for p in POLICIES
+                  for sd in (200, 201)}
+        s.check(C2["counts"] == A["counts"] == counts and C2["pooled"] == A["pooled"],
+                "the corrected counts and pooled counts = the original's = own", json.dumps(C2["counts"]))
+        other = [k for k in set(A) | set(C2) if k not in ("comparisons", "decision", "rule_version", "corrects", "inputs")
+                 and A.get(k) != C2.get(k)]
+        s.check(not other and set(C2) - set(A) == {"rule_version", "corrects", "inputs"},
+                "every other field of the corrected analysis = the original's; it adds only rule_version, corrects, "
+                "inputs", str(other))
+        sc_sha = sha_f(self.run_dir / "scores.jsonl")
+        s.check(C2["corrects"]["analysis_sha256"] == orig_sha and C2["corrects"]["analysis"] == f"spr/analysis/{ANALYSIS}"
+                and C2["inputs"]["scores_sha256"] == sc_sha and C2["inputs"]["scores"] == f"spr/run/{RUN}/scores.jsonl",
+                "the corrected analysis names the original (sha256) and the frozen run's scores (sha256)")
+        s.check(M2["git"]["commit"].startswith(CORRECTION_COMMIT) and not M2["git"]["dirty_paths"] and
+                not M2["git"]["research_tree_dirty"] and M2["config"]["rule_version"] == "spr-rule-v2",
+                f"the corrected run's manifest: commit {CORRECTION_COMMIT}, clean")
+        src_at = git_show(self.repo, CORRECTION_COMMIT, H + "spr_rule.py")
+        src_head = git_show(self.repo, self.head, H + "spr_rule.py")
+        s.check(M2["sources"].get("spr_rule.py") == sha_b(src_at),
+                "the manifest's spr_rule.py hash = the file at 1d042a0", M2["sources"].get("spr_rule.py"))
+        s.check(ast.dump(ast.parse(src_at)) == ast.dump(ast.parse(src_head)),
+                "spr_rule.py at the head differs from 1d042a0 only in layout (identical syntax trees: the print "
+                "re-wrap)", f"{sha_b(src_at)[:12]} -> {sha_b(src_head)[:12]}")
+        lit = literals(src_head, {"LEAD", "RULE_VERSION"})
+        s.check(lit == {"LEAD": 8, "RULE_VERSION": "spr-rule-v2"}, "spr_rule: LEAD 8, RULE_VERSION spr-rule-v2")
+        for path in ("spr_run.py", "perf_analysis.py"):
+            s.check(git_show(self.repo, FROZEN, H + path) == git_show(self.repo, self.head, H + path),
+                    f"{path} unchanged from the frozen commit to the head")
+        s.info["corrected"] = {k: {"threshold": d["threshold"], "conditions": d["conditions"],
+                                   "all_conditions": d["all_conditions"]} for k, d in C2["comparisons"].items()}
+
+    # -- 12. the producer's report and tests (producer code, separate processes, flagged) --
+    def producer_checks(self):
+        s = self.sec("12_producer_report")
+        env = {k: v for k, v in os.environ.items() if k not in ("TI_TNN_SCALING_RUNS", "PYTHONPATH")}
+        env["CUDA_VISIBLE_DEVICES"] = ""
+        t0 = time.time()
+        p = subprocess.run([sys.executable, "-m", "scaling.spr_report"], cwd=self.repo / "research" / "ti_tnn",
+                           env=env, capture_output=True, text=True)
+        (self.out / "spr_report_output.txt").write_text(p.stdout + p.stderr)
+        s.check(p.returncode == 0 and "neither revision helps by the rule" in p.stdout and
+                "| TI1-D1 | +0 | +2 | +2 |" in p.stdout,
+                "python -m scaling.spr_report (TI_TNN_SCALING_RUNS unset): exit 0, reconstructs, the decision and "
+                "TI1 - D1 = +0/+2/+2", f"exit {p.returncode}; {p.stderr[-300:]}")
+        s.info["spr_report"] = {"exit": p.returncode, "stdout_sha256": sha_t(p.stdout), "seconds": round(time.time() - t0, 1)}
+        t0 = time.time()
+        q = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+                            "tests/test_ti_tnn_scaling_spr.py"], cwd=self.repo, env=env, capture_output=True, text=True)
+        (self.out / "spr_tests_output.txt").write_text(q.stdout + q.stderr)
+        m = re.search(r"(\d+) passed", q.stdout)
+        s.check(q.returncode == 0 and m and not re.search(r"\d+ (failed|skipped|error)", q.stdout),
+                "the spr tests pass (none skipped)", q.stdout.strip().splitlines()[-1] if q.stdout.strip() else "")
+        s.info["tests"] = {"exit": q.returncode, "summary": q.stdout.strip().splitlines()[-1] if q.stdout.strip() else "",
+                           "seconds": round(time.time() - t0, 1)}
+        s.info["flag"] = "producer code, run in separate processes; not used for any of this verifier's own verdicts"
+
     def run(self):
+        self.started = time.time()
+        self.self_sha_start = sha_b(Path(__file__).resolve().read_bytes())
         before = self.stat_listing()
         t0 = time.time()
+        self.head = git(self.repo, "rev-parse", "HEAD").strip()
         self.load()
         self.worker()
         self.executions()
@@ -1593,6 +1825,9 @@ class V:
         self.costs()
         self.freeze()
         self.bundle()
+        self.correction()
+        if self.producer_report:
+            self.producer_checks()
         after = self.stat_listing()
         changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
         s = self.sec("0_discipline")
@@ -1603,14 +1838,31 @@ class V:
                                    "use": "schema text and retrieval for the prompts; the typed analysis recomputed; "
                                           "the preservation compile. Compared with the records only."}
         s.info["seconds"] = round(time.time() - t0, 1)
-        s.info["verifier_sha256"] = sha_f(Path(__file__).resolve())
+        self_end = sha_b(Path(__file__).resolve().read_bytes())
+        s.check(self_end == self.self_sha_start, "the verifier file did not change while it ran")
+        s.info["verifier_sha256"] = self.self_sha_start
         s.info["cpu_affinity"] = sorted(os.sched_getaffinity(0))
         s.info["cuda_visible_devices"] = os.environ.get("CUDA_VISIBLE_DEVICES")
         secs = {k: v.as_dict() for k, v in sorted(self.sections.items())}
-        out = {"sections": secs, "checks": sum(len(v["checks"]) for v in secs.values()),
-               "failures": sum(v["failures"] for v in secs.values())}
+        ended = time.time()
+        out = {"run": {"verifier": str(Path(__file__).resolve()), "verifier_sha256": self.self_sha_start,
+                       "verifier_sha256_how": "sha256 of the script's bytes read by the running process at start "
+                                              "(and re-read at the end: equal)",
+                       "started_utc": iso(self.started), "ended_utc": iso(ended),
+                       "runtime_seconds": round(ended - self.started, 1), "repo_head": self.head,
+                       "runs_root": str(self.runs), "python": sys.version.split()[0],
+                       "sqlite_version": sqlite3.sqlite_version, "argv": sys.argv[1:]},
+               "known_defects": self.known_defects,
+               "sections": secs, "checks": sum(len(v["checks"]) for v in secs.values()),
+               "failures": sum(v["failures"] for v in secs.values()),
+               "inputs": dict(sorted(INPUTS.items()))}
         (self.out / "verify_spr.json").write_text(json.dumps(out, indent=1, default=str) + "\n")
-        lines = [f"verify_spr: {out['checks']} checks, {out['failures']} failures"]
+        lines = [f"verify_spr: {out['checks']} checks, {out['failures']} failures",
+                 f"verifier sha256 {self.self_sha_start} (computed at run time); head {self.head}",
+                 f"started {out['run']['started_utc']}, ended {out['run']['ended_utc']}, runtime "
+                 f"{out['run']['runtime_seconds']} s; {len(INPUTS)} inputs hashed (verify_spr.json 'inputs')",
+                 "known historical defects (recorded, not failures): " +
+                 "; ".join(f"{d['id']}: {d['status']}" for d in self.known_defects)]
         for k, v in secs.items():
             lines.append(f"\n[{k}] {v['passed']} passed, {v['failures']} failed")
             for c in v["checks"]:
@@ -1634,6 +1886,8 @@ def main(argv=None):
     ap.add_argument("--frozen-tree", default=None)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--no-worker", action="store_true")
+    ap.add_argument("--producer-report", action="store_true",
+                    help="also run `python -m scaling.spr_report` and the spr tests (producer code, separate processes)")
     a = ap.parse_args(argv)
     if not a.runs_root:
         ap.error("--runs-root (or TI_TNN_SCALING_RUNS) is required")
