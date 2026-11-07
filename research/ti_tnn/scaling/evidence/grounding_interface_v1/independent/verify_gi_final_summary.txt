@@ -1,0 +1,17 @@
+verify_gi: 331 checks, 0 failures (1850.0 s); sha256 8ceff14c4afe129120e30bd7ea749924f261986ba5d65acb031a05913ebc1e3d
+[bundle] 11 passed, 0 failed
+[pins] 19 passed, 0 failed
+[prior_use] 7 passed, 0 failed
+[coverage] 60 passed, 0 failed
+[worker_items] 2 passed, 0 failed
+[permissions] 36 passed, 0 failed
+[scores] 26 passed, 0 failed
+[fallback] 12 passed, 0 failed
+[consumption] 16 passed, 0 failed
+[integrity] 12 passed, 0 failed
+[timing] 61 passed, 0 failed
+[constraint] 14 passed, 0 failed
+[dev] 19 passed, 0 failed
+[margin] 19 passed, 0 failed
+[analysis] 16 passed, 0 failed
+[producer_code] 1 passed, 0 failed

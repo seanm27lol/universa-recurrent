@@ -805,16 +805,41 @@ def sec_bundle(sec: Section, ctx: dict) -> None:
     badsum = [p for p, h in sums.items() if not (bundle / p).exists() or sha256_path(bundle / p) != h]
     sec.check(not badsum, f"bundle: all {len(sums)} files hash to SHA256SUMS", f"{badsum[:5]}")
     run_files = {str(f.relative_to(gi(ctx))) for f in gi(ctx).rglob("*") if f.is_file()}
-    sec.check(run_files == set(sums) - {"gpu_ledger.jsonl"}, "bundle: the runs root's grounding_interface/ files, "
-              "exactly", f"{sorted(run_files ^ (set(sums) - {'gpu_ledger.jsonl'}))[:5]}")
+    study = {p for p in sums if p != "gpu_ledger.jsonl" and not p.startswith("independent/")}
+    sec.info["bundle_independent_files"] = sorted(p for p in sums if p.startswith("independent/"))
+    sec.check(study <= run_files, "bundle: every bundled study file exists in the runs root's grounding_interface/",
+              f"{sorted(study - run_files)[:5]}")
+    t_bundle = int(git(repo, "show", "-s", "--format=%ct", BUNDLE_COMMIT).strip())
+    extra = sorted(run_files - study)
+    sec.info["runs_root_files_not_in_bundle"] = {p: iso((gi(ctx) / p).stat().st_mtime) for p in extra}
+    sec.check(all((gi(ctx) / p).stat().st_mtime > t_bundle for p in extra),
+              f"every runs-root file absent from the bundle was written after the bundle commit {BUNDLE_COMMIT} "
+              f"(a later addition, not an omission): {len(extra)} files", f"{extra[:5]}")
+    n_sql = 0
+    for p in extra:
+        f = gi(ctx) / p
+        if f.suffix in (".json", ".jsonl"):
+            data = jl(f) if f.suffix == ".jsonl" else [json.loads(f.read_text())]
+            n_sql += sum(1 for row in data for _ in sql_objects(row))
+    sec.info["sql_objects_in_runs_root_files_not_in_bundle (not verified here)"] = n_sql
     diff = [p for p in run_files & set(sums) if (gi(ctx) / p).read_bytes() != (bundle / p).read_bytes()]
     sec.check(not diff, "bundle: every bundled run file equals its runs-root original byte for byte", f"{diff[:5]}")
     led_run, led_b = (ctx["runs"] / "gpu_ledger.jsonl").read_bytes(), (bundle / "gpu_ledger.jsonl").read_bytes()
     sec.check(led_run.startswith(led_b), "bundle: the bundled ledger is a prefix of the live ledger (append-only)",
               f"{len(led_b)} vs {len(led_run)} bytes")
     sec.info["live_ledger_grew_since_bundle_bytes"] = len(led_run) - len(led_b)
-    changed = git(repo, "diff", "--name-only", BUNDLE_COMMIT, "HEAD", "--", H + "evidence/grounding_interface_v1")
-    sec.check(not changed.strip(), f"bundle unchanged from {BUNDLE_COMMIT} to HEAD", changed[:300])
+    bpath = H + "evidence/grounding_interface_v1/"
+    st = [x.split("\t") for x in git(repo, "diff", "--name-status", BUNDLE_COMMIT, "HEAD", "--", bpath).splitlines() if x]
+    sec.info["bundle_changes_since_" + BUNDLE_COMMIT] = [f"{a} {b.removeprefix(bpath)}" for a, b in st]
+    sec.check(all(a == "A" or (a == "M" and b == bpath + "SHA256SUMS") for a, b in st),
+              f"bundle since {BUNDLE_COMMIT}: files only added (SHA256SUMS rewritten); no existing file changed",
+              f"{st[:5]}")
+    old = {ln for ln in git_show(repo, BUNDLE_COMMIT, bpath + "SHA256SUMS").decode().splitlines() if ln.strip()}
+    now = {ln for ln in (bundle / "SHA256SUMS").read_text().splitlines() if ln.strip()}
+    added = sorted(ln.split(None, 1)[1].strip() for ln in now - old)
+    sec.check(old <= now and all(p.startswith(("independent/", "margin/")) or p == "logs/margin.log" for p in added),
+              f"every {BUNDLE_COMMIT} SHA256SUMS line is unchanged; the added lines are independent/, margin/ and "
+              f"logs/margin.log ({len(added)})", f"{sorted(old - now)[:3]} {added[:12]}")
     gi_changed = git(repo, "diff", "--name-only", FROZEN_RUN, "HEAD", "--", *[H + f for f in (
         "gi_constraint.py", "gi_record.py", "gi_lexical.py", "gi_llm.py", "gi_run.py", "pins/gi_protocol.json",
         "pins/gi_new_eval.json", "docs/PROTOCOL_grounding_interface.md")])
@@ -877,7 +902,8 @@ def sec_pins(sec: Section, ctx: dict) -> None:
     sec.check(len(gold_ok) == 192, "every evaluated question's gold SQL executes within 30 s (own run)",
               f"{len(gold_ok)}")
     # the pinned snapshots
-    snap_bad = [d for d in rel.dev if sha256_path(rel.db_path(d)) != rel.snaps[d]["sha256"]]
+    ctx["snap_computed"] = {d: sha256_path(rel.db_path(d)) for d in rel.dev}
+    snap_bad = [d for d in rel.dev if ctx["snap_computed"][d] != rel.snaps[d]["sha256"]]
     sec.check(not snap_bad, "the 14 development snapshots hash to snapshots_v1.json", f"{snap_bad}")
     ctx["dev_ids"], ctx["new_ids"] = dev, new["task_ids"]
     ctx["pop_of"] = {**{t: "historical" for t in ev["populations"]["historical"]["task_ids"]},
@@ -909,24 +935,35 @@ def sec_prior_use(sec: Section, ctx: dict) -> None:
     for f in sorted((repo / H / "pins").glob("*")):
         if f.is_file() and f.name != "gi_new_eval.json":
             files.append(("pins", f.relative_to(repo / H / "pins"), f))
-    id_hits, q_hits = [], defaultdict(list)
+    # prior use means use before the freeze: a file written after the freeze commit that names the ids is listed as
+    # post-freeze reuse (e.g. a later work order reading this study's outputs), not as prior use
+    t_freeze = int(git(repo, "show", "-s", "--format=%ct", FREEZE).strip())
+    t_eval_end = max(f.stat().st_mtime for f in (gi(ctx) / "analysis").rglob("*") if f.is_file())
+    id_hits, q_hits, post = [], defaultdict(list), []
     for root, relp, f in files:
         text = f.read_bytes().decode("utf-8", errors="ignore")
         n = sum(1 for t in want if t in text)
+        if n and f.stat().st_mtime >= t_freeze:
+            post.append({"root": root, "file": str(relp), "ids": n, "written": iso(f.stat().st_mtime)})
+            continue
         if n:
             id_hits.append({"root": root, "file": str(relp), "ids": n})
-        if str(relp) == RAW_RELEASE:
+        if str(relp) == RAW_RELEASE or f.stat().st_mtime >= t_freeze:
             continue
         for t, q in questions.items():
             if len(q) >= 20 and (q in text or json.dumps(q)[1:-1] in text):
                 q_hits[f"{root}/{relp}"].append(t)
     sec.info["scanned_files"] = len(files)
     sec.info["id_hits"] = id_hits
+    sec.info["post_freeze_reuse"] = post
+    sec.check(all(datetime.fromisoformat(x["written"]).timestamp() > t_eval_end for x in post),
+              f"every file written after the freeze that names a new id was written after the study's analysis "
+              f"({iso(t_eval_end)}): post-freeze reuse, {len(post)} files", f"{post[:5]}")
     expected = {("pins", "inventory_v1.json"), ("runs", "data/gold_check_dev_v1.json"),
                 ("runs", "ir/coverage_details_v1.json")}
     unexpected = [h for h in id_hits if (h["root"], h["file"]) not in expected]
-    sec.check(not unexpected, f"no file outside grounding_interface/ names a new id except the three expected "
-              f"({len(files)} files scanned)", f"{unexpected}")
+    sec.check(not unexpected, f"no file written before the freeze outside grounding_interface/ names a new id except "
+              f"the three expected ({len(files)} files scanned)", f"{unexpected}")
     pinned = {(("runs" if h["root"] == "ti_tnn_scaling" else h["root"]), h["file"]) for h in
               json.loads((repo / H / "pins/gi_new_eval.json").read_text())["prior_use"]}
     sec.check({(h["root"], h["file"]) for h in id_hits} == pinned, "own hits equal gi_new_eval.json's prior_use list",
@@ -1215,91 +1252,220 @@ def prompt_tokens(tok, system: str, user: str) -> int:
     return len(tok(text, add_special_tokens=False)["input_ids"])
 
 
+def sql_objects(v, path=""):
+    """(path, object) for every JSON object holding a "sql" key, anywhere inside v."""
+    if isinstance(v, dict):
+        if "sql" in v:
+            yield path, v
+        for k, x in v.items():
+            yield from sql_objects(x, f"{path}/{k}")
+    elif isinstance(v, list):
+        for i, x in enumerate(v):
+            yield from sql_objects(x, f"{path}[{i}]")
+
+
+def own_extract_sql(content: str):
+    """The direct control's final SQL as the protocol states the B4 harness's rule: the last ```-fenced block
+    labelled sql, sqlite or nothing; surrounding whitespace and one trailing semicolon removed."""
+    parts = (content or "").split("```")
+    last = None
+    for k in range(1, len(parts) - 1, 2):
+        block = parts[k]
+        first, _nl, rest = block.partition("\n")
+        info = first.strip().lower()
+        if info in ("", "sql", "sqlite"):
+            last = rest if _nl else ""
+        elif re.match(r"(?i)^(sql|sqlite)\s", first):
+            last = first.split(None, 1)[1] + ("\n" + rest if _nl else "")
+    if last is None:
+        return None
+    return last.strip().rstrip(";").strip() or None
+
+
+def enumerate_sql_records(bundle: Path) -> tuple:
+    """Every SQL-carrying object of every JSON/JSONL file of the bundle (independent/, the reviewer's outputs,
+    excluded), classified. Returns (records, unclassified)."""
+    recs, uncl = [], []
+    for f in sorted(bundle.rglob("*")):
+        if not f.is_file() or f.suffix not in (".json", ".jsonl"):
+            continue
+        rel = f.relative_to(bundle)
+        if rel.parts[0] == "independent":
+            continue
+        data = jl(f) if f.suffix == ".jsonl" else json.loads(f.read_text())
+        rows = data if (f.suffix == ".jsonl" or isinstance(data, list)) else [data]
+        for i, row in enumerate(rows):
+            for path, obj in sql_objects(row):
+                row_d = row if isinstance(row, dict) else {}
+                db, src = row_d.get("db_id"), "record"
+                if db is None and isinstance(row_d.get("score"), dict) and row_d["score"].get("db_id"):
+                    db, src = row_d["score"]["db_id"], "the record's score"
+                r = {"run": "/".join(rel.parts[:2]), "file": str(rel), "row": i, "path": path,
+                     "task_id": row_d.get("task_id"), "db_id": db, "db_id_source": src if db else None,
+                     "fit": row_d.get("fit")}
+                kind_sql = (lambda o: o["sql"] if o.get("kind", "sql") == "sql" else None)
+                if path == "/final" and f.name == "records.jsonl" and "score" in row:
+                    r.update(role="submitted", variant=row.get("policy") or rel.parts[0], sql=kind_sql(obj),
+                             recorded={"correct": row["score"]["correct"], "status": row["score"]["status"],
+                                       "pred_status": row["score"]["predicted"]["status"],
+                                       "snapshot_sha256": row["score"]["snapshot_sha256"]})
+                elif path == "/final" and f.name == "decodes.json":
+                    r.update(role="unscored copy (decodes.json; scored in records.jsonl)", variant=row.get("policy"),
+                             sql=kind_sql(obj), recorded=None)
+                elif path == "" and rel.parts[0] == "direct":
+                    r.update(role="alias of final.sql", variant="direct", sql=obj["sql"],
+                             recorded={"correct": row["score"]["correct"], "status": row["score"]["status"],
+                                       "pred_status": row["score"]["predicted"]["status"],
+                                       "snapshot_sha256": row["score"]["snapshot_sha256"]},
+                             alias_equal=obj["sql"] == row["final"]["sql"])
+                elif rel.parts[0] == "margin" and path in ("/g0", "/restricted", "/forced"):
+                    r.update(role="submitted", variant=path[1:], sql=obj["sql"],
+                             recorded={"correct": obj["correct"], "status": None, "pred_status": obj["status"],
+                                       "snapshot_sha256": None})
+                elif rel.parts[0] == "constraint" and re.fullmatch(r"/(v1|restricted)", path) or \
+                        rel.parts[0] in ("decode_dev", "swap") and re.fullmatch(r"/policies/[^/]+", path):
+                    r.update(role="submitted", variant=path.rsplit("/", 1)[1], sql=kind_sql(obj),
+                             recorded={"correct": obj["correct"], "status": None, "pred_status": obj["status"],
+                                       "snapshot_sha256": None})
+                else:
+                    uncl.append({"file": str(rel), "row": i, "path": path})
+                    continue
+                recs.append(r)
+    return recs, uncl
+
+
 @section
 def sec_scores(sec: Section, ctx: dict) -> None:
-    """Item 5: own EX for every final SQL."""
+    """Item 5: own EX for every submitted SQL record found in the bundle, each mapped to its execution key."""
     rel, R = ctx["rel"], ctx["R"]
-    jobs, uses = {}, []
+    recs, uncl = enumerate_sql_records(ctx["bundle"])
+    sec.check(not uncl, f"every SQL-carrying object in the bundle is classified ({len(recs)} found)", f"{uncl[:5]}")
+    bad_id = [r for r in recs if r["task_id"] not in rel.by_id or
+              (r["db_id"] is not None and rel.by_id[r["task_id"]]["db_id"] != r["db_id"])]
+    sec.check(not bad_id, "every record names a task of the release, and any database it names is that task's",
+              f"{bad_id[:3]}")
+    for r in recs:
+        if r["db_id"] is None:   # swap rows name no database: the task's own, from the release
+            r["db_id"], r["db_id_source"] = rel.by_id[r["task_id"]]["db_id"], "release (the record names none)"
+    sec.info["db_id_sources"] = {f"{k[0]}: {k[1]}": v for k, v in
+                                 Counter((r["run"], r["db_id_source"]) for r in recs).most_common()}
+    snaps, comp = rel.snaps, ctx["snap_computed"]
 
-    def want(tid, sql, tag, rec_correct, rec_status, rec_pred_status=None):
-        key = (tid, sql)
-        if key not in jobs:
-            db = rel.by_id[tid]["db_id"]
-            jobs[key] = (str(rel.db_path(db)), sql, rel.by_id[tid]["SQL"], rel.timeout)
-        uses.append((key, tag, rec_correct, rec_status, rec_pred_status))
-    for r in ctx["eval_recs"]:
-        sql = r["final"]["sql"] if r["final"]["kind"] == "sql" else None
-        want(r["task_id"], sql, "eval", r["score"]["correct"], r["score"]["status"], r["score"]["predicted"]["status"])
-    for r in jl(R["direct_new"][0] / "records.jsonl"):
-        sql = r["final"]["sql"] if r["final"]["kind"] == "sql" else None
-        want(r["task_id"], sql, "direct", r["score"]["correct"], r["score"]["status"], r["score"]["predicted"]["status"])
-    for d in R["constraint"]:
-        for r in jl(d / "records.jsonl"):
-            for p in ("v1", "restricted"):
-                want(r["task_id"], r[p]["sql"] if r[p]["kind"] == "sql" else None, "constraint", r[p]["correct"], None,
-                     r[p]["status"])
-    for r in jl(R["decode_dev"][-1] / "records.jsonl"):
-        for p, v in r["policies"].items():
-            want(r["task_id"], v["sql"] if v["kind"] == "sql" else None, "dev_v2", v["correct"], None, v["status"])
-    for r in jl(R["swap_new"][0] / "records.jsonl"):
-        for p, v in r["policies"].items():
-            want(r["task_id"], v["sql"] if v["kind"] == "sql" else None, "swap", v["correct"], None, v["status"])
+    def key_of(r):
+        db, t = r["db_id"], r["task_id"]
+        g = sha256_bytes(rel.by_id[t]["SQL"].encode())
+        q = sha256_bytes(r["sql"].encode()) if r["sql"] is not None else "ABSTAIN"
+        return f"{db}|{snaps[db]['sha256']}|{t}|{g}|{q}"
+    jobs = {}
+    for r in recs:
+        r["key"] = key_of(r)
+        if r["key"] not in jobs:
+            jobs[r["key"]] = (str(rel.db_path(r["db_id"])), r["sql"], rel.by_id[r["task_id"]]["SQL"], rel.timeout)
     cache_path = ctx["out"] / "cache" / "ex.json"
     cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
-
-    def ck(key):
-        db = rel.by_id[key[0]]["db_id"]
-        return f"{key[0]}:{rel.snaps[db]['sha256'][:16]}:{sha256_bytes((key[1] or '').encode()) if key[1] is not None else 'None'}"
-    todo = {k: v for k, v in jobs.items() if ck(k) not in cache}
+    todo = {k: v for k, v in jobs.items() if k not in cache}
     t0 = time.time()
-    res = ex_batch(todo, ctx["ex_workers"])
-    for k, v in res.items():
-        cache[ck(k)] = v
+    for k, v in ex_batch(todo, ctx["ex_workers"]).items():
+        db = k.split("|")[0]
+        cache[k] = {**v, "db_id": db, "snapshot_sha256": comp[db], "deadline_seconds": rel.timeout}
     cache_path.write_text(json.dumps(cache, sort_keys=True))
-    sec.info["distinct_executions"] = len(jobs)
-    sec.info["executed_now"] = len(todo)
-    sec.info["seconds"] = round(time.time() - t0, 1)
-    mine = {k: cache[ck(k)] for k in jobs}
-    # This verifier runs on cores 0-4,10-14, the host's Cortex-A725 efficiency cores (about half the single-thread
-    # speed of the Cortex-X925 cores). A query that finished within 30 s for the producer can time out here: such a
-    # pair is re-executed once with a 4x deadline, and then compared on its result.
-    slow = {key for key, tag, rc, rs, rps in uses if status_class(mine[key]["status"]) == "timeout" and
-            status_class(rps or rs) != "timeout"}
-    ext_todo = {k: jobs[k][:3] + (4 * rel.timeout,) for k in slow if ck(k) + ":x4" not in cache}
+    # host speed: this verifier runs on the Cortex-A725 efficiency cores (0-4, 10-14), about half the single-thread
+    # speed of the X925 cores; a pair that times out here but not in the record is re-executed once at 4x the deadline
+    slow = {r["key"] for r in recs if r["recorded"] and status_class(cache[r["key"]]["status"]) == "timeout" and
+            status_class(r["recorded"]["pred_status"] if r["recorded"]["status"] is None else r["recorded"]["status"])
+            != "timeout"}
+    ext_todo = {k: jobs[k][:3] + (4 * rel.timeout,) for k in slow if k + ":x4" not in cache}
     for k, v in ex_batch(ext_todo, ctx["ex_workers"]).items():
-        cache[ck(k) + ":x4"] = v
+        db = k.split("|")[0]
+        cache[k + ":x4"] = {**v, "db_id": db, "snapshot_sha256": comp[db], "deadline_seconds": 4 * rel.timeout}
     cache_path.write_text(json.dumps(cache, sort_keys=True))
-    ext = {k: cache[ck(k) + ":x4"] for k in slow}
-    sec.info["host_speed_timeouts"] = [{"task": k[0], "sql_sha": sha256_bytes((k[1] or "").encode())[:12],
-                                        "at_30s": mine[k]["status"], "at_120s": ext[k]["status"],
-                                        "seconds_at_120s": round(ext[k]["seconds"], 1)} for k in sorted(slow)]
-    ctx["ex"] = {k: ext.get(k) or v for k, v in mine.items()}   # downstream tallies: host-speed timeouts at 4x
-    ctx["ex_ext"] = ext
-    by_tag = defaultdict(lambda: [0, 0, 0, []])
-    for key, tag, rc, rs, rps in uses:
-        m = ext.get(key) or mine[key]
-        b = by_tag[tag]
-        b[0] += 1
-        ok_c = m["correct"] == rc
-        ok_s = (rs is None or status_class(rs) == status_class(m["status"])) and \
-            (rps is None or status_class(rps) == status_class(m["pred"]))
-        b[1] += ok_c
-        b[2] += ok_s
-        if not (ok_c and ok_s):
-            b[3].append({"task": key[0], "sql": (key[1] or "")[:120], "recorded": [rc, rs, rps],
-                         "mine": [m["correct"], m["status"], m["pred"], round(m["seconds"], 2)]})
-    for tag, (n, c, s, bad) in by_tag.items():
-        sec.check(c == n, f"{tag}: own EX equals every recorded score ({c}/{n})", f"{bad[:5]}")
-        sec.check(s == n, f"{tag}: own status class equals every recorded status ({s}/{n}; host-speed timeouts "
-                  f"compared at the 4x deadline)", f"{bad[:5]}")
-    gold_bad = [k for k, v in mine.items() if v["status"] != "abstain" and v["pred"] != "timeout" and
+    sec.info["distinct_execution_keys"] = len(jobs)
+    sec.info["executed_now"] = len(todo) + len(ext_todo)
+    sec.info["seconds"] = round(time.time() - t0, 1)
+    final = {k: cache.get(k + ":x4") or cache[k] for k in jobs}
+    sec.info["host_speed_timeouts"] = [{"key": k, "at_30s": cache[k]["status"], "at_120s": cache[k + ":x4"]["status"],
+                                        "seconds_at_120s": round(cache[k + ":x4"]["seconds"], 1)} for k in sorted(slow)]
+    # the mapping, one line per record
+    lines = []
+    for r in recs:
+        m = final.get(r["key"])
+        rec = r["recorded"]
+        equal = None
+        if rec is not None and m is not None:
+            equal = m["correct"] == rec["correct"] and \
+                (rec["status"] is None or status_class(rec["status"]) == status_class(m["status"])) and \
+                status_class(rec["pred_status"]) == status_class(m["pred"]) and \
+                (rec["snapshot_sha256"] is None or rec["snapshot_sha256"] == m["snapshot_sha256"])
+        lines.append({"run": r["run"], "file": r["file"], "row": r["row"], "path": r["path"], "role": r["role"],
+                      "fit": r["fit"], "variant": r["variant"], "task_id": r["task_id"], "db_id": r["db_id"],
+                      "db_id_source": r["db_id_source"],
+                      "snapshot_sha256": r["key"].split("|")[1], "sql_sha256": None if r["sql"] is None else
+                      sha256_bytes(r["sql"].encode()), "gold_sha256": r["key"].split("|")[3], "key": r["key"],
+                      "mine": None if m is None else {"status": m["status"], "pred_status": m["pred"],
+                                                      "correct": m["correct"], "deadline_seconds": m["deadline_seconds"],
+                                                      "executed_snapshot_sha256": m["snapshot_sha256"]},
+                      "recorded": rec, "equal": equal})
+    scored = {(ln["fit"], ln["variant"], ln["task_id"]): ln for ln in lines
+              if ln["run"].startswith("eval/") and ln["role"] == "submitted"}
+    for ln in lines:
+        if ln["role"].startswith("unscored copy"):
+            twin = scored.get((ln["fit"], ln["variant"], ln["task_id"]))
+            ln["recorded"] = None if twin is None else {"via": f"{twin['file']} row {twin['row']}"}
+            ln["equal"] = twin is not None and twin["key"] == ln["key"] and bool(twin["equal"])
+    with open(ctx["out"] / "sql_record_map.jsonl", "w") as f:
+        for ln in lines:
+            f.write(json.dumps(ln, sort_keys=True) + "\n")
+    sec.check(len(lines) == len(recs), f"the mapping has one line per enumerated record ({len(lines)})")
+    sec.check(all(ln["key"] in final for ln in lines), "every record maps to exactly one executed key (none unmapped)")
+    sec.check(all(ln["mine"]["executed_snapshot_sha256"] == ln["snapshot_sha256"] == snaps[ln["db_id"]]["sha256"]
+                  for ln in lines), "every key's snapshot = the pinned snapshot of the record's database = the file "
+              "hashed in this run")
+    sec.check(all(ln["gold_sha256"] == sha256_bytes(rel.by_id[ln["task_id"]]["SQL"].encode()) for ln in lines),
+              "every key names its task's gold SQL by sha256")
+    # per-run totals against the populations
+    n_dev, n_new = len(ctx["dev_ids"]), len(ctx["new_ids"])
+    expect = {f"eval/{R['eval_new'][0].name}": 2 * 6 * 3 * n_new,          # records.jsonl + decodes.json
+              f"direct/{R['direct_new'][0].name}": 2 * n_new,               # final.sql + its row-level alias
+              f"swap/{R['swap_new'][0].name}": 6 * n_new * 2,
+              **{f"constraint/{d.name}": 6 * n_dev * 2 for d in R["constraint"]},
+              **{f"decode_dev/{d.name}": 6 * n_dev * 5 for d in R["decode_dev"]},
+              **{f"margin/{d.name}": sum(v["requests"] + v["restricted"]["defined"] + v["forced"]["forced"]
+                                         for v in json.loads((d / "summary.json").read_text()).values())
+                 for d in sorted((ctx["bundle"] / "margin").glob("*")) if d.is_dir()}}
+    per = defaultdict(lambda: {"records": 0, "mapped": 0, "scored": 0, "equal": 0, "keys": set()})
+    for ln in lines:
+        p = per[ln["run"]]
+        p["records"] += 1
+        p["mapped"] += ln["key"] in final
+        p["scored"] += ln["role"] != "alias of final.sql" and not ln["role"].startswith("unscored copy")
+        p["equal"] += bool(ln["equal"])
+        p["keys"].add(ln["key"])
+    sec.info["per_run"] = {k: {**{x: v[x] for x in ("records", "mapped", "scored", "equal")},
+                               "distinct_keys": len(v["keys"]), "expected": expect.get(k)} for k, v in sorted(per.items())}
+    sec.check(set(per) == set(expect), "the runs carrying SQL are exactly eval, direct, swap, constraint, both dev "
+              "decodes and the margin runs", f"{sorted(set(per) ^ set(expect))}")
+    ctx["sql_map_lines"] = lines
+    for run in sorted(set(per) | set(expect)):
+        p = per.get(run, {"records": 0, "mapped": 0, "equal": 0})
+        sec.check(p["records"] == expect.get(run) and p["mapped"] == p["records"],
+                  f"{run}: {p['records']} SQL records = the population's count {expect.get(run)}, all mapped")
+        sec.check(p["equal"] == p["records"], f"{run}: own result = recorded result for every record "
+                  f"({p['equal']}/{p['records']})", f"{[ln for ln in lines if ln['run'] == run and not ln['equal']][:3]}")
+    sec.check(all(r.get("alias_equal", True) for r in recs), "direct: every row-level sql equals its final.sql")
+    d = jl(R["direct_new"][0] / "records.jsonl")
+    ext_bad = [r["task_id"] for r in d if own_extract_sql(r["call"]["content"]) != r["final"]["sql"]]
+    sec.check(not ext_bad, "direct: own extraction of the final SQL from every reply = the recorded SQL (64)",
+              f"{ext_bad[:5]}")
+    gold_bad = [k for k, v in final.items() if v["status"] != "abstain" and v["pred"] != "timeout" and
                 v["gold_status"] != "ok"]
     sec.check(not gold_bad, "the gold SQL executed cleanly in every pair whose prediction left it time",
               f"{gold_bad[:3]}")
-    snaps = {r["score"]["snapshot_sha256"] == rel.snaps[r["db_id"]]["sha256"] for r in ctx["eval_recs"]}
-    sec.check(snaps == {True}, "eval scores name the pinned snapshot sha256")
-    sec.info["status_counts"] = {tag: dict(Counter(ctx["ex"][k]["status"] for k, t, *_ in uses if t == tag))
-                                 for tag in by_tag}
+    # downstream sections read the results by (task, SQL)
+    ctx["ex"] = {}
+    for r in recs:
+        ctx["ex"][(r["task_id"], r["sql"])] = final[r["key"]]
+    sec.info["status_counts"] = {run: dict(Counter(ln["mine"]["status"] for ln in lines if ln["run"] == run and
+                                                   ln["role"] == "submitted")) for run in sorted(per)}
 
 
 @section
@@ -1949,6 +2115,138 @@ def sec_dev(sec: Section, ctx: dict) -> None:
     sec.info["note_first_ground_dev_before_gate_commit"] = run_time(first_ground.name) < t_gate
 
 
+def own_margin_summary(rows: list, correct) -> dict:
+    """The margin diagnostic's per-fit tallies, recomputed from its records (EX bits from `correct(row, part)`)."""
+    out = {}
+    for fit in sorted({r["fit"] for r in rows}):
+        rs = [r for r in rows if r["fit"] == fit]
+        steps = [s for r in rs for s in r["steps"]]
+        tab, col = [s for s in steps if s["kind"] == "table"], [s for s in steps if s["kind"] == "column"]
+
+        def share(xs, f):
+            return {"n": len(xs), "count": sum(1 for x in xs if f(x))}
+        res = [r for r in rs if "sql" in r["restricted"]]
+        frc = [r for r in rs if "sql" in r["forced"]]
+        kinds = Counter(r["forced"]["divergence_kind"] or "operator" for r in frc)
+        out[fit] = {
+            "requests": len(rs), "g0_correct": sum(correct(r, "g0") for r in rs),
+            "pointer_steps": {"table": len(tab), "column": len(col)},
+            "margin_above_ln2": {"table": share(tab, lambda x: x["g4"]["unchangeable_by_any_record"]),
+                                 "column": share(col, lambda x: x["g4"]["unchangeable_by_any_record"])},
+            "g4_could_change": share([x for x in steps if x["g4"]["prior"]], lambda x: x["g4"]["prior"]["could_change"]),
+            "oracle_could_change": share([x for x in steps if x["oracle"]["prior"]],
+                                         lambda x: x["oracle"]["prior"]["could_change"]),
+            "g4_record_invalid": sum(not r["g4_record_valid"] for r in rs),
+            "first_table_g0": dict(Counter(r["first_table_g0"] for r in rs)),
+            "restricted": {"defined": len(res), "undefined": len(rs) - len(res),
+                           "correct": sum(correct(r, "restricted") for r in res),
+                           "g0_correct_on_same": sum(correct(r, "g0") for r in res),
+                           "wrong_to_correct": sum(correct(r, "restricted") > correct(r, "g0") for r in res),
+                           "correct_to_wrong": sum(correct(r, "restricted") < correct(r, "g0") for r in res),
+                           "requests_with_undefined_steps": sum(1 for r in res if r["restricted"]["undefined_steps"]),
+                           "first_table": dict(Counter(r["restricted"]["first_table"] for r in res))},
+            "forced": {"forced": len(frc), "no_divergence": sum(1 for r in rs if r["forced"].get("no_divergence")),
+                       "undefined": dict(Counter(r["forced"]["undefined"] for r in rs if "undefined" in r["forced"])),
+                       "correct": sum(correct(r, "forced") for r in frc),
+                       "g0_correct_on_same": sum(correct(r, "g0") for r in frc),
+                       "suffix_reproduces_gold": sum(r["forced"]["suffix_reproduces_gold"] for r in frc),
+                       "illegal_forced_actions": sum(len(r["forced"]["illegal_forced"]) for r in frc),
+                       "by_divergence_kind": {k: {"n": n, "correct": sum(correct(r, "forced") for r in frc if
+                                                                          (r["forced"]["divergence_kind"] or "operator")
+                                                                          == k)} for k, n in sorted(kinds.items())}}}
+    return out
+
+
+@section
+def sec_margin(sec: Section, ctx: dict) -> None:
+    """The bounded margin diagnostic (post hoc; added to the bundle after the review began): coverage, the
+    counted run's summary against own tallies, the trial against the counted run."""
+    repo, rel, B = ctx["repo"], ctx["rel"], ctx["bundle"] / "margin"
+    runs = sorted(d for d in B.glob("*") if d.is_dir())
+    sec.check(len(runs) == 2, "two margin runs in the bundle (a trial and the counted run)", f"{[d.name for d in runs]}")
+    man = {d.name: json.loads((d / "manifest.json").read_text()) for d in runs}
+    counted = [d for d in runs if not man[d.name]["git"]["research_tree_dirty"]]
+    trial = [d for d in runs if man[d.name]["git"]["research_tree_dirty"]]
+    sec.check(len(counted) == 1 and len(trial) == 1, "one clean run (counted) and one dirty-tree run (the trial)")
+    c, t = counted[0], trial[0]
+    mc = man[c.name]
+    sec.info["counted"] = {"run": c.name, "commit": mc["git"]["commit"], "worktree": mc["git"]["worktree"]}
+    sec.info["trial"] = {"run": t.name, "commit": man[t.name]["git"]["commit"], "dirty": man[t.name]["git"]["dirty_paths"]}
+    sec.check(git_show(repo, mc["git"]["commit"], H + "gi_margin.py") == (repo / H / "gi_margin.py").read_bytes(),
+              f"the counted run's commit {mc['git']['commit'][:7]} holds the current gi_margin.py")
+    cfg = mc["config"]
+    salt = literals_of(git_show(repo, mc["git"]["commit"], H + "gi_margin.py"), ("SAMPLE_SALT", "SAMPLE_SIZE"))
+    mine = sorted(ctx["dev_ids"], key=lambda x: hashlib.sha256(f"{salt['SAMPLE_SALT']}:{x}".encode()).hexdigest())
+    mine = mine[:salt["SAMPLE_SIZE"]]
+    sec.check(cfg["sample"] == mine and len(mine) == 32, "the sample = own rule: the 32 dev questions with the "
+              "smallest sha256('gi-margin-sample-v1:' + task_id)")
+    pin = json.loads((repo / H / "pins/gi_protocol.json").read_text())
+    sec.check(f"grounding_interface/ground/{cfg['ground_run']}" == pin["selected_on_dev"]["dev_ground_run"],
+              "the margin run used the pinned dev G4 run (prompt v2)")
+    ck = {k: v for k, v in ctx.get("ckpt_hashes", {}).items()}
+    sec.check(sorted(cfg["checkpoints"]) == ["C4-v2/100", "T4-v2/100"] and
+              all(cfg["checkpoints"][k]["sha256"] == ck.get(k) for k in cfg["checkpoints"]),
+              "the counted run's two checkpoints (seed 100, T4-v2 and C4-v2) = own hashes")
+    rows = jl(c / "records.jsonl")
+    sec.check(sorted((r["fit"], r["task_id"]) for r in rows) == sorted((f, x) for f in cfg["checkpoints"] for x in mine)
+              and len(rows) == 64, "the counted run covers 2 fits x 32 questions, once each")
+    sec.check(all(r["db_id"] == rel.by_id[r["task_id"]]["db_id"] for r in rows), "every margin row names its task's db")
+    # own tally against summary.json, with own EX bits (the mapping checks each recorded bit separately)
+    ex_ = ctx["ex"]
+
+    def own_bit(r, part):
+        return ex_[(r["task_id"], r[part]["sql"])]["correct"]
+
+    def rec_bit(r, part):
+        return r[part]["correct"]
+    summ = json.loads((c / "summary.json").read_text())
+    for name, fn in (("own EX bits", own_bit), ("the recorded EX bits", rec_bit)):
+        mine_s = own_margin_summary(rows, fn)
+        diffs = [(f, k) for f in set(mine_s) | set(summ) for k in set(mine_s.get(f, {})) | set(summ.get(f, {}))
+                 if mine_s.get(f, {}).get(k) != summ.get(f, {}).get(k)]
+        sec.check(not diffs, f"the counted run's summary.json = own tally of its records ({name})", f"{diffs[:5]}")
+    sec.info["counted_summary_headline"] = {f: {"g0_correct": v["g0_correct"], "restricted_correct": v["restricted"]
+                                                ["correct"], "restricted_defined": v["restricted"]["defined"],
+                                                "forced_correct": v["forced"]["correct"], "forced": v["forced"]["forced"],
+                                                "margin_above_ln2": v["margin_above_ln2"],
+                                                "g4_could_change": v["g4_could_change"],
+                                                "oracle_could_change": v["oracle_could_change"]}
+                                            for f, v in summ.items()}
+    # internal consistency of the step records
+    bad_steps = [(r["fit"], r["task_id"], s["step"]) for r in rows for s in r["steps"]
+                 if s["g4"]["unchangeable_by_any_record"] != (s["g4"]["margin"] is None or s["g4"]["margin"] > LN2)
+                 or (s["g4"]["prior"] and s["g4"]["prior"]["could_change"] and s["g4"]["margin"] is not None and
+                     s["g4"]["prior"]["max_prior_advantage"] < s["g4"]["margin"])
+                 or (s["oracle"]["prior"] and s["oracle"]["prior"]["could_change"] and s["oracle"]["margin"] is not None
+                     and s["oracle"]["prior"]["max_prior_advantage"] < s["oracle"]["margin"])]
+    sec.check(not bad_steps, "every step: 'unchangeable' iff margin > ln 2; a prior can change a step only if its "
+              "advantage exceeds the margin", f"{bad_steps[:5]}")
+    gname = pin["selected_on_dev"]["dev_ground_run"].split("/")[-1]
+    if ctx.get("own_valid"):
+        vb = [(r["fit"], r["task_id"]) for r in rows if r["g4_record_valid"] != ctx["own_valid"][(gname, r["task_id"])]["valid"]]
+        sec.check(not vb, "g4_record_valid = own validation of the dev G4 record", f"{vb[:5]}")
+    dv = {(r["fit"], r["task_id"]): r for r in jl(gi(ctx) / "decode_dev" / DEV_DECODE / "records.jsonl")}
+    same = sum(r["g0"]["sql"] == dv[(r["fit"], r["task_id"])]["policies"]["G0"]["sql"] for r in rows)
+    sec.check(same == len(rows), f"the margin run's G0 SQL = the gate's dev decode G0 SQL ({same}/{len(rows)})")
+    und = [r for r in rows if "sql" not in r["restricted"]]
+    sec.check(all(r["restricted"].get("undefined") == "the gold program is not convertible" and not r["gold_convertible"]
+                  for r in und) and all(r["gold_convertible"] for r in rows if "sql" in r["restricted"]),
+              "restricted decoding is undefined exactly where the gold program is not convertible")
+    sec.check(all(len(r["forced"]["illegal_forced"]) == 0 for r in rows if "sql" in r["forced"]),
+              "no forced action was illegal")
+    # the trial against the counted run
+    trows = jl(t / "records.jsonl")
+    sec.check(trows == rows, f"the trial's records equal the counted run's ({len(trows)} rows)")
+    sec.check(json.loads((t / "summary.json").read_text()) == summ, "the trial's summary equals the counted run's")
+    cfg_t = man[t.name]["config"]
+    sec.check({k: v for k, v in cfg_t.items()} == cfg, "the trial's configuration equals the counted run's")
+    # the margin lines of the SQL mapping
+    lines = [ln for ln in ctx.get("sql_map_lines", []) if ln["run"].startswith("margin/")]
+    sec.info["mapping_lines"] = {f"{k[0]} {k[1]}": v for k, v in Counter((ln["run"], ln["variant"]) for ln in lines).items()}
+    sec.check(lines and all(ln["equal"] for ln in lines), f"every margin SQL record maps to an executed key with an "
+              f"equal result ({sum(bool(ln['equal']) for ln in lines)}/{len(lines)})")
+
+
 @section
 def sec_analysis(sec: Section, ctx: dict) -> None:
     """Item 9."""
@@ -2064,8 +2362,13 @@ def sec_analysis(sec: Section, ctx: dict) -> None:
     sec.check(set(a["gpu_hours"]) == set(by_cmd) and all(len(v) == 1 for c, v in by_cmd.items() if c != "gi ground dev"),
               "analysis gpu_hours names every gi command (the two dev ground runs share one key)")
     if ctx.get("ledger"):
-        sec.check(close(a["ledger"]["used_hours"], sum(x["hours"] for x in ctx["ledger"]), 1e-9),
-                  "analysis ledger used_hours = own total")
+        t_a = (R["analysis"][0] / "analysis.json").stat().st_mtime   # the ledger may grow later (other work orders)
+        at = sum(x["hours"] for x in ctx["ledger"] if x["t_end"] <= t_a)
+        later = [x["command"] for x in ctx["ledger"] if x["t_start"] > t_a]
+        sec.info["ledger_at_analysis"] = {"own_hours": at, "reservations_after_the_analysis": dict(Counter(later))}
+        sec.check(close(a["ledger"]["used_hours"], at, 1e-9) and
+                  not any(x["t_start"] <= t_a < x["t_end"] for x in ctx["ledger"]),
+                  f"analysis ledger used_hours = own total of the reservations ended when it was written ({at:.4f} h)")
     # reading
     up = lambda dd: dd["all_conditions"] and dd["sign"] > 0  # noqa
     reading = []
@@ -2141,6 +2444,7 @@ def checkpoints(sec: Section, ctx: dict) -> dict:
         h = sha256_path(p)
         sec.check(p.stem.split("_")[-1] == h[:16], f"{fit}: checkpoint bytes hash to its name")
         out[fit] = (str(p), h)
+    ctx["ckpt_hashes"] = {k: v[1] for k, v in out.items()}
     for kind in ("eval_new", "decode_dev", "constraint"):
         for d in R[kind]:
             cks = json.loads((d / "manifest.json").read_text())["config"]["checkpoints"]
@@ -2184,7 +2488,7 @@ def main(argv=None) -> int:
     t0 = time.time()
     ctx["rel"] = Release(runs, repo, FROZEN_RUN)
     order = ["bundle", "pins", "prior_use", "coverage", "worker_items", "permissions", "scores", "fallback",
-             "consumption", "integrity", "timing", "constraint", "dev", "analysis"]
+             "consumption", "integrity", "timing", "constraint", "dev", "margin", "analysis"]
     results = {}
     for name in order:
         if args.sections and name not in args.sections and name not in ("pins", "coverage", "worker_items", "scores"):
