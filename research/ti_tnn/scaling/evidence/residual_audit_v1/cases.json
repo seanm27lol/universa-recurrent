@@ -1,0 +1,2446 @@
+[
+ {
+  "seed": 200,
+  "task_id": "bird23tf-00412",
+  "db": "computer_student",
+  "question": "Is the teacher who teaches course no.9 a faculty member?",
+  "evidence": "teacher refers to taughtBy.p_id; course no.9 refers to taughtBy.course_id = 9; faculty member refers to hasPosition ! = 0",
+  "pred": "SELECT CASE WHEN p.hasPosition != '0' THEN 'Yes' ELSE 'No' END FROM taughtBy AS T1 INNER JOIN person AS p ON T1.p_id = p.p_id WHERE T1.course_id = 9",
+  "gold": "SELECT T2.hasPosition FROM taughtBy AS T1 INNER JOIN person AS T2 ON T1.p_id = T2.p_id WHERE T1.course_id = 9",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Yes"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Faculty"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "person",
+    "taughtby"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "0",
+    "9",
+    "No",
+    "Yes"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "person",
+    "taughtby"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "9"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "yes/no question; the proposal answers 'Yes' from hasPosition != '0', the reference returns the hasPosition value 'Faculty'. Same fact, different answer form"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-00439",
+  "db": "talkingdata",
+  "question": "How many events did the 88-years-old male users participate on 4th May,2016?",
+  "evidence": "88-years-old refers to age = 88; male refers to gender = 'M'; on 4th May, 2016 refers to timestamp LIKE '2016-05-04%';",
+  "pred": "SELECT COUNT(*) \nFROM app_events AS T1\nINNER JOIN events AS T2 ON T1.event_id = T2.event_id\nINNER JOIN gender_age AS T3 ON T2.device_id = T3.device_id\nWHERE T3.age = 88 \n  AND T3.gender = 'M'\n  AND T2.timestamp LIKE '2016-05-04%'",
+  "gold": "SELECT COUNT(T2.event_id) FROM gender_age AS T1 INNER JOIN events AS T2 ON T2.device_id = T1.device_id WHERE T1.gender = 'M' AND SUBSTR(`timestamp`, 1, 10) = '2016-05-04' AND T1.age = 88",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "174"
+   ]
+  ],
+  "gold_head": [
+   [
+    "52"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "app_events",
+    "events",
+    "gender_age"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 5,
+   "literals": [
+    "2016-05-04%",
+    "88",
+    "M"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "events",
+    "gender_age"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1",
+    "10",
+    "2016-05-04",
+    "88",
+    "M"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "joins"
+  ],
+  "note": "an extra join to app_events multiplies each event by its apps: 174 against 52 events"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-00789",
+  "db": "soccer_2016",
+  "question": "In the players, how many were out by hit wicket?",
+  "evidence": "out by hit wicket refers to Out_Name = 'hit wicket'",
+  "pred": "SELECT COUNT(P.Player_Name) \nFROM Wicket_Taken AS T1 \nINNER JOIN Out_Type AS T2 ON T1.Kind_Out = T2.Out_Id \nINNER JOIN Player AS P ON T1.Player_Out = P.Player_Id \nWHERE T2.Out_Name = 'hit wicket'",
+  "gold": "SELECT Player_Out FROM Wicket_Taken AS T1 INNER JOIN Out_Type AS T2 ON T1.Kind_Out = T2.Out_Id WHERE Out_Name = 'hit wicket'",
+  "pred_rows": 1,
+  "gold_rows": 8,
+  "pred_head": [
+   [
+    "8"
+   ]
+  ],
+  "gold_head": [
+   [
+    "72"
+   ],
+   [
+    "113"
+   ],
+   [
+    "101"
+   ],
+   [
+    "35"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "out_type",
+    "player",
+    "wicket_taken"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "hit wicket"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "out_type",
+    "wicket_taken"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "hit wicket"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "'how many' answered with COUNT = 8; the reference lists the 8 Player_Out ids instead of a count"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-01497",
+  "db": "public_review_platform",
+  "question": "What is the attribute of the business with highest star rating?",
+  "evidence": "highest star rating Max(stars); attribute of business refers to attribute_name",
+  "pred": "SELECT attribute_name FROM Attributes INNER JOIN Business_Attributes ON Attributes.attribute_id = Business_Attributes.attribute_id WHERE business_id IN (SELECT business_id FROM Business ORDER BY stars DESC LIMIT 1)",
+  "gold": "SELECT T3.attribute_name FROM Business AS T1 INNER JOIN Business_Attributes AS T2 ON T1.business_id = T2.business_id INNER JOIN Attributes AS T3 ON T2.attribute_id = T3.attribute_id ORDER BY T1.stars DESC LIMIT 1",
+  "pred_rows": 7,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Price Range"
+   ],
+   [
+    "By Appointment Only"
+   ],
+   [
+    "parking_street"
+   ],
+   [
+    "parking_garage"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Alcohol"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "attributes",
+    "business",
+    "business_attributes"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "attributes",
+    "business",
+    "business_attributes"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "benchmark ambiguity"
+  ],
+  "note": "the proposal returns all 7 attributes of one top-starred business; the reference takes the first row of an ordered join (1 attribute). Many businesses tie at the top rating"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-01600",
+  "db": "public_review_platform",
+  "question": "What is the category of the business with short review length and highest review stars within business ID from 7 to 14?",
+  "evidence": "category of the business refers to category_name; short review length refers to review_length = 'Short'; the highest star rating refers to MAX(stars); business ID from 7 to 14 refers to business_id BETWEEN 7 AND 14",
+  "pred": "SELECT T2.category_name\nFROM Reviews AS T1\nJOIN Business_Categories AS T3 ON T1.business_id = T3.business_id\nJOIN Categories AS T2 ON T3.category_id = T2.category_id\nWHERE T1.review_length = 'Short'\n  AND T1.business_id BETWEEN 7 AND 14\nGROUP BY T1.business_id\nORDER BY MAX(T1.review_stars) DESC\nLIMIT 1",
+  "gold": "SELECT DISTINCT T3.category_name FROM Reviews AS T1 INNER JOIN Business_Categories AS T2 ON T1.business_id = T2.business_id INNER JOIN Categories AS T3 ON T2.category_id = T3.category_id WHERE T2.business_id >= 7 AND T2.business_id < 15 AND T1.review_length = 'Short' AND T1.review_stars = ( SELECT MAX(review_stars) FROM Reviews )",
+  "pred_rows": 1,
+  "gold_rows": 6,
+  "pred_head": [
+   [
+    "Shopping"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Shopping"
+   ],
+   [
+    "Mobile Phones"
+   ],
+   [
+    "Restaurants"
+   ],
+   [
+    "Breakfast & Brunch"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "business_categories",
+    "categories",
+    "reviews"
+   ],
+   "aggs": [
+    "Max"
+   ],
+   "group": true,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1",
+    "14",
+    "7",
+    "Short"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "business_categories",
+    "categories",
+    "reviews"
+   ],
+   "aggs": [
+    "Max"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 6,
+   "literals": [
+    "15",
+    "7",
+    "Short"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "benchmark ambiguity?"
+  ],
+  "note": "the proposal takes the highest rating per business within 7-14 and LIMIT 1 (1 category); the reference matches review_stars to the global MAX over all Reviews (6 categories)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-01633",
+  "db": "simpson_episodes",
+  "question": "What is the title of episode that won the Best International TV Series Award in 2017?",
+  "evidence": "won refers to result = 'Winner'; in 2017 refers to year = 2017",
+  "pred": "SELECT T1.title \nFROM Episode AS T1 \nINNER JOIN Award AS T2 ON T1.episode_id = T2.episode_id \nWHERE T2.result = 'Winner' AND T2.award_category = 'Best International TV Series' AND T2.year = 2017",
+  "gold": "SELECT T2.title FROM Award AS T1 INNER JOIN Episode AS T2 ON T1.episode_id = T2.episode_id WHERE SUBSTR(T1.year, 1, 4) = '2017' AND T1.award = 'Best International TV Series' AND T1.result = 'Winner';",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "MyPods and Boomsticks"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "award",
+    "episode"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "2017",
+    "Best International TV Series",
+    "Winner"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "award",
+    "episode"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1",
+    "2017",
+    "4",
+    "Best International TV Series",
+    "Winner"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "'Best International TV Series' filtered on award_category; the value lives in award: 0 rows"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-01666",
+  "db": "simpson_episodes",
+  "question": "How many votes of 5-star did the episode \"Lisa the Drama Queen\" receive?",
+  "evidence": "episode \"Lisa the Drama Queen\" refers to title = 'Lisa the Drama Queen';",
+  "pred": "SELECT COUNT(*) AS vote_count FROM Vote WHERE episode_id = (SELECT episode_id FROM Episode WHERE title = 'Lisa the Drama Queen') AND stars = 5",
+  "gold": "SELECT SUM(T2.votes) FROM Episode AS T1 INNER JOIN Vote AS T2 ON T2.episode_id = T1.episode_id WHERE T1.title = 'Lisa the Drama Queen' AND T2.stars = 5;",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "1"
+   ]
+  ],
+  "gold_head": [
+   [
+    "134"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "episode",
+    "vote"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "5",
+    "Lisa the Drama Queen"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "episode",
+    "vote"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "5",
+    "Lisa the Drama Queen"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "schema/value grounding"
+  ],
+  "note": "COUNT(*) of Vote rows (1) where the Vote table carries a votes column to SUM (134)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-02957",
+  "db": "image_and_language",
+  "question": "How many white objects are there in image no.2347915?",
+  "evidence": "white objects refers to ATT_CLASS = 'white'; image no.2347915 refers to IMG_ID = 2347915",
+  "pred": "SELECT COUNT(*) FROM IMG_OBJ_ATT AS T1 \nINNER JOIN ATT_CLASSES AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID \nINNER JOIN IMG_OBJ AS T3 ON T1.OBJ_SAMPLE_ID = T3.OBJ_SAMPLE_ID \nWHERE T2.ATT_CLASS = 'white' AND T1.IMG_ID = 2347915",
+  "gold": "SELECT SUM(CASE WHEN T2.ATT_CLASS = 'white' THEN 1 ELSE 0 END) FROM IMG_OBJ_ATT AS T1 INNER JOIN ATT_CLASSES AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID WHERE T1.IMG_ID = 2347915",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "84084"
+   ]
+  ],
+  "gold_head": [
+   [
+    "2"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "2347915",
+    "white"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj_att"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "0",
+    "1",
+    "2347915",
+    "white"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "joins"
+  ],
+  "note": "IMG_OBJ joined on OBJ_SAMPLE_ID alone, which is unique only within an image: 84,084 against 2"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-02992",
+  "db": "image_and_language",
+  "question": "Calculate the average of object samples for the image.",
+  "evidence": "DIVIDE(COUNT(OBJ_SAMPLE_ID), COUNT(IMG_ID));",
+  "pred": "SELECT AVG(CAST(T1.OBJ_SAMPLE_ID AS REAL)) FROM IMG_OBJ AS T1",
+  "gold": "SELECT CAST(COUNT(OBJ_SAMPLE_ID) AS REAL) / COUNT(DISTINCT IMG_ID) FROM IMG_OBJ",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "10.810700455896407"
+   ]
+  ],
+  "gold_head": [
+   [
+    "16.560561914672217"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "img_obj"
+   ],
+   "aggs": [
+    "Avg"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 0,
+   "literals": [],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "img_obj"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 0,
+   "literals": [],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering"
+  ],
+  "note": "AVG of the OBJ_SAMPLE_ID values, not the evidence's COUNT(OBJ_SAMPLE_ID) / COUNT(IMG_ID)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-03000",
+  "db": "image_and_language",
+  "question": "List all the attribute classes of the images that have a (5,5) coordinate.",
+  "evidence": "attribute classes refer to ATT_CLASS; (5,5) coordinate refers to X and Y coordinates of the bounding box where X = 5 and Y = 5;",
+  "pred": "SELECT DISTINCT T2.ATT_CLASS \nFROM IMG_OBJ_ATT AS T1 \nINNER JOIN ATT_CLASSES AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID \nINNER JOIN IMG_OBJ AS T3 ON T1.OBJ_SAMPLE_ID = T3.OBJ_SAMPLE_ID \nWHERE T3.X = 5 AND T3.Y = 5",
+  "gold": "SELECT T1.ATT_CLASS FROM ATT_CLASSES AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID INNER JOIN IMG_OBJ AS T3 ON T2.IMG_ID = T3.IMG_ID WHERE T3.X = 5 AND T3.Y = 5",
+  "pred_rows": 699,
+  "gold_rows": 1640,
+  "pred_head": [
+   [
+    "building s"
+   ],
+   [
+    "indoors"
+   ],
+   [
+    "cluttered"
+   ],
+   [
+    "park"
+   ]
+  ],
+  "gold_head": [
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ]
+  ],
+  "same_initial_both_seeds": true,
+  "pred_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 4,
+   "literals": [
+    "5"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "5"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "joins",
+   "benchmark ambiguity?"
+  ],
+  "note": "object-level join on OBJ_SAMPLE_ID alone (an incomplete key) with DISTINCT; the reference joins at image level on IMG_ID without DISTINCT (1,640 rows with duplicates)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-03089",
+  "db": "hockey",
+  "question": "Please list the first names of the coaches whose team played in 1922's Stanley Cup finals.",
+  "evidence": "teams refer to tmID; year = 1922;",
+  "pred": "SELECT M.firstName\nFROM Coaches C\nJOIN Teams T ON C.tmID = T.tmID AND C.year = T.year\nJOIN Master M ON C.coachID = M.coachID\nWHERE T.year = 1922",
+  "gold": "SELECT T3.firstName FROM Coaches AS T1 INNER JOIN TeamsSC AS T2 ON T1.year = T2.year AND T1.tmID = T2.tmID INNER JOIN Master AS T3 ON T1.coachID = T3.coachID WHERE T2.year = 1922",
+  "pred_rows": 12,
+  "gold_rows": 3,
+  "pred_head": [
+   [
+    "Wes"
+   ],
+   [
+    "Leo"
+   ],
+   [
+    "Herb"
+   ],
+   [
+    "Pete"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Pete"
+   ],
+   [
+    "Ken"
+   ],
+   [
+    "Frank"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "coaches",
+    "master",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1922"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "coaches",
+    "master",
+    "teamssc"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1922"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "missing predicate?"
+  ],
+  "note": "Teams instead of TeamsSC: every 1922 team, not the Stanley Cup finalists (12 against 3)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-03140",
+  "db": "world",
+  "question": "What are the official languages used in Greece?",
+  "evidence": "official language refers to IsOfficial = 'T'; Greece is a name of country;",
+  "pred": "SELECT Language \nFROM CountryLanguage \nWHERE CountryCode = 'GR' AND IsOfficial = 'T'",
+  "gold": "SELECT T1.Language FROM CountryLanguage AS T1 INNER JOIN Country AS T2 ON T1.CountryCode = T2.Code WHERE T1.IsOfficial = 'T' AND T2.name = 'Greece'",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "Greek"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "GR",
+    "T"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "country",
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "Greece",
+    "T"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "CountryCode = 'GR' guessed; Greece is 'GRC' (the reference joins Country by name): 0 rows"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-03553",
+  "db": "food_inspection",
+  "question": "Among the businesses within the postal code 94117, what is total number of businesses with a high risk category?",
+  "evidence": "businesses with a high risk category refer to business_id where risk_category = 'High Risk';",
+  "pred": "SELECT COUNT(*) \nFROM businesses b\nJOIN violations v ON b.business_id = v.business_id\nWHERE b.postal_code = '94117' AND v.risk_category = 'High Risk'",
+  "gold": "SELECT COUNT(DISTINCT T2.business_id) FROM violations AS T1 INNER JOIN businesses AS T2 ON T1.business_id = T2.business_id WHERE T2.postal_code = 94117 AND T1.risk_category = 'High Risk'",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "143"
+   ]
+  ],
+  "gold_head": [
+   [
+    "74"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "businesses",
+    "violations"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "94117",
+    "High Risk"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "businesses",
+    "violations"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 3,
+   "literals": [
+    "94117",
+    "High Risk"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "joins"
+  ],
+  "note": "COUNT(*) over businesses x violations counts violations (143); the question counts businesses (COUNT DISTINCT: 74)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-03945",
+  "db": "computer_student",
+  "question": "What is the ratio of professors and students?",
+  "evidence": "professors refers to professor = 1; students refers to student = 1; ratio = divide(count(person.p_id) when professor = 1, count(person.p_id) when student = 1)",
+  "pred": "SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS ratio FROM person",
+  "gold": "SELECT CAST(SUM(CASE  WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE  WHEN student = 1 THEN 1 ELSE 0 END) AS per FROM person",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "0.28703703703703703"
+   ]
+  ],
+  "gold_head": [
+   [
+    "28.703703703703702"
+   ]
+  ],
+  "same_initial_both_seeds": true,
+  "pred_feats": {
+   "tables": [
+    "person"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "person"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1",
+    "100"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "the evidence defines a ratio; the proposal returns it (0.287), the reference multiplies by 100 (28.7)"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-04247",
+  "db": "professional_basketball",
+  "question": "What is the first and last name of the player with the highest field goal made rate in 1973?",
+  "evidence": "in 1973 refers to year = 1973; player with highest field goal made refers to Max(Divide(fgMade, fgAttempted))",
+  "pred": "SELECT T1.firstName, T1.lastName\nFROM players AS T1\nJOIN players_teams AS T2 ON T1.playerID = T2.playerID\nJOIN teams AS T3 ON T2.tmID = T3.tmID AND T2.year = T3.year\nWHERE T3.year = 1973\nORDER BY T2.fgMade / NULLIF(T2.fgAttempted, 0) DESC\nLIMIT 1",
+  "gold": "SELECT T1.firstName, T1.lastName FROM players AS T1 INNER JOIN players_teams AS T2 ON T1.playerID = T2.playerID WHERE year = 1973 ORDER BY CAST(T2.fgMade AS REAL) / T2.fgAttempted DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Kareem",
+    "Abdul-Jabbar"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Walter",
+    "Brown"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "players",
+    "players_teams",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "0",
+    "1",
+    "1973"
+   ],
+   "cols_out": 2
+  },
+  "gold_feats": {
+   "tables": [
+    "players",
+    "players_teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1",
+    "1973"
+   ],
+   "cols_out": 2
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering"
+  ],
+  "note": "fgMade / fgAttempted in integer arithmetic (SQLite truncates), so the ordering is wrong; the reference casts to REAL"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-04354",
+  "db": "public_review_platform",
+  "question": "How many businesses are actively running in Gilbert City?",
+  "evidence": "actively running refers to active = 'true';",
+  "pred": "SELECT COUNT(*) FROM Business WHERE city = 'Gilbert City' AND active = 'true'",
+  "gold": "SELECT COUNT(business_id) FROM Business WHERE city LIKE 'Gilbert' AND active LIKE 'True'",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "0"
+   ]
+  ],
+  "gold_head": [
+   [
+    "571"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "business"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "Gilbert City",
+    "true"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "business"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "Gilbert",
+    "True"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "the city is stored as 'Gilbert', so 'Gilbert City' matches nothing: 0 against 571. active is stored as 'true', so the proposal's active = 'true' is right; the reference's LIKE 'True' matches it case-insensitively (corrected: an earlier version said the stored value was 'True')"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-04816",
+  "db": "ice_hockey_draft",
+  "question": "Among all players drafted by the Toronto Maple Leafs, identify the percentage who are from Eastern Europe.",
+  "evidence": "players refers to PlayerName; drafted by the Toronto Maple Leafs refers to overallby = 'Toronto Maple Leafs'; percentage = MULTIPLY(DIVIDE(SUM(nation = 'Eastern Europe'), COUNT(ELITEID) WHERE overallby = 'Toronto Maple Leafs'), 100); from Eastern Europe refers to nation in ('Belarus', 'Bulgaria', 'Czech Republic', 'Hungary', 'Moldova', 'Poland', 'Romania', 'Slovakia', 'Ukraine'); countries in a continent can be identified by referring to https://worldpopulationreview.com/country-rankings/list-of-countries-by-continent;",
+  "pred": "SELECT CAST(SUM(IIF(PlayerInfo.nation IN ('Belarus', 'Bulgaria', 'Czech Republic', 'Hungary', 'Moldova', 'Poland', 'Romania', 'Slovakia', 'Ukraine'), 1, 0)) AS REAL) * 100 / COUNT(PlayerInfo.ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'",
+  "gold": "SELECT CAST(COUNT(CASE WHEN nation IN ('Belarus', 'Czech Rep.', 'Slovakia', 'Ukraine') THEN ELITEID ELSE NULL END) AS REAL) * 100 / COUNT(ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "9.090909090909092"
+   ]
+  ],
+  "gold_head": [
+   [
+    "24.242424242424242"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "playerinfo"
+   ],
+   "aggs": [
+    "Count",
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1",
+    "100",
+    "Belarus",
+    "Bulgaria",
+    "Czech Republic",
+    "Hungary",
+    "Moldova"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "playerinfo"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "100",
+    "Belarus",
+    "Czech Rep.",
+    "Slovakia",
+    "Toronto Maple Leafs",
+    "Ukraine"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "benchmark ambiguity"
+  ],
+  "note": "the proposal follows the evidence's country list, but the database stores 'Czech Rep.' and the reference uses a shorter list"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-04930",
+  "db": "hockey",
+  "question": "Name the goalies and season they played when Boston Bruins won number 1 in rank.",
+  "evidence": "goalies refers to pos = 'G'; season refers to year\n",
+  "pred": "SELECT M.lastName, M.firstName, T.year\nFROM Teams AS T\nJOIN Master AS M ON T.tmID = M.playerID\nWHERE T.name = 'Boston Bruins' AND T.rank = 1",
+  "gold": "SELECT T1.firstName, T1.lastName, T3.year FROM Master AS T1 INNER JOIN Goalies AS T2 ON T1.playerID = T2.playerID INNER JOIN Teams AS T3 ON T2.year = T3.year AND T2.tmID = T3.tmID WHERE T1.deathYear IS NOT NULL AND T3.name = 'Boston Bruins' AND T3.rank = 1 AND T1.pos = 'G'",
+  "pred_rows": 0,
+  "gold_rows": 11,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "Frank",
+    "Brimsek",
+    "1938"
+   ],
+   [
+    "Frank",
+    "Brimsek",
+    "1939"
+   ],
+   [
+    "Frank",
+    "Brimsek",
+    "1940"
+   ],
+   [
+    "Tiny",
+    "Thompson",
+    "1928"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "master",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "1",
+    "Boston Bruins"
+   ],
+   "cols_out": 3
+  },
+  "gold_feats": {
+   "tables": [
+    "goalies",
+    "master",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 6,
+   "literals": [
+    "1",
+    "Boston Bruins",
+    "G"
+   ],
+   "cols_out": 3
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "joins",
+   "schema/value grounding",
+   "missing predicate"
+  ],
+  "note": "Teams joined to Master on tmID = playerID (meaningless), no Goalies table and no pos = 'G'. The reference also adds an unrequested deathYear IS NOT NULL"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-05527",
+  "db": "disney",
+  "question": "What is Disney's highest grossing action movie?",
+  "evidence": "action movie refers to movie_title where genre = 'Action'; highest grossing movie refers to MAX(total_gross)",
+  "pred": "SELECT T2.movie_title\nFROM movies_total_gross AS T1\nINNER JOIN characters AS T2 ON T1.movie_title = T2.movie_title\nWHERE T1.genre = 'Action'\nORDER BY CAST(REPLACE(T1.total_gross, '$', '') AS INTEGER) DESC\nLIMIT 1",
+  "gold": "SELECT movie_title FROM movies_total_gross WHERE genre = 'Action' ORDER BY CAST(REPLACE(trim(total_gross, '$'), ',', '') AS REAL) DESC LIMIT 1",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "The Avengers"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "characters",
+    "movies_total_gross"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "",
+    "$",
+    "1",
+    "Action"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "movies_total_gross"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 1,
+   "literals": [
+    "",
+    "$",
+    ",",
+    "1",
+    "Action"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "joins",
+   "schema/value grounding"
+  ],
+  "note": "an unneeded inner join to characters drops the movie; total_gross ('$1,234') cast without removing commas: 0 rows"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-05954",
+  "db": "soccer_2016",
+  "question": "How many overs were there in the first innings of match ID \"335996\"?",
+  "evidence": "the first innings refers to Innings_No = 1; match ID \"335996\" refers to Match_Id = 335996",
+  "pred": "SELECT COUNT(*) AS overs_count FROM Extra_Runs WHERE Match_Id = 335996 AND Innings_No = 1",
+  "gold": "SELECT COUNT(Over_Id) FROM Ball_by_Ball WHERE Match_Id = 335996 AND Innings_No = 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "6"
+   ]
+  ],
+  "gold_head": [
+   [
+    "124"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "extra_runs"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1",
+    "335996"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "ball_by_ball"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1",
+    "335996"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "benchmark ambiguity?"
+  ],
+  "note": "Extra_Runs instead of Ball_by_Ball (6 against 124); the reference itself counts balls (COUNT(Over_Id)), not distinct overs"
+ },
+ {
+  "seed": 200,
+  "task_id": "bird23tf-06494",
+  "db": "hockey",
+  "question": "Who is the youngest player who is still living. State the given name and date of birth.",
+  "evidence": "still living refers to deathYear IS NULL; youngest refers to MAX(birthYear,birthMon,birthDay)",
+  "pred": "SELECT firstName, birthYear || '/' || birthMon || '/' || birthDay AS birthDate \nFROM Master \nWHERE deathYear IS NULL \nORDER BY CAST(birthYear AS INTEGER) ASC, CAST(birthMon AS INTEGER) ASC, CAST(birthDay AS INTEGER) ASC \nLIMIT 1",
+  "gold": "SELECT nameGiven , nameGiven , birthYear, birthMon, birthDay FROM Master WHERE deathYear IS NULL ORDER BY birthYear DESC, birthMon DESC, birthday DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Petr",
+    "None"
+   ]
+  ],
+  "gold_head": [
+   [
+    "None",
+    "None",
+    "1993",
+    "4"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "master"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 0,
+   "literals": [
+    "/",
+    "1"
+   ],
+   "cols_out": 2
+  },
+  "gold_feats": {
+   "tables": [
+    "master"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 0,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 5
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "schema/value grounding"
+  ],
+  "note": "'youngest' sorted ascending (oldest first), and firstName instead of the given name (nameGiven)"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-01107",
+  "db": "professional_basketball",
+  "question": "In what year did the only team to beat the Houston in the final round of postseason series games earn its lowest ranking?",
+  "evidence": "beat the Huston refers to tmIDLoser = 'HSM';\u00a0 in final round of post season refers to round = 'DSF'",
+  "pred": "SELECT T2.year\nFROM teams AS T2\nINNER JOIN series_post AS T1 ON T2.tmID = T1.tmIDLoser\nWHERE T1.tmIDLoser = 'HSM' \n  AND T1.round = 'DSF'\n  AND (T1.tmIDWinner, T2.rank) IN (\n    SELECT tmIDWinner, MIN(rank)\n    FROM series_post\n    INNER JOIN teams ON teams.tmID = series_post.tmIDWinner\n    WHERE round = 'DSF'\n    GROUP BY tmIDWinner\n  )",
+  "gold": "SELECT T2.year FROM series_post AS T1 INNER JOIN teams AS T2 ON T1.tmIDWinner = T2.tmID WHERE T1.round = 'DSF' AND T1.tmIDLoser = 'HSM' ORDER BY T2.rank ASC LIMIT 1",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "1967"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "series_post",
+    "teams"
+   ],
+   "aggs": [
+    "Min"
+   ],
+   "group": true,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 6,
+   "literals": [
+    "DSF",
+    "HSM"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "series_post",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "1",
+    "DSF",
+    "HSM"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query uses a construct outside the typed representation (row value); it was checked by execution only",
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "joins"
+  ],
+  "note": "teams joined on the loser (tmIDLoser) instead of the winner, with a row-value IN over a grouped MIN: 0 rows"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-01497",
+  "db": "public_review_platform",
+  "question": "What is the attribute of the business with highest star rating?",
+  "evidence": "highest star rating Max(stars); attribute of business refers to attribute_name",
+  "pred": "SELECT attribute_name\nFROM Business_Attributes\nINNER JOIN Attributes ON Business_Attributes.attribute_id = Attributes.attribute_id\nWHERE business_id IN (\n    SELECT business_id\n    FROM Business\n    ORDER BY stars DESC\n    LIMIT 1\n)",
+  "gold": "SELECT T3.attribute_name FROM Business AS T1 INNER JOIN Business_Attributes AS T2 ON T1.business_id = T2.business_id INNER JOIN Attributes AS T3 ON T2.attribute_id = T3.attribute_id ORDER BY T1.stars DESC LIMIT 1",
+  "pred_rows": 7,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Price Range"
+   ],
+   [
+    "By Appointment Only"
+   ],
+   [
+    "parking_street"
+   ],
+   [
+    "parking_garage"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Alcohol"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "attributes",
+    "business",
+    "business_attributes"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "attributes",
+    "business",
+    "business_attributes"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "benchmark ambiguity"
+  ],
+  "note": "the same reading as bird23tf-01497 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-01600",
+  "db": "public_review_platform",
+  "question": "What is the category of the business with short review length and highest review stars within business ID from 7 to 14?",
+  "evidence": "category of the business refers to category_name; short review length refers to review_length = 'Short'; the highest star rating refers to MAX(stars); business ID from 7 to 14 refers to business_id BETWEEN 7 AND 14",
+  "pred": "SELECT C.category_name\nFROM Reviews AS R\nINNER JOIN Business_Categories AS BC ON R.business_id = BC.business_id\nINNER JOIN Categories AS C ON BC.category_id = C.category_id\nWHERE R.business_id BETWEEN 7 AND 14\n  AND R.review_length = 'Short'\nGROUP BY R.business_id\nORDER BY MAX(R.review_stars) DESC\nLIMIT 1",
+  "gold": "SELECT DISTINCT T3.category_name FROM Reviews AS T1 INNER JOIN Business_Categories AS T2 ON T1.business_id = T2.business_id INNER JOIN Categories AS T3 ON T2.category_id = T3.category_id WHERE T2.business_id >= 7 AND T2.business_id < 15 AND T1.review_length = 'Short' AND T1.review_stars = ( SELECT MAX(review_stars) FROM Reviews )",
+  "pred_rows": 1,
+  "gold_rows": 6,
+  "pred_head": [
+   [
+    "Shopping"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Shopping"
+   ],
+   [
+    "Mobile Phones"
+   ],
+   [
+    "Restaurants"
+   ],
+   [
+    "Breakfast & Brunch"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "business_categories",
+    "categories",
+    "reviews"
+   ],
+   "aggs": [
+    "Max"
+   ],
+   "group": true,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1",
+    "14",
+    "7",
+    "Short"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "business_categories",
+    "categories",
+    "reviews"
+   ],
+   "aggs": [
+    "Max"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 6,
+   "literals": [
+    "15",
+    "7",
+    "Short"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "aggregation/grouping/ordering",
+   "benchmark ambiguity?"
+  ],
+  "note": "the same reading as bird23tf-01600 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-01633",
+  "db": "simpson_episodes",
+  "question": "What is the title of episode that won the Best International TV Series Award in 2017?",
+  "evidence": "won refers to result = 'Winner'; in 2017 refers to year = 2017",
+  "pred": "SELECT T1.title \nFROM Episode AS T1 \nINNER JOIN Award AS T2 ON T1.episode_id = T2.episode_id \nWHERE T2.result = 'Winner' \nAND T2.year = 2017 \nAND T2.award_category = 'Best International TV Series'",
+  "gold": "SELECT T2.title FROM Award AS T1 INNER JOIN Episode AS T2 ON T1.episode_id = T2.episode_id WHERE SUBSTR(T1.year, 1, 4) = '2017' AND T1.award = 'Best International TV Series' AND T1.result = 'Winner';",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "MyPods and Boomsticks"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "award",
+    "episode"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "2017",
+    "Best International TV Series",
+    "Winner"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "award",
+    "episode"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1",
+    "2017",
+    "4",
+    "Best International TV Series",
+    "Winner"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "the same reading as bird23tf-01633 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-01840",
+  "db": "disney",
+  "question": "Who directed the movie with the most voice actors?",
+  "evidence": "who directed refers director;",
+  "pred": "SELECT T1.name\nFROM director AS T1\nINNER JOIN characters AS T2 ON T1.name = T2.movie_title\nINNER JOIN `voice-actors` AS T3 ON T2.movie_title = T3.movie\nGROUP BY T1.name\nORDER BY COUNT(T3.character) DESC\nLIMIT 1",
+  "gold": "SELECT T2.director, COUNT(DISTINCT T1.`voice-actor`) FROM `voice-actors` AS T1 INNER JOIN director AS T2 ON T1.movie = T2.name GROUP BY T2.director ORDER BY COUNT(DISTINCT T1.`voice-actor`) DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Zootopia"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Ron Clements",
+    "92"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "characters",
+    "director",
+    "voice-actors"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": true,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "director",
+    "voice-actors"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": true,
+   "order": true,
+   "limit": true,
+   "distinct": true,
+   "where_conds": 1,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 2
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "aggregation/grouping/ordering",
+   "benchmark ambiguity?"
+  ],
+  "note": "director.name holds the movie, director.director the person: the proposal returns a movie (Zootopia). It counts characters, not distinct voice actors; the reference also returns the count as a second column"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-02992",
+  "db": "image_and_language",
+  "question": "Calculate the average of object samples for the image.",
+  "evidence": "DIVIDE(COUNT(OBJ_SAMPLE_ID), COUNT(IMG_ID));",
+  "pred": "SELECT AVG(T2.OBJ_SAMPLE_ID) FROM IMG_OBJ AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.OBJ_SAMPLE_ID = T2.OBJ_SAMPLE_ID WHERE T1.IMG_ID = (SELECT IMG_ID FROM IMG_OBJ_ATT GROUP BY IMG_ID HAVING COUNT(*) > 0 LIMIT 1)",
+  "gold": "SELECT CAST(COUNT(OBJ_SAMPLE_ID) AS REAL) / COUNT(DISTINCT IMG_ID) FROM IMG_OBJ",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "9.312943752330506"
+   ]
+  ],
+  "gold_head": [
+   [
+    "16.560561914672217"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [
+    "Avg",
+    "Count"
+   ],
+   "group": true,
+   "order": false,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "0",
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "img_obj"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 0,
+   "literals": [],
+   "cols_out": 1
+  },
+  "warnings": [
+   "in the main query, the literal 0 does not occur verbatim in the question or evidence (it may still be right)",
+   "in the subquery at top/sub, the literal 0 does not occur verbatim in the question or evidence (it may still be right)"
+  ],
+  "labels": [
+   "aggregation/grouping/ordering"
+  ],
+  "note": "the same reading as bird23tf-02992 at seed 200, restricted to one image"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-03000",
+  "db": "image_and_language",
+  "question": "List all the attribute classes of the images that have a (5,5) coordinate.",
+  "evidence": "attribute classes refer to ATT_CLASS; (5,5) coordinate refers to X and Y coordinates of the bounding box where X = 5 and Y = 5;",
+  "pred": "SELECT DISTINCT T2.ATT_CLASS \nFROM IMG_OBJ_ATT AS T1 \nINNER JOIN ATT_CLASSES AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID \nINNER JOIN IMG_OBJ AS T3 ON T1.OBJ_SAMPLE_ID = T3.OBJ_SAMPLE_ID \nWHERE T3.X = 5 AND T3.Y = 5",
+  "gold": "SELECT T1.ATT_CLASS FROM ATT_CLASSES AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID INNER JOIN IMG_OBJ AS T3 ON T2.IMG_ID = T3.IMG_ID WHERE T3.X = 5 AND T3.Y = 5",
+  "pred_rows": 699,
+  "gold_rows": 1640,
+  "pred_head": [
+   [
+    "building s"
+   ],
+   [
+    "indoors"
+   ],
+   [
+    "cluttered"
+   ],
+   [
+    "park"
+   ]
+  ],
+  "gold_head": [
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ],
+   [
+    "silver"
+   ]
+  ],
+  "same_initial_both_seeds": true,
+  "pred_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 4,
+   "literals": [
+    "5"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "att_classes",
+    "img_obj",
+    "img_obj_att"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "5"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "joins",
+   "benchmark ambiguity?"
+  ],
+  "note": "the same reading as bird23tf-03000 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-03089",
+  "db": "hockey",
+  "question": "Please list the first names of the coaches whose team played in 1922's Stanley Cup finals.",
+  "evidence": "teams refer to tmID; year = 1922;",
+  "pred": "SELECT DISTINCT M.firstName\nFROM Coaches C\nJOIN Teams T ON C.tmID = T.tmID AND C.year = T.year\nJOIN Master M ON C.coachID = M.coachID\nWHERE T.year = 1922",
+  "gold": "SELECT T3.firstName FROM Coaches AS T1 INNER JOIN TeamsSC AS T2 ON T1.year = T2.year AND T1.tmID = T2.tmID INNER JOIN Master AS T3 ON T1.coachID = T3.coachID WHERE T2.year = 1922",
+  "pred_rows": 11,
+  "gold_rows": 3,
+  "pred_head": [
+   [
+    "Wes"
+   ],
+   [
+    "Leo"
+   ],
+   [
+    "Herb"
+   ],
+   [
+    "Pete"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Pete"
+   ],
+   [
+    "Ken"
+   ],
+   [
+    "Frank"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "coaches",
+    "master",
+    "teams"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": true,
+   "where_conds": 4,
+   "literals": [
+    "1922"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "coaches",
+    "master",
+    "teamssc"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 4,
+   "literals": [
+    "1922"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "missing predicate?"
+  ],
+  "note": "the same reading as bird23tf-03089 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-03119",
+  "db": "world",
+  "question": "Provide the name, capital city and its official language of the country with the highest life expectancy.",
+  "evidence": "capital city refers to Capital; official language refers to IsOfficial = 'T'; highest life expectancy refers to MAX(LifeExpectancy);",
+  "pred": "SELECT c.Name, ci.Name, cl.Language\nFROM Country AS c\nJOIN City AS ci ON c.Capital = ci.ID\nJOIN CountryLanguage AS cl ON c.Code = cl.CountryCode AND cl.IsOfficial = 'T'\nORDER BY c.LifeExpectancy DESC\nLIMIT 1",
+  "gold": "SELECT T1.Name, T1.Capital, T2.Language FROM Country AS T1 INNER JOIN CountryLanguage AS T2 ON T1.Code = T2.CountryCode INNER JOIN City AS T3 ON T1.Code = T3.CountryCode WHERE T2.IsOfficial = 'T' ORDER BY T1.LifeExpectancy DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Andorra",
+    "Andorra la Vella",
+    "Catalan"
+   ]
+  ],
+  "gold_head": [
+   [
+    "Andorra",
+    "55",
+    "Catalan"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "city",
+    "country",
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "1",
+    "T"
+   ],
+   "cols_out": 3
+  },
+  "gold_feats": {
+   "tables": [
+    "city",
+    "country",
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "1",
+    "T"
+   ],
+   "cols_out": 3
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "the proposal returns the capital city's name (Andorra la Vella); the reference returns the Capital id (55). The proposal answers the question as asked"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-03140",
+  "db": "world",
+  "question": "What are the official languages used in Greece?",
+  "evidence": "official language refers to IsOfficial = 'T'; Greece is a name of country;",
+  "pred": "SELECT Language\nFROM CountryLanguage\nWHERE CountryCode = 'GR' AND IsOfficial = 'T'",
+  "gold": "SELECT T1.Language FROM CountryLanguage AS T1 INNER JOIN Country AS T2 ON T1.CountryCode = T2.Code WHERE T1.IsOfficial = 'T' AND T2.name = 'Greece'",
+  "pred_rows": 0,
+  "gold_rows": 1,
+  "pred_head": [],
+  "gold_head": [
+   [
+    "Greek"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "GR",
+    "T"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "country",
+    "countrylanguage"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 3,
+   "literals": [
+    "Greece",
+    "T"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [
+   "the query returned no rows (this can be the right answer)"
+  ],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "the same reading as bird23tf-03140 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-03945",
+  "db": "computer_student",
+  "question": "What is the ratio of professors and students?",
+  "evidence": "professors refers to professor = 1; students refers to student = 1; ratio = divide(count(person.p_id) when professor = 1, count(person.p_id) when student = 1)",
+  "pred": "SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS ratio FROM person",
+  "gold": "SELECT CAST(SUM(CASE  WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE  WHEN student = 1 THEN 1 ELSE 0 END) AS per FROM person",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "0.28703703703703703"
+   ]
+  ],
+  "gold_head": [
+   [
+    "28.703703703703702"
+   ]
+  ],
+  "same_initial_both_seeds": true,
+  "pred_feats": {
+   "tables": [
+    "person"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "person"
+   ],
+   "aggs": [
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1",
+    "100"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "the same reading as bird23tf-03945 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-04354",
+  "db": "public_review_platform",
+  "question": "How many businesses are actively running in Gilbert City?",
+  "evidence": "actively running refers to active = 'true';",
+  "pred": "SELECT COUNT(*) \nFROM Business \nWHERE active = 'true' AND city = 'Gilbert City'",
+  "gold": "SELECT COUNT(business_id) FROM Business WHERE city LIKE 'Gilbert' AND active LIKE 'True'",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "0"
+   ]
+  ],
+  "gold_head": [
+   [
+    "571"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "business"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "Gilbert City",
+    "true"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "business"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "Gilbert",
+    "True"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "the same reading as bird23tf-04354 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-04816",
+  "db": "ice_hockey_draft",
+  "question": "Among all players drafted by the Toronto Maple Leafs, identify the percentage who are from Eastern Europe.",
+  "evidence": "players refers to PlayerName; drafted by the Toronto Maple Leafs refers to overallby = 'Toronto Maple Leafs'; percentage = MULTIPLY(DIVIDE(SUM(nation = 'Eastern Europe'), COUNT(ELITEID) WHERE overallby = 'Toronto Maple Leafs'), 100); from Eastern Europe refers to nation in ('Belarus', 'Bulgaria', 'Czech Republic', 'Hungary', 'Moldova', 'Poland', 'Romania', 'Slovakia', 'Ukraine'); countries in a continent can be identified by referring to https://worldpopulationreview.com/country-rankings/list-of-countries-by-continent;",
+  "pred": "SELECT CAST(SUM(IIF(nation IN ('Belarus', 'Bulgaria', 'Czech Republic', 'Hungary', 'Moldova', 'Poland', 'Romania', 'Slovakia', 'Ukraine'), 1, 0)) AS REAL) * 100 / COUNT(ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'",
+  "gold": "SELECT CAST(COUNT(CASE WHEN nation IN ('Belarus', 'Czech Rep.', 'Slovakia', 'Ukraine') THEN ELITEID ELSE NULL END) AS REAL) * 100 / COUNT(ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "9.090909090909092"
+   ]
+  ],
+  "gold_head": [
+   [
+    "24.242424242424242"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "playerinfo"
+   ],
+   "aggs": [
+    "Count",
+    "Sum"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "0",
+    "1",
+    "100",
+    "Belarus",
+    "Bulgaria",
+    "Czech Republic",
+    "Hungary",
+    "Moldova"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "playerinfo"
+   ],
+   "aggs": [
+    "Count"
+   ],
+   "group": false,
+   "order": false,
+   "limit": false,
+   "distinct": false,
+   "where_conds": 2,
+   "literals": [
+    "100",
+    "Belarus",
+    "Czech Rep.",
+    "Slovakia",
+    "Toronto Maple Leafs",
+    "Ukraine"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding",
+   "benchmark ambiguity"
+  ],
+  "note": "the same reading as bird23tf-04816 at seed 200"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-05527",
+  "db": "disney",
+  "question": "What is Disney's highest grossing action movie?",
+  "evidence": "action movie refers to movie_title where genre = 'Action'; highest grossing movie refers to MAX(total_gross)",
+  "pred": "SELECT movie_title FROM movies_total_gross WHERE genre = 'Action' ORDER BY total_gross DESC LIMIT 1",
+  "gold": "SELECT movie_title FROM movies_total_gross WHERE genre = 'Action' ORDER BY CAST(REPLACE(trim(total_gross, '$'), ',', '') AS REAL) DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "Crimson Tide"
+   ]
+  ],
+  "gold_head": [
+   [
+    "The Avengers"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "movies_total_gross"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 1,
+   "literals": [
+    "1",
+    "Action"
+   ],
+   "cols_out": 1
+  },
+  "gold_feats": {
+   "tables": [
+    "movies_total_gross"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 1,
+   "literals": [
+    "",
+    "$",
+    ",",
+    "1",
+    "Action"
+   ],
+   "cols_out": 1
+  },
+  "warnings": [],
+  "labels": [
+   "schema/value grounding"
+  ],
+  "note": "total_gross is text ('$1,234,567'); ordering it as text picks the wrong movie (Crimson Tide against The Avengers)"
+ },
+ {
+  "seed": 201,
+  "task_id": "bird23tf-06494",
+  "db": "hockey",
+  "question": "Who is the youngest player who is still living. State the given name and date of birth.",
+  "evidence": "still living refers to deathYear IS NULL; youngest refers to MAX(birthYear,birthMon,birthDay)",
+  "pred": "SELECT nameGiven, birthYear || '/' || birthMon || '/' || birthDay AS birthDate\nFROM Master\nWHERE deathYear IS NULL\nORDER BY birthYear DESC, birthMon DESC, birthDay DESC\nLIMIT 1",
+  "gold": "SELECT nameGiven , nameGiven , birthYear, birthMon, birthDay FROM Master WHERE deathYear IS NULL ORDER BY birthYear DESC, birthMon DESC, birthday DESC LIMIT 1",
+  "pred_rows": 1,
+  "gold_rows": 1,
+  "pred_head": [
+   [
+    "None",
+    "1993/4/18"
+   ]
+  ],
+  "gold_head": [
+   [
+    "None",
+    "None",
+    "1993",
+    "4"
+   ]
+  ],
+  "same_initial_both_seeds": false,
+  "pred_feats": {
+   "tables": [
+    "master"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 0,
+   "literals": [
+    "/",
+    "1"
+   ],
+   "cols_out": 2
+  },
+  "gold_feats": {
+   "tables": [
+    "master"
+   ],
+   "aggs": [],
+   "group": false,
+   "order": true,
+   "limit": true,
+   "distinct": false,
+   "where_conds": 0,
+   "literals": [
+    "1"
+   ],
+   "cols_out": 5
+  },
+  "warnings": [],
+  "labels": [
+   "benchmark ambiguity"
+  ],
+  "note": "the same person (born 1993/4/18, nameGiven NULL): the proposal returns 2 columns, the reference 5 (nameGiven twice, then year, month, day). Only the column layout differs"
+ }
+]

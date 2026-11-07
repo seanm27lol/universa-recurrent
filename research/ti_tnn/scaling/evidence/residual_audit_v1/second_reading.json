@@ -1,0 +1,186 @@
+{
+ "protocol": "A second reader (a separate agent) labelled the six cases the first reading marked benchmark ambiguity alone. It saw each case's question, evidence, proposal, reference, both result heads and the read-only database, but not the first reading's labels or notes. Labels: (a) the proposal is a semantic error, (b) benchmark ambiguity, (c) cannot tell.",
+ "input": [
+  {
+   "case": "bird23tf-00412 seed 200",
+   "db": "computer_student",
+   "question": "Is the teacher who teaches course no.9 a faculty member?",
+   "evidence": "teacher refers to taughtBy.p_id; course no.9 refers to taughtBy.course_id = 9; faculty member refers to hasPosition ! = 0",
+   "proposal_sql": "SELECT CASE WHEN p.hasPosition != '0' THEN 'Yes' ELSE 'No' END FROM taughtBy AS T1 INNER JOIN person AS p ON T1.p_id = p.p_id WHERE T1.course_id = 9",
+   "reference_sql": "SELECT T2.hasPosition FROM taughtBy AS T1 INNER JOIN person AS T2 ON T1.p_id = T2.p_id WHERE T1.course_id = 9",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "Yes"
+    ]
+   ],
+   "reference_rows": 1,
+   "reference_first_rows": [
+    [
+     "Faculty"
+    ]
+   ]
+  },
+  {
+   "case": "bird23tf-00789 seed 200",
+   "db": "soccer_2016",
+   "question": "In the players, how many were out by hit wicket?",
+   "evidence": "out by hit wicket refers to Out_Name = 'hit wicket'",
+   "proposal_sql": "SELECT COUNT(P.Player_Name) \nFROM Wicket_Taken AS T1 \nINNER JOIN Out_Type AS T2 ON T1.Kind_Out = T2.Out_Id \nINNER JOIN Player AS P ON T1.Player_Out = P.Player_Id \nWHERE T2.Out_Name = 'hit wicket'",
+   "reference_sql": "SELECT Player_Out FROM Wicket_Taken AS T1 INNER JOIN Out_Type AS T2 ON T1.Kind_Out = T2.Out_Id WHERE Out_Name = 'hit wicket'",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "8"
+    ]
+   ],
+   "reference_rows": 8,
+   "reference_first_rows": [
+    [
+     "72"
+    ],
+    [
+     "113"
+    ],
+    [
+     "101"
+    ],
+    [
+     "35"
+    ]
+   ]
+  },
+  {
+   "case": "bird23tf-03945 seed 200",
+   "db": "computer_student",
+   "question": "What is the ratio of professors and students?",
+   "evidence": "professors refers to professor = 1; students refers to student = 1; ratio = divide(count(person.p_id) when professor = 1, count(person.p_id) when student = 1)",
+   "proposal_sql": "SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS ratio FROM person",
+   "reference_sql": "SELECT CAST(SUM(CASE  WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE  WHEN student = 1 THEN 1 ELSE 0 END) AS per FROM person",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "0.28703703703703703"
+    ]
+   ],
+   "reference_rows": 1,
+   "reference_first_rows": [
+    [
+     "28.703703703703702"
+    ]
+   ]
+  },
+  {
+   "case": "bird23tf-03119 seed 201",
+   "db": "world",
+   "question": "Provide the name, capital city and its official language of the country with the highest life expectancy.",
+   "evidence": "capital city refers to Capital; official language refers to IsOfficial = 'T'; highest life expectancy refers to MAX(LifeExpectancy);",
+   "proposal_sql": "SELECT c.Name, ci.Name, cl.Language\nFROM Country AS c\nJOIN City AS ci ON c.Capital = ci.ID\nJOIN CountryLanguage AS cl ON c.Code = cl.CountryCode AND cl.IsOfficial = 'T'\nORDER BY c.LifeExpectancy DESC\nLIMIT 1",
+   "reference_sql": "SELECT T1.Name, T1.Capital, T2.Language FROM Country AS T1 INNER JOIN CountryLanguage AS T2 ON T1.Code = T2.CountryCode INNER JOIN City AS T3 ON T1.Code = T3.CountryCode WHERE T2.IsOfficial = 'T' ORDER BY T1.LifeExpectancy DESC LIMIT 1",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "Andorra",
+     "Andorra la Vella",
+     "Catalan"
+    ]
+   ],
+   "reference_rows": 1,
+   "reference_first_rows": [
+    [
+     "Andorra",
+     "55",
+     "Catalan"
+    ]
+   ]
+  },
+  {
+   "case": "bird23tf-03945 seed 201",
+   "db": "computer_student",
+   "question": "What is the ratio of professors and students?",
+   "evidence": "professors refers to professor = 1; students refers to student = 1; ratio = divide(count(person.p_id) when professor = 1, count(person.p_id) when student = 1)",
+   "proposal_sql": "SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS ratio FROM person",
+   "reference_sql": "SELECT CAST(SUM(CASE  WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE  WHEN student = 1 THEN 1 ELSE 0 END) AS per FROM person",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "0.28703703703703703"
+    ]
+   ],
+   "reference_rows": 1,
+   "reference_first_rows": [
+    [
+     "28.703703703703702"
+    ]
+   ]
+  },
+  {
+   "case": "bird23tf-06494 seed 201",
+   "db": "hockey",
+   "question": "Who is the youngest player who is still living. State the given name and date of birth.",
+   "evidence": "still living refers to deathYear IS NULL; youngest refers to MAX(birthYear,birthMon,birthDay)",
+   "proposal_sql": "SELECT nameGiven, birthYear || '/' || birthMon || '/' || birthDay AS birthDate\nFROM Master\nWHERE deathYear IS NULL\nORDER BY birthYear DESC, birthMon DESC, birthDay DESC\nLIMIT 1",
+   "reference_sql": "SELECT nameGiven , nameGiven , birthYear, birthMon, birthDay FROM Master WHERE deathYear IS NULL ORDER BY birthYear DESC, birthMon DESC, birthday DESC LIMIT 1",
+   "proposal_rows": 1,
+   "proposal_first_rows": [
+    [
+     "None",
+     "1993/4/18"
+    ]
+   ],
+   "reference_rows": 1,
+   "reference_first_rows": [
+    [
+     "None",
+     "None",
+     "1993",
+     "4"
+    ]
+   ]
+  }
+ ],
+ "output": [
+  {
+   "case": "bird23tf-00412 seed 200",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "Course 9 has exactly one teacher (p_id 235), whose hasPosition is 'Faculty' (a text column, so != '0' holds). The proposal maps the evidence's hasPosition != 0 to 'Yes', a direct answer to a yes/no question. The reference returns the raw value 'Faculty', which carries the same information in another form.",
+   "reasonable_disagreement": "Unlikely. Someone might prefer the raw position because it is more informative, but the question asks yes or no."
+  },
+  {
+   "case": "bird23tf-00789 seed 200",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "The question asks 'how many'. The proposal returns COUNT = 8. The reference lists the 8 Player_Out ids (72, 113, 101, 35, 79, 27, 394, 187), all distinct and all present in Player, so the count matches the reference's row count whether or not duplicates are removed. The reference does not answer 'how many' directly.",
+   "reasonable_disagreement": "Unlikely. A reader could ask whether 'how many' means distinct players, but in this data distinct and non-distinct both give 8."
+  },
+  {
+   "case": "bird23tf-03945 seed 200",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "The evidence defines ratio = divide(count professor = 1, count student = 1), with no factor of 100. The proposal computes exactly that: 62/216 = 0.287. The reference multiplies by 100 and gives 28.70 (a percentage, aliased 'per'). The two differ only in units, and the proposal follows the evidence literally.",
+   "reasonable_disagreement": "Minor. Someone might accept a percentage as a way to state a ratio, but nothing in the question or evidence asks for one."
+  },
+  {
+   "case": "bird23tf-03119 seed 201",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "Both queries identify Andorra (life expectancy 83.5, no tie) and Catalan (its only official language). They differ in the capital column. The proposal joins City on Capital = ID and returns the name 'Andorra la Vella'. The reference returns the raw foreign key 55, and its City join on CountryCode only fans out rows. For 'capital city', the proposal's answer is at least as good, and arguably better.",
+   "reasonable_disagreement": "Low. A strict reader might say 'capital city refers to Capital' means the Capital column itself, but that column holds an ID, not a city."
+  },
+  {
+   "case": "bird23tf-03945 seed 201",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "This proposal and reference are identical to seed 200. The proposal gives 0.287, the plain quotient that the evidence's divide(...) defines. The reference gives 28.70 because it multiplies by 100. The only difference is the units of the answer.",
+   "reasonable_disagreement": "Minor, for the same reason as seed 200."
+  },
+  {
+   "case": "bird23tf-06494 seed 201",
+   "label": "b",
+   "confidence": "high",
+   "evidence": "Both queries select the same player, zibanmi01 (Mika Zibanejad, born 1993-04-18). Ordering the text columns numerically gives the same top row. Both return a NULL nameGiven. The proposal concatenates the date of birth into '1993/4/18'. The reference returns nameGiven twice and the year, month and day as separate columns. This is only a difference of column layout and answer form.",
+   "reasonable_disagreement": "Unlikely. The NULL given name weakens both answers equally (firstName 'Mika' would be more useful), but this does not separate the proposal from the reference."
+  }
+ ]
+}
