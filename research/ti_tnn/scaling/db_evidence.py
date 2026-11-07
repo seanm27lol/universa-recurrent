@@ -52,9 +52,10 @@ import time
 import unicodedata
 from dataclasses import asdict, dataclass
 
-EVIDENCE_VERSION = "db-evidence-v1.3"   # columns bound in their SQL scope, tables kept in SQL order
+EVIDENCE_VERSION = "db-evidence-v1.4"   # columns bound in their SQL scope, tables kept in SQL order
 # v1: one global alias map. v1.1 (8e729cf, superseded): scopes, but the table order changed by accident.
 # v1.2 (352284e, superseded): bound a column a derived table or CTE of its scope might also supply.
+# v1.3 (d04220b, superseded): read a CTE's or derived table's selects, not its column list.
 
 
 @dataclass(frozen=True)
@@ -192,11 +193,12 @@ def _q(name: str) -> str:
 def parse_proposal(sql: "str | None", schema) -> dict:
     """Tables, columns, literal predicates, numeric uses and joins of the proposal, resolved against the schema.
 
-    **Scopes (db-evidence-v1.3).** Every column is bound in its own SELECT scope, as SQLite binds it:
+    **Scopes (db-evidence-v1.4).** Every column is bound in its own SELECT scope, as SQLite binds it:
     - A qualified column `q.c` binds to the source named `q` in its scope. In a subquery, if `q` is not a source
       there, the lookup moves outward through the enclosing scopes: a correlated column.
     - An unqualified column binds to the one source of its scope that has it. If two may have it, it is ambiguous,
-      including when one of them is a derived table or CTE exposing that name (or a star). If none has it, a
+      including when one of them is a derived table or CTE exposing that name (or a star). A derived table or CTE
+      exposes its column list if it has one, else its select names. If none has it, a
       subquery or a set-operation branch looks outward.
     - A source that is a derived table or a CTE is not a stored table: its columns are not bound.
 
@@ -234,8 +236,11 @@ def parse_proposal(sql: "str | None", schema) -> dict:
             if isinstance(src, exp.Table):
                 real = by_name.get(src.name.lower())
                 result[key.lower()] = ("stored", real.name, id(src)) if real is not None else ("derived", None)
-            else:
-                named = [n.lower() for n in getattr(src.expression, "named_selects", None) or ["*"]]
+            else:   # a CTE's column list, `WITH c(x) AS ...`, is what SQLite exposes; else the select names
+                parent = src.expression.parent
+                alias = parent.args.get("alias") if isinstance(parent, (exp.CTE, exp.Subquery)) else None
+                listed = [c.name for c in alias.columns] if alias is not None and alias.columns else None
+                named = [n.lower() for n in (listed or getattr(src.expression, "named_selects", None) or ["*"])]
                 result[key.lower()] = ("derived", None if "*" in named else frozenset(named))
         return result
 

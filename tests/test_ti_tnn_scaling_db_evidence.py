@@ -226,7 +226,7 @@ def test_the_classes():
     assert EC.classify([1], [yes], True) == "unresolved benchmark disagreement"
 
 
-# --- SQL scopes (db-evidence-v1.3) -------------------------------------------------------------------------------------
+# --- SQL scopes (db-evidence-v1.4) -------------------------------------------------------------------------------------
 @pytest.fixture
 def trade(tmp_path):
     path = tmp_path / "trade.sqlite"
@@ -362,3 +362,21 @@ def test_a_correlated_column_in_a_set_operation_branch_binds_outward(trade):
     assert ("customers", "city") in {(tuple(j["right"]) if j["left"] == ["suppliers", "city"] else tuple(j["left"]))
                                      for j in pkg["proposal"]["joins"]}
     assert not pkg["proposal"]["unresolved"]
+
+
+@pytest.mark.parametrize("sql, binds", [
+    # the third review's finding: the column list, not the select names, is what the CTE exposes
+    ("WITH c(city) AS (SELECT name FROM suppliers) SELECT customers.name FROM c, customers WHERE city = 'X9'", None),
+    # the mirror case: the list renames city away, so the stored column is the only source
+    ("WITH c(town) AS (SELECT city FROM suppliers) SELECT suppliers.name FROM c, suppliers WHERE city = 'Rome'",
+     ("Rome", "suppliers", "city"))])
+def test_a_column_list_is_what_a_cte_exposes(trade, sql, binds):
+    path, _schema_ = trade
+    conn = sqlite3.connect(path)
+    if binds is None:
+        with pytest.raises(sqlite3.OperationalError, match="ambiguous"):
+            conn.execute(sql).fetchall()
+        assert not _preds(_go(trade, sql))
+    else:
+        conn.execute(sql).fetchall()
+        assert _preds(_go(trade, sql)) == {binds}
