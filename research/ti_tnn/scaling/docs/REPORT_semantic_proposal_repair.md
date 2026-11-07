@@ -160,7 +160,26 @@ Their EX was not read.
 
 ## Independent verification
 
-⟨REVIEW⟩
+A separate reviewer session wrote `independent/verify_spr.py` (sha256 `81935f4b…`) and ran it at 1289d7e:
+**167 checks, 1 failure.** Its session ended on a usage limit after the run, before it wrote a summary; the complete
+output is in `evidence/spr_v1/independent/`. Its sections:
+- the inventories, rebuilt from the release;
+- the lineage: the shared initial proposal; the D1 and TI1 messages differing only by the rendered analysis; the same
+  revision seed and remaining time;
+- the selection, re-derived;
+- every score re-executed (480 records) and mapped to its snapshot;
+- gold isolation: no gold SQL, task id or gold result in any prompt, message or analysis, and no gold read before
+  serving ends;
+- the preservation test;
+- the paired differences;
+- the costs and the ledger;
+- the freeze order.
+
+**The one failure is a labelling finding, and no result changes.** `analysis.json`'s per-comparison `threshold` and
+`all_conditions` fields come from the shared paired-comparison helper (7 of 128, the performance study's rule scaled
+to two seeds). The study's rule is +8, and the recorded decision uses it. With pooled differences of +2, +2 and +4,
+neither threshold changes any outcome. `analysis.json` is kept as written: read the decision and the per-seed and
+leave-one-database-out values, not those two fields.
 
 ## What this does not establish
 

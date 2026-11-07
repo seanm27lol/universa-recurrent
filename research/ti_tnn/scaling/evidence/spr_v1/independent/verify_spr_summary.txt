@@ -1,0 +1,190 @@
+verify_spr: 167 checks, 1 failures
+
+[0_discipline] 1 passed, 0 failed
+  PASS  nothing under spr/, data/ or the ledger changed during this verification  -- []
+
+[10_bundle] 6 passed, 0 failed
+  PASS  SHA256SUMS: 26 files verified  -- []
+  PASS  every bundled file is under SHA256SUMS
+  PASS  the bundle holds every file of <runs>/spr/ and nothing else (plus the ledger)
+  PASS  every bundled file = its runs-root original  -- []
+  PASS  the bundled ledger = the live ledger (now)
+  PASS  every bundle file is committed  -- 27 tracked
+
+[1_inventories] 19 passed, 0 failed
+  PASS  raw release sha256 = contracts pin  -- 2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8
+  PASS  release rows and databases  -- 6601 rows
+  PASS  own split = split pin (14 dev databases, same order)  -- ['public_review_platform', 'soccer_2016', 'hockey', 'image_and_language', 'simpson_episodes', 'world', 'ice_hockey_draft', 'professional_basketball', 'music_platform_2', 'software_company', 'disney', 'talkingdata', 'computer_student', 'food_inspection']
+  PASS  the inventory pin's exclusions = the gold check's non-ok entries  -- ['bird23tf-03541']
+  PASS  own inventory (512) = inventory pin
+  PASS  positions 192-255 rebuilt from the release = spr_new_eval.json
+  PASS  spr_new_eval db_ids = the release's
+  PASS  64 distinct ids at positions [192, 256)
+  PASS  the excluded bird23tf-03541's gold times out under the own executor  -- timeout
+  PASS  the earlier dev questions (perf_v2 historical + new) = positions 0-127
+  PASS  gi_new_eval = positions 128-191
+  PASS  no file outside the pins, gold check, coverage analysis and this study's own run names a new-population task id  -- {}
+  PASS  no file outside the release (and those) holds a new-population question text  -- {}
+  PASS  the three declared prior uses are found (inventory pin, gold check, coverage analysis)  -- {"pins:inventory_v1.json": 64, "pins:spr_new_eval.json": 64, "runs:data/gold_check_dev_v1.json": 64, "runs:ir/coverage_details_v1.json": 64}
+  PASS  frozen run: 64 questions x seeds 200, 201, each request exactly once  -- 128 requests
+  PASS  frozen run scores: 64 x 2 x 3 policies, each exactly once  -- 384 scores
+  PASS  every request carries all three policies
+  PASS  run manifest: requested = the pin, seeds [200, 201]
+  PASS  every request's db_id = the release's
+
+[2_lineage] 36 passed, 0 failed
+  PASS  the local chat template = the run manifest's model identity
+  PASS  run manifest's system prompt and revision instruction = the frozen source's
+  PASS  512 new tokens, non-thinking
+  PASS  dev run 1 used the v1 instruction (d73c30e), dev run 2 the frozen v2
+  PASS  D0 = the initial proposal
+  PASS  own extraction = the recorded SQL
+  PASS  generated tokens <= 512
+  PASS  revision order = the declared hash rule
+  PASS  D1 message = own raw observation + the instruction
+  PASS  TI1 message = D1's raw observation + own rendering of the recorded analysis + the instruction
+  PASS  TI1 message = D1's plus the analysis only (prefix/suffix)
+  PASS  own execution of the initial SQL = the recorded execution
+  PASS  the raw observation rebuilt from own execution = the recorded one (ok and error statuses)
+  PASS  own execution of each revision = the recorded execution
+  PASS  remaining time = 180 s - (initial call + execution + analysis), within 2 s
+  PASS  each revision finished within the shared remaining time
+  PASS  typed analysis: errors only of the declared definite kinds
+  PASS  typed analysis: warnings only of the declared observational kinds
+  PASS  typed analysis: execution errors and timeouts reported iff the execution failed
+  PASS  typed analysis: the empty-result warning iff ok with 0 rows
+  PASS  typed analysis: own literal-occurrence test = each literal line
+  PASS  typed analysis: untyped iff a reason; identifier reasons as errors, others as warnings
+  PASS  retrieved examples = the producer's retrieval (worker)
+  PASS  retrieved examples from training-pool databases only
+  PASS  own user message = the producer's (worker)
+  PASS  system prompt = SYSTEM_DIRECT
+  PASS  initial prompt tokens = own rendering
+  PASS  D1 revision prompt tokens = own rendering of the shared prefix + its message
+  PASS  TI1 revision prompt tokens = own rendering of the shared prefix + its message
+  PASS  recorded typed analysis = recomputed (worker)
+  PASS  code: both revisions call with seed_of('revise', seed, task_id) and time.monotonic() + remaining
+  PASS  code: the remaining time is computed once, before the revision loop
+  PASS  code: both revisions = the shared base messages + the initial reply + their own message
+  PASS  code: the D1 and TI1 messages differ only by the rendered analysis of the initial proposal
+  PASS  code: the revision order by seed_of('order', ...) parity
+  PASS  code: one initial call per question and seed, seed_of('initial', ...)
+
+[3_selection] 6 passed, 0 failed
+  PASS  selection (own execution) = recorded (D1)
+  PASS  selection (own execution) = recorded (TI1)
+  PASS  selection (recorded executions) = recorded (D1)
+  PASS  selection (recorded executions) = recorded (TI1)
+  PASS  code: select, _valid and _execute never read gold or the scorer
+  PASS  code: the rule is revised if valid, else original if valid, else abstain; valid = SQL, read-only, ok
+
+[4_scores] 8 passed, 0 failed
+  PASS  own sha256 and size of the 14 snapshot files = the snapshots pin  -- {}
+  PASS  scored SQL = the request's final SQL (480 records: run 384, dev 96)
+  PASS  scored SQL = own selection (480 records: run 384, dev 96)
+  PASS  score's snapshot sha256 = own hash (480 records: run 384, dev 96)
+  PASS  recorded EX = own EX (480 records: run 384, dev 96)
+  PASS  recorded status = own status (480 records: run 384, dev 96)
+  PASS  recorded predicted status = own (480 records: run 384, dev 96)
+  PASS  recorded gold status and row counts = own (480 records: run 384, dev 96)
+
+[5_gold_isolation] 6 passed, 0 failed
+  PASS  code: no function reachable from the diagnostic and serving path names gold, Gold or the scorer  -- {}
+  PASS  code: _serve_population reads gold only after every request is served and written  -- gold at lines [268], serving block 245-264
+  PASS  no gold SQL in any prompt, message or analysis
+  PASS  no evaluated task id in any prompt, message or analysis
+  PASS  no task id of any kind in any prompt, message or analysis
+  PASS  a gold result block appears only where the model's own result shows it
+
+[6_preservation] 15 passed, 0 failed
+  PASS  source records sha256 = the manifest's
+  PASS  64 records = the grounding-interface new population's 64 saved direct outputs
+  PASS  each record's SQL = the saved output
+  PASS  each record's snapshot sha256 = own hash
+  PASS  own outcome = recorded
+  PASS  own EX of original and compiled = recorded
+  PASS  own result-set and row-list comparisons = recorded
+  PASS  own execution statuses = recorded
+  PASS  own EX of the original = the grounding-interface study's recorded score
+  PASS  unsupported outputs: none was EX-correct (own)
+  PASS  compilation recomputed (worker) = recorded
+  PASS  47 supported and preserved, 0 unexplained changes, 17 unsupported  -- {"ex_original": 32, "ex_compiled": 32, "same_set": 46, "same_list": 46, "both_failed": 1, "preserved": 47, "unsupported": 17}
+  PASS  46 identical result sets and row lists, 1 failing alike both ways, 32 EX-correct either way
+  PASS  unsupported: 16 identifier reasons, 1 YEAR  -- {"unresolved column": 5, "sqlite error": 17, "unknown column": 8, "function YEAR": 1, "ambiguous column": 2, "unknown table": 1}
+  PASS  summary.json agrees
+
+[7_paired] 15 passed, 1 failed
+  PASS  own counts per policy and seed = analysis.json  -- {"D0/200": 37, "D0/201": 37, "D1/200": 38, "D1/201": 38, "TI1/200": 38, "TI1/201": 40}
+  PASS  own pooled counts = analysis.json  -- {"D0": 74, "D1": 76, "TI1": 78}
+  PASS  TI1 - D1: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json  -- {"per_seed": {"200": 0, "201": 2}, "pooled": 2, "per_database": {"computer_student": 0, "disney": 0, "food_inspection": 1, "hockey": 0, "ice_hockey_draft": 0, "image_and_language": 0, "music_platform_2": 0, "professional_basketball": 0, "public_review_platform": -1, "simpson_episodes": -1, "soccer_2016": 1, "software_company": 0, "talkingdata": 2, "world": 0}, "leave_one_database_out": {"computer_
+  PASS  TI1 - D1: recoveries - regressions = pooled difference
+  PASS  D1 - D0: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json  -- {"per_seed": {"200": 1, "201": 1}, "pooled": 2, "per_database": {"computer_student": 0, "disney": 0, "food_inspection": -1, "hockey": 0, "ice_hockey_draft": 1, "image_and_language": 0, "music_platform_2": 0, "professional_basketball": 0, "public_review_platform": 1, "simpson_episodes": 4, "soccer_2016": -1, "software_company": 0, "talkingdata": -2, "world": 0}, "leave_one_database_out": {"computer
+  PASS  D1 - D0: recoveries - regressions = pooled difference
+  PASS  TI1 - D0: per seed, pooled, per database, leave-one-out, recoveries, regressions, histogram = analysis.json  -- {"per_seed": {"200": 1, "201": 3}, "pooled": 4, "per_database": {"computer_student": 0, "disney": 0, "food_inspection": 0, "hockey": 0, "ice_hockey_draft": 1, "image_and_language": 0, "music_platform_2": 0, "professional_basketball": 0, "public_review_platform": 0, "simpson_episodes": 3, "soccer_2016": 0, "software_company": 0, "talkingdata": 0, "world": 0}, "leave_one_database_out": {"computer_st
+  PASS  TI1 - D0: recoveries - regressions = pooled difference
+  PASS  the rule's lead is 8 of 128 (frozen spr_run.LEAD)
+  PASS  own decision (protocol's four branches, +8 rule) = analysis.json  -- neither revision helps by the rule: retain direct Qwen and stop this repair direction
+  FAIL  analysis.json's per-comparison 'threshold' / 'all_conditions' fields use the study's +8 rule  -- they carry perf_analysis.paired's threshold {'D1-D0': 7, 'TI1-D0': 7, 'TI1-D1': 7} (the perf-v2 rule scaled to 2 seeds), not 8; the decision string itself uses LEAD = 8; with pooled differences of 2, 2 and 4, neither threshold changes any outcome
+  PASS  lineage tallies D1 = analysis.json  -- {"final_source": {"revised": 116, "abstain": 8, "original": 4}, "revision_rejected": 12, "revision_unchanged_sql": 94, "revision_truncated": 0, "revised_typed": 117}
+  PASS  lineage tallies TI1 = analysis.json  -- {"final_source": {"revised": 120, "abstain": 7, "original": 1}, "revision_rejected": 8, "revision_unchanged_sql": 98, "revision_truncated": 0, "revised_typed": 121}
+  PASS  initial-proposal tallies (execution from own runs) = analysis.json  -- {"no_sql": 0, "truncated": 0, "typed": 109, "untyped_reasons": {"unknown column": 11, "unresolved column": 5, "ambiguous column": 2, "row value": 1}, "execution": {"ok": 110, "error": 18}, "with_errors": 18, "with_warnings": 13}
+  PASS  final execution statuses (own) = analysis.json  -- {"D0": {"ok": 110, "error": 18}, "D1": {"ok": 120, "abstain": 8}, "TI1": {"ok": 121, "abstain": 7}}
+  PASS  by-database counts = analysis.json
+
+[8_costs] 29 passed, 0 failed
+  PASS  D0 costs, tokens and peak memory re-derived = analysis.json  -- {"generation_seconds": 516.429302929726, "validation_seconds": 0.0, "tool_seconds": 0.0, "submitted_execution_seconds": 8.671702, "total_seconds": 525.101004929726, "per_request_seconds": 4.102351601013484, "per_ex_correct_seconds": 7.095959526077378, "prompt_tokens": 335824, "generated_tokens": 6836, "peak_memory_bytes": 11064100352, "calls_per_request": 1}
+  PASS  D1 costs, tokens and peak memory re-derived = analysis.json  -- {"generation_seconds": 1039.4436582308845, "validation_seconds": 0.0, "tool_seconds": 49.82791140524205, "submitted_execution_seconds": 8.731221, "total_seconds": 1098.0027906361265, "per_request_seconds": 8.578146801844738, "per_ex_correct_seconds": 14.447405139949034, "prompt_tokens": 690144, "generated_tokens": 13665, "peak_memory_bytes": 11094368256, "calls_per_request": 2}
+  PASS  TI1 costs, tokens and peak memory re-derived = analysis.json  -- {"generation_seconds": 1048.0892227806617, "validation_seconds": 0.08042851299978793, "tool_seconds": 56.16129960305989, "submitted_execution_seconds": 15.03309, "total_seconds": 1119.3640408967212, "per_request_seconds": 8.745031569505635, "per_ex_correct_seconds": 14.350821037137452, "prompt_tokens": 708372, "generated_tokens": 13680, "peak_memory_bytes": 11165238272, "calls_per_request": 2}
+  PASS  three spr reservations: dev, dev, run  -- ["spr dev", "spr dev", "spr run"]
+  PASS  the work order's starting usage (22.822751 h) = own ledger total before the first spr reservation  -- 22.822751
+  PASS  spr dev 20261106T150737-7404232e: recorded used_before = own cumulative  -- 22.822751 vs 22.822751
+  PASS  spr dev 20261106T150737-7404232e: used + 1.5 x projection (0.2 h) = 23.123 h <= 28.823
+  PASS  spr dev 20261106T150737-7404232e: ended ok within its own limit  -- 0.1169 h
+  PASS  spr dev 20261106T150737-7404232e: heartbeats every ~30 s, wall time = monotonic elapsed  -- max gap 30.0 s
+  PASS  spr dev 20261106T150737-7404232e: no overlapping reservation; no foreign GPU process at start or end  -- []
+  PASS  spr dev 20261106T151520-4ba102ec: recorded used_before = own cumulative  -- 22.939606 vs 22.939606
+  PASS  spr dev 20261106T151520-4ba102ec: used + 1.5 x projection (0.2 h) = 23.240 h <= 28.823
+  PASS  spr dev 20261106T151520-4ba102ec: ended ok within its own limit  -- 0.0705 h
+  PASS  spr dev 20261106T151520-4ba102ec: heartbeats every ~30 s, wall time = monotonic elapsed  -- max gap 30.0 s
+  PASS  spr dev 20261106T151520-4ba102ec: no overlapping reservation; no foreign GPU process at start or end  -- []
+  PASS  spr run 20261106T204616-df38ecaa: recorded used_before = own cumulative  -- 23.010056 vs 23.010056
+  PASS  spr run 20261106T204616-df38ecaa: used + 1.5 x projection (0.6 h) = 23.910 h <= 28.823
+  PASS  spr run 20261106T204616-df38ecaa: ended ok within its own limit  -- 0.4799 h
+  PASS  spr run 20261106T204616-df38ecaa: heartbeats every ~30 s, wall time = monotonic elapsed  -- max gap 30.3 s
+  PASS  spr run 20261106T204616-df38ecaa: no overlapping reservation; no foreign GPU process at start or end  -- []
+  PASS  cumulative after the frozen run 23.4900 h <= 28.823
+  PASS  the run's summary reservation = the ledger's
+  PASS  load + every recorded call, execution and analysis fits inside the reservation  -- 1726.5 s of 1727.7 s
+  PASS  analysis.json's spr reservations = own
+  PASS  analysis.json's ledger total (at analysis time) ~ own total after the run  -- 23.489974 vs 23.489974
+  PASS  spr reservations total <= the work order's 6 h  -- 0.6672 h
+  PASS  the run manifest's budget check = own  -- {"fits": true, "projected_hours": 0.6, "used_hours": 23.010056257965843, "work_order_limit_hours": 28.822751, "worst_case_hours": 23.91005625796584}
+  PASS  the co-tenancy log covers the frozen run every ~30 s  -- 59 samples
+  PASS  co-tenancy: 1-minute load stayed low (< 8 on 20 cores) during the run  -- max 3.07
+
+[9_freeze] 25 passed, 0 failed
+  PASS  protocol at frozen_at 6e1003f: sha256 = the pin
+  PASS  spr_new_eval.json at 6e1003f: sha256 = the pin
+  PASS  the protocol pin is unchanged from 2f76bb7 to the head
+  PASS  the protocol and the population pin are unchanged at the head
+  PASS  pin frozen_at = 6e1003f
+  PASS  between the frozen commit and the head only spr_report.py and the bundle change  -- ['research/ti_tnn/scaling/evidence/spr_v1/SHA256SUMS', 'research/ti_tnn/scaling/evidence/spr_v1/analysis/20261106T211558Z/analysis.json', 'research/ti_tnn/scaling/evidence/spr_v1/analysis/20261106T211558Z/manifest.json', 'research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/manifest.json', 'research/ti_tnn/scaling/evidence/spr_v1/dev/20261106T150736Z/requests.jsonl']
+  PASS  03759ac is an ancestor of the frozen commit 2f76bb7
+  PASS  d73c30e is an ancestor of the frozen commit 2f76bb7
+  PASS  6e1003f is an ancestor of the frozen commit 2f76bb7
+  PASS  the freeze commits (2026-11-06T15:20:07+00:00, 2026-11-06T15:20:07+00:00) precede the frozen run (2026-11-06T20:46:16+00:00)
+  PASS  the run's manifest: commit 2f76bb7, clean tree
+  PASS  the run's manifest: the pinned protocol and spr-prompts-v2
+  PASS  the v2 instruction committed at 03759ac = the frozen one
+  PASS  each dev run started at or after its commit  -- 2026-11-06T15:05:05+00:00 / 2026-11-06T15:15:20+00:00
+  PASS  the preservation test and both dev runs precede the freeze
+  PASS  the frozen worktree is at 2f76bb7 with a clean research tree (now)
+  PASS  dev run 20261106T150736Z: the 16 own-sampled earlier dev questions at seed 900
+  PASS  dev run 20261106T150736Z: within positions 0-127, none of 192-255
+  PASS  dev run 20261106T151520Z: the 16 own-sampled earlier dev questions at seed 900
+  PASS  dev run 20261106T151520Z: within positions 0-127, none of 192-255
+  PASS  dev run 1 and the preservation test at d73c30e, dev run 2 at 03759ac
+  PASS  dev run 1: 4 of 32 revisions hit the ceiling (3 D1, 1 TI1)  -- {"D1": 3, "TI1": 1}
+  PASS  dev run 2: no truncation
+  PASS  dev run 2 EX (own) = 8, 8, 9  -- {"D0": 8, "D1": 8, "TI1": 9}
+  PASS  dev run 2: ~50 generated tokens, 4.1-4.3 s revisions, 4.1 s initial, 11.1 GB  -- {"revisions_not_eos": {"D1": 0, "TI1": 0}, "revision_generated_mean": 49.3125, "revision_seconds_mean": {"D1": 4.116934387511719, "TI1": 4.34806702181595}, "initial_seconds_mean": 4.145766367877513, "peak_gb": 11.165410816, "ex": {"D0": 8, "D1": 8, "TI1": 9}}
