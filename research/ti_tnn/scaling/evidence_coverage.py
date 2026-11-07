@@ -19,7 +19,11 @@ retrieved the database facts each repair needs?
 
     python -m scaling.evidence_coverage retrieve
     python -m scaling.evidence_coverage tables        # the report's tables, from the stored comparison
-    python -m scaling.evidence_coverage compare --audit <PR #72 checkout>/research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json
+    git show 10d054a:research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json > /tmp/audit_cases.json
+    python -m scaling.evidence_coverage compare --audit /tmp/audit_cases.json
+
+(The comparison pins the audit's cases at PR #72's 10d054a. A later correction to one note, e823303, changed the
+file but not its labels.)
 
 An empty retrieval is not proof that a value is absent, and the lookup never substitutes a literal.
 """

@@ -181,7 +181,8 @@ which is recorded in each package. No package was truncated: the largest is 2,18
 
 **A correction to the audit.** In bird23tf-04354 the database stores `active` as 'true', in lowercase. The proposal's
 `active = 'true'` is right, and the reference's `LIKE 'True'` matches it case-insensitively. Only the city, 'Gilbert
-City' against 'Gilbert', is a grounding error. The audit's note says the stored value is 'True'; PR #72 is corrected.
+City' against 'Gilbert', is a grounding error. The audit's note said the stored value was 'True'; PR #72 is
+corrected (e823303). The comparison pins the audit's cases at 10d054a; the correction changes a note, not a label.
 
 **A note on bird23tf-04816.** The audit labels it both grounding and benchmark ambiguity, because the reference uses
 a shorter country list than the evidence. Among Toronto's draftees only Belarus, Czech Rep., Slovakia and Ukraine
