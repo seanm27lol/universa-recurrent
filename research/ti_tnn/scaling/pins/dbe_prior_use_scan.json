@@ -1,0 +1,47 @@
+{
+ "disqualifying": [],
+ "files_scanned": 1607,
+ "hits": [
+  {
+   "class": "allowed: declared mechanical screening: the data-preparation check that every reference query executes (made before any study; no model output, no case-level reading)",
+   "file": "data/gold_check_dev_v1.json",
+   "ids": 64,
+   "root": "ti_tnn_scaling"
+  },
+  {
+   "class": "allowed: declared mechanical screening: the grammar's gold-program coverage analysis over the whole inventory (no model output, no case-level reading)",
+   "file": "ir/coverage_details_v1.json",
+   "ids": 64,
+   "root": "ti_tnn_scaling"
+  },
+  {
+   "class": "allowed: inventory membership: the development inventory's id list",
+   "file": "inventory_v1.json",
+   "ids": 64,
+   "root": "pins"
+  }
+ ],
+ "positions": [
+  256,
+  320
+ ],
+ "roots": {
+  "coverage": "research/ti_tnn/scaling/coverage",
+  "docs": "research/ti_tnn/scaling/docs",
+  "evidence": "research/ti_tnn/scaling/evidence",
+  "pins": "research/ti_tnn/scaling/pins",
+  "scaling": "research/ti_tnn/scaling",
+  "tests": "tests",
+  "ti_tnn_scaling": "<runs root>"
+ },
+ "suffixes": [
+  ".json",
+  ".jsonl",
+  ".txt",
+  ".log",
+  ".md",
+  ".csv",
+  ".py"
+ ],
+ "task_ids": 64
+}
