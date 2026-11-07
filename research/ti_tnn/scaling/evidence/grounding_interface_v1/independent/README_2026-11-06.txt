@@ -1,0 +1,13 @@
+The final independent verification of the grounding-interface study (outputs copied by the producer session; the
+verifier and its run are the reviewer's). README.txt, verify_gi.json and verify_gi_summary.txt are the earlier
+295-check run, kept as recorded.
+
+verify_gi_final.json: independent/verify_gi.py, sha256 8ceff14c4afe1291..., run at 1cae124, 331 checks, 0 failures.
+Added since the earlier run:
+  - every SQL-carrying record of every run, enumerated by scanning the bundle: 12,416 records across 7 runs,
+    including the first dev decode and the margin diagnostic;
+  - sql_record_map.jsonl maps each record to its snapshot sha256, its SQL sha256, the executed key and the
+    re-derived result, and every record maps to exactly one key on the pinned snapshot;
+  - prior use is bounded by the freeze time. Files written later that name the new ids (the semantic-repair study's
+    preservation test, 2026-11-06) are listed as post-freeze reuse;
+  - the margin diagnostic: summary equals its records, and the trial equals the counted run.

@@ -1,0 +1,150 @@
+{
+ "C4-v2/100": {
+  "first_table_g0": {
+   "in gold set": 11,
+   "irrelevant": 8,
+   "right": 13
+  },
+  "forced": {
+   "by_divergence_kind": {
+    "column": {
+     "correct": 2,
+     "n": 4
+    },
+    "operator": {
+     "correct": 2,
+     "n": 3
+    },
+    "span": {
+     "correct": 0,
+     "n": 1
+    },
+    "table": {
+     "correct": 4,
+     "n": 20
+    }
+   },
+   "correct": 8,
+   "forced": 28,
+   "g0_correct_on_same": 5,
+   "illegal_forced_actions": 0,
+   "no_divergence": 1,
+   "suffix_reproduces_gold": 5,
+   "undefined": {
+    "the gold program is not representable": 3
+   }
+  },
+  "g0_correct": 6,
+  "g4_could_change": {
+   "count": 6,
+   "n": 207
+  },
+  "g4_record_invalid": 0,
+  "margin_above_ln2": {
+   "column": {
+    "count": 137,
+    "n": 146
+   },
+   "table": {
+    "count": 54,
+    "n": 61
+   }
+  },
+  "oracle_could_change": {
+   "count": 6,
+   "n": 207
+  },
+  "pointer_steps": {
+   "column": 146,
+   "table": 61
+  },
+  "requests": 32,
+  "restricted": {
+   "correct": 10,
+   "correct_to_wrong": 0,
+   "defined": 32,
+   "first_table": {
+    "in gold set": 12,
+    "right": 20
+   },
+   "g0_correct_on_same": 6,
+   "requests_with_undefined_steps": 0,
+   "undefined": 0,
+   "wrong_to_correct": 4
+  }
+ },
+ "T4-v2/100": {
+  "first_table_g0": {
+   "in gold set": 10,
+   "irrelevant": 6,
+   "right": 16
+  },
+  "forced": {
+   "by_divergence_kind": {
+    "column": {
+     "correct": 3,
+     "n": 5
+    },
+    "operator": {
+     "correct": 1,
+     "n": 4
+    },
+    "span": {
+     "correct": 1,
+     "n": 2
+    },
+    "table": {
+     "correct": 2,
+     "n": 18
+    }
+   },
+   "correct": 7,
+   "forced": 29,
+   "g0_correct_on_same": 6,
+   "illegal_forced_actions": 0,
+   "no_divergence": 0,
+   "suffix_reproduces_gold": 2,
+   "undefined": {
+    "the gold program is not representable": 3
+   }
+  },
+  "g0_correct": 6,
+  "g4_could_change": {
+   "count": 3,
+   "n": 191
+  },
+  "g4_record_invalid": 0,
+  "margin_above_ln2": {
+   "column": {
+    "count": 120,
+    "n": 135
+   },
+   "table": {
+    "count": 47,
+    "n": 56
+   }
+  },
+  "oracle_could_change": {
+   "count": 3,
+   "n": 191
+  },
+  "pointer_steps": {
+   "column": 135,
+   "table": 56
+  },
+  "requests": 32,
+  "restricted": {
+   "correct": 7,
+   "correct_to_wrong": 1,
+   "defined": 32,
+   "first_table": {
+    "in gold set": 11,
+    "right": 21
+   },
+   "g0_correct_on_same": 6,
+   "requests_with_undefined_steps": 0,
+   "undefined": 0,
+   "wrong_to_correct": 2
+  }
+ }
+}

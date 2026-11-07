@@ -1,0 +1,151 @@
+51 s
+{
+ "C4-v2/100": {
+  "requests": 32,
+  "g0_correct": 6,
+  "pointer_steps": {
+   "table": 61,
+   "column": 146
+  },
+  "margin_above_ln2": {
+   "table": {
+    "n": 61,
+    "count": 54
+   },
+   "column": {
+    "n": 146,
+    "count": 137
+   }
+  },
+  "g4_could_change": {
+   "n": 207,
+   "count": 6
+  },
+  "oracle_could_change": {
+   "n": 207,
+   "count": 6
+  },
+  "g4_record_invalid": 0,
+  "first_table_g0": {
+   "in gold set": 11,
+   "irrelevant": 8,
+   "right": 13
+  },
+  "restricted": {
+   "defined": 32,
+   "undefined": 0,
+   "correct": 10,
+   "g0_correct_on_same": 6,
+   "wrong_to_correct": 4,
+   "correct_to_wrong": 0,
+   "requests_with_undefined_steps": 0,
+   "first_table": {
+    "in gold set": 12,
+    "right": 20
+   }
+  },
+  "forced": {
+   "forced": 28,
+   "no_divergence": 1,
+   "undefined": {
+    "the gold program is not representable": 3
+   },
+   "correct": 8,
+   "g0_correct_on_same": 5,
+   "suffix_reproduces_gold": 5,
+   "illegal_forced_actions": 0,
+   "by_divergence_kind": {
+    "column": {
+     "n": 4,
+     "correct": 2
+    },
+    "operator": {
+     "n": 3,
+     "correct": 2
+    },
+    "span": {
+     "n": 1,
+     "correct": 0
+    },
+    "table": {
+     "n": 20,
+     "correct": 4
+    }
+   }
+  }
+ },
+ "T4-v2/100": {
+  "requests": 32,
+  "g0_correct": 6,
+  "pointer_steps": {
+   "table": 56,
+   "column": 135
+  },
+  "margin_above_ln2": {
+   "table": {
+    "n": 56,
+    "count": 47
+   },
+   "column": {
+    "n": 135,
+    "count": 120
+   }
+  },
+  "g4_could_change": {
+   "n": 191,
+   "count": 3
+  },
+  "oracle_could_change": {
+   "n": 191,
+   "count": 3
+  },
+  "g4_record_invalid": 0,
+  "first_table_g0": {
+   "in gold set": 10,
+   "irrelevant": 6,
+   "right": 16
+  },
+  "restricted": {
+   "defined": 32,
+   "undefined": 0,
+   "correct": 7,
+   "g0_correct_on_same": 6,
+   "wrong_to_correct": 2,
+   "correct_to_wrong": 1,
+   "requests_with_undefined_steps": 0,
+   "first_table": {
+    "in gold set": 11,
+    "right": 21
+   }
+  },
+  "forced": {
+   "forced": 29,
+   "no_divergence": 0,
+   "undefined": {
+    "the gold program is not representable": 3
+   },
+   "correct": 7,
+   "g0_correct_on_same": 6,
+   "suffix_reproduces_gold": 2,
+   "illegal_forced_actions": 0,
+   "by_divergence_kind": {
+    "column": {
+     "n": 5,
+     "correct": 3
+    },
+    "operator": {
+     "n": 4,
+     "correct": 1
+    },
+    "span": {
+     "n": 2,
+     "correct": 1
+    },
+    "table": {
+     "n": 18,
+     "correct": 2
+    }
+   }
+  }
+ }
+}

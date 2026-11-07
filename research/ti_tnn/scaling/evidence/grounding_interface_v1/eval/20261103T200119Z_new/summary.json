@@ -1,0 +1,11 @@
+{
+ "integrity": {
+  "anchor_or_reconstruction_failures": 0,
+  "requests": 1152
+ },
+ "reservation": {
+  "hours": 0.46244585154472184,
+  "id": "20261103T200120-d90a321a",
+  "projected_hours": 0.6
+ }
+}

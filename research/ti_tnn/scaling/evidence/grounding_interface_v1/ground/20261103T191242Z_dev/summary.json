@@ -1,0 +1,9 @@
+{
+ "load_seconds": 49.54194470701623,
+ "requested": 128,
+ "reservation": {
+  "hours": 0.3234399896536181,
+  "id": "20261103T191242-e3686432",
+  "projected_hours": 0.6
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "device_name": "NVIDIA GB10",
+ "device_type": "cuda",
+ "dtype": "bfloat16",
+ "encoder": "encode-v2",
+ "hidden_size": 2560,
+ "layer": -1,
+ "linear_attention": {
+  "causal_conv1d_fn": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_fn (reference)",
+  "causal_conv1d_update": "transformers.models.qwen3_5.modeling_qwen3_5.causal_conv1d_update (reference)",
+  "torch_chunk_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_chunk_gated_delta_rule (reference)",
+  "torch_recurrent_gated_delta_rule": "transformers.models.qwen3_5.modeling_qwen3_5.torch_recurrent_gated_delta_rule (reference)"
+ },
+ "repo": "Qwen/Qwen3.5-4B",
+ "revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+ "torch": "2.13.0+cu130",
+ "transformers": "5.20.2"
+}

@@ -45,6 +45,12 @@ T4 and C4_params fail the same way. Their category counts differ by about as muc
   decoded exactly, and 53-58% execute correctly.
 - **Exposure bias is not the gap.** On every fit, "all steps right under teacher forcing" equals "exact under free
   decoding". Greedy decoding loses nothing beyond the first wrong step.
+
+  *Correction (2026-11-05; the numbers above are unchanged).* This equality does not rule out exposure bias. It shows
+  only that when every teacher-forced step is right, greedy decoding reproduces the gold program. It says nothing
+  about how a first error compounds when the model then conditions on its own prefix. The forced-prefix diagnostic of
+  the grounding-interface study (`REPORT_grounding_interface.md`, "Diagnostic corrections") tests that directly on a
+  small sample.
 - **Generalization is the gap.** On the historical questions the teacher-forced loss is 0.98-1.14 and the step
   accuracy 0.77-0.79, against 0.94-0.95 on training questions.
 

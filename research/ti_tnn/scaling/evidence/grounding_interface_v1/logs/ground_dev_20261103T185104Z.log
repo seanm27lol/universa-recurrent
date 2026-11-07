@@ -1,0 +1,134 @@
+Loading weights:   0%|          | 0/723 [00:00<?, ?it/s]Loading weights:  54%|█████▍    | 391/723 [00:00<00:00, 3895.39it/s]Loading weights: 100%|██████████| 723/723 [00:00<00:00, 4547.72it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+[transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+{"task": "bird23tf-04392", "valid": true, "reason": null, "finish": "eos", "seconds": 19.11}
+{"task": "bird23tf-00788", "valid": true, "reason": null, "finish": "eos", "seconds": 9.44}
+{"task": "bird23tf-05697", "valid": true, "reason": null, "finish": "eos", "seconds": 7.17}
+{"task": "bird23tf-04901", "valid": true, "reason": null, "finish": "eos", "seconds": 5.74}
+{"task": "bird23tf-01627", "valid": true, "reason": null, "finish": "eos", "seconds": 10.0}
+{"task": "bird23tf-03130", "valid": true, "reason": null, "finish": "eos", "seconds": 5.26}
+{"task": "bird23tf-02636", "valid": false, "reason": "not JSON: Invalid \\escape", "finish": "eos", "seconds": 8.3}
+{"task": "bird23tf-06046", "valid": true, "reason": null, "finish": "eos", "seconds": 9.91}
+{"task": "bird23tf-04982", "valid": true, "reason": null, "finish": "eos", "seconds": 4.63}
+{"task": "bird23tf-03420", "valid": true, "reason": null, "finish": "eos", "seconds": 9.37}
+{"task": "bird23tf-01859", "valid": false, "reason": "unknown column 'director'.'movie_title'", "finish": "eos", "seconds": 8.05}
+{"task": "bird23tf-00469", "valid": true, "reason": null, "finish": "eos", "seconds": 5.52}
+{"task": "bird23tf-03943", "valid": true, "reason": null, "finish": "eos", "seconds": 6.78}
+{"task": "bird23tf-03526", "valid": true, "reason": null, "finish": "eos", "seconds": 9.98}
+{"task": "bird23tf-04345", "valid": true, "reason": null, "finish": "eos", "seconds": 8.66}
+{"task": "bird23tf-04097", "valid": true, "reason": null, "finish": "eos", "seconds": 4.4}
+{"task": "bird23tf-03029", "valid": true, "reason": null, "finish": "eos", "seconds": 8.48}
+{"task": "bird23tf-04905", "valid": true, "reason": null, "finish": "eos", "seconds": 2.78}
+{"task": "bird23tf-01628", "valid": true, "reason": null, "finish": "eos", "seconds": 11.38}
+{"task": "bird23tf-03134", "valid": true, "reason": null, "finish": "eos", "seconds": 4.98}
+{"task": "bird23tf-02664", "valid": true, "reason": null, "finish": "eos", "seconds": 6.03}
+{"task": "bird23tf-04254", "valid": true, "reason": null, "finish": "eos", "seconds": 16.58}
+{"task": "bird23tf-06518", "valid": true, "reason": null, "finish": "eos", "seconds": 7.08}
+{"task": "bird23tf-03434", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 8.44}
+{"task": "bird23tf-06228", "valid": false, "reason": "unknown table '`voice-actors`'", "finish": "eos", "seconds": 10.51}
+{"task": "bird23tf-00443", "valid": true, "reason": null, "finish": "eos", "seconds": 8.25}
+{"task": "bird23tf-05912", "valid": true, "reason": null, "finish": "eos", "seconds": 5.45}
+{"task": "bird23tf-03525", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 11.97}
+{"task": "bird23tf-01565", "valid": true, "reason": null, "finish": "eos", "seconds": 9.13}
+{"task": "bird23tf-00840", "valid": true, "reason": null, "finish": "eos", "seconds": 6.47}
+{"task": "bird23tf-03022", "valid": false, "reason": "unknown column 'Master'.'name'", "finish": "eos", "seconds": 7.93}
+{"task": "bird23tf-02969", "valid": true, "reason": null, "finish": "eos", "seconds": 10.8}
+{"task": "bird23tf-01625", "valid": true, "reason": null, "finish": "eos", "seconds": 5.98}
+{"task": "bird23tf-04970", "valid": true, "reason": null, "finish": "eos", "seconds": 4.11}
+{"task": "bird23tf-02659", "valid": true, "reason": null, "finish": "eos", "seconds": 6.45}
+{"task": "bird23tf-01167", "valid": true, "reason": null, "finish": "eos", "seconds": 12.52}
+{"task": "bird23tf-06520", "valid": true, "reason": null, "finish": "eos", "seconds": 9.33}
+{"task": "bird23tf-03442", "valid": true, "reason": null, "finish": "eos", "seconds": 10.28}
+{"task": "bird23tf-04521", "valid": true, "reason": null, "finish": "eos", "seconds": 6.95}
+{"task": "bird23tf-05284", "valid": true, "reason": null, "finish": "eos", "seconds": 8.72}
+{"task": "bird23tf-00417", "valid": true, "reason": null, "finish": "eos", "seconds": 5.1}
+{"task": "bird23tf-03528", "valid": true, "reason": null, "finish": "eos", "seconds": 5.33}
+{"task": "bird23tf-01479", "valid": true, "reason": null, "finish": "eos", "seconds": 16.01}
+{"task": "bird23tf-00809", "valid": true, "reason": null, "finish": "eos", "seconds": 7.6}
+{"task": "bird23tf-05703", "valid": true, "reason": null, "finish": "eos", "seconds": 11.87}
+{"task": "bird23tf-02994", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 6.39}
+{"task": "bird23tf-01686", "valid": true, "reason": null, "finish": "eos", "seconds": 9.08}
+{"task": "bird23tf-03127", "valid": true, "reason": null, "finish": "eos", "seconds": 4.96}
+{"task": "bird23tf-02670", "valid": true, "reason": null, "finish": "eos", "seconds": 7.45}
+{"task": "bird23tf-01149", "valid": true, "reason": null, "finish": "eos", "seconds": 11.36}
+{"task": "bird23tf-06507", "valid": true, "reason": null, "finish": "eos", "seconds": 8.33}
+{"task": "bird23tf-05748", "valid": false, "reason": "unknown column 'Customers'.'INCOME_K'", "finish": "eos", "seconds": 7.15}
+{"task": "bird23tf-04507", "valid": true, "reason": null, "finish": "eos", "seconds": 8.09}
+{"task": "bird23tf-05928", "valid": true, "reason": null, "finish": "eos", "seconds": 7.83}
+{"task": "bird23tf-03953", "valid": true, "reason": null, "finish": "eos", "seconds": 4.91}
+{"task": "bird23tf-03551", "valid": true, "reason": null, "finish": "eos", "seconds": 5.46}
+{"task": "bird23tf-01560", "valid": true, "reason": null, "finish": "eos", "seconds": 9.53}
+{"task": "bird23tf-00851", "valid": false, "reason": "unknown table '`Match`'", "finish": "eos", "seconds": 10.56}
+{"task": "bird23tf-03037", "valid": false, "reason": "unknown column 'Scoring'.'Min'", "finish": "eos", "seconds": 11.22}
+{"task": "bird23tf-02956", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 8.45}
+{"task": "bird23tf-01640", "valid": true, "reason": null, "finish": "eos", "seconds": 9.01}
+{"task": "bird23tf-03139", "valid": true, "reason": null, "finish": "eos", "seconds": 4.64}
+{"task": "bird23tf-02663", "valid": true, "reason": null, "finish": "eos", "seconds": 11.55}
+{"task": "bird23tf-01158", "valid": true, "reason": null, "finish": "eos", "seconds": 9.63}
+{"task": "bird23tf-06525", "valid": true, "reason": null, "finish": "eos", "seconds": 5.07}
+{"task": "bird23tf-03426", "valid": true, "reason": null, "finish": "eos", "seconds": 8.5}
+{"task": "bird23tf-01838", "valid": true, "reason": null, "finish": "eos", "seconds": 8.18}
+{"task": "bird23tf-05932", "valid": true, "reason": null, "finish": "eos", "seconds": 9.44}
+{"task": "bird23tf-05268", "valid": true, "reason": null, "finish": "eos", "seconds": 6.22}
+{"task": "bird23tf-03519", "valid": true, "reason": null, "finish": "eos", "seconds": 10.04}
+{"task": "bird23tf-01450", "valid": true, "reason": null, "finish": "eos", "seconds": 10.36}
+{"task": "bird23tf-00784", "valid": true, "reason": null, "finish": "eos", "seconds": 7.48}
+{"task": "bird23tf-04922", "valid": true, "reason": null, "finish": "eos", "seconds": 7.86}
+{"task": "bird23tf-02962", "valid": true, "reason": null, "finish": "eos", "seconds": 4.36}
+{"task": "bird23tf-04433", "valid": true, "reason": null, "finish": "eos", "seconds": 6.39}
+{"task": "bird23tf-04963", "valid": true, "reason": null, "finish": "eos", "seconds": 5.9}
+{"task": "bird23tf-02680", "valid": true, "reason": null, "finish": "eos", "seconds": 7.15}
+{"task": "bird23tf-01113", "valid": true, "reason": null, "finish": "eos", "seconds": 8.34}
+{"task": "bird23tf-03149", "valid": true, "reason": null, "finish": "eos", "seconds": 8.12}
+{"task": "bird23tf-03440", "valid": true, "reason": null, "finish": "eos", "seconds": 7.29}
+{"task": "bird23tf-04524", "valid": true, "reason": null, "finish": "eos", "seconds": 8.3}
+{"task": "bird23tf-03980", "valid": true, "reason": null, "finish": "eos", "seconds": 6.4}
+{"task": "bird23tf-03949", "valid": true, "reason": null, "finish": "eos", "seconds": 6.08}
+{"task": "bird23tf-03537", "valid": true, "reason": null, "finish": "eos", "seconds": 10.5}
+{"task": "bird23tf-04385", "valid": true, "reason": null, "finish": "eos", "seconds": 9.4}
+{"task": "bird23tf-04133", "valid": false, "reason": "unknown table '`Match`'", "finish": "eos", "seconds": 14.7}
+{"task": "bird23tf-03099", "valid": true, "reason": null, "finish": "eos", "seconds": 8.57}
+{"task": "bird23tf-02979", "valid": true, "reason": null, "finish": "eos", "seconds": 6.46}
+{"task": "bird23tf-04436", "valid": true, "reason": null, "finish": "eos", "seconds": 7.56}
+{"task": "bird23tf-03138", "valid": true, "reason": null, "finish": "eos", "seconds": 3.41}
+{"task": "bird23tf-02661", "valid": true, "reason": null, "finish": "eos", "seconds": 9.78}
+{"task": "bird23tf-01130", "valid": true, "reason": null, "finish": "eos", "seconds": 9.57}
+{"task": "bird23tf-06528", "valid": true, "reason": null, "finish": "eos", "seconds": 6.98}
+{"task": "bird23tf-03445", "valid": true, "reason": null, "finish": "eos", "seconds": 10.83}
+{"task": "bird23tf-04513", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 6.04}
+{"task": "bird23tf-00472", "valid": true, "reason": null, "finish": "eos", "seconds": 7.87}
+{"task": "bird23tf-05910", "valid": true, "reason": null, "finish": "eos", "seconds": 5.97}
+{"task": "bird23tf-05138", "valid": true, "reason": null, "finish": "eos", "seconds": 7.87}
+{"task": "bird23tf-01576", "valid": true, "reason": null, "finish": "eos", "seconds": 10.2}
+{"task": "bird23tf-00736", "valid": true, "reason": null, "finish": "eos", "seconds": 8.86}
+{"task": "bird23tf-03060", "valid": true, "reason": null, "finish": "eos", "seconds": 8.23}
+{"task": "bird23tf-02989", "valid": true, "reason": null, "finish": "eos", "seconds": 2.74}
+{"task": "bird23tf-01670", "valid": true, "reason": null, "finish": "eos", "seconds": 7.65}
+{"task": "bird23tf-03126", "valid": true, "reason": null, "finish": "eos", "seconds": 5.7}
+{"task": "bird23tf-04824", "valid": true, "reason": null, "finish": "eos", "seconds": 6.88}
+{"task": "bird23tf-06049", "valid": true, "reason": null, "finish": "eos", "seconds": 12.18}
+{"task": "bird23tf-06516", "valid": true, "reason": null, "finish": "eos", "seconds": 11.37}
+{"task": "bird23tf-03432", "valid": true, "reason": null, "finish": "eos", "seconds": 6.49}
+{"task": "bird23tf-01824", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 7.39}
+{"task": "bird23tf-05282", "valid": false, "reason": "keys ['columns', 'literals', 'tables'] != ['columns', 'literals', 'status', 'tables']", "finish": "eos", "seconds": 3.19}
+{"task": "bird23tf-03938", "valid": true, "reason": null, "finish": "eos", "seconds": 5.99}
+{"task": "bird23tf-05134", "valid": true, "reason": null, "finish": "eos", "seconds": 4.17}
+{"task": "bird23tf-01506", "valid": false, "reason": "unknown column 'Business'.'category_name'", "finish": "eos", "seconds": 12.91}
+{"task": "bird23tf-00765", "valid": true, "reason": null, "finish": "eos", "seconds": 5.92}
+{"task": "bird23tf-06499", "valid": true, "reason": null, "finish": "eos", "seconds": 12.43}
+{"task": "bird23tf-02964", "valid": true, "reason": null, "finish": "eos", "seconds": 5.51}
+{"task": "bird23tf-01698", "valid": true, "reason": null, "finish": "eos", "seconds": 5.22}
+{"task": "bird23tf-03121", "valid": true, "reason": null, "finish": "eos", "seconds": 8.32}
+{"task": "bird23tf-02673", "valid": true, "reason": null, "finish": "eos", "seconds": 9.18}
+{"task": "bird23tf-01110", "valid": true, "reason": null, "finish": "eos", "seconds": 10.9}
+{"task": "bird23tf-05715", "valid": true, "reason": null, "finish": "eos", "seconds": 7.71}
+{"task": "bird23tf-05090", "valid": false, "reason": "unknown column 'Customers'.'INCOME'", "finish": "eos", "seconds": 10.04}
+{"task": "bird23tf-01847", "valid": true, "reason": null, "finish": "eos", "seconds": 10.62}
+{"task": "bird23tf-00451", "valid": true, "reason": null, "finish": "eos", "seconds": 7.54}
+{"task": "bird23tf-00430", "valid": true, "reason": null, "finish": "eos", "seconds": 3.49}
+{"task": "bird23tf-03518", "valid": true, "reason": null, "finish": "eos", "seconds": 9.44}
+{"task": "bird23tf-01546", "valid": true, "reason": null, "finish": "eos", "seconds": 8.18}
+{"task": "bird23tf-05321", "valid": true, "reason": null, "finish": "eos", "seconds": 5.19}
+exit 0
