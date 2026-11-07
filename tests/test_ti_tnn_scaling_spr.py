@@ -91,3 +91,133 @@ def test_unknown_identifiers_are_errors_and_observations_are_warnings(analysis):
 def test_a_construct_outside_the_ir_is_an_untyped_warning_not_a_rejection(analysis):
     a = analysis("WITH x AS (SELECT title FROM movies) SELECT title FROM x")
     assert not a["typed"] and not a["errors"] and any("outside the typed representation" in w for w in a["warnings"])
+
+
+# --- the registered rule (spr_rule, v2) ------------------------------------------------------------------------------
+from scaling import spr_rule as RULE  # noqa: E402
+
+SEEDS = (200, 201)
+DBS = [f"db{k}" for k in range(8)]
+QIDS = [f"q{i:02d}" for i in range(64)]
+DB_OF = {t: DBS[i % 8] for i, t in enumerate(QIDS)}
+
+
+def _table(wins: dict, losses: dict = None) -> dict:
+    """correct[(policy, seed)][task]: 'a' right where listed in wins; 'b' right where listed in losses."""
+    losses = losses or set()
+    return {**{("a", s): {t: int((s, t) in wins) for t in QIDS} for s in SEEDS},
+            **{("b", s): {t: int((s, t) in losses) for t in QIDS} for s in SEEDS}}
+
+
+def _spread(n_per_seed: dict) -> set:
+    """n_per_seed[s] wins in seed s, spread over the databases."""
+    return {(s, QIDS[i]) for s, n in n_per_seed.items() for i in range(n)}
+
+
+@pytest.mark.parametrize("wins, meets", [({200: 4, 201: 3}, False), ({200: 4, 201: 4}, True)])
+def test_plus_7_is_not_a_lead_and_plus_8_is(wins, meets):
+    d = RULE.paired_rule(_table(_spread(wins)), "a", "b", SEEDS, QIDS, DB_OF)
+    assert d["pooled"] == sum(wins.values()) and d["threshold"] == 8
+    assert d["conditions"]["same_sign_every_seed"] and d["conditions"]["same_sign_without_any_one_database"]
+    assert d["conditions"]["pooled_at_least_lead"] is meets and d["all_conditions"] is meets
+    assert RULE.lead(d) is meets and not RULE.harm(d)
+
+
+@pytest.mark.parametrize("losses, meets", [({200: 4, 201: 3}, False), ({200: 4, 201: 4}, True)])
+def test_minus_7_is_not_harm_and_minus_8_is(losses, meets):
+    d = RULE.paired_rule(_table(set(), _spread(losses)), "a", "b", SEEDS, QIDS, DB_OF)
+    assert d["pooled"] == -sum(losses.values()) and d["all_conditions"] is meets
+    assert RULE.harm(d) is meets and not RULE.lead(d)
+
+
+def test_a_zero_difference_seed_fails_the_seed_condition():
+    d = RULE.paired_rule(_table(_spread({200: 10, 201: 0})), "a", "b", SEEDS, QIDS, DB_OF)
+    assert d["pooled"] == 10 and d["per_seed"] == {"200": 10, "201": 0}
+    assert d["conditions"]["pooled_at_least_lead"] and not d["conditions"]["same_sign_every_seed"]
+    assert not d["all_conditions"] and not RULE.lead(d)
+
+
+def test_a_gain_concentrated_in_one_database_fails_the_database_condition():
+    one_db = {(s, t) for s in SEEDS for t in QIDS if DB_OF[t] == "db0"}   # 8 per seed, all in db0
+    d = RULE.paired_rule(_table(one_db), "a", "b", SEEDS, QIDS, DB_OF)
+    assert d["pooled"] == 16 and d["conditions"]["same_sign_every_seed"]
+    assert d["leave_one_database_out"]["db0"] == 0 and not d["conditions"]["same_sign_without_any_one_database"]
+    assert not RULE.lead(d)
+
+
+def test_the_decision_branches():
+    base = RULE.paired_rule(_table(set()), "a", "b", SEEDS, QIDS, DB_OF)
+    win = RULE.paired_rule(_table(_spread({200: 4, 201: 4})), "a", "b", SEEDS, QIDS, DB_OF)
+    loss = RULE.paired_rule(_table(set(), _spread({200: 4, 201: 4})), "a", "b", SEEDS, QIDS, DB_OF)
+    assert RULE.decision({"TI1-D1": win, "D1-D0": base, "TI1-D0": base}).startswith("TI1 beats D1")
+    assert RULE.decision({"TI1-D1": base, "D1-D0": base, "TI1-D0": loss}).startswith("TI1 harms")
+    assert RULE.decision({"TI1-D1": base, "D1-D0": win, "TI1-D0": win}).startswith("TI1 ties D1")
+    assert RULE.decision({"TI1-D1": base, "D1-D0": base, "TI1-D0": base}).startswith("neither")
+
+
+# --- public reconstruction from the bundle -------------------------------------------------------------------------
+from scaling import evidence  # noqa: E402
+from scaling import spr_report as SR  # noqa: E402
+
+
+def _bundle_copy(tmp_path, monkeypatch):
+    if not (SR.BUNDLE / "SHA256SUMS").exists():
+        pytest.skip("no spr bundle")
+    import shutil
+    copy = tmp_path / "spr_v1"
+    shutil.copytree(SR.BUNDLE, copy)
+    monkeypatch.setattr(SR, "BUNDLE", copy)
+    (run,) = sorted(copy.glob("run/*"))
+    return copy, run
+
+
+def _rewrite(path, edit):
+    import json as J
+    rows = [J.loads(x) for x in path.read_text().splitlines() if x.strip()]
+    rows = edit(rows)
+    path.write_text("".join(J.dumps(r, sort_keys=True) + "\n" for r in rows))
+
+
+def test_the_bundle_reconstructs_and_keeps_the_observed_verdict():
+    if not (SR.BUNDLE / "SHA256SUMS").exists():
+        pytest.skip("no spr bundle")
+    got, original, corrected = SR.reconstruct()
+    assert got["pooled"] == {"D0": 74, "D1": 76, "TI1": 78}
+    assert got["decision"] == original["decision"] == corrected["decision"]
+    assert got["comparisons"]["TI1-D1"]["threshold"] == 8 and not got["comparisons"]["TI1-D1"]["all_conditions"]
+    assert original["comparisons"]["TI1-D1"]["threshold"] == 7   # the preserved historical defect
+
+
+def _edit_cost(rows):
+    rows[0]["original"]["call"]["seconds"] += 1.0
+    return rows
+
+
+def _edit_db(rows):
+    rows[0]["db_id"] = "world" if rows[0]["db_id"] != "world" else "disney"
+    return rows
+
+
+def _edit_selection(rows):
+    r = next(r for r in rows if r["D1"]["source"] == "revised")
+    r["D1"]["source"], r["D1"]["sql"] = "original", r["original"]["sql"]
+    return rows
+
+
+def _edit_seed(rows):
+    rows[0]["seed"] = 202
+    return rows
+
+
+@pytest.mark.parametrize("target, edit, match", [
+    ("requests.jsonl", _edit_cost, "corrected.cost"),
+    ("requests.jsonl", _edit_db, "not the pinned"),
+    ("requests.jsonl", _edit_selection, "selection differs"),
+    ("requests.jsonl", _edit_seed, "requests:"),
+    ("scores.jsonl", lambda rows: rows + rows[:1], "scores: 1 duplicated")])
+def test_corruption_is_refused_even_with_regenerated_checksums(tmp_path, monkeypatch, target, edit, match):
+    copy, run = _bundle_copy(tmp_path, monkeypatch)
+    _rewrite(run / target, edit)
+    evidence.write_sums(copy)          # the sums now match the corrupted bundle: only reconstruction can catch it
+    with pytest.raises(SR.Inconsistent, match=match):
+        SR.reconstruct()

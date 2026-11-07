@@ -104,7 +104,8 @@ def corrected_cmd(args) -> None:
                                              **out["corrects"], **out["inputs"]}, require_clean=not args.allow_dirty)
     (run_dir / "analysis_v2.json").write_text(json.dumps(out, indent=1, sort_keys=True, default=str) + "\n")
     print(json.dumps({k: {"pooled": v["pooled"], "threshold": v["threshold"], "conditions": v["conditions"],
-                          "all_conditions": v["all_conditions"]} for k, v in cmp.items()} | {"decision": out["decision"]},
+                          "all_conditions": v["all_conditions"]} for k, v in cmp.items()}
+                     | {"decision": out["decision"]},
                      indent=1))
 
 
