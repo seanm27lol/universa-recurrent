@@ -17,19 +17,24 @@ retrieved the database facts each repair needs?
    - for every group, the payload, latency, queries, scan limits and timeouts. The groups are the 17 targeted cases,
      their 11 questions, the other wrong proposals and the originally correct ones.
 
-    python -m scaling.evidence_coverage retrieve --version db-evidence-v1.1
-    python -m scaling.evidence_coverage tables [--version db-evidence-v1.1]   # the tables, from a stored comparison
-    python -m scaling.evidence_coverage impact        # what changed from db-evidence-v1 to v1.1, proposal by proposal
+    python -m scaling.evidence_coverage retrieve --version db-evidence-v1.2
+    python -m scaling.evidence_coverage tables [--version db-evidence-v1.2]   # the tables, from a stored comparison
+    python -m scaling.evidence_coverage impact        # what changed from db-evidence-v1 to v1.2, proposal by proposal
     git show 10d054a:research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json > /tmp/audit_cases.json
-    python -m scaling.evidence_coverage compare --version db-evidence-v1.1 --audit /tmp/audit_cases.json
+    python -m scaling.evidence_coverage compare --version db-evidence-v1.2 --audit /tmp/audit_cases.json
 
 (The comparison pins the audit's cases at PR #72's 10d054a. A later correction to one note, e823303, changed the
 file but not its labels.)
 
-**Versions.** The original study ran db-evidence-v1 (code at dd45591). Its outputs are under `retrieval/` and
-`compare/` and are never replaced; rerun v1 from that commit. db-evidence-v1.1 changes only how columns are bound,
-now in their SQL scope. Its outputs are under `retrieval_v1.1/` and `compare_v1.1/`, and `impact/` records what
-changed proposal by proposal.
+**Versions.** Each version's outputs are kept and never replaced; rerun an older version from its commit.
+- **db-evidence-v1 (dd45591):** the original study. Its outputs are under `retrieval/` and `compare/`.
+- **db-evidence-v1.1 (8e729cf), superseded:** bound columns in their SQL scope, but by accident also changed the
+  order of the proposal's tables, which drives the column search. Its outputs are under `retrieval_v1.1/` and
+  `compare_v1.1/`.
+- **db-evidence-v1.2:** the scope fix with the tables kept in the order the SQL names them. Its outputs are under
+  `retrieval_v1.2/` and `compare_v1.2/`.
+
+Each `impact/` run records what changed from v1, proposal by proposal.
 
 An empty retrieval is not proof that a value is absent, and the lookup never substitutes a literal.
 """
@@ -53,7 +58,7 @@ ROOT = C.RUNS / "evidence_coverage"
 AUDIT_CASES_SHA256 = "134a98163d548330b95d54667ca890cd76c966037420d5cb780aaa0fc2a6bc09"   # PR #72 at 10d054a
 GROUNDING = "schema/value grounding"
 # Each lookup version's outputs live in their own directories; db-evidence-v1's are the original study's.
-SUFFIX = {"db-evidence-v1": "", "db-evidence-v1.1": "_v1.1"}
+SUFFIX = {"db-evidence-v1": "", "db-evidence-v1.1": "_v1.1", "db-evidence-v1.2": "_v1.2"}
 
 
 def _dir(kind: str, version: str) -> str:
@@ -286,7 +291,7 @@ def impact(old: list, new: list, old_cov: dict, new_cov: dict) -> dict:
         if rendered:
             import difflib
             diff = "\n".join(difflib.unified_diff(pa["rendered"].splitlines(), pb["rendered"].splitlines(),
-                                                   "v1", "v1.1", lineterm="", n=0))
+                                                   "old", "new", lineterm="", n=0))
         rows.append({"task_id": k[0], "seed": k[1], "bindings_changed": changed,
                      "unresolved": pb["proposal"].get("unresolved", []), "rendered_changed": rendered,
                      "rendered_diff": diff, "items_changed": pa["items"] != pb["items"]})
@@ -296,7 +301,7 @@ def impact(old: list, new: list, old_cov: dict, new_cov: dict) -> dict:
             "bindings_changed": sum(1 for r in rows if r["bindings_changed"]),
             "rendered_changed": sum(1 for r in rows if r["rendered_changed"]),
             "with_unresolved": sum(1 for r in rows if r["unresolved"]),
-            "class_changes": [{"task_id": k[0], "seed": k[1], "v1": old_class[k], "v1.1": new_class[k]}
+            "class_changes": [{"task_id": k[0], "seed": k[1], "old": old_class[k], "new": new_class[k]}
                               for k in sorted(old_class) if old_class[k] != new_class[k]],
             "rows": rows}
 
@@ -380,7 +385,7 @@ def main(argv=None) -> int:
     t.add_argument("--version", default="db-evidence-v1", choices=versions)
     i = sub.add_parser("impact")
     i.add_argument("--old", default="db-evidence-v1", choices=versions)
-    i.add_argument("--new", default="db-evidence-v1.1", choices=versions)
+    i.add_argument("--new", default="db-evidence-v1.2", choices=versions)
     i.add_argument("--allow-dirty", action="store_true")
     args = ap.parse_args(argv)
     if args.cmd == "tables":

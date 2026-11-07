@@ -226,7 +226,7 @@ def test_the_classes():
     assert EC.classify([1], [yes], True) == "unresolved benchmark disagreement"
 
 
-# --- SQL scopes (db-evidence-v1.1) -------------------------------------------------------------------------------------
+# --- SQL scopes (db-evidence-v1.2) -------------------------------------------------------------------------------------
 @pytest.fixture
 def trade(tmp_path):
     path = tmp_path / "trade.sqlite"
@@ -321,3 +321,11 @@ def test_the_impact_report_names_changed_bindings_and_packages(trade):
     assert out["bindings_changed"] == 1 and out["rendered_changed"] == 1 and not out["class_changes"]
     (r,) = out["rows"]
     assert list(r["bindings_changed"]) == ["predicates"] and "Paris" in r["rendered_diff"]
+
+
+def test_tables_keep_the_order_the_sql_names_them(trade):
+    pkg = _go(trade, "SELECT c.name FROM orders AS o JOIN customers AS c ON o.cid = c.id WHERE EXISTS "
+                     "(SELECT 1 FROM suppliers AS s WHERE s.city = c.city)")
+    assert pkg["proposal"]["tables"] == ["orders", "customers", "suppliers"]
+    cte = _go(trade, "WITH customers AS (SELECT * FROM suppliers) SELECT name FROM customers")
+    assert cte["proposal"]["tables"] == ["suppliers"]      # a CTE named like a table is not that table

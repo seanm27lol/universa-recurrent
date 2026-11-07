@@ -52,7 +52,8 @@ import time
 import unicodedata
 from dataclasses import asdict, dataclass
 
-EVIDENCE_VERSION = "db-evidence-v1.1"   # v1.1: columns bound in their SQL scope (v1: one global alias map)
+EVIDENCE_VERSION = "db-evidence-v1.2"   # columns bound in their SQL scope, tables kept in SQL order
+# v1: one global alias map. v1.1 (8e729cf, superseded): scopes, but the table order changed by accident.
 
 
 @dataclass(frozen=True)
@@ -190,7 +191,7 @@ def _q(name: str) -> str:
 def parse_proposal(sql: "str | None", schema) -> dict:
     """Tables, columns, literal predicates, numeric uses and joins of the proposal, resolved against the schema.
 
-    **Scopes (db-evidence-v1.1).** Every column is bound in its own SELECT scope, as SQLite binds it:
+    **Scopes (db-evidence-v1.2).** Every column is bound in its own SELECT scope, as SQLite binds it:
     - A qualified column `q.c` binds to the source named `q` in its scope. In a subquery, if `q` is not a source
       there, the lookup moves outward through the enclosing scopes: a correlated column.
     - An unqualified column binds to the one source of its scope that has it. If none has it, a subquery looks
@@ -259,12 +260,12 @@ def parse_proposal(sql: "str | None", schema) -> dict:
             s = outward(s)
         return "no source in its scope or an enclosing one" + (f" is named {node.table}" if qual else " has it")
 
+    stored = {id(src) for scope in scopes for src in scope.sources.values() if isinstance(src, exp.Table)}
+    for t in tree.find_all(exp.Table):   # the stored tables, in the order the SQL names them (as in v1)
+        real = by_name.get(t.name.lower())
+        if id(t) in stored and real is not None and real.name not in used:
+            used.append(real.name)
     for scope in scopes:                 # innermost scopes first: a node is bound where it appears
-        for key, src in scope.sources.items():
-            if isinstance(src, exp.Table) and src.name.lower() in by_name:
-                real = by_name[src.name.lower()].name
-                if real not in used:
-                    used.append(real)
         for node in scope.columns:
             if id(node) not in binding:
                 binding[id(node)] = bind(node, scope)
