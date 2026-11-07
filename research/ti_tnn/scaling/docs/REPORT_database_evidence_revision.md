@@ -1,0 +1,162 @@
+# Does database evidence improve ordinary revision? Results of the frozen D0 / D1 / V1 run
+
+**Result.** V1 did not meet the prespecified continuation threshold on this population, and this version stops.
+- **V1 against D1:** 80 of 128 each, a difference of 0 (-1 in seed 200, +1 in seed 201).
+- **Interval:** the 95% question-level bootstrap interval is [-5, +5].
+- **Discordant answers:** 3 recoveries and 3 regressions.
+
+This measures one frozen lookup on one fresh population. It is not proof that database evidence has no effect, and
+not proof that its effect is small.
+
+**Status:** one GPU run from the frozen protocol (`docs/PROTOCOL_database_evidence_revision.md`, pins at 8e1ee1b,
+`frozen_at` 644c090). The run took 0.461 GPU-reservation hours of the 1-hour allowance, and the ledger stands at 23.951
+of 32 h. No training, no reserved-benchmark read, no rerun.
+
+## A concrete example
+
+Take a question whose direct proposal fails because of how the database stores a value or names a column.
+- **Ordinary revision (D1)** shows the model its query's result and asks it to check the query.
+- **Database-evidence revision (V1)** shows the same, plus facts looked up in the database: nearest stored values,
+  near-miss columns and tables, declared keys and value formats.
+
+The lookup is reference-blind and deterministic. V1's message is D1's with that evidence inserted, and nothing else.
+
+## What ran
+
+- **Population.** Inventory positions 256-319: 64 questions over 14 databases, seeds 200 and 201, so 128
+  question-seed pairs per policy. The classified prior-use scan found only the disclosed, allowed uses: inventory
+  membership and the declared mechanical screening (`pins/dbe_prior_use_scan.json`).
+- **Policies.** All three share one initial proposal per question and seed:
+  - **D0:** the initial direct Qwen3.5-4B proposal;
+  - **D1:** one ordinary revision;
+  - **V1:** the same revision with the db-evidence-v1.4 payload.
+- **Held equal across D1 and V1:**
+  - the initial reply, the raw observation, the revision seed and the prefix;
+  - 512 tokens;
+  - the selection rule;
+  - the model-revision allowance. The lookup ran before the shared remaining time was taken, so the policies had
+    equal revision opportunity, not identical end-to-end time.
+- **Lookup cost.** The lookup is charged to V1's cost: 6.2 s in total, median 0.008 s, maximum 0.55 s.
+- **Lookup outcomes:**
+  - none failed;
+  - no instruction-budget stops;
+  - 12 hit a scan limit;
+  - none was truncated;
+  - 30 recorded unresolved columns;
+  - the payload median was 786 characters, with a maximum of 1,718.
+
+## Results
+
+| policy | seed 200 | seed 201 | pooled (of 128) |
+|---|---|---|---|
+| D0 | 38 | 32 | 70 |
+| D1 | 41 | 39 | 80 |
+| V1 | 40 | 40 | 80 |
+
+| comparison | pooled | per seed | recoveries | regressions | 95% interval (questions) | leave-one-database-out min | all conditions | sign-flip p (exploratory) |
+|---|---|---|---|---|---|---|---|---|
+| V1-D1 | +0 | -1, +1 | 3 | 3 | [-5, +5] | -1 | False | 1.000 |
+| D1-D0 | +10 | +3, +7 | 10 | 0 | [+4, +18] | +8 | True | 0.031 |
+| V1-D0 | +10 | +2, +8 | 11 | 1 | [+3, +18] | +7 | True | 0.031 |
+
+**Decision:** V1 did not meet the prespecified continuation threshold on this population: this version stops.
+
+| transition | count |
+|---|---|
+| V1 right where D1 is wrong | 3 |
+| D1 right where V1 is wrong | 3 |
+| initially correct (D0) | 70 |
+| initially correct, broken by D1 / V1 | 0 / 1 |
+| initially wrong, fixed by D1 / V1 | 10 / 11 |
+
+| signal group (descriptive) | requests | D0 | D1 | V1 | V1 right, D1 wrong | D1 right, V1 wrong | D0 right, V1 wrong |
+|---|---|---|---|---|---|---|---|
+| no signal | 85 | 49 | 54 | 56 | 3 | 1 | 0 |
+| other signal | 42 | 21 | 26 | 24 | 0 | 2 | 1 |
+| value not stored | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+| policy | generation s | lookup s | tool s | submitted execution s | total s | per request s | per EX-correct s | prompt tokens | generated tokens | peak memory GB |
+|---|---|---|---|---|---|---|---|---|---|---|
+| D0 | 517.1 | 0.0 | 0.0 | 3.3 | 520.4 | 4.07 | 7.4 | 332,006 | 7,092 | 11.06 |
+| D1 | 1039.5 | 0.0 | 8.6 | 3.2 | 1051.3 | 8.21 | 13.1 | 684,238 | 14,154 | 11.13 |
+| V1 | 1063.1 | 6.2 | 11.7 | 6.1 | 1087.1 | 8.49 | 13.6 | 719,542 | 14,308 | 11.23 |
+
+Lookups: 0 failed; 0 instruction-budget stops; 12 with scan limits; 0 truncated; 30 with unresolved columns; 0 wall-clock safety stops; total 6.2 s, max 0.55 s; largest payload 1718 characters.
+
+GPU reservations: dbe run 0.461 h (ok). Ledger: 23.951 of 32.0 h.
+
+| database | questions | D0 | D1 | V1 |
+|---|---|---|---|---|
+| computer_student | 4 | 4 | 4 | 4 |
+| disney | 5 | 4 | 6 | 6 |
+| food_inspection | 4 | 6 | 6 | 6 |
+| hockey | 4 | 4 | 4 | 4 |
+| ice_hockey_draft | 5 | 4 | 4 | 5 |
+| image_and_language | 4 | 3 | 5 | 6 |
+| music_platform_2 | 5 | 8 | 8 | 8 |
+| professional_basketball | 5 | 1 | 3 | 2 |
+| public_review_platform | 4 | 4 | 6 | 6 |
+| simpson_episodes | 5 | 6 | 7 | 6 |
+| soccer_2016 | 4 | 4 | 5 | 5 |
+| software_company | 5 | 7 | 7 | 7 |
+| talkingdata | 5 | 5 | 5 | 5 |
+| world | 5 | 10 | 10 | 10 |
+
+**Reading:**
+- **The primary comparison is a tie.** V1 and D1 end on the same final SQL in 91 of 128 requests. V1 changed the
+  initial SQL more often than D1 (48 revisions changed it, against 33), but the changes cancel out: 3 answers V1 fixed
+  that D1 missed, and 3 the other way. The interval [-5, +5] covers effects of either sign up to about 5 of 128.
+- **Leaving out one database.** V1 - D1 is -1, 0 or +1 for every database left out. No database carries an effect.
+- **Harm to initially correct answers.** V1 broke 1 of the 70 initially correct answers (bird23tf-00441, seed 200),
+  and D1 broke none. That request showed relationship and table evidence. One case is too few to call a distractor
+  effect, so it is reported, not interpreted.
+- **The specific signal barely fired.** "Value not stored, candidates shown" occurred in 1 of 128 requests, and that
+  request stayed wrong under all three policies. In the coverage study, it was the signal confined to the targeted
+  grounding cases. Here most V1 requests carried only less specific evidence (42 "other signal") or none of it
+  (85). This population gave the lookup's strongest signal little to act on, and a different population could
+  differ.
+  - The signal groups are descriptive and computed without references. No subgroup is selected or proposed as a
+    policy.
+- **Secondary: ordinary revision helps on this population.**
+  - D1 - D0 is +10, with 10 recoveries, no regressions and interval [+4, +18]. It meets the +8 rule in both seeds and
+    leaving out any one database.
+  - V1 - D0 is also +10 and meets the rule.
+  - In PR #71's population, D1 - D0 was +2. The difference between populations is not explained here.
+  - This is a secondary comparison, and it does not change the primary decision.
+
+## Uncertainty, as pinned
+
+- **Bootstrap.** One shared resampling of the 64 questions, each with both seeds and all policies: 10,000 replicates
+  with `random.Random(20261107)`. The 95% percentile intervals are in correct answers of the 128 question-seed pairs.
+  The interval treats questions as independent; leave-one-database-out is a sensitivity check, not a correction for
+  database clustering.
+- **Sign-flip.** The exact sign-flip over per-database differences is exploratory: p = 1.000 for V1 - D1 and 0.031
+  for each D0 comparison.
+
+## Cost
+
+V1's end-to-end cost was 1,087 s, against D1's 1,051 s (+3.4%). The difference comes from longer prompts (719,542
+tokens against 684,238), the lookup (6.2 s) and tool and execution time. Peak memory was 11.2 GB.
+
+The run took 0.461 GPU-reservation hours, against 0.65 projected and the 1-hour allowance. The host load stayed at
+or below 3.0 throughout (co-tenancy log). An idle 533 MiB process from another project was on the GPU.
+
+## What this does and does not show
+
+- **The rule was not met.** The frozen db-evidence-v1.4 payload, added to ordinary revision, did not meet the
+  prespecified continuation threshold against ordinary revision on this population. This version stops. The lookup
+  is not tuned against these results, and this population is not rerun.
+- **Not shown:**
+  - that database evidence cannot help;
+  - that its effect is small in general;
+  - anything about the learned TI-TNN specialist architecture. A positive result would have been evidence for
+    database-assisted Qwen revision, not for that architecture.
+- **Limits.** One population, one model, one lookup version, and two seeds that share questions. The 128 pairs are
+  not 128 independent questions.
+
+## Files and reproduction
+
+- `evidence/dbe_v1/`, under SHA256SUMS: the run (requests with every evidence package, candidate and selection, and
+  the scores), the analysis, the logs with co-tenancy, and the ledger.
+- To recompute from the bundle: `python -m scaling.dbe_report`. It checks the sums, validates the records,
+  recomputes with the frozen `dbe_run.analyze` and refuses any disagreement.
