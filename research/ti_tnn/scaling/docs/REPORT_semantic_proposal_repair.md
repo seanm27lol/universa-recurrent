@@ -203,6 +203,23 @@ checksums, and confirm that each is refused. The tables in "Lineage and costs" a
 
 ## Independent verification
 
+**After the correction pass (2026-11-07).** The reviewer extended `independent/verify_spr.py`. The running process
+recorded the verifier's own sha256 (`daa612c3…`) from its bytes at start and end, hashed 117 inputs, and recorded its
+start, end and runtime (364.7 s). It ran at d0eec03: **191 checks, 0 failures.**
+- **The historical defect** is recorded under `known_defects` exactly as first found, not as a new failure and not
+  suppressed: the original `analysis.json`'s rule fields at 7 of 128.
+- **The corrected analysis** (`spr-rule-v2`) uses +8 in every rule field, matches the reviewer's own computation, and
+  leaves every count and the decision unchanged.
+- **`spr_report` with no runs root** reconstructs the tables, and the study's tests pass (19).
+
+The output is in `evidence/spr_v1/independent/final2/`. The reviewer noted three minor points, none a failure:
+- the condition key was renamed (`pooled_at_least_lead`);
+- the check against the original also sets aside `sign`;
+- the reconstruction requires the bundled ledger's total to equal the original analysis's, so re-bundling a newer
+  ledger would be refused.
+
+**The first run, kept as history:**
+
 A separate reviewer session wrote `independent/verify_spr.py` (sha256 `81935f4b…`) and ran it at 1289d7e:
 **167 checks, 1 failure.** Its session ended on a usage limit after the run, before it wrote a summary; the complete
 output is in `evidence/spr_v1/independent/`. Its sections:
