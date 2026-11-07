@@ -12,6 +12,7 @@ disagreement with `analysis.json`.
 from __future__ import annotations
 
 import json
+import math
 import shutil
 import sys
 from pathlib import Path
@@ -135,14 +136,81 @@ def recompute(reqs: list, scores: list, ids: list, db_of: dict, seeds: list, led
     return out
 
 
+def _num(v) -> bool:
+    """A real number that is not a Boolean (bool is a subclass of int in Python)."""
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
 def _differ(a, b, path="") -> list:
-    """Paths where two JSON-like values differ (floats to 1e-9 relative)."""
+    """Paths where two JSON-like values differ. Types are checked before any equality or tolerance:
+    - Booleans equal only Booleans (True is not 1);
+    - numbers must be finite (no NaN, no +/-Infinity) and of the same kind (an int against a float differs);
+    - integers compare exactly, floats to 1e-9 relative (legitimate roundoff passes);
+    - dicts and lists compare element by element."""
     if isinstance(a, dict) and isinstance(b, dict):
         return [p for k in sorted(set(a) | set(b)) for p in (_differ(a.get(k), b.get(k), f"{path}.{k}")
                                                               if k in a and k in b else [f"{path}.{k}"])]
-    if isinstance(a, float) or isinstance(b, float):
-        return [] if a is not None and b is not None and abs(a - b) <= 1e-9 * max(1.0, abs(a), abs(b)) else [path]
-    return [] if a == b else [path]
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return [f"{path}[len]"]
+        return [p for i, (x, y) in enumerate(zip(a, b)) for p in _differ(x, y, f"{path}[{i}]")]
+    if isinstance(a, bool) or isinstance(b, bool):
+        return [] if isinstance(a, bool) and isinstance(b, bool) and a == b else [path]
+    if _num(a) or _num(b):
+        if not (_num(a) and _num(b)) or not (math.isfinite(a) and math.isfinite(b)):
+            return [path]
+        if isinstance(a, int) != isinstance(b, int):
+            return [path]
+        if isinstance(a, int):
+            return [] if a == b else [path]
+        return [] if abs(a - b) <= 1e-9 * max(1.0, abs(a), abs(b)) else [path]
+    return [] if type(a) is type(b) and a == b else [path]
+
+
+def _check(ok: bool, what: str) -> None:
+    if not ok:
+        raise Inconsistent(f"invalid record value: {what}")
+
+
+def _count(v, what: str) -> None:
+    _check(_num(v) and isinstance(v, int) and v >= 0, f"{what} = {v!r} is not a nonnegative integer")
+
+
+def _time(v, what: str) -> None:
+    _check(_num(v) and math.isfinite(v) and v >= 0, f"{what} = {v!r} is not a finite nonnegative time")
+
+
+def _flag(v, what: str) -> None:
+    _check(isinstance(v, bool), f"{what} = {v!r} is not a Boolean")
+
+
+def _validate_values(reqs: list, scores: list) -> None:
+    """Every value a displayed quantity is computed from, before it is used: correctness is integer 0 or 1, counts
+    are nonnegative integers, times are finite and nonnegative, Boolean fields are Booleans."""
+    for x in scores:
+        w = f"score {x['policy']}/{x['seed']}/{x['task_id']}"
+        c = x["score"]["correct"]
+        _check(_num(c) and isinstance(c, int) and c in (0, 1), f"{w}: correct = {c!r} is not integer 0 or 1")
+        pr = x["score"]["predicted"]
+        _time(pr["elapsed_seconds"], f"{w}: predicted.elapsed_seconds")
+        for k in ("row_count", "distinct_rows"):
+            if pr.get(k) is not None:
+                _count(pr[k], f"{w}: predicted.{k}")
+    for r in reqs:
+        w = f"request {r['seed']}/{r['task_id']}"
+        cands = [("original", r["original"])] + [(f"{p}.revised", r[p]["revised"]) for p in ("D1", "TI1")]
+        for name, cand in cands:
+            call, ex, ty = cand["call"], cand["execution"], cand["typed"]
+            _time(call["seconds"], f"{w}: {name}.call.seconds")
+            for k in ("prompt_tokens", "generated_tokens", "peak_memory_bytes"):
+                _count(call[k], f"{w}: {name}.call.{k}")
+            _time(ex["seconds"], f"{w}: {name}.execution.seconds")
+            if ex.get("row_count") is not None:
+                _count(ex["row_count"], f"{w}: {name}.execution.row_count")
+            _flag(ex.get("truncated", False), f"{w}: {name}.execution.truncated")
+            _time(ty["seconds"], f"{w}: {name}.typed.seconds")
+            _flag(ty["typed"], f"{w}: {name}.typed.typed")
+        _time(r["revision_seconds_allowed"], f"{w}: revision_seconds_allowed")
 
 
 RULE_FIELDS = ("threshold", "conditions", "all_conditions", "sign", "rule_version")
@@ -168,6 +236,7 @@ def reconstruct() -> tuple:
     if original["seeds"] != seeds or corrected["seeds"] != seeds:
         raise Inconsistent("the analyses' seeds are not the frozen ones")
     _validate_inventory(reqs, scores, ids, db_of, seeds)
+    _validate_values(reqs, scores)
     got = recompute(reqs, scores, ids, db_of, seeds, BUNDLE / "gpu_ledger.jsonl")
     problems = []
     for k in ("counts", "pooled", "comparisons", "decision", "by_database", "lineage", "initial", "final_status",

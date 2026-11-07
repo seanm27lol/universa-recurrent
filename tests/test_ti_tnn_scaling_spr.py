@@ -221,3 +221,83 @@ def test_corruption_is_refused_even_with_regenerated_checksums(tmp_path, monkeyp
     evidence.write_sums(copy)          # the sums now match the corrupted bundle: only reconstruction can catch it
     with pytest.raises(SR.Inconsistent, match=match):
         SR.reconstruct()
+
+
+# --- value validation before comparison (2026-11-07) -----------------------------------------------------------------
+def test_differ_checks_types_before_equality_and_tolerance():
+    inf = float("inf")
+    assert SR._differ(1.0, inf, "x") == ["x"] and SR._differ(inf, inf, "x") == ["x"]
+    assert SR._differ(-inf, 5.0, "x") == ["x"] and SR._differ(float("nan"), 1.0, "x") == ["x"]
+    assert SR._differ(True, 1, "x") == ["x"] and SR._differ(0, False, "x") == ["x"]
+    assert SR._differ(1.0, True, "x") == ["x"]
+    assert SR._differ(74, 74.0, "x") == ["x"]                         # an integer count is not a float
+    assert SR._differ(0.1 + 0.2, 0.3, "x") == [] and SR._differ(1525.123, 1525.123 * (1 + 1e-13), "x") == []
+    assert SR._differ(True, True, "x") == [] and SR._differ(3, 3, "x") == [] and SR._differ(None, None, "x") == []
+    assert SR._differ([1, 2.0], [1, 2.0], "x") == [] and SR._differ([True], [1], "x") == ["x[0]"]
+    assert SR._differ([1], [1, 2], "x") == ["x[len]"]
+
+
+def _edit_analysis(copy, name, edit):
+    import json as J
+    (path,) = [p for p in copy.glob(f"analysis/*/{name}")]
+    obj = J.loads(path.read_text())
+    edit(obj)
+    path.write_text(J.dumps(obj, indent=1, sort_keys=True) + "\n")   # json writes Infinity for inf
+
+
+@pytest.mark.parametrize("name, edit, match", [
+    ("analysis_v2.json", lambda a: a["cost"]["TI1"].__setitem__("total_seconds", float("inf")), "corrected.cost"),
+    ("analysis_v2.json", lambda a: a["cost"]["D1"].__setitem__("tool_seconds", float("-inf")), "corrected.cost"),
+    ("analysis.json", lambda a: a["cost"]["D0"].__setitem__(
+        "per_request_seconds", a["cost"]["D0"]["per_request_seconds"] + 1.0), "original.cost"),
+    ("analysis.json", lambda a: a["counts"].__setitem__("D0/200", 37.0), "original.counts"),
+    ("analysis_v2.json", lambda a: a["comparisons"]["TI1-D1"].__setitem__("all_conditions", 0),
+     "corrected.comparisons")])
+def test_changed_analysis_values_are_refused_with_regenerated_checksums(tmp_path, monkeypatch, name, edit, match):
+    copy, _run = _bundle_copy(tmp_path, monkeypatch)
+    _edit_analysis(copy, name, edit)
+    evidence.write_sums(copy)
+    with pytest.raises(SR.Inconsistent, match=match):
+        SR.reconstruct()
+
+
+def test_legitimate_roundoff_in_an_analysis_cost_passes(tmp_path, monkeypatch):
+    copy, _run = _bundle_copy(tmp_path, monkeypatch)
+    _edit_analysis(copy, "analysis_v2.json", lambda a: a["cost"]["TI1"].__setitem__(
+        "total_seconds", a["cost"]["TI1"]["total_seconds"] * (1 + 1e-13)))
+    evidence.write_sums(copy)
+    got, _o, _c = SR.reconstruct()
+    assert got["pooled"]["TI1"] == 78
+
+
+def _score_edit(value):
+    def edit(rows):
+        rows[0]["score"]["correct"] = value
+        return rows
+    return edit
+
+
+def _request_edit(path, value):
+    def edit(rows):
+        node = rows[0]
+        for k in path[:-1]:
+            node = node[k]
+        node[path[-1]] = value
+        return rows
+    return edit
+
+
+@pytest.mark.parametrize("target, edit, match", [
+    ("scores.jsonl", _score_edit(2), "not integer 0 or 1"),
+    ("scores.jsonl", _score_edit(True), "not integer 0 or 1"),
+    ("scores.jsonl", _score_edit(1.0), "not integer 0 or 1"),
+    ("requests.jsonl", _request_edit(("original", "call", "seconds"), -1.0), "finite nonnegative time"),
+    ("requests.jsonl", _request_edit(("original", "call", "seconds"), float("inf")), "finite nonnegative time"),
+    ("requests.jsonl", _request_edit(("D1", "revised", "call", "generated_tokens"), 3.5), "nonnegative integer"),
+    ("requests.jsonl", _request_edit(("TI1", "revised", "typed", "typed"), 1), "not a Boolean")])
+def test_invalid_record_values_are_refused_with_regenerated_checksums(tmp_path, monkeypatch, target, edit, match):
+    copy, run = _bundle_copy(tmp_path, monkeypatch)
+    _rewrite(run / target, edit)
+    evidence.write_sums(copy)
+    with pytest.raises(SR.Inconsistent, match=match):
+        SR.reconstruct()
