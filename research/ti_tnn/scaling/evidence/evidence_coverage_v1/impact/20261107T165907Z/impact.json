@@ -1,0 +1,1332 @@
+{
+ "bindings_changed": 7,
+ "class_changes": [],
+ "new": "db-evidence-v1.2",
+ "old": "db-evidence-v1",
+ "proposals": 128,
+ "rendered_changed": 1,
+ "rows": [
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00410",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00412",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00415",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00436",
+   "unresolved": [
+    {
+     "column": "T2.category",
+     "reason": "app_labels has no column category"
+    },
+    {
+     "column": "T2.event_id",
+     "reason": "app_labels has no column event_id"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00439",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00774",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00785",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-00789",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01107",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"Business\", \"business_id\"]",
+      "[\"Business_Attributes\", \"business_id\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01497",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01600",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01633",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01665",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"Episode\", \"episode_id\"]",
+      "[\"Vote\", \"episode_id\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01666",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-01840",
+   "unresolved": [
+    {
+     "column": "d.movie_title",
+     "reason": "director has no column movie_title"
+    },
+    {
+     "column": "vacount",
+     "reason": "may come from a derived table or CTE"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-02657",
+   "unresolved": [
+    {
+     "column": "T2.PlayerName",
+     "reason": "weight_info has no column PlayerName"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-02957",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-02975",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-02992",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03000",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03051",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03054",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03089",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03119",
+   "unresolved": [
+    {
+     "column": "T2.Capital",
+     "reason": "City has no column Capital"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03140",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03150",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03421",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03540",
+   "unresolved": [
+    {
+     "column": "T2.inspection_id",
+     "reason": "inspections has no column inspection_id"
+    },
+    {
+     "column": "T3.inspection_id",
+     "reason": "violations has no column inspection_id"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03547",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03553",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03556",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03945",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03954",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-03969",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04115",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04247",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04252",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04253",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04354",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04406",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04522",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04816",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"PlayerInfo\", \"ELITEID\"]",
+      "[\"SeasonStatus\", \"ELITEID\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04818",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04820",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04930",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04953",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04974",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-04984",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05079",
+   "unresolved": [
+    {
+     "column": "NHABITANTS_K",
+     "reason": "no source in its scope or an enclosing one has it"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05088",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05146",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05287",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05460",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05520",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05525",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05527",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05687",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05747",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05936",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-05954",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-06206",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-06494",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-06512",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 200,
+   "task_id": "bird23tf-06529",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00410",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00412",
+   "unresolved": [
+    {
+     "column": "p.hasPosition",
+     "reason": "no source in its scope or an enclosing one is named p"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00415",
+   "unresolved": [
+    {
+     "column": "person.professor",
+     "reason": "no source in its scope or an enclosing one is named person"
+    },
+    {
+     "column": "teachBy.course_id",
+     "reason": "no source in its scope or an enclosing one is named teachBy"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00436",
+   "unresolved": [
+    {
+     "column": "T2.category",
+     "reason": "app_events has no column category"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00439",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00774",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00785",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-00789",
+   "unresolved": [
+    {
+     "column": "P.Player_Id",
+     "reason": "no source in its scope or an enclosing one is named P"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01107",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"Business\", \"business_id\"]",
+      "[\"Business_Attributes\", \"business_id\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01497",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01600",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01633",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01665",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01666",
+   "unresolved": [
+    {
+     "column": "votes",
+     "reason": "ambiguous: more than one source of its scope has this column"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-01840",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-02657",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-02957",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-02975",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"IMG_OBJ_ATT\", \"IMG_ID\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": true,
+   "rendered_changed": true,
+   "rendered_diff": "--- old\n+++ new\n@@ -4 +4 @@\n-Columns near IMG_OBJ_ATT.OBJ_SAMPLE_ID: 1. IMG_OBJ.OBJ_CLASS_ID (the id indicating class of the objects); 2. IMG_OBJ_ATT.IMG_ID (id number of each image)\n+Columns near IMG_OBJ_ATT.OBJ_SAMPLE_ID: 1. IMG_OBJ.OBJ_CLASS_ID (the id indicating class of the objects)",
+   "seed": 201,
+   "task_id": "bird23tf-02992",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03000",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03051",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03054",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03089",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03119",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03140",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03150",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03421",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03540",
+   "unresolved": [
+    {
+     "column": "i.inspection_id",
+     "reason": "inspections has no column inspection_id"
+    },
+    {
+     "column": "v.inspection_id",
+     "reason": "violations has no column inspection_id"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03547",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"businesses\", \"business_id\"]",
+      "[\"violations\", \"business_id\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03553",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03556",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03945",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03954",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-03969",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04115",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04247",
+   "unresolved": [
+    {
+     "column": "pa.year",
+     "reason": "player_allstar has no column year"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04252",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04253",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04354",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04406",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04522",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04816",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {
+    "columns": {
+     "added": [
+      "[\"PlayerInfo\", \"ELITEID\"]",
+      "[\"SeasonStatus\", \"ELITEID\"]"
+     ],
+     "removed": []
+    }
+   },
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04818",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04820",
+   "unresolved": [
+    {
+     "column": "T1.PlayerName",
+     "reason": "SeasonStatus has no column PlayerName"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04930",
+   "unresolved": [
+    {
+     "column": "M.name",
+     "reason": "Master has no column name"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04953",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04974",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-04984",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05079",
+   "unresolved": [
+    {
+     "column": "d.NHABITANTS_K",
+     "reason": "Demog has no column NHABITANTS_K"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05088",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05146",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05287",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05460",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05520",
+   "unresolved": [
+    {
+     "column": "movie_title",
+     "reason": "no source in its scope or an enclosing one has it"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05525",
+   "unresolved": [
+    {
+     "column": "movie_title",
+     "reason": "ambiguous: more than one source of its scope has this column"
+    },
+    {
+     "column": "release_date",
+     "reason": "ambiguous: more than one source of its scope has this column"
+    }
+   ]
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05527",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05687",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05747",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05936",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-05954",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-06206",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-06494",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-06512",
+   "unresolved": []
+  },
+  {
+   "bindings_changed": {},
+   "items_changed": false,
+   "rendered_changed": false,
+   "rendered_diff": null,
+   "seed": 201,
+   "task_id": "bird23tf-06529",
+   "unresolved": []
+  }
+ ],
+ "with_unresolved": 18
+}

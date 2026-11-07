@@ -1,0 +1,947 @@
+{
+ "cases": [
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "simpson_episodes",
+   "facts": [
+    {
+     "fact": {
+      "column": "award",
+      "kind": "elsewhere_candidate",
+      "literal": "Best International TV Series",
+      "table": "Award",
+      "value": "Best International TV Series"
+     },
+     "found": true,
+     "item": 2,
+     "item_kind": "value_elsewhere",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "award_category",
+      "literal": "Best International TV Series",
+      "source": "proposal",
+      "table": "Award"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.005435670027509332,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 1194,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-01633",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "simpson_episodes",
+   "facts": [
+    {
+     "fact": {
+      "column": "votes",
+      "kind": "column_candidate",
+      "table": "Vote"
+     },
+     "found": true,
+     "item": 2,
+     "item_kind": "column",
+     "rank": 2,
+     "shown": true,
+     "subject": {
+      "column": "title",
+      "description": "the title of the episode",
+      "table": "Episode"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.0015911670052446425,
+   "note": null,
+   "other_changes": [
+    "SUM(votes) instead of COUNT(*): reasoning once the column is known"
+   ],
+   "payload_chars": 920,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-01666",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "hockey",
+   "facts": [
+    {
+     "fact": {
+      "kind": "table_candidate",
+      "table": "TeamsSC"
+     },
+     "found": true,
+     "item": 2,
+     "item_kind": "table",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "proposal_tables": [
+       "Coaches",
+       "Teams",
+       "Master"
+      ]
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.004914220015052706,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 1265,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-03089",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "partial",
+   "db_id": "world",
+   "facts": [
+    {
+     "fact": {
+      "column": "CountryCode",
+      "kind": "value_candidate",
+      "literal": "GR",
+      "table": "CountryLanguage",
+      "value": "GRC"
+     },
+     "found": true,
+     "item": 0,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "CountryCode",
+      "literal": "GR",
+      "op": "eq",
+      "pattern": null,
+      "table": "CountryLanguage"
+     }
+    },
+    {
+     "fact": {
+      "column": "Name",
+      "kind": "elsewhere_candidate",
+      "literal": "Greece",
+      "table": "Country",
+      "value": "Greece"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "1/2",
+   "latency_seconds": 0.004756747977808118,
+   "note": null,
+   "other_changes": [
+    "filter by the country's name, or by the code that name maps to"
+   ],
+   "payload_chars": 1227,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-03140",
+   "timeouts": []
+  },
+  {
+   "audit_correction": "active stores 'true' (lowercase); the proposal's active = 'true' is right, and the reference's LIKE 'True' matches it case-insensitively. Only the city is a grounding error.",
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "public_review_platform",
+   "facts": [
+    {
+     "fact": {
+      "column": "city",
+      "kind": "value_candidate",
+      "literal": "Gilbert City",
+      "table": "Business",
+      "value": "Gilbert"
+     },
+     "found": true,
+     "item": 0,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "city",
+      "literal": "Gilbert City",
+      "op": "eq",
+      "pattern": null,
+      "table": "Business"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.4801691679749638,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 969,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-04354",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "ice_hockey_draft",
+   "facts": [
+    {
+     "fact": {
+      "column": "nation",
+      "kind": "value_candidate",
+      "literal": "Czech Republic",
+      "table": "PlayerInfo",
+      "value": "Czech Rep."
+     },
+     "found": true,
+     "item": 3,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "nation",
+      "literal": "Czech Republic",
+      "op": "in",
+      "pattern": null,
+      "table": "PlayerInfo"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.03032744297524914,
+   "note": "the reference's shorter country list gives the same result as the evidence's full list once 'Czech Rep.' is used: among Toronto's draftees only Belarus, Czech Rep., Slovakia and Ukraine occur",
+   "other_changes": [],
+   "payload_chars": 2030,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-04816",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": {
+    "unresolved": true,
+    "why": "the reference adds deathYear IS NOT NULL, which the question does not ask for; a faithful repair need not match it"
+   },
+   "class": "unresolved benchmark disagreement",
+   "db_id": "hockey",
+   "facts": [
+    {
+     "fact": {
+      "kind": "join_flag",
+      "left": [
+       "Teams",
+       "tmID"
+      ],
+      "right": [
+       "Master",
+       "playerID"
+      ]
+     },
+     "found": true,
+     "item": 8,
+     "item_kind": "relationship",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "proposal_tables": [
+       "Teams",
+       "Master"
+      ]
+     }
+    },
+    {
+     "fact": {
+      "kind": "table_candidate",
+      "table": "Goalies"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    },
+    {
+     "fact": {
+      "column": "pos",
+      "kind": "elsewhere_candidate",
+      "literal": "G",
+      "table": "Master",
+      "value": "G"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "1/3",
+   "latency_seconds": 0.022955011983867735,
+   "note": null,
+   "other_changes": [
+    "join Master through Goalies on (year, tmID)"
+   ],
+   "payload_chars": 1776,
+   "scan_limits": [
+    {
+     "available": 182,
+     "limit": 40,
+     "what": "columns searched for 'G'"
+    }
+   ],
+   "seed": 200,
+   "task_id": "bird23tf-04930",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "partial",
+   "db_id": "disney",
+   "facts": [
+    {
+     "fact": {
+      "column": "total_gross",
+      "kind": "representation_flag",
+      "table": "movies_total_gross"
+     },
+     "found": true,
+     "item": 6,
+     "item_kind": "representation",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "total_gross",
+      "table": "movies_total_gross"
+     }
+    },
+    {
+     "fact": {
+      "kind": "unavailable",
+      "what": "that the inner join to characters drops the top-grossing action movie"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "1/2",
+   "latency_seconds": 0.004615613026544452,
+   "note": null,
+   "other_changes": [
+    "remove the join; strip '$' and ',' before casting"
+   ],
+   "payload_chars": 1148,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-05527",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": {
+    "unresolved": true,
+    "why": "the question asks for overs; the reference counts balls (COUNT(Over_Id) = 124 against 20 distinct overs)"
+   },
+   "class": "unresolved benchmark disagreement",
+   "db_id": "soccer_2016",
+   "facts": [
+    {
+     "fact": {
+      "kind": "table_candidate",
+      "table": "Ball_by_Ball"
+     },
+     "found": true,
+     "item": 3,
+     "item_kind": "table",
+     "rank": 2,
+     "shown": true,
+     "subject": {
+      "proposal_tables": [
+       "Extra_Runs"
+      ]
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.005109513993375003,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 766,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-05954",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "none",
+   "db_id": "hockey",
+   "facts": [
+    {
+     "fact": {
+      "column": "nameGiven",
+      "kind": "column_candidate",
+      "table": "Master"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "0/1",
+   "latency_seconds": 0.018089279998093843,
+   "note": null,
+   "other_changes": [
+    "order by birth date descending for the youngest"
+   ],
+   "payload_chars": 1963,
+   "scan_limits": [],
+   "seed": 200,
+   "task_id": "bird23tf-06494",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "simpson_episodes",
+   "facts": [
+    {
+     "fact": {
+      "column": "award",
+      "kind": "elsewhere_candidate",
+      "literal": "Best International TV Series",
+      "table": "Award",
+      "value": "Best International TV Series"
+     },
+     "found": true,
+     "item": 2,
+     "item_kind": "value_elsewhere",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "award_category",
+      "literal": "Best International TV Series",
+      "source": "proposal",
+      "table": "Award"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.005503527994733304,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 1194,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-01633",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": {
+    "unresolved": true,
+    "why": "the reference also returns the count as a second column, which the question does not ask for (the audit marks this uncertain)"
+   },
+   "class": "unresolved benchmark disagreement",
+   "db_id": "disney",
+   "facts": [
+    {
+     "fact": {
+      "column": "director",
+      "kind": "column_candidate",
+      "table": "director"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "0/1",
+   "latency_seconds": 0.001948523975443095,
+   "note": null,
+   "other_changes": [
+    "count distinct voice actors"
+   ],
+   "payload_chars": 658,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-01840",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "hockey",
+   "facts": [
+    {
+     "fact": {
+      "kind": "table_candidate",
+      "table": "TeamsSC"
+     },
+     "found": true,
+     "item": 2,
+     "item_kind": "table",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "proposal_tables": [
+       "Coaches",
+       "Teams",
+       "Master"
+      ]
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.004980508994776756,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 1265,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-03089",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "partial",
+   "db_id": "world",
+   "facts": [
+    {
+     "fact": {
+      "column": "CountryCode",
+      "kind": "value_candidate",
+      "literal": "GR",
+      "table": "CountryLanguage",
+      "value": "GRC"
+     },
+     "found": true,
+     "item": 0,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "CountryCode",
+      "literal": "GR",
+      "op": "eq",
+      "pattern": null,
+      "table": "CountryLanguage"
+     }
+    },
+    {
+     "fact": {
+      "column": "Name",
+      "kind": "elsewhere_candidate",
+      "literal": "Greece",
+      "table": "Country",
+      "value": "Greece"
+     },
+     "found": false,
+     "item": null,
+     "rank": null,
+     "shown": false
+    }
+   ],
+   "facts_shown": "1/2",
+   "latency_seconds": 0.0047235030215233564,
+   "note": null,
+   "other_changes": [
+    "filter by the country's name, or by the code that name maps to"
+   ],
+   "payload_chars": 1227,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-03140",
+   "timeouts": []
+  },
+  {
+   "audit_correction": "active stores 'true' (lowercase); the proposal's active = 'true' is right, and the reference's LIKE 'True' matches it case-insensitively. Only the city is a grounding error.",
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "public_review_platform",
+   "facts": [
+    {
+     "fact": {
+      "column": "city",
+      "kind": "value_candidate",
+      "literal": "Gilbert City",
+      "table": "Business",
+      "value": "Gilbert"
+     },
+     "found": true,
+     "item": 1,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "city",
+      "literal": "Gilbert City",
+      "op": "eq",
+      "pattern": null,
+      "table": "Business"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.48080139298690483,
+   "note": null,
+   "other_changes": [],
+   "payload_chars": 969,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-04354",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "ice_hockey_draft",
+   "facts": [
+    {
+     "fact": {
+      "column": "nation",
+      "kind": "value_candidate",
+      "literal": "Czech Republic",
+      "table": "PlayerInfo",
+      "value": "Czech Rep."
+     },
+     "found": true,
+     "item": 3,
+     "item_kind": "value",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "nation",
+      "literal": "Czech Republic",
+      "op": "in",
+      "pattern": null,
+      "table": "PlayerInfo"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.030256400001235306,
+   "note": "the reference's shorter country list gives the same result as the evidence's full list once 'Czech Rep.' is used: among Toronto's draftees only Belarus, Czech Rep., Slovakia and Ukraine occur",
+   "other_changes": [],
+   "payload_chars": 2030,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-04816",
+   "timeouts": []
+  },
+  {
+   "audit_correction": null,
+   "benchmark": null,
+   "class": "complete",
+   "db_id": "disney",
+   "facts": [
+    {
+     "fact": {
+      "column": "total_gross",
+      "kind": "representation_flag",
+      "table": "movies_total_gross"
+     },
+     "found": true,
+     "item": 6,
+     "item_kind": "representation",
+     "rank": 1,
+     "shown": true,
+     "subject": {
+      "column": "total_gross",
+      "table": "movies_total_gross"
+     }
+    }
+   ],
+   "facts_shown": "1/1",
+   "latency_seconds": 0.0021927289781160653,
+   "note": null,
+   "other_changes": [
+    "strip '$' and ',' and cast before ordering"
+   ],
+   "payload_chars": 859,
+   "scan_limits": [],
+   "seed": 201,
+   "task_id": "bird23tf-05527",
+   "timeouts": []
+  }
+ ],
+ "class_counts": {
+  "complete": 10,
+  "none": 1,
+  "partial": 3,
+  "unresolved benchmark disagreement": 3
+ },
+ "groups": {
+  "all": {
+   "instructions": {
+    "max": 149559000,
+    "median": 40000.0,
+    "min": 0,
+    "p90": 6649000
+   },
+   "latency_seconds": {
+    "max": 5.567096418992151,
+    "median": 0.006186560000060126,
+    "min": 0.00047671503853052855,
+    "p90": 0.105850271997042
+   },
+   "payload_chars": {
+    "max": 2187,
+    "median": 854.0,
+    "min": 146,
+    "p90": 1510
+   },
+   "payload_chars_untruncated": {
+    "max": 2187,
+    "median": 854.0,
+    "min": 146,
+    "p90": 1510
+   },
+   "proposals": 128,
+   "queries": {
+    "max": 244,
+    "median": 4.0,
+    "min": 0,
+    "p90": 64
+   },
+   "signals": {
+    "join_flags": 15,
+    "representation_flags": 27,
+    "value_found_elsewhere": 13,
+    "value_not_stored_with_candidates": 6
+   },
+   "timeouts": 0,
+   "truncated": 0,
+   "unparsed": 0,
+   "wall_safety_stops": 0,
+   "with_any_signal": 52,
+   "with_errors": 0,
+   "with_scan_limits": 9,
+   "with_timeouts": 0
+  },
+  "correct": {
+   "instructions": {
+    "max": 149559000,
+    "median": 81000.0,
+    "min": 0,
+    "p90": 17196000
+   },
+   "latency_seconds": {
+    "max": 5.567096418992151,
+    "median": 0.008864881529007107,
+    "min": 0.00047671503853052855,
+    "p90": 0.3246274529956281
+   },
+   "payload_chars": {
+    "max": 1926,
+    "median": 777.0,
+    "min": 146,
+    "p90": 1371
+   },
+   "payload_chars_untruncated": {
+    "max": 1926,
+    "median": 777.0,
+    "min": 146,
+    "p90": 1371
+   },
+   "proposals": 74,
+   "queries": {
+    "max": 244,
+    "median": 4.0,
+    "min": 0,
+    "p90": 50
+   },
+   "signals": {
+    "join_flags": 2,
+    "representation_flags": 16,
+    "value_found_elsewhere": 7,
+    "value_not_stored_with_candidates": 0
+   },
+   "timeouts": 0,
+   "truncated": 0,
+   "unparsed": 0,
+   "wall_safety_stops": 0,
+   "with_any_signal": 23,
+   "with_errors": 0,
+   "with_scan_limits": 7,
+   "with_timeouts": 0
+  },
+  "other_wrong": {
+   "instructions": {
+    "max": 15074000,
+    "median": 30000,
+    "min": 0,
+    "p90": 331000
+   },
+   "latency_seconds": {
+    "max": 0.4039529789588414,
+    "median": 0.0038624709704890847,
+    "min": 0.0007020730408839881,
+    "p90": 0.02415963402017951
+   },
+   "payload_chars": {
+    "max": 2187,
+    "median": 797,
+    "min": 254,
+    "p90": 1740
+   },
+   "payload_chars_untruncated": {
+    "max": 2187,
+    "median": 797,
+    "min": 254,
+    "p90": 1740
+   },
+   "proposals": 37,
+   "queries": {
+    "max": 7,
+    "median": 3,
+    "min": 0,
+    "p90": 6
+   },
+   "signals": {
+    "join_flags": 11,
+    "representation_flags": 5,
+    "value_found_elsewhere": 0,
+    "value_not_stored_with_candidates": 0
+   },
+   "timeouts": 0,
+   "truncated": 0,
+   "unparsed": 0,
+   "wall_safety_stops": 0,
+   "with_any_signal": 16,
+   "with_errors": 0,
+   "with_scan_limits": 1,
+   "with_timeouts": 0
+  },
+  "targeted": {
+   "instructions": {
+    "max": 25845000,
+    "median": 60000,
+    "min": 1000,
+    "p90": 25845000
+   },
+   "latency_seconds": {
+    "max": 0.48080139298690483,
+    "median": 0.005109513993375003,
+    "min": 0.0015911670052446425,
+    "p90": 0.4801691679749638
+   },
+   "payload_chars": {
+    "max": 2030,
+    "median": 1194,
+    "min": 658,
+    "p90": 2030
+   },
+   "payload_chars_untruncated": {
+    "max": 2030,
+    "median": 1194,
+    "min": 658,
+    "p90": 2030
+   },
+   "proposals": 17,
+   "queries": {
+    "max": 138,
+    "median": 19,
+    "min": 1,
+    "p90": 138
+   },
+   "signals": {
+    "join_flags": 2,
+    "representation_flags": 6,
+    "value_found_elsewhere": 6,
+    "value_not_stored_with_candidates": 6
+   },
+   "timeouts": 0,
+   "truncated": 0,
+   "unparsed": 0,
+   "wall_safety_stops": 0,
+   "with_any_signal": 13,
+   "with_errors": 0,
+   "with_scan_limits": 1,
+   "with_timeouts": 0
+  }
+ },
+ "inputs": {
+  "audit_sha256": "134a98163d548330b95d54667ca890cd76c966037420d5cb780aaa0fc2a6bc09",
+  "requirements_sha256": "8ef8f91b91470f677d645089aebcdfd327f9a44c6b85be222d8a387c98ea23ba",
+  "retrieval": "evidence/evidence_coverage_v1/retrieval_v1.3/20261107T170655Z",
+  "retrieval_sha256": "15e897a5e7d0d3b00d80478e73ad8978488fb17cb81e431959d508a2c9f6e72c"
+ },
+ "question_class_counts": {
+  "complete": 5,
+  "complete/partial": 1,
+  "none": 1,
+  "partial": 1,
+  "unresolved benchmark disagreement": 3
+ },
+ "questions": {
+  "bird23tf-01633": {
+   "200": "complete",
+   "201": "complete"
+  },
+  "bird23tf-01666": {
+   "200": "complete"
+  },
+  "bird23tf-01840": {
+   "201": "unresolved benchmark disagreement"
+  },
+  "bird23tf-03089": {
+   "200": "complete",
+   "201": "complete"
+  },
+  "bird23tf-03140": {
+   "200": "partial",
+   "201": "partial"
+  },
+  "bird23tf-04354": {
+   "200": "complete",
+   "201": "complete"
+  },
+  "bird23tf-04816": {
+   "200": "complete",
+   "201": "complete"
+  },
+  "bird23tf-04930": {
+   "200": "unresolved benchmark disagreement"
+  },
+  "bird23tf-05527": {
+   "200": "partial",
+   "201": "complete"
+  },
+  "bird23tf-05954": {
+   "200": "unresolved benchmark disagreement"
+  },
+  "bird23tf-06494": {
+   "200": "none"
+  }
+ },
+ "version": "db-evidence-v1.3"
+}
