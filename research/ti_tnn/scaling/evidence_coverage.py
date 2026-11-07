@@ -18,6 +18,7 @@ retrieved the database facts each repair needs?
      their 11 questions, the other wrong proposals and the originally correct ones.
 
     python -m scaling.evidence_coverage retrieve
+    python -m scaling.evidence_coverage tables        # the report's tables, from the stored comparison
     python -m scaling.evidence_coverage compare --audit <PR #72 checkout>/research/ti_tnn/scaling/evidence/residual_audit_v1/cases.json
 
 An empty retrieval is not proof that a value is absent, and the lookup never substitutes a literal.
@@ -236,6 +237,50 @@ def compare_cmd(args) -> None:
                       "bundle": str(dest.relative_to(C.REPO))}, indent=1))
 
 
+def _fact_label(f: dict) -> str:
+    k = f["kind"]
+    if k in ("value_candidate", "elsewhere_candidate"):
+        return f"{f['literal']!r} -> {f['table']}.{f['column']} {f['value']!r}"
+    if k == "column_candidate":
+        return f"column {f['table']}.{f['column']}"
+    if k == "table_candidate":
+        return f"table {f['table']}"
+    if k == "join_flag":
+        return f"join {'.'.join(f['left'])} = {'.'.join(f['right'])} flagged"
+    if k == "representation_flag":
+        return f"{f['table']}.{f['column']} text format flagged"
+    return f"(no lookup kind) {f['what']}"
+
+
+def tables(cov: dict) -> str:
+    """The report's tables, from a stored coverage.json."""
+    out = ["| case | seed | class | facts shown | each fact: retrieved? rank (item) | payload chars | latency s |",
+           "|---|---|---|---|---|---|---|"]
+    for c in cov["cases"]:
+        facts = "; ".join(f"{_fact_label(f['fact'])}: " + (f"yes, rank {f['rank']} ({f['item_kind']})"
+                                                             if f["shown"] else "no") for f in c["facts"])
+        out.append(f"| {c['task_id']} | {c['seed']} | {c['class']} | {c['facts_shown']} | {facts} | "
+                   f"{c['payload_chars']} | {c['latency_seconds']:.3f} |")
+    out += ["", "| group | proposals | payload chars (median / p90 / max) | latency s (median / p90 / max) | "
+            "queries (median / max) | VM instructions (max) | scan limits hit | timeouts | any signal |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    names = {"targeted": "17 grounding-labelled", "other_wrong": "other wrong", "correct": "originally correct",
+             "all": "all"}
+    for g, r in cov["groups"].items():
+        pc, la, q = r["payload_chars"], r["latency_seconds"], r["queries"]
+        out.append(f"| {names[g]} | {r['proposals']} | {pc['median']:.0f} / {pc['p90']} / {pc['max']} | "
+                   f"{la['median']:.3f} / {la['p90']:.3f} / {la['max']:.3f} | {q['median']:.0f} / {q['max']} | "
+                   f"{r['instructions']['max']:,} | {r['with_scan_limits']} | {r['timeouts']} | "
+                   f"{r['with_any_signal']} |")
+    out += ["", "| group | value not stored, candidates shown | literal found elsewhere | join flagged | "
+            "representation flagged |", "|---|---|---|---|---|"]
+    for g, r in cov["groups"].items():
+        s = r["signals"]
+        out.append(f"| {names[g]} | {s['value_not_stored_with_candidates']} | {s['value_found_elsewhere']} | "
+                   f"{s['join_flags']} | {s['representation_flags']} |")
+    return "\n".join(out)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -244,7 +289,14 @@ def main(argv=None) -> int:
     c = sub.add_parser("compare")
     c.add_argument("--audit", required=True)
     c.add_argument("--allow-dirty", action="store_true")
+    sub.add_parser("tables")
     args = ap.parse_args(argv)
+    if args.cmd == "tables":
+        from . import evidence
+        evidence._checked(BUNDLE)
+        (path,) = sorted(BUNDLE.glob("compare/*/coverage.json"))
+        print(tables(json.loads(path.read_text())))
+        return 0
     {"retrieve": retrieve_cmd, "compare": compare_cmd}[args.cmd](args)
     return 0
 
