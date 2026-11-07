@@ -273,12 +273,16 @@ def reconstruct() -> tuple:
     if len(v2_paths) != 1:
         raise Inconsistent(f"{len(v2_paths)} corrected analyses in the bundle; exactly one is required")
     corrected = json.loads(v2_paths[0].read_text())
-    run = BUNDLE.joinpath(*Path(original["run"]).parts[1:])
+    runs = sorted(BUNDLE.glob("run/*"))
+    if len(runs) != 1 or not isinstance(original.get("run"), str) or \
+            original["run"] != "spr/" + runs[0].relative_to(BUNDLE).as_posix():
+        raise Inconsistent(f"the original analysis's run {original.get('run')!r} is not the bundle's one run")
+    run = runs[0]
     reqs, scores = _load(run / "requests.jsonl"), _load(run / "scores.jsonl")
     pin = json.loads((C.PINS / "spr_new_eval.json").read_text())
     proto = json.loads((C.PINS / "spr_protocol.json").read_text())
     ids, db_of, seeds = pin["task_ids"], dict(zip(pin["task_ids"], pin["db_ids"])), proto["seeds"]
-    if original["seeds"] != seeds or corrected["seeds"] != seeds:
+    if _differ(original.get("seeds"), seeds) or _differ(corrected.get("seeds"), seeds):
         raise Inconsistent("the analyses' seeds are not the frozen ones")
     _validate_inventory(reqs, scores, ids, db_of, seeds)
     _validate_values(reqs, scores)
@@ -293,7 +297,10 @@ def reconstruct() -> tuple:
             for c, v in orig.items():
                 problems += [f"original{p}" for p in _differ({f: v.get(f) for f in HISTORICAL_FIELDS},
                                                              got["historical_rule"][c], f".comparisons.{c}")]
-            for v in list(orig.values()) + list(mine.values()):
+            for v in orig.values():       # the original never had a rule_version: one there is a difference
+                for f in HISTORICAL_FIELDS:
+                    v.pop(f, None)
+            for v in mine.values():
                 for f in RULE_FIELDS:
                     v.pop(f, None)
         problems += [f"original{p}" for p in _differ(mine, orig, f".{k}")]

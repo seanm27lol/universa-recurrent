@@ -275,7 +275,11 @@ def _edit_analysis(copy, name, edit, forge_reference=True):
      "original.comparisons"),
     ("analysis.json", lambda a: a["comparisons"]["TI1-D1"].__setitem__("threshold", 8), "original.comparisons"),
     ("analysis.json", lambda a: a["comparisons"]["TI1-D1"].__setitem__("all_conditions", "yes"),
-     "original.comparisons")])
+     "original.comparisons"),
+    ("analysis.json", lambda a: a["comparisons"]["TI1-D1"].__setitem__("rule_version", "spr-rule-v2"),
+     "original.comparisons"),
+    ("analysis.json", lambda a: a.__setitem__("seeds", [200, 201.0]), "seeds are not the frozen ones"),
+    ("analysis.json", lambda a: a.__setitem__("run", "spr/run/X"), "not the bundle's one run")])
 def test_changed_analysis_values_are_refused_with_regenerated_checksums(tmp_path, monkeypatch, name, edit, match):
     copy, _run = _bundle_copy(tmp_path, monkeypatch)
     _edit_analysis(copy, name, edit)
