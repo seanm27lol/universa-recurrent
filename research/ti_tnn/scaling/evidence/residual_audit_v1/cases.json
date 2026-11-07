@@ -1078,7 +1078,7 @@
   "labels": [
    "schema/value grounding"
   ],
-  "note": "the stored values are 'Gilbert' and 'True' (the reference uses LIKE); the proposal's 'Gilbert City' and 'true' match nothing: 0 against 571"
+  "note": "the city is stored as 'Gilbert', so 'Gilbert City' matches nothing: 0 against 571. active is stored as 'true', so the proposal's active = 'true' is right; the reference's LIKE 'True' matches it case-insensitively (corrected: an earlier version said the stored value was 'True')"
  },
  {
   "seed": 200,

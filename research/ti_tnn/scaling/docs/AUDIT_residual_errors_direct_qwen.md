@@ -41,7 +41,7 @@ are unchanged; the label is a reading, not a correction of the benchmark.
 
 **What the categories show:**
 - **Schema/value grounding** is the largest correctable group: 17 cases, 11 questions. It splits into:
-  - **values the database stores differently:** 'Gilbert City' and 'true' against the stored 'Gilbert' and 'True';
+  - **values the database stores differently:** 'Gilbert City' against the stored 'Gilbert';
     'GR' against 'GRC'; 'Czech Republic' against the stored 'Czech Rep.'; currency stored as text such as '$1,234';
   - **near-miss tables and columns:** award_category against award; Teams against TeamsSC; Extra_Runs against
     Ball_by_Ball; firstName against nameGiven; director.name, which holds the movie, against director.director;
@@ -212,7 +212,7 @@ establish it.
 - **Proposal:** `SELECT COUNT(*) FROM Business WHERE city = 'Gilbert City' AND active = 'true'`
 - **Reference:** `SELECT COUNT(business_id) FROM Business WHERE city LIKE 'Gilbert' AND active LIKE 'True'`
 - **Results:** the proposal gives 1 rows [['0']]; the reference gives 1 rows [['571']]
-- **Reading:** the stored values are 'Gilbert' and 'True' (the reference uses LIKE); the proposal's 'Gilbert City' and 'true' match nothing: 0 against 571
+- **Reading:** the city is stored as 'Gilbert', so 'Gilbert City' matches nothing: 0 against 571. active is stored as 'true', so the proposal's active = 'true' is right; the reference's LIKE 'True' matches it case-insensitively (corrected: an earlier version said the stored value was 'True')
 
 ### 17. bird23tf-04816 (seed 200, ice_hockey_draft) — schema/value grounding, benchmark ambiguity
 
@@ -442,6 +442,12 @@ model the database's actual values or column descriptions.
 - **A cheaper first step, still on the CPU:** for the 17 grounding-labelled cases here, check whether the proposed
   lookup would have surfaced the right value or column. This is a coverage test of the evidence, not of the model,
   and should precede any GPU budget request.
+
+## Corrections
+
+- **bird23tf-04354** (2026-11-07, found by the evidence-coverage check). An earlier version said the database stores
+  `active` as 'True'. It stores 'true', so the proposal's `active = 'true'` is right; only the city is a grounding
+  error. The labels and counts are unchanged.
 
 ## Limits
 
