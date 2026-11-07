@@ -1558,7 +1558,7 @@
    "aggregation/grouping/ordering",
    "benchmark ambiguity"
   ],
-  "note": "as case 3 (seed 201)"
+  "note": "the same reading as bird23tf-01497 at seed 200"
  },
  {
   "seed": 201,
@@ -1638,7 +1638,7 @@
    "aggregation/grouping/ordering",
    "benchmark ambiguity?"
   ],
-  "note": "as case 4 (seed 201)"
+  "note": "the same reading as bird23tf-01600 at seed 200"
  },
  {
   "seed": 201,
@@ -1701,7 +1701,7 @@
   "labels": [
    "schema/value grounding"
   ],
-  "note": "as case 5 (seed 201)"
+  "note": "the same reading as bird23tf-01633 at seed 200"
  },
  {
   "seed": 201,
@@ -1833,7 +1833,7 @@
   "labels": [
    "aggregation/grouping/ordering"
   ],
-  "note": "as case 8 (seed 201), restricted to one image"
+  "note": "the same reading as bird23tf-02992 at seed 200, restricted to one image"
  },
  {
   "seed": 201,
@@ -1913,7 +1913,7 @@
    "joins",
    "benchmark ambiguity?"
   ],
-  "note": "as case 9 (seed 201)"
+  "note": "the same reading as bird23tf-03000 at seed 200"
  },
  {
   "seed": 201,
@@ -1990,7 +1990,7 @@
    "schema/value grounding",
    "missing predicate?"
   ],
-  "note": "as case 10 (seed 201)"
+  "note": "the same reading as bird23tf-03089 at seed 200"
  },
  {
   "seed": 201,
@@ -2115,7 +2115,7 @@
   "labels": [
    "schema/value grounding"
   ],
-  "note": "as case 11 (seed 201)"
+  "note": "the same reading as bird23tf-03140 at seed 200"
  },
  {
   "seed": 201,
@@ -2179,7 +2179,7 @@
   "labels": [
    "benchmark ambiguity"
   ],
-  "note": "as case 13 (seed 201)"
+  "note": "the same reading as bird23tf-03945 at seed 200"
  },
  {
   "seed": 201,
@@ -2242,7 +2242,7 @@
   "labels": [
    "schema/value grounding"
   ],
-  "note": "as case 15 (seed 201)"
+  "note": "the same reading as bird23tf-04354 at seed 200"
  },
  {
   "seed": 201,
@@ -2317,7 +2317,7 @@
    "schema/value grounding",
    "benchmark ambiguity"
   ],
-  "note": "as case 16 (seed 201)"
+  "note": "the same reading as bird23tf-04816 at seed 200"
  },
  {
   "seed": 201,

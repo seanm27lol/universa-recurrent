@@ -35,7 +35,9 @@ the proposal gives the same fact in another form, or answers the question better
 - the capital's name against its id;
 - the same person in another column layout.
 
-No change to the model can fix these under EX. They bound what any repair could gain.
+For these cases, a policy that came to match the reference would raise EX without necessarily improving the answer's
+meaning: matching the reference may not represent a semantic improvement. Their official scores and the denominators
+are unchanged; the label is a reading, not a correction of the benchmark.
 
 **What the categories show:**
 - **Schema/value grounding** is the largest correctable group: 17 cases, 11 questions. It splits into:
@@ -274,7 +276,7 @@ establish it.
 - **Proposal:** `SELECT attribute_name FROM Business_Attributes INNER JOIN Attributes ON Business_Attributes.attribute_id = Attributes.attribute_id WHERE business_id IN ( SELECT business_id FROM Business ORDER BY stars DESC LIMIT 1 )`
 - **Reference:** `SELECT T3.attribute_name FROM Business AS T1 INNER JOIN Business_Attributes AS T2 ON T1.business_id = T2.business_id INNER JOIN Attributes AS T3 ON T2.attribute_id = T3.attribute_id ORDER BY T1.stars DESC LIMIT 1`
 - **Results:** the proposal gives 7 rows [['Price Range'], ['By Appointment Only']]; the reference gives 1 rows [['Alcohol']]
-- **Reading:** as case 3 (seed 201)
+- **Reading:** the same reading as bird23tf-01497 at seed 200
 
 ### 24. bird23tf-01600 (seed 201, public_review_platform) — aggregation/grouping/ordering, benchmark ambiguity?
 
@@ -283,7 +285,7 @@ establish it.
 - **Proposal:** `SELECT C.category_name FROM Reviews AS R INNER JOIN Business_Categories AS BC ON R.business_id = BC.business_id INNER JOIN Categories AS C ON BC.category_id = C.category_id WHERE R.business_id BETWEEN 7 AND 14 AND R.review_length = 'Short' GROUP BY R.business_id ORDER BY MAX(R.review_stars) DESC LIMIT 1`
 - **Reference:** `SELECT DISTINCT T3.category_name FROM Reviews AS T1 INNER JOIN Business_Categories AS T2 ON T1.business_id = T2.business_id INNER JOIN Categories AS T3 ON T2.category_id = T3.category_id WHERE T2.business_id >= 7 AND T2.business_id < 15 AND T1.review_length = 'Short' AND T1.review_stars = ( SELECT MAX(review_stars) FROM Reviews )`
 - **Results:** the proposal gives 1 rows [['Shopping']]; the reference gives 6 rows [['Shopping'], ['Mobile Phones']]
-- **Reading:** as case 4 (seed 201)
+- **Reading:** the same reading as bird23tf-01600 at seed 200
 
 ### 25. bird23tf-01633 (seed 201, simpson_episodes) — schema/value grounding
 
@@ -292,7 +294,7 @@ establish it.
 - **Proposal:** `SELECT T1.title FROM Episode AS T1 INNER JOIN Award AS T2 ON T1.episode_id = T2.episode_id WHERE T2.result = 'Winner' AND T2.year = 2017 AND T2.award_category = 'Best International TV Series'`
 - **Reference:** `SELECT T2.title FROM Award AS T1 INNER JOIN Episode AS T2 ON T1.episode_id = T2.episode_id WHERE SUBSTR(T1.year, 1, 4) = '2017' AND T1.award = 'Best International TV Series' AND T1.result = 'Winner';`
 - **Results:** the proposal gives 0 rows []; the reference gives 1 rows [['MyPods and Boomsticks']]
-- **Reading:** as case 5 (seed 201)
+- **Reading:** the same reading as bird23tf-01633 at seed 200
 
 ### 26. bird23tf-01840 (seed 201, disney) — schema/value grounding, aggregation/grouping/ordering, benchmark ambiguity?
 
@@ -310,7 +312,7 @@ establish it.
 - **Proposal:** `SELECT AVG(T2.OBJ_SAMPLE_ID) FROM IMG_OBJ AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.OBJ_SAMPLE_ID = T2.OBJ_SAMPLE_ID WHERE T1.IMG_ID = (SELECT IMG_ID FROM IMG_OBJ_ATT GROUP BY IMG_ID HAVING COUNT(*) > 0 LIMIT 1)`
 - **Reference:** `SELECT CAST(COUNT(OBJ_SAMPLE_ID) AS REAL) / COUNT(DISTINCT IMG_ID) FROM IMG_OBJ`
 - **Results:** the proposal gives 1 rows [['9.312943752330506']]; the reference gives 1 rows [['16.560561914672217']]
-- **Reading:** as case 8 (seed 201), restricted to one image
+- **Reading:** the same reading as bird23tf-02992 at seed 200, restricted to one image
 
 ### 28. bird23tf-03000 (seed 201, image_and_language) — joins, benchmark ambiguity?
 
@@ -319,7 +321,7 @@ establish it.
 - **Proposal:** `SELECT DISTINCT T2.ATT_CLASS FROM IMG_OBJ_ATT AS T1 INNER JOIN ATT_CLASSES AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID INNER JOIN IMG_OBJ AS T3 ON T1.OBJ_SAMPLE_ID = T3.OBJ_SAMPLE_ID WHERE T3.X = 5 AND T3.Y = 5`
 - **Reference:** `SELECT T1.ATT_CLASS FROM ATT_CLASSES AS T1 INNER JOIN IMG_OBJ_ATT AS T2 ON T1.ATT_CLASS_ID = T2.ATT_CLASS_ID INNER JOIN IMG_OBJ AS T3 ON T2.IMG_ID = T3.IMG_ID WHERE T3.X = 5 AND T3.Y = 5`
 - **Results:** the proposal gives 699 rows [['building s'], ['indoors']]; the reference gives 1640 rows [['silver'], ['silver']]
-- **Reading:** as case 9 (seed 201)
+- **Reading:** the same reading as bird23tf-03000 at seed 200
 
 ### 29. bird23tf-03089 (seed 201, hockey) — schema/value grounding, missing predicate?
 
@@ -328,7 +330,7 @@ establish it.
 - **Proposal:** `SELECT DISTINCT M.firstName FROM Coaches C JOIN Teams T ON C.tmID = T.tmID AND C.year = T.year JOIN Master M ON C.coachID = M.coachID WHERE T.year = 1922`
 - **Reference:** `SELECT T3.firstName FROM Coaches AS T1 INNER JOIN TeamsSC AS T2 ON T1.year = T2.year AND T1.tmID = T2.tmID INNER JOIN Master AS T3 ON T1.coachID = T3.coachID WHERE T2.year = 1922`
 - **Results:** the proposal gives 11 rows [['Wes'], ['Leo']]; the reference gives 3 rows [['Pete'], ['Ken']]
-- **Reading:** as case 10 (seed 201)
+- **Reading:** the same reading as bird23tf-03089 at seed 200
 
 ### 30. bird23tf-03119 (seed 201, world) — benchmark ambiguity
 
@@ -346,7 +348,7 @@ establish it.
 - **Proposal:** `SELECT Language FROM CountryLanguage WHERE CountryCode = 'GR' AND IsOfficial = 'T'`
 - **Reference:** `SELECT T1.Language FROM CountryLanguage AS T1 INNER JOIN Country AS T2 ON T1.CountryCode = T2.Code WHERE T1.IsOfficial = 'T' AND T2.name = 'Greece'`
 - **Results:** the proposal gives 0 rows []; the reference gives 1 rows [['Greek']]
-- **Reading:** as case 11 (seed 201)
+- **Reading:** the same reading as bird23tf-03140 at seed 200
 
 ### 32. bird23tf-03945 (seed 201, computer_student) — benchmark ambiguity
 
@@ -355,7 +357,7 @@ establish it.
 - **Proposal:** `SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS ratio FROM person`
 - **Reference:** `SELECT CAST(SUM(CASE WHEN professor = 1 THEN 1 ELSE 0 END) AS REAL) * 100 / SUM(CASE WHEN student = 1 THEN 1 ELSE 0 END) AS per FROM person`
 - **Results:** the proposal gives 1 rows [['0.28703703703703703']]; the reference gives 1 rows [['28.703703703703702']]
-- **Reading:** as case 13 (seed 201)
+- **Reading:** the same reading as bird23tf-03945 at seed 200
 
 ### 33. bird23tf-04354 (seed 201, public_review_platform) — schema/value grounding
 
@@ -364,7 +366,7 @@ establish it.
 - **Proposal:** `SELECT COUNT(*) FROM Business WHERE active = 'true' AND city = 'Gilbert City'`
 - **Reference:** `SELECT COUNT(business_id) FROM Business WHERE city LIKE 'Gilbert' AND active LIKE 'True'`
 - **Results:** the proposal gives 1 rows [['0']]; the reference gives 1 rows [['571']]
-- **Reading:** as case 15 (seed 201)
+- **Reading:** the same reading as bird23tf-04354 at seed 200
 
 ### 34. bird23tf-04816 (seed 201, ice_hockey_draft) — schema/value grounding, benchmark ambiguity
 
@@ -373,7 +375,7 @@ establish it.
 - **Proposal:** `SELECT CAST(SUM(IIF(nation IN ('Belarus', 'Bulgaria', 'Czech Republic', 'Hungary', 'Moldova', 'Poland', 'Romania', 'Slovakia', 'Ukraine'), 1, 0)) AS REAL) * 100 / COUNT(ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'`
 - **Reference:** `SELECT CAST(COUNT(CASE WHEN nation IN ('Belarus', 'Czech Rep.', 'Slovakia', 'Ukraine') THEN ELITEID ELSE NULL END) AS REAL) * 100 / COUNT(ELITEID) FROM PlayerInfo WHERE overallby = 'Toronto Maple Leafs'`
 - **Results:** the proposal gives 1 rows [['9.090909090909092']]; the reference gives 1 rows [['24.242424242424242']]
-- **Reading:** as case 16 (seed 201)
+- **Reading:** the same reading as bird23tf-04816 at seed 200
 
 ### 35. bird23tf-05527 (seed 201, disney) — schema/value grounding
 
@@ -393,6 +395,30 @@ establish it.
 - **Results:** the proposal gives 1 rows [['None', '1993/4/18']]; the reference gives 1 rows [['None', 'None', '1993', '4']]
 - **Reading:** the same person (born 1993/4/18, nameGiven NULL): the proposal returns 2 columns, the reference 5 (nameGiven twice, then year, month, day). Only the column layout differs
 
+## Second reading of the six ambiguity-only cases
+
+A second reader, a separate agent, labelled the six cases independently: (a) the proposal is a semantic error, (b)
+benchmark ambiguity, (c) cannot tell. It saw each case's question, evidence, proposal, reference, the result heads and
+the read-only database, but not this audit's labels or notes. Its input and output are in
+`evidence/residual_audit_v1/second_reading.json`.
+
+| case | first reading | second reading (confidence) | | where a reader could disagree |
+|---|---|---|---|---|
+| bird23tf-00412 seed 200 | benchmark ambiguity | benchmark ambiguity (high) | agree | Unlikely. Someone might prefer the raw position because it is more informative, but the question asks yes or no. |
+| bird23tf-00789 seed 200 | benchmark ambiguity | benchmark ambiguity (high) | agree | Unlikely. A reader could ask whether 'how many' means distinct players, but in this data distinct and non-distinct both give 8. |
+| bird23tf-03945 seed 200 | benchmark ambiguity | benchmark ambiguity (high) | agree | Minor. Someone might accept a percentage as a way to state a ratio, but nothing in the question or evidence asks for one. |
+| bird23tf-03119 seed 201 | benchmark ambiguity | benchmark ambiguity (high) | agree | Low. A strict reader might say 'capital city refers to Capital' means the Capital column itself, but that column holds an ID, not a city. |
+| bird23tf-03945 seed 201 | benchmark ambiguity | benchmark ambiguity (high) | agree | Minor, for the same reason as seed 200. |
+| bird23tf-06494 seed 201 | benchmark ambiguity | benchmark ambiguity (high) | agree | Unlikely. The NULL given name weakens both answers equally (firstName 'Mika' would be more useful), but this does not separate the proposal from the reference. |
+
+**The readings agree on all six.** That does not settle them:
+- both readers are language-model agents working from the same records, so their errors need not be independent;
+- the second reader marks bird23tf-03945 (both seeds) as open to a minor disagreement, since a percentage can be read
+  as a way to state a ratio, and bird23tf-03119 as open to a strict reading of "Capital refers to Capital";
+- the readings do not change any official score or denominator.
+
+The ten other cases with an ambiguity label (six of them marked "?") were not re-read.
+
 ## Proposed next experiment (not launched)
 
 The largest correctable group is grounding against the database's own contents: stored value formats and near-miss
@@ -407,9 +433,9 @@ model the database's actual values or column descriptions.
   - a check for text columns used numerically (currency stored as text, for example).
 - **The comparison:** V1 against D1 (ordinary revision), with the same proposal, seed, token limits, deadline and
   selection rule as PR #71, and D0 reported.
-- **The rule:** the registered +8-of-128 rule, applied consistently, on a fresh, pinned, never-used population.
-  Before any model call, that population's ambiguity-prone questions should be estimated with this audit's method on
-  the reference queries alone, so the reachable ceiling is known.
+- **The rule:** the registered +8-of-128 rule, applied consistently, on a fresh, pinned, never-used population. Every
+  policy choice (the evidence format, the limits, the prompts, the selection rule) is frozen before that population's
+  reference queries are inspected for any diagnosis.
 - **Why it is distinct:** a tool-free, deterministic value-and-schema lookup. It tests whether the residual errors
   come from missing database evidence rather than reasoning. It is not a larger model, a retrained controller or
   another typed-feedback variant.
@@ -419,5 +445,5 @@ model the database's actual values or column descriptions.
 
 ## Limits
 
-One annotator, 36 cases from one population and one model; the labels are judgements with the evidence shown, not a
+One annotator, with a second reading of only the six ambiguity-only cases; 36 cases from one population and one model; the labels are judgements with the evidence shown, not a
 benchmark. Gold-reference errors are included in "benchmark ambiguity" only where the case above shows them.
