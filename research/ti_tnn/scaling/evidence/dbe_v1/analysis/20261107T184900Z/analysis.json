@@ -1,0 +1,1370 @@
+{
+ "comparisons": {
+  "D1-D0": {
+   "a": "D1",
+   "all_conditions": true,
+   "b": "D0",
+   "conditions": {
+    "pooled_at_least_lead": true,
+    "same_sign_every_seed": true,
+    "same_sign_without_any_one_database": true
+   },
+   "exploratory_sign_flip": {
+    "assignments": 64,
+    "blocks": 14,
+    "nonzero_blocks": 6,
+    "observed": 10,
+    "p_two_sided": 0.03125,
+    "smallest_attainable_p": 0.03125
+   },
+   "leave_one_database_out": {
+    "computer_student": 10,
+    "disney": 8,
+    "food_inspection": 10,
+    "hockey": 10,
+    "ice_hockey_draft": 10,
+    "image_and_language": 8,
+    "music_platform_2": 10,
+    "professional_basketball": 8,
+    "public_review_platform": 8,
+    "simpson_episodes": 9,
+    "soccer_2016": 9,
+    "software_company": 10,
+    "talkingdata": 10,
+    "world": 10
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 2,
+    "food_inspection": 0,
+    "hockey": 0,
+    "ice_hockey_draft": 0,
+    "image_and_language": 2,
+    "music_platform_2": 0,
+    "professional_basketball": 2,
+    "public_review_platform": 2,
+    "simpson_episodes": 1,
+    "soccer_2016": 1,
+    "software_company": 0,
+    "talkingdata": 0,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "0": 57,
+    "1": 4,
+    "2": 3
+   },
+   "per_seed": {
+    "200": 3,
+    "201": 7
+   },
+   "pooled": 10,
+   "pooled_out_of": 128,
+   "recoveries": 10,
+   "regressions": 0,
+   "rule_version": "spr-rule-v2",
+   "sign": 1,
+   "threshold": 8
+  },
+  "V1-D0": {
+   "a": "V1",
+   "all_conditions": true,
+   "b": "D0",
+   "conditions": {
+    "pooled_at_least_lead": true,
+    "same_sign_every_seed": true,
+    "same_sign_without_any_one_database": true
+   },
+   "exploratory_sign_flip": {
+    "assignments": 64,
+    "blocks": 14,
+    "nonzero_blocks": 6,
+    "observed": 10,
+    "p_two_sided": 0.03125,
+    "smallest_attainable_p": 0.03125
+   },
+   "leave_one_database_out": {
+    "computer_student": 10,
+    "disney": 8,
+    "food_inspection": 10,
+    "hockey": 10,
+    "ice_hockey_draft": 9,
+    "image_and_language": 7,
+    "music_platform_2": 10,
+    "professional_basketball": 9,
+    "public_review_platform": 8,
+    "simpson_episodes": 10,
+    "soccer_2016": 9,
+    "software_company": 10,
+    "talkingdata": 10,
+    "world": 10
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 2,
+    "food_inspection": 0,
+    "hockey": 0,
+    "ice_hockey_draft": 1,
+    "image_and_language": 3,
+    "music_platform_2": 0,
+    "professional_basketball": 1,
+    "public_review_platform": 2,
+    "simpson_episodes": 0,
+    "soccer_2016": 1,
+    "software_company": 0,
+    "talkingdata": 0,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "-1": 1,
+    "0": 54,
+    "1": 7,
+    "2": 2
+   },
+   "per_seed": {
+    "200": 2,
+    "201": 8
+   },
+   "pooled": 10,
+   "pooled_out_of": 128,
+   "recoveries": 11,
+   "regressions": 1,
+   "rule_version": "spr-rule-v2",
+   "sign": 1,
+   "threshold": 8
+  },
+  "V1-D1": {
+   "a": "V1",
+   "all_conditions": false,
+   "b": "D1",
+   "conditions": {
+    "pooled_at_least_lead": false,
+    "same_sign_every_seed": false,
+    "same_sign_without_any_one_database": false
+   },
+   "exploratory_sign_flip": {
+    "assignments": 16,
+    "blocks": 14,
+    "nonzero_blocks": 4,
+    "observed": 0,
+    "p_two_sided": 1.0,
+    "smallest_attainable_p": 0.125
+   },
+   "leave_one_database_out": {
+    "computer_student": 0,
+    "disney": 0,
+    "food_inspection": 0,
+    "hockey": 0,
+    "ice_hockey_draft": -1,
+    "image_and_language": -1,
+    "music_platform_2": 0,
+    "professional_basketball": 1,
+    "public_review_platform": 0,
+    "simpson_episodes": 1,
+    "soccer_2016": 0,
+    "software_company": 0,
+    "talkingdata": 0,
+    "world": 0
+   },
+   "per_database": {
+    "computer_student": 0,
+    "disney": 0,
+    "food_inspection": 0,
+    "hockey": 0,
+    "ice_hockey_draft": 1,
+    "image_and_language": 1,
+    "music_platform_2": 0,
+    "professional_basketball": -1,
+    "public_review_platform": 0,
+    "simpson_episodes": -1,
+    "soccer_2016": 0,
+    "software_company": 0,
+    "talkingdata": 0,
+    "world": 0
+   },
+   "per_question_histogram": {
+    "-1": 3,
+    "0": 58,
+    "1": 3
+   },
+   "per_seed": {
+    "200": -1,
+    "201": 1
+   },
+   "pooled": 0,
+   "pooled_out_of": 128,
+   "recoveries": 3,
+   "regressions": 3,
+   "rule_version": "spr-rule-v2",
+   "sign": 0,
+   "threshold": 8
+  }
+ },
+ "cost": {
+  "D0": {
+   "calls_per_request": 1,
+   "generated_tokens": 7092,
+   "generation_seconds": 517.0892513864674,
+   "lookup_seconds": 0.0,
+   "peak_memory_bytes": 11059839488,
+   "per_ex_correct_seconds": 7.4345147340923905,
+   "per_request_seconds": 4.065750245206776,
+   "prompt_tokens": 332006,
+   "submitted_execution_seconds": 3.3267800000000003,
+   "tool_seconds": 0.0,
+   "total_seconds": 520.4160313864674
+  },
+  "D1": {
+   "calls_per_request": 2,
+   "generated_tokens": 14154,
+   "generation_seconds": 1039.4766958706896,
+   "lookup_seconds": 0.0,
+   "peak_memory_bytes": 11131628032,
+   "per_ex_correct_seconds": 13.140808485084571,
+   "per_request_seconds": 8.213005303177857,
+   "prompt_tokens": 684238,
+   "submitted_execution_seconds": 3.19055,
+   "tool_seconds": 8.597432936076075,
+   "total_seconds": 1051.2646788067657
+  },
+  "V1": {
+   "calls_per_request": 2,
+   "generated_tokens": 14308,
+   "generation_seconds": 1063.0804598496761,
+   "lookup_seconds": 6.166390574828256,
+   "peak_memory_bytes": 11234487808,
+   "per_ex_correct_seconds": 13.588300703359764,
+   "per_request_seconds": 8.492687939599852,
+   "prompt_tokens": 719542,
+   "submitted_execution_seconds": 6.129028,
+   "tool_seconds": 11.688177844276652,
+   "total_seconds": 1087.064056268781
+  }
+ },
+ "counts": {
+  "D0/200": 38,
+  "D0/201": 32,
+  "D1/200": 41,
+  "D1/201": 39,
+  "V1/200": 40,
+  "V1/201": 40
+ },
+ "decision": "V1 did not meet the prespecified continuation threshold on this population: this version stops",
+ "final_status": {
+  "D0": {
+   "error": 27,
+   "ok": 101
+  },
+  "D1": {
+   "abstain": 14,
+   "ok": 114
+  },
+  "V1": {
+   "abstain": 14,
+   "ok": 114
+  }
+ },
+ "gpu_reservations": [
+  {
+   "command": "dbe run",
+   "hours": 0.4614516618858357,
+   "id": "20261107T182054-3c584e74",
+   "status": "ok"
+  }
+ ],
+ "initial": {
+  "execution": {
+   "error": 27,
+   "ok": 101
+  },
+  "no_sql": 0
+ },
+ "ledger": {
+  "authorization": 2,
+  "cap_hours": 32.0,
+  "ledger": "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/gpu_ledger.jsonl",
+  "remaining_hours": 8.048574291133885,
+  "used_hours": 23.951425708866115
+ },
+ "lineage": {
+  "D1": {
+   "final_source": {
+    "abstain": 14,
+    "original": 2,
+    "revised": 112
+   },
+   "revision_truncated": 0,
+   "revision_unchanged_sql": 95
+  },
+  "V1": {
+   "final_source": {
+    "abstain": 14,
+    "original": 1,
+    "revised": 113
+   },
+   "revision_truncated": 0,
+   "revision_unchanged_sql": 80
+  }
+ },
+ "lookup": {
+  "failed": 0,
+  "payload_chars_max": 1718,
+  "seconds_max": 0.5545692399609834,
+  "seconds_total": 6.166390574828256,
+  "timeouts": 0,
+  "truncated": 0,
+  "wall_safety_stops": 0,
+  "with_scan_limits": 12,
+  "with_unresolved": 30
+ },
+ "per_question": {
+  "bird23tf-00405": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "computer_student"
+  },
+  "bird23tf-00428": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "computer_student"
+  },
+  "bird23tf-00441": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "talkingdata"
+  },
+  "bird23tf-00733": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "soccer_2016"
+  },
+  "bird23tf-00748": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "soccer_2016"
+  },
+  "bird23tf-00797": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "soccer_2016"
+  },
+  "bird23tf-01144": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    0,
+    1
+   ],
+   "db": "professional_basketball"
+  },
+  "bird23tf-01148": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "professional_basketball"
+  },
+  "bird23tf-01162": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    0
+   ],
+   "V1": [
+    1,
+    0
+   ],
+   "db": "professional_basketball"
+  },
+  "bird23tf-01467": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "public_review_platform"
+  },
+  "bird23tf-01545": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "public_review_platform"
+  },
+  "bird23tf-01554": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "public_review_platform"
+  },
+  "bird23tf-01575": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "public_review_platform"
+  },
+  "bird23tf-01623": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "simpson_episodes"
+  },
+  "bird23tf-01645": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    0
+   ],
+   "db": "simpson_episodes"
+  },
+  "bird23tf-01663": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "simpson_episodes"
+  },
+  "bird23tf-01684": {
+   "D0": [
+    0,
+    1
+   ],
+   "D1": [
+    0,
+    1
+   ],
+   "V1": [
+    0,
+    1
+   ],
+   "db": "simpson_episodes"
+  },
+  "bird23tf-01828": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "disney"
+  },
+  "bird23tf-02650": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "ice_hockey_draft"
+  },
+  "bird23tf-02662": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "ice_hockey_draft"
+  },
+  "bird23tf-02672": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "ice_hockey_draft"
+  },
+  "bird23tf-02677": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    1
+   ],
+   "db": "ice_hockey_draft"
+  },
+  "bird23tf-02951": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "image_and_language"
+  },
+  "bird23tf-02958": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "image_and_language"
+  },
+  "bird23tf-02990": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "image_and_language"
+  },
+  "bird23tf-03013": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "hockey"
+  },
+  "bird23tf-03090": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "hockey"
+  },
+  "bird23tf-03109": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "hockey"
+  },
+  "bird23tf-03120": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "world"
+  },
+  "bird23tf-03129": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "world"
+  },
+  "bird23tf-03146": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "music_platform_2"
+  },
+  "bird23tf-03151": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "music_platform_2"
+  },
+  "bird23tf-03152": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "music_platform_2"
+  },
+  "bird23tf-03429": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "software_company"
+  },
+  "bird23tf-03444": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    0
+   ],
+   "V1": [
+    1,
+    0
+   ],
+   "db": "software_company"
+  },
+  "bird23tf-03516": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "food_inspection"
+  },
+  "bird23tf-03521": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "food_inspection"
+  },
+  "bird23tf-03549": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "food_inspection"
+  },
+  "bird23tf-03552": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "food_inspection"
+  },
+  "bird23tf-03939": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "computer_student"
+  },
+  "bird23tf-03981": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    1,
+    0
+   ],
+   "db": "talkingdata"
+  },
+  "bird23tf-04126": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    0
+   ],
+   "V1": [
+    1,
+    0
+   ],
+   "db": "soccer_2016"
+  },
+  "bird23tf-04259": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "professional_basketball"
+  },
+  "bird23tf-04423": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "simpson_episodes"
+  },
+  "bird23tf-04504": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "disney"
+  },
+  "bird23tf-04525": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "disney"
+  },
+  "bird23tf-04913": {
+   "D0": [
+    1,
+    0
+   ],
+   "D1": [
+    1,
+    0
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "image_and_language"
+  },
+  "bird23tf-04924": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "hockey"
+  },
+  "bird23tf-04949": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "world"
+  },
+  "bird23tf-04955": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "world"
+  },
+  "bird23tf-04981": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "music_platform_2"
+  },
+  "bird23tf-05083": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "software_company"
+  },
+  "bird23tf-05087": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "software_company"
+  },
+  "bird23tf-05089": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "software_company"
+  },
+  "bird23tf-05273": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "talkingdata"
+  },
+  "bird23tf-05286": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "talkingdata"
+  },
+  "bird23tf-05524": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    1
+   ],
+   "V1": [
+    0,
+    1
+   ],
+   "db": "disney"
+  },
+  "bird23tf-05649": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "ice_hockey_draft"
+  },
+  "bird23tf-05711": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "world"
+  },
+  "bird23tf-05913": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "computer_student"
+  },
+  "bird23tf-05931": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "talkingdata"
+  },
+  "bird23tf-06045": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    0
+   ],
+   "V1": [
+    0,
+    0
+   ],
+   "db": "professional_basketball"
+  },
+  "bird23tf-06229": {
+   "D0": [
+    0,
+    0
+   ],
+   "D1": [
+    0,
+    1
+   ],
+   "V1": [
+    0,
+    1
+   ],
+   "db": "disney"
+  },
+  "bird23tf-06514": {
+   "D0": [
+    1,
+    1
+   ],
+   "D1": [
+    1,
+    1
+   ],
+   "V1": [
+    1,
+    1
+   ],
+   "db": "music_platform_2"
+  }
+ },
+ "pooled": {
+  "D0": 70,
+  "D1": 80,
+  "V1": 80
+ },
+ "protocol": {
+  "frozen_at": "644c0906c9a08815d70ce9a827f8d4b758b041ed",
+  "sha256": "89d877fb2ecf057ee14dda82d37b4446822d65f84c17ae75b7da4ee87142599f"
+ },
+ "questions": 64,
+ "requests_per_policy": 128,
+ "run": "dbe/run/20261107T182054Z",
+ "seeds": [
+  200,
+  201
+ ],
+ "signal_groups": {
+  "no signal": {
+   "D0": 49,
+   "D0_right_V1_breaks": 0,
+   "D1": 54,
+   "D1_right_V1_breaks": 1,
+   "V1": 56,
+   "V1_fixes_D1_misses": 3,
+   "requests": 85
+  },
+  "note": "descriptive only; no subgroup is selected or becomes a policy",
+  "other signal": {
+   "D0": 21,
+   "D0_right_V1_breaks": 1,
+   "D1": 26,
+   "D1_right_V1_breaks": 2,
+   "V1": 24,
+   "V1_fixes_D1_misses": 0,
+   "requests": 42
+  },
+  "value not stored": {
+   "D0": 0,
+   "D0_right_V1_breaks": 0,
+   "D1": 0,
+   "D1_right_V1_breaks": 0,
+   "V1": 0,
+   "V1_fixes_D1_misses": 0,
+   "requests": 1
+  }
+ },
+ "transitions": {
+  "D1_right_V1_breaks": 3,
+  "V1_fixes_D1_misses": 3,
+  "initially_correct": 70,
+  "initially_correct_broken_by": {
+   "D1": 0,
+   "V1": 1
+  },
+  "initially_wrong_fixed_by": {
+   "D1": 10,
+   "V1": 11
+  }
+ },
+ "uncertainty": {
+  "D1-D0": {
+   "high": 18,
+   "low": 4,
+   "observed": 10,
+   "resampled": "questions, each with both seeds and all policies",
+   "resamples": 10000,
+   "seed": 20261107,
+   "unit": "correct answers of 128 question-seed pairs"
+  },
+  "V1-D0": {
+   "high": 18,
+   "low": 3,
+   "observed": 10,
+   "resampled": "questions, each with both seeds and all policies",
+   "resamples": 10000,
+   "seed": 20261107,
+   "unit": "correct answers of 128 question-seed pairs"
+  },
+  "V1-D1": {
+   "high": 5,
+   "low": -5,
+   "observed": 0,
+   "resampled": "questions, each with both seeds and all policies",
+   "resamples": 10000,
+   "seed": 20261107,
+   "unit": "correct answers of 128 question-seed pairs"
+  }
+ }
+}
