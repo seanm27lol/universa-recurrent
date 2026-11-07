@@ -91,6 +91,10 @@ def recompute(reqs: list, scores: list, ids: list, db_of: dict, seeds: list, led
            "pooled": {p: sum(sum(correct[(p, s)].values()) for s in seeds) for p in POLICIES},
            "comparisons": RULE.comparisons(correct, seeds, ids, db_of)}
     out["decision"] = RULE.decision(out["comparisons"])
+    out["historical_rule"] = {f"{a}-{b}": {f: d[f] for f in HISTORICAL_FIELDS}       # the original's known defect
+                              for a, b in RULE.COMPARISONS
+                              for d in [PA.paired(correct, a, b, seeds, ids, db_of)]}
+    out["requests_per_policy"] = len(ids) * len(seeds)
     out["by_database"] = {db: {p: sum(correct[(p, s)][t] for s in seeds for t in ids if db_of[t] == db)
                                for p in POLICIES} | {"questions": sum(1 for t in ids if db_of[t] == db)}
                           for db in sorted(set(db_of.values()))}
@@ -132,6 +136,7 @@ def recompute(reqs: list, scores: list, ids: list, db_of: dict, seeds: list, led
     u = ledger.usage(ledger_path)
     out["gpu_reservations"] = [{"command": r["command"], "id": r["reservation"], "hours": r["hours"],
                                 "status": r["status"]} for r in u["reservations"] if r["command"].startswith("spr ")]
+    out["ledger"] = {k: u[k] for k in LEDGER_FIELDS}
     out["ledger_used_hours"] = u["used_hours"]
     return out
 
@@ -187,6 +192,8 @@ def _flag(v, what: str) -> None:
 def _validate_values(reqs: list, scores: list) -> None:
     """Every value a displayed quantity is computed from, before it is used: correctness is integer 0 or 1, counts
     are nonnegative integers, times are finite and nonnegative, Boolean fields are Booleans."""
+    for x in reqs + scores:
+        _check(type(x["seed"]) is int, f"{x['task_id']}: seed {x['seed']!r} is not an integer")
     for x in scores:
         w = f"score {x['policy']}/{x['seed']}/{x['task_id']}"
         c = x["score"]["correct"]
@@ -214,16 +221,54 @@ def _validate_values(reqs: list, scores: list) -> None:
 
 
 RULE_FIELDS = ("threshold", "conditions", "all_conditions", "sign", "rule_version")
+HISTORICAL_FIELDS = ("threshold", "conditions", "all_conditions", "sign")   # as the frozen analysis wrote them
+LEDGER_FIELDS = ("cap_hours", "authorization", "used_hours", "remaining_hours")
+RECOMPUTED = ("counts", "pooled", "comparisons", "decision", "by_database", "lineage", "initial", "final_status",
+              "cost", "gpu_reservations", "requests_per_policy")
+ORIGINAL_KEYS = frozenset(RECOMPUTED + ("ledger", "protocol", "run", "seeds"))
+CORRECTED_KEYS = ORIGINAL_KEYS | {"corrects", "inputs", "rule_version"}
+
+
+def _identities(original: dict, corrected: dict, original_dir: Path, run: Path) -> list:
+    """The fields not recomputed from the records: the key sets, the protocol, the run, the ledger path, and the
+    corrected analysis's references, checked against the bundled files' own sha256."""
+    from . import identity
+    from . import spr_rule as RULE
+    problems = []
+    for name, a, keys in (("original", original, ORIGINAL_KEYS), ("corrected", corrected, CORRECTED_KEYS)):
+        if set(a) != keys:
+            problems.append(f"{name} fields {sorted(set(a) ^ keys)}")
+            continue
+        proto = json.loads((C.PINS / "spr_protocol.json").read_text())
+        problems += [f"{name}{p}" for p in _differ(a["protocol"], {"sha256": proto["sha256"],
+                                                                    "frozen_at": proto["frozen_at"]}, ".protocol")]
+        if not isinstance(a["ledger"], dict) or not isinstance(a["ledger"].get("ledger"), str):
+            problems.append(f"{name}.ledger.ledger")
+    if problems:
+        return problems
+    rel = lambda path: "spr/" + path.relative_to(BUNDLE).as_posix()   # noqa: E731
+    what = corrected["corrects"].get("what") if isinstance(corrected["corrects"], dict) else None
+    if not isinstance(what, str) or not what:
+        problems.append("corrected.corrects.what")
+    expected = {"run": rel(run), "rule_version": RULE.RULE_VERSION,
+                "corrects": {"analysis": rel(original_dir),
+                             "analysis_sha256": identity.sha256_file(original_dir / "analysis.json"), "what": what},
+                "inputs": {"scores": rel(run / "scores.jsonl"),
+                           "scores_sha256": identity.sha256_file(run / "scores.jsonl")}}
+    problems += [f"corrected{p}" for k, v in expected.items() for p in _differ(corrected[k], v, f".{k}")]
+    problems += [f"original{p}" for p in _differ(original["run"], expected["run"], ".run")]
+    return problems
 
 
 def reconstruct() -> tuple:
     """(recomputed, original analysis, corrected analysis): the inventory validated first, every quantity
-    recomputed from the raw records and checked against the corrected analysis in full and against the original in
-    everything but its known defect (the rule fields of the comparisons)."""
+    recomputed from the raw records and checked against every field of both analyses. The original's rule fields are
+    its known defect; they are checked against the shared helper's +7 values that produced them."""
     import copy
     evidence._checked(BUNDLE)
     adirs = sorted(BUNDLE.glob("analysis/*"))
-    original = json.loads(next(d / "analysis.json" for d in adirs if (d / "analysis.json").exists()).read_text())
+    original_dir = next(d for d in adirs if (d / "analysis.json").exists())
+    original = json.loads((original_dir / "analysis.json").read_text())
     v2_paths = [d / "analysis_v2.json" for d in adirs if (d / "analysis_v2.json").exists()]
     if len(v2_paths) != 1:
         raise Inconsistent(f"{len(v2_paths)} corrected analyses in the bundle; exactly one is required")
@@ -238,18 +283,23 @@ def reconstruct() -> tuple:
     _validate_inventory(reqs, scores, ids, db_of, seeds)
     _validate_values(reqs, scores)
     got = recompute(reqs, scores, ids, db_of, seeds, BUNDLE / "gpu_ledger.jsonl")
-    problems = []
-    for k in ("counts", "pooled", "comparisons", "decision", "by_database", "lineage", "initial", "final_status",
-              "cost", "gpu_reservations"):
+    problems = _identities(original, corrected, original_dir, run)
+    if problems:
+        raise Inconsistent("the analyses' fields disagree with the bundle: " + "; ".join(problems[:12]))
+    for k in RECOMPUTED:
         problems += [f"corrected{p}" for p in _differ(got[k], corrected[k], f".{k}")]
         orig, mine = copy.deepcopy(original[k]), copy.deepcopy(got[k])
-        if k == "comparisons":            # the original's rule fields are its known defect; everything else must hold
+        if k == "comparisons":            # the original's rule fields are its known defect, pinned to the helper's
+            for c, v in orig.items():
+                problems += [f"original{p}" for p in _differ({f: v.get(f) for f in HISTORICAL_FIELDS},
+                                                             got["historical_rule"][c], f".comparisons.{c}")]
             for v in list(orig.values()) + list(mine.values()):
                 for f in RULE_FIELDS:
                     v.pop(f, None)
         problems += [f"original{p}" for p in _differ(mine, orig, f".{k}")]
-    if abs(got["ledger_used_hours"] - original["ledger"]["used_hours"]) > 1e-6:
-        problems.append("the ledger total")
+    for name, a in (("original", original), ("corrected", corrected)):
+        problems += [f"{name}{p}" for p in _differ({k: a["ledger"].get(k) for k in LEDGER_FIELDS}, got["ledger"],
+                                                   ".ledger")]
     if problems:
         raise Inconsistent("the records disagree with the analyses: " + "; ".join(problems[:12]))
     return got, original, corrected
