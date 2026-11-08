@@ -1,0 +1,29 @@
+verify_dbe.py (sha256 d71704da35397982b572f1a036f7e91cb0ea8389128309d12cace5b475e502f4): remaining limitations
+
+1. Model outputs are not regenerated. The GPU generations (initial proposals and revisions) are taken as recorded;
+   the verifier checks everything around them (extraction, prompts' token counts, messages, seeds by code reading,
+   executions, selection, scores), but not that the recorded text is what the model would produce.
+2. Seeds are not recorded per call. That D1 and V1 used the same revision seed, and the initial call its own seed,
+   is established by reading the frozen code (dbe_run.serve at 8e1ee1b) and by the identical prompt prefixes
+   (token counts re-rendered from the recorded contents), not from a recorded value.
+3. Producer code in a separate process (flagged): the fresh db-evidence-v1.4 lookup is the frozen db_evidence.py
+   itself (run in a worker), so it shows the recorded payloads are reproducible and reference-blind by input, not that
+   the lookup's logic is right; that logic was reviewed separately (evidence-coverage reviews, 57- and 72-fixture
+   SQLite oracles). The prompts' schema text and BM25 retrieval also come from the worker; the user message around
+   them is rebuilt independently.
+4. Timing values (generation, lookup, tool, execution seconds) and peak memory are checked only for internal
+   consistency, arithmetic and fit inside the reservation; they cannot be re-measured.
+5. Co-tenancy: the log records load averages only. The ledger lists one foreign GPU process (pid 514236,
+   ".venv/bin/python", 533 MiB, a long-running ui_server.py of another project) at the reservation's start and end;
+   its activity in between is not recorded. It can affect timing, not results.
+6. Gold-result leakage is checked by whole-line matching of the gold result's preview rows in the messages; 134
+   matches are explained by the model's own result. A partial overlap (for example one shared value inside a longer
+   payload line) is not, and cannot be, distinguished from a database fact the lookup legitimately shows.
+7. The EX rule is the verifier's own re-implementation of the official set-equality rule on this host's SQLite
+   (3.45.1); no query was near the 30 s deadline (no re-runs were needed).
+8. The report review (section 7) checks the numbers, tables and the specific statements listed in the verifier; the
+   prose readings ("not proof that its effect is small", "closed as a revision aid") are judgements, not checked.
+   One imprecision noted: for bird23tf-03981 the report says V1 used "events_relevant, a table the payload listed";
+   the payload lists it in its declared keys (events_relevant.device_id -> gender_age.device_id), not in its
+   "Other tables" list (which shows app_events_relevant). The pattern sentence ("listed under its tables or declared
+   keys") is accurate.

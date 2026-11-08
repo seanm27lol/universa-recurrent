@@ -1,0 +1,1248 @@
+{
+ "summary": {
+  "cases": 195,
+  "as_expected": 184,
+  "unexpected": [
+   {
+    "case": "run dir renamed, analysis and its manifest updated to match",
+    "expected": "refuse",
+    "outcome": "accepted",
+    "as_expected": false
+   }
+  ],
+  "judgement": [
+   {
+    "case": "both manifests: same other commit",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "ledger: dbe end entry hours field changed (usage ignores it)",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "ledger: a mid heartbeat of the dbe run changed (below the max)",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "ledger: the dbe run's start extra.run_dir changed",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "summary: reservation hours changed",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "summary: load_seconds NaN",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "time lookup package latency_seconds = -0.0 (replacing a nonzero value)",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "time lookup package latency_seconds = 1e308",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "time revision_seconds_allowed = -0.0 (replacing a nonzero value)",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   },
+   {
+    "case": "time revision_seconds_allowed = 1e308",
+    "expected": "judgement",
+    "outcome": "accepted",
+    "as_expected": null
+   }
+  ]
+ },
+ "results": [
+  {
+   "case": "analysis: extra top-level key",
+   "expected": "refuse",
+   "outcome": "refused: analysis.json fields differ: ['extra']",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: missing key 'cost'",
+   "expected": "refuse",
+   "outcome": "refused: analysis.json fields differ: ['cost']",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: protocol sha changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis.protocol.sha256",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: protocol frozen_at changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis.protocol.frozen_at",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: run path changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis.run 'dbe/run/20261107T000000Z' is not the bundled run dbe/run/20261107T182054Z; analysis manifest run or command",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: gpu_reservations hours +0.01",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[0].hours",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: gpu_reservations status 'failed'",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[0].status",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: gpu_reservations id changed",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[0].id",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: a second gpu reservation",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[len]",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger used_hours +0.1",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.used_hours",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger used_hours NaN",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.used_hours",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger remaining_hours changed",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.remaining_hours",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger cap_hours 32 (int)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.cap_hours",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger authorization 2.0",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.authorization",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: ledger.ledger not a string",
+   "expected": "refuse",
+   "outcome": "refused: analysis.ledger.ledger is not a path",
+   "as_expected": true
+  },
+  {
+   "case": "analysis: an analysed value changed (pooled V1 81)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .pooled.V1",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: commit changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis manifest commit",
+   "as_expected": true
+  },
+  {
+   "case": "analysis manifest: commit changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis manifest commit",
+   "as_expected": true
+  },
+  {
+   "case": "both manifests: same other commit",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "run manifest: short commit",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest commit; analysis manifest commit",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: research_tree_dirty True",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest: the tree was not clean",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: research_tree_dirty 0",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest: the tree was not clean",
+   "as_expected": true
+  },
+  {
+   "case": "analysis manifest: dirty_paths non-empty",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis manifest: the tree was not clean",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: requested list reordered",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest requested[0]; run manifest requested[1]; run manifest requested[2]; run manifest requested[3]; run manifest requested[4",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: one requested id replaced",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest requested[0]",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: seeds [200, 202]",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest seeds[1]",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: seeds [200.0, 201]",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest seeds[0]",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: lookup version",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest lookup or command",
+   "as_expected": true
+  },
+  {
+   "case": "run manifest: protocol sha",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: run manifest protocol.sha256",
+   "as_expected": true
+  },
+  {
+   "case": "analysis manifest: protocol frozen_at",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis manifest protocol.frozen_at",
+   "as_expected": true
+  },
+  {
+   "case": "analysis manifest: run changed",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis manifest run or command",
+   "as_expected": true
+  },
+  {
+   "case": "run dir moved (renamed, references not updated)",
+   "expected": "refuse",
+   "outcome": "refused: the run identity disagrees: analysis.run 'dbe/run/20261107T182054Z' is not the bundled run dbe/run/20261107T182055Z",
+   "as_expected": true
+  },
+  {
+   "case": "run dir renamed, analysis and its manifest updated to match",
+   "expected": "refuse",
+   "outcome": "accepted",
+   "as_expected": false
+  },
+  {
+   "case": "a second run directory",
+   "expected": "refuse",
+   "outcome": "refused: 2 runs and 1 analyses in the bundle; exactly one each is required",
+   "as_expected": true
+  },
+  {
+   "case": "a second analysis directory",
+   "expected": "refuse",
+   "outcome": "refused: 1 runs and 2 analyses in the bundle; exactly one each is required",
+   "as_expected": true
+  },
+  {
+   "case": "request db_id changed",
+   "expected": "refuse",
+   "outcome": "refused: bird23tf-01663: database 'world' is not the pinned one",
+   "as_expected": true
+  },
+  {
+   "case": "score db_id changed",
+   "expected": "refuse",
+   "outcome": "refused: bird23tf-01663: database 'world' is not the pinned one",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: dbe end entry elapsed +60 s",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[0].hours; .ledger.remaining_hours; .ledger.used_hours",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: dbe end entry hours field changed (usage ignores it)",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "ledger: dbe end entry status 'failed'",
+   "expected": "refuse",
+   "outcome": "refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: dbe end entry removed",
+   "expected": "refuse",
+   "outcome": "refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.46688733008971517, 's",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: a mid heartbeat of the dbe run changed (below the max)",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "ledger: a heartbeat raised above the end elapsed",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .gpu_reservations[0].hours; .ledger.remaining_hours; .ledger.used_hours",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: an earlier (non-dbe) reservation's end elapsed +60 s",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .ledger.remaining_hours; .ledger.used_hours",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: a second 'dbe ' reservation",
+   "expected": "refuse",
+   "outcome": "refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: a second 'dbe ' reservation of zero hours",
+   "expected": "refuse",
+   "outcome": "refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st",
+   "as_expected": true
+  },
+  {
+   "case": "ledger: the dbe run's start extra.run_dir changed",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "summary: reservation id changed",
+   "expected": "refuse",
+   "outcome": "refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st",
+   "as_expected": true
+  },
+  {
+   "case": "summary: reservation hours changed",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "summary: load_seconds NaN",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "time generation (original.call.seconds) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D0.generation_seconds; .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.total_seconds; .co",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (original.call.seconds) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D0.generation_seconds; .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.total_seconds; .co",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D1.generation_seconds; .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (D1 revision) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D1.generation_seconds; .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.V1.generation_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time generation (V1 revision) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.V1.generation_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.tool_seconds; .cost.D1.total_seconds; .cost.V1.",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (original.execution.seconds) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.tool_seconds; .cost.D1.total_seconds; .cost.V1.",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.tool_seconds; .cost.V1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time tool (V1 revision execution) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.tool_seconds; .cost.V1.total_seconds",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .lookup.seconds_total; .cost.V1.lookup_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup (evidence.seconds) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .lookup.seconds_max; .lookup.seconds_total; .cost.V1.lookup_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_requ",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time lookup package latency_seconds = -0.0 (replacing a nonzero value)",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "time lookup package latency_seconds = 1e308",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "time revision_seconds_allowed = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time revision_seconds_allowed = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time revision_seconds_allowed = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time revision_seconds_allowed = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time revision_seconds_allowed = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time revision_seconds_allowed = -0.0 (replacing a nonzero value)",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "time revision_seconds_allowed = 1e308",
+   "expected": "judgement",
+   "outcome": "accepted",
+   "as_expected": null
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = nan is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = +Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = -Infinity",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = -inf is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = -1e-9",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = -1e-09 is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = True is not a finite nonnegative time",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = -0.0 (replacing a nonzero value)",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.submitted_execution_seconds; .cost.D0.total_sec",
+   "as_expected": true
+  },
+  {
+   "case": "time submitted execution (score predicted.elapsed_seconds) = 1e308",
+   "expected": "refuse",
+   "outcome": "refused: the records disagree with analysis.json: .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.submitted_execution_seconds; .cost.D0.total_sec",
+   "as_expected": true
+  },
+  {
+   "case": "count original prompt_tokens = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count original prompt_tokens = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count original prompt_tokens = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count original prompt_tokens = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count original prompt_tokens = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 generated_tokens = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 generated_tokens = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 generated_tokens = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 generated_tokens = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 generated_tokens = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count D1 peak_memory_bytes = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count D1 peak_memory_bytes = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count D1 peak_memory_bytes = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count D1 peak_memory_bytes = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count D1 peak_memory_bytes = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 execution.row_count = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 execution.row_count = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 execution.row_count = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 execution.row_count = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count V1 execution.row_count = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package queries = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package queries = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package queries = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package queries = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package queries = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package instructions = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package instructions = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package instructions = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package instructions = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package instructions = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars_untruncated = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars_untruncated = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars_untruncated = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars_untruncated = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count package payload_chars_untruncated = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.row_count = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.row_count = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.row_count = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.row_count = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.row_count = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.distinct_rows = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = True is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.distinct_rows = False",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = False is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.distinct_rows = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = 1.0 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.distinct_rows = -1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = -1 is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "count score predicted.distinct_rows = NaN",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = nan is not a nonnegative integer",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean V1 execution.truncated = 0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 0 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean V1 execution.truncated = 1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 1 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean V1 execution.truncated = 'false'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 'false' is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean V1 execution.truncated = None",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = None is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean evidence.ok = 0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 0 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean evidence.ok = 1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 1 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean evidence.ok = 'false'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 'false' is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean evidence.ok = None",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.ok = None is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.truncated = 0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 0 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.truncated = 1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 1 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.truncated = 'false'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 'false' is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.truncated = None",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = None is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.wall_safety_stop = 0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 0 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.wall_safety_stop = 1",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 1 is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.wall_safety_stop = 'false'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 'false' is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "Boolean package.wall_safety_stop = None",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = None is not a Boolean",
+   "as_expected": true
+  },
+  {
+   "case": "correct = True",
+   "expected": "refuse",
+   "outcome": "refused: score D0/200/bird23tf-03129: correctness True is not integer 0 or 1",
+   "as_expected": true
+  },
+  {
+   "case": "correct = 1.0",
+   "expected": "refuse",
+   "outcome": "refused: score D0/200/bird23tf-03129: correctness 1.0 is not integer 0 or 1",
+   "as_expected": true
+  },
+  {
+   "case": "correct = 2",
+   "expected": "refuse",
+   "outcome": "refused: score D0/200/bird23tf-03129: correctness 2 is not integer 0 or 1",
+   "as_expected": true
+  },
+  {
+   "case": "correct = NaN",
+   "expected": "refuse",
+   "outcome": "refused: score D0/200/bird23tf-03129: correctness nan is not integer 0 or 1",
+   "as_expected": true
+  },
+  {
+   "case": "request seed = 200.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed 200.0 is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "score seed = 200.0",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed 200.0 is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "request seed = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed True is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "score seed = True",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed True is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "request seed = '200'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed '200' is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "score seed = '200'",
+   "expected": "refuse",
+   "outcome": "refused: invalid record value: bird23tf-01663: seed '200' is not an integer",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: unchanged copy",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: analysis cost V1 total_seconds * (1+1e-12)",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: analysis cost D0 per_request_seconds * (1-1e-12)",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: analysis ledger used_hours * (1+1e-12)",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: analysis gpu_reservations hours * (1+1e-12)",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  },
+  {
+   "case": "LEGIT: analysis lookup seconds_total * (1+1e-12)",
+   "expected": "accept",
+   "outcome": "accepted",
+   "as_expected": true
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+Reporting-correction verification, round 2: d8c48d7 (dbe_report._ledger binds the run directory to the ledger's
+start entry). By the independent reviewer; round 1's files in the parent directory are unchanged.
+
+1. Probes from a fresh clean clone of d8c48d7, fresh bundle copies, SHA256SUMS regenerated: PASS.
+   - probes.py = round 1's plus three ledger/run-identity cases, with the start entry's run_dir case now expected
+     refused. 198 cases: 188 as expected, 0 unexpected, 10 judgement.
+   - The consistent rename (run directory + analysis.json "run" + analysis manifest config.run) is now refused:
+     "the ledger's reservation names ['dbe/run/20261107T182054Z'], not dbe/run/20261107T182055Z".
+   - The start entry's extra.run_dir changed alone is now refused. So are a duplicated start entry and a start entry
+     without "extra".
+   - All 178 cases refused in round 1 are still refused (round_comparison.json).
+   - Round-off at 1e-12 still passes (6 of 6 legitimate cases accepted).
+   - Pin probes: 5 of 5 refused.
+   - Judgement calls, accepted, no displayed value changes: the same other commit in both manifests; a full relabel
+     that also rewrites the bundled ledger's run_dir (the bundle is self-consistent; only the live ledger outside the
+     bundle would show it); the end entry's informational hours; a heartbeat below the maximum; summary.json hours
+     (about 5e-8 h from the ledger's, by construction) and load_seconds; -0.0 and 1e308 in package latency_seconds
+     and revision_seconds_allowed.
+2. Relocation: PASS. `python -m scaling.dbe_report` from the reviewer's relocated clean clone of d8c48d7, no runs
+   root: sha256 b81cbe674e5f29198dce495a87ee6f795d9f12dcd4fb047253cde1cd9b0830f2 (unchanged). Focused tests (dbe,
+   db_evidence, spr): 138 passed.
+3. Diff d304831..d8c48d7: PASS. Only research/ti_tnn/scaling/dbe_report.py and tests/test_ti_tnn_scaling_dbe.py.
+
+Discipline: CPU cores 0-4,10-14; nothing written under the runs root or the worktrees; no commits; clones deleted.

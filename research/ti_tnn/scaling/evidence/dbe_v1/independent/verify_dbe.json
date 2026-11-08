@@ -1,0 +1,1508 @@
+{
+ "run": {
+  "verifier": "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/independent/verify_dbe.py",
+  "verifier_sha256": "d71704da35397982b572f1a036f7e91cb0ea8389128309d12cace5b475e502f4",
+  "started_utc": "2026-11-07T23:24:34+00:00",
+  "ended_utc": "2026-11-07T23:25:08+00:00",
+  "runtime_seconds": 34.5,
+  "repo_head": "c14764d7d23ad660e84ac83ac7d069957c58de99",
+  "python": "3.12.3",
+  "sqlite_version": "3.45.1"
+ },
+ "sections": {
+  "0_discipline": {
+   "checks": [
+    {
+     "name": "nothing under dbe/, data/ or the ledger changed during this verification",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the verifier did not change while it ran",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 2,
+   "failures": 0,
+   "info": {
+    "runs_root_changes_elsewhere": [],
+    "cpu_affinity": [
+     0,
+     1,
+     2,
+     3,
+     4,
+     10,
+     11,
+     12,
+     13,
+     14
+    ],
+    "cuda_visible_devices": "",
+    "producer_code": {
+     "worker": {
+      "frozen_tree": "/home/seanjazm27/projects/universa-recurrent-dbe-frozen",
+      "head": "8e1ee1b72b000e65fc1830cf5c4f90ee35cd9588",
+      "research_dirty": "",
+      "db_evidence_file": "/home/seanjazm27/projects/universa-recurrent-dbe-frozen/research/ti_tnn/scaling/db_evidence.py",
+      "version": "db-evidence-v1.4",
+      "seconds": 11.5
+     },
+     "use": "the fresh db-evidence-v1.4 lookup and the prompt's schema text and retrieved examples; compared with the records only"
+    }
+   }
+  },
+  "1_scores": {
+   "checks": [
+    {
+     "name": "own sha256 and size of the 14 snapshot files = the snapshots pin",
+     "passed": true,
+     "detail": "{}"
+    },
+    {
+     "name": "scored SQL = the request's selected SQL (384 records)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "score's snapshot sha256 = own hash (384 records)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded EX = own EX (384 records)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded status = own status (384 records)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded predicted status = own (384 records)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded gold status and row counts = own (384 records)",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 7,
+   "failures": 0,
+   "info": {
+    "records": 384,
+    "own_status": {
+     "predicted_error": 27,
+     "abstain": 28,
+     "incorrect": 99,
+     "correct": 230
+    },
+    "reruns": {
+     "observe": [],
+     "ex": []
+    },
+    "execution_seconds": 11.8,
+    "sqlite_version": "3.45.1"
+   }
+  },
+  "2_lineage": {
+   "checks": [
+    {
+     "name": "the frozen REVISE, header, NOTHING and FAILED texts = the protocol pin",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "run manifest: system, instruction, header, 512 tokens, non-thinking, db-evidence-v1.4",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the local chat template = the run manifest's model identity",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D0 = the shared initial proposal",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own B4 extraction = the recorded SQL",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "generated tokens <= 512",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "revision order = the seed rule",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 message = own raw observation + the frozen instruction",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "V1 message = D1's + exactly the header and the recorded payload",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own execution of the initial SQL = the recorded execution",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the raw observation rebuilt from own execution = the recorded one",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own execution of each revision = the recorded execution",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "remaining time = 180 s - (initial call + execution + lookup), within 2 s",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "each revision within the shared remaining time",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "every selection, fallback and abstention = own rule on own execution",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "recorded payload = a fresh db-evidence-v1.4 lookup (worker; latency aside)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "retrieved examples = the producer's retrieval (worker)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own user message = the producer's (worker)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "initial prompt tokens = own rendering",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 prompt tokens = own rendering of the shared prefix + its message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "V1 prompt tokens = own rendering of the shared prefix + its message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: one initial call per request with seed_of('initial')",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: both revisions use seed_of('revise') and time.monotonic() + remaining",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: both revisions = the shared base + the initial reply + their message",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the lookup runs before the remaining time is taken, once",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the order by seed_of('order') parity",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: selection is spr_run.select",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the lookup is called once, failures recorded, no retry",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "spr_run.py at the run commit = #71's frozen spr_run.py (_call, _execute, select, seed_of, REVISE)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "lookup failure and limit inventory (own) = analysis.json",
+     "passed": true,
+     "detail": "{\"failed\": 0, \"timeouts\": 0, \"with_scan_limits\": 12, \"truncated\": 0, \"with_unresolved\": 30, \"payload_chars_max\": 1718, \"wall_safety_stops\": 0}"
+    },
+    {
+     "name": "every package: db-evidence-v1.4, payload_chars = len(rendered), the protocol's default limits",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "lookup seconds total and max = analysis.json",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 32,
+   "failures": 0,
+   "info": {
+    "stats": {
+     "extract_fence": 384,
+     "original_finish_eos": 128,
+     "D1_finish_eos": 128,
+     "V1_finish_eos": 128,
+     "D1_first": 65,
+     "lookup_failed": 0,
+     "payload_empty": 0,
+     "max_deadline_gap_x1000": 0,
+     "D1_abstain": 14,
+     "V1_revised": 113,
+     "D1_revised": 112,
+     "D1_original": 2,
+     "V1_abstain": 14,
+     "V1_original": 1
+    },
+    "lookup_inventory": {
+     "failed": 0,
+     "timeouts": 0,
+     "with_scan_limits": 12,
+     "truncated": 0,
+     "with_unresolved": 30,
+     "payload_chars_max": 1718,
+     "wall_safety_stops": 0,
+     "scan_limit_kinds": {
+      "value scan": 10,
+      "columns searched": 2
+     }
+    }
+   }
+  },
+  "3_paired": {
+   "checks": [
+    {
+     "name": "counts per policy and seed, and pooled = analysis.json",
+     "passed": true,
+     "detail": "{\"D0/200\": 38, \"D0/201\": 32, \"D1/200\": 41, \"D1/201\": 39, \"V1/200\": 40, \"V1/201\": 40}"
+    },
+    {
+     "name": "V1 - D1: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": -1, \"201\": 1}, \"pooled\": 0, \"recoveries\": 3, \"regressions\": 3}"
+    },
+    {
+     "name": "V1 - D1: recoveries - regressions = pooled",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "D1 - D0: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": 3, \"201\": 7}, \"pooled\": 10, \"recoveries\": 10, \"regressions\": 0}"
+    },
+    {
+     "name": "D1 - D0: recoveries - regressions = pooled",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "V1 - D0: per seed, pooled, per database, leave-one-out, sign, +8 conditions, recoveries, regressions, histogram and exact sign-flip = analysis.json",
+     "passed": true,
+     "detail": "{\"per_seed\": {\"200\": 2, \"201\": 8}, \"pooled\": 10, \"recoveries\": 11, \"regressions\": 1}"
+    },
+    {
+     "name": "V1 - D0: recoveries - regressions = pooled",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "own decision (protocol's branches, +8) = analysis.json",
+     "passed": true,
+     "detail": "V1 did not meet the prespecified continuation threshold on this population: this version stops"
+    },
+    {
+     "name": "bootstrap re-implemented from the protocol (Random(20261107).randrange, 10,000, floor/ceil indices) = analysis.json",
+     "passed": true,
+     "detail": "{\"V1-D1\": {\"observed\": 0, \"low\": -5, \"high\": 5}, \"D1-D0\": {\"observed\": 10, \"low\": 4, \"high\": 18}, \"V1-D0\": {\"observed\": 10, \"low\": 3, \"high\": 18}}"
+    },
+    {
+     "name": "the frozen harness's bootstrap constants = the protocol's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "transitions = analysis.json",
+     "passed": true,
+     "detail": "{\"V1_fixes_D1_misses\": 3, \"D1_right_V1_breaks\": 3, \"initially_correct\": 70, \"initially_correct_broken_by\": {\"D1\": 0, \"V1\": 1}, \"initially_wrong_fixed_by\": {\"D1\": 10, \"V1\": 11}}"
+    },
+    {
+     "name": "signal groups (own reading of the rendered payload) = analysis.json",
+     "passed": true,
+     "detail": "{\"no signal\": {\"requests\": 85, \"D0\": 49, \"D1\": 54, \"V1\": 56, \"V1_fixes_D1_misses\": 3, \"D1_right_V1_breaks\": 1, \"D0_right_V1_breaks\": 0}, \"other signal\": {\"requests\": 42, \"D0\": 21, \"D1\": 26, \"V1\": 24, \"V1_fixes_D1_misses\": 0, \"D1_right_V1_breaks\": 2, \"D0_right_V1_breaks\": 1}, \"value not stored\": {\"requests\": 1, \"D0\": 0, \"D1\": 0, \"V1\": 0, \"V1_fixes_D1_misses\": 0, \"D1_right_V1_breaks\": 0, \"D0_right_V1_breaks\": 0}}"
+    },
+    {
+     "name": "per-question table = analysis.json",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "lineage tallies D1 = analysis.json",
+     "passed": true,
+     "detail": "{\"final_source\": {\"abstain\": 14, \"revised\": 112, \"original\": 2}, \"revision_unchanged_sql\": 95, \"revision_truncated\": 0}"
+    },
+    {
+     "name": "lineage tallies V1 = analysis.json",
+     "passed": true,
+     "detail": "{\"final_source\": {\"revised\": 113, \"abstain\": 14, \"original\": 1}, \"revision_unchanged_sql\": 80, \"revision_truncated\": 0}"
+    },
+    {
+     "name": "initial tallies (own execution) = analysis.json",
+     "passed": true,
+     "detail": "{\"no_sql\": 0, \"execution\": {\"error\": 27, \"ok\": 101}}"
+    },
+    {
+     "name": "final statuses (own) = analysis.json",
+     "passed": true,
+     "detail": "{\"D0\": {\"error\": 27, \"ok\": 101}, \"D1\": {\"abstain\": 14, \"ok\": 114}, \"V1\": {\"ok\": 114, \"abstain\": 14}}"
+    }
+   ],
+   "passed": 17,
+   "failures": 0,
+   "info": {
+    "own": {
+     "V1-D1": {
+      "per_seed": {
+       "200": -1,
+       "201": 1
+      },
+      "pooled": 0,
+      "leave_one_database_out": {
+       "computer_student": 0,
+       "disney": 0,
+       "food_inspection": 0,
+       "hockey": 0,
+       "ice_hockey_draft": -1,
+       "image_and_language": -1,
+       "music_platform_2": 0,
+       "professional_basketball": 1,
+       "public_review_platform": 0,
+       "simpson_episodes": 1,
+       "soccer_2016": 0,
+       "software_company": 0,
+       "talkingdata": 0,
+       "world": 0
+      },
+      "recoveries": 3,
+      "regressions": 3,
+      "conditions": {
+       "pooled_at_least_lead": false,
+       "same_sign_every_seed": false,
+       "same_sign_without_any_one_database": false
+      },
+      "exploratory_sign_flip": {
+       "observed": 0,
+       "blocks": 14,
+       "nonzero_blocks": 4,
+       "assignments": 16,
+       "p_two_sided": 1.0,
+       "smallest_attainable_p": 0.125
+      }
+     },
+     "D1-D0": {
+      "per_seed": {
+       "200": 3,
+       "201": 7
+      },
+      "pooled": 10,
+      "leave_one_database_out": {
+       "computer_student": 10,
+       "disney": 8,
+       "food_inspection": 10,
+       "hockey": 10,
+       "ice_hockey_draft": 10,
+       "image_and_language": 8,
+       "music_platform_2": 10,
+       "professional_basketball": 8,
+       "public_review_platform": 8,
+       "simpson_episodes": 9,
+       "soccer_2016": 9,
+       "software_company": 10,
+       "talkingdata": 10,
+       "world": 10
+      },
+      "recoveries": 10,
+      "regressions": 0,
+      "conditions": {
+       "pooled_at_least_lead": true,
+       "same_sign_every_seed": true,
+       "same_sign_without_any_one_database": true
+      },
+      "exploratory_sign_flip": {
+       "observed": 10,
+       "blocks": 14,
+       "nonzero_blocks": 6,
+       "assignments": 64,
+       "p_two_sided": 0.03125,
+       "smallest_attainable_p": 0.03125
+      }
+     },
+     "V1-D0": {
+      "per_seed": {
+       "200": 2,
+       "201": 8
+      },
+      "pooled": 10,
+      "leave_one_database_out": {
+       "computer_student": 10,
+       "disney": 8,
+       "food_inspection": 10,
+       "hockey": 10,
+       "ice_hockey_draft": 9,
+       "image_and_language": 7,
+       "music_platform_2": 10,
+       "professional_basketball": 9,
+       "public_review_platform": 8,
+       "simpson_episodes": 10,
+       "soccer_2016": 9,
+       "software_company": 10,
+       "talkingdata": 10,
+       "world": 10
+      },
+      "recoveries": 11,
+      "regressions": 1,
+      "conditions": {
+       "pooled_at_least_lead": true,
+       "same_sign_every_seed": true,
+       "same_sign_without_any_one_database": true
+      },
+      "exploratory_sign_flip": {
+       "observed": 10,
+       "blocks": 14,
+       "nonzero_blocks": 6,
+       "assignments": 64,
+       "p_two_sided": 0.03125,
+       "smallest_attainable_p": 0.03125
+      }
+     }
+    },
+    "bootstrap": {
+     "V1-D1": {
+      "observed": 0,
+      "low": -5,
+      "high": 5
+     },
+     "D1-D0": {
+      "observed": 10,
+      "low": 4,
+      "high": 18
+     },
+     "V1-D0": {
+      "observed": 10,
+      "low": 3,
+      "high": 18
+     }
+    },
+    "decision": "V1 did not meet the prespecified continuation threshold on this population: this version stops",
+    "by_database": {
+     "computer_student": {
+      "D0": 4,
+      "D1": 4,
+      "V1": 4
+     },
+     "disney": {
+      "D0": 4,
+      "D1": 6,
+      "V1": 6
+     },
+     "food_inspection": {
+      "D0": 6,
+      "D1": 6,
+      "V1": 6
+     },
+     "hockey": {
+      "D0": 4,
+      "D1": 4,
+      "V1": 4
+     },
+     "ice_hockey_draft": {
+      "D0": 4,
+      "D1": 4,
+      "V1": 5
+     },
+     "image_and_language": {
+      "D0": 3,
+      "D1": 5,
+      "V1": 6
+     },
+     "music_platform_2": {
+      "D0": 8,
+      "D1": 8,
+      "V1": 8
+     },
+     "professional_basketball": {
+      "D0": 1,
+      "D1": 3,
+      "V1": 2
+     },
+     "public_review_platform": {
+      "D0": 4,
+      "D1": 6,
+      "V1": 6
+     },
+     "simpson_episodes": {
+      "D0": 6,
+      "D1": 7,
+      "V1": 6
+     },
+     "soccer_2016": {
+      "D0": 4,
+      "D1": 5,
+      "V1": 5
+     },
+     "software_company": {
+      "D0": 7,
+      "D1": 7,
+      "V1": 7
+     },
+     "talkingdata": {
+      "D0": 5,
+      "D1": 5,
+      "V1": 5
+     },
+     "world": {
+      "D0": 10,
+      "D1": 10,
+      "V1": 10
+     }
+    },
+    "transitions": {
+     "V1_fixes_D1_misses": 3,
+     "D1_right_V1_breaks": 3,
+     "initially_correct": 70,
+     "initially_correct_broken_by": {
+      "D1": 0,
+      "V1": 1
+     },
+     "initially_wrong_fixed_by": {
+      "D1": 10,
+      "V1": 11
+     }
+    }
+   }
+  },
+  "4_costs": {
+   "checks": [
+    {
+     "name": "D0: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 517.0892513864674, \"lookup_seconds\": 0.0, \"tool_seconds\": 0.0, \"submitted_execution_seconds\": 3.3267800000000003, \"total_seconds\": 520.4160313864674, \"per_request_seconds\": 4.065750245206776, \"per_ex_correct_seconds\": 7.4345147340923905, \"prompt_tokens\": 332006, \"generated_tokens\": 7092, \"peak_memory_bytes\": 11059839488, \"calls_per_request\": 1}"
+    },
+    {
+     "name": "D1: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 1039.4766958706896, \"lookup_seconds\": 0.0, \"tool_seconds\": 8.597432936076075, \"submitted_execution_seconds\": 3.19055, \"total_seconds\": 1051.2646788067657, \"per_request_seconds\": 8.213005303177857, \"per_ex_correct_seconds\": 13.140808485084571, \"prompt_tokens\": 684238, \"generated_tokens\": 14154, \"peak_memory_bytes\": 11131628032, \"calls_per_request\": 2}"
+    },
+    {
+     "name": "V1: generation, lookup, tool, submitted-execution, tokens, peak memory = analysis.json (lookup charged to V1 only)",
+     "passed": true,
+     "detail": "{\"generation_seconds\": 1063.0804598496761, \"lookup_seconds\": 6.166390574828256, \"tool_seconds\": 11.688177844276652, \"submitted_execution_seconds\": 6.129028, \"total_seconds\": 1087.064056268781, \"per_request_seconds\": 8.492687939599852, \"per_ex_correct_seconds\": 13.588300703359764, \"prompt_tokens\": 719542, \"generated_tokens\": 14308, \"peak_memory_bytes\": 11234487808, \"calls_per_request\": 2}"
+    },
+    {
+     "name": "exactly one dbe reservation: 'dbe run'",
+     "passed": true,
+     "detail": "[\"dbe run\"]"
+    },
+    {
+     "name": "used at start = 23.489974 h (own cumulative = recorded)",
+     "passed": true,
+     "detail": "23.489974"
+    },
+    {
+     "name": "projection 0.65 h; used + 1.5 x projection = 24.464974 <= 24.489974; watchdog limit = that",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run ended ok: 0.4615 h, cumulative 23.951426 <= 24.489974",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "heartbeats every ~30 s",
+     "passed": true,
+     "detail": "max gap 30.0 s"
+    },
+    {
+     "name": "no overlapping reservation",
+     "passed": true,
+     "detail": "[]"
+    },
+    {
+     "name": "the run summary's reservation = the ledger's",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "load + every recorded call, execution and lookup fits inside the reservation",
+     "passed": true,
+     "detail": "1660.1 s of 1661.2 s"
+    },
+    {
+     "name": "analysis.json's reservation = own",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run manifest's budget check = own",
+     "passed": true,
+     "detail": "{\"fits\": true, \"projected_hours\": 0.65, \"used_hours\": 23.48997404698028, \"work_order_limit_hours\": 24.489974, \"worst_case_hours\": 24.46497404698028}"
+    },
+    {
+     "name": "the co-tenancy log covers the run every ~30 s",
+     "passed": true,
+     "detail": "57 samples"
+    },
+    {
+     "name": "co-tenancy: 1-minute load stayed low during the run",
+     "passed": true,
+     "detail": "max 2.96"
+    }
+   ],
+   "passed": 15,
+   "failures": 0,
+   "info": {
+    "D0": {
+     "generation_seconds": 517.0892513864674,
+     "lookup_seconds": 0.0,
+     "tool_seconds": 0.0,
+     "submitted_execution_seconds": 3.3267800000000003,
+     "total_seconds": 520.4160313864674,
+     "per_request_seconds": 4.065750245206776,
+     "per_ex_correct_seconds": 7.4345147340923905,
+     "prompt_tokens": 332006,
+     "generated_tokens": 7092,
+     "peak_memory_bytes": 11059839488,
+     "calls_per_request": 1
+    },
+    "D1": {
+     "generation_seconds": 1039.4766958706896,
+     "lookup_seconds": 0.0,
+     "tool_seconds": 8.597432936076075,
+     "submitted_execution_seconds": 3.19055,
+     "total_seconds": 1051.2646788067657,
+     "per_request_seconds": 8.213005303177857,
+     "per_ex_correct_seconds": 13.140808485084571,
+     "prompt_tokens": 684238,
+     "generated_tokens": 14154,
+     "peak_memory_bytes": 11131628032,
+     "calls_per_request": 2
+    },
+    "V1": {
+     "generation_seconds": 1063.0804598496761,
+     "lookup_seconds": 6.166390574828256,
+     "tool_seconds": 11.688177844276652,
+     "submitted_execution_seconds": 6.129028,
+     "total_seconds": 1087.064056268781,
+     "per_request_seconds": 8.492687939599852,
+     "per_ex_correct_seconds": 13.588300703359764,
+     "prompt_tokens": 719542,
+     "generated_tokens": 14308,
+     "peak_memory_bytes": 11234487808,
+     "calls_per_request": 2
+    },
+    "foreign_gpu_processes": {
+     "start": [
+      {
+       "name": ".venv/bin/python",
+       "pid": 514236,
+       "used_memory": "533 MiB"
+      }
+     ],
+     "end": [
+      {
+       "name": ".venv/bin/python",
+       "pid": 514236,
+       "used_memory": "533 MiB"
+      }
+     ]
+    },
+    "ledger_total_hours_now": 23.951425708866115,
+    "reservation": {
+     "id": "20261107T182054-3c584e74",
+     "hours": 0.4614516618858357,
+     "start": "2026-11-07T18:20:54+00:00",
+     "end": "2026-11-07T18:48:35+00:00"
+    },
+    "cotenancy": {
+     "samples": 57,
+     "load1_max": 2.96,
+     "load1_mean": 2.17
+    }
+   }
+  },
+  "5_reference": {
+   "checks": [
+    {
+     "name": "no gold SQL in any prompt, feedback message or payload",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "no task id in any prompt, feedback message or payload",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "a gold result block appears in a message only where the model's own result shows it",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: the lookup sees only question, evidence, SQL, schema and snapshot",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "code: gold is read only after the reservation (scoring)",
+     "passed": true,
+     "detail": "[301]"
+    },
+    {
+     "name": "code: serve, lookup and v1_message never name gold",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "contracts.Task has no SQL field",
+     "passed": true,
+     "detail": "['task_id', 'db_id', 'question', 'evidence', 'split']"
+    },
+    {
+     "name": "run manifest: commit 8e1ee1b, clean tree",
+     "passed": true,
+     "detail": "{\"branch\": \"HEAD\", \"commit\": \"8e1ee1b72b000e65fc1830cf5c4f90ee35cd9588\", \"dirty_paths\": [], \"research_tree_dirty\": false, \"worktree\": \"/home/seanjazm27/projects/universa-recurrent-dbe-frozen\"}"
+    },
+    {
+     "name": "analysis manifest: commit 8e1ee1b, clean tree",
+     "passed": true,
+     "detail": "{\"branch\": \"HEAD\", \"commit\": \"8e1ee1b72b000e65fc1830cf5c4f90ee35cd9588\", \"dirty_paths\": [], \"research_tree_dirty\": false, \"worktree\": \"/home/seanjazm27/projects/universa-recurrent-dbe-frozen\"}"
+    },
+    {
+     "name": "the frozen worktree is at 8e1ee1b and clean (now)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run manifest names the frozen protocol (sha256, frozen_at 644c090)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the five pinned files at 8e1ee1b match dbe_protocol.json",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the run manifest's source hashes = the pinned harness and lookup",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 13,
+   "failures": 0,
+   "info": {
+    "texts_checked": 512,
+    "gold_block_explained_by_own_result": 134,
+    "prompts_checked": true,
+    "changed_since_frozen": [
+     "research/ti_tnn/scaling/dbe_report.py",
+     "research/ti_tnn/scaling/docs/REPORT_database_evidence_revision.md",
+     "research/ti_tnn/scaling/evidence/dbe_v1/SHA256SUMS",
+     "research/ti_tnn/scaling/evidence/dbe_v1/analysis/20261107T184900Z/analysis.json",
+     "research/ti_tnn/scaling/evidence/dbe_v1/analysis/20261107T184900Z/manifest.json",
+     "research/ti_tnn/scaling/evidence/dbe_v1/gpu_ledger.jsonl",
+     "research/ti_tnn/scaling/evidence/dbe_v1/logs/analyze_20261107T182053Z.log",
+     "research/ti_tnn/scaling/evidence/dbe_v1/logs/chain_20261107T182053Z.log",
+     "research/ti_tnn/scaling/evidence/dbe_v1/logs/cotenancy_20261107T182053Z.log",
+     "research/ti_tnn/scaling/evidence/dbe_v1/logs/run_20261107T182053Z.log",
+     "research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/manifest.json",
+     "research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/requests.jsonl",
+     "research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/scores.jsonl",
+     "research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/summary.json"
+    ]
+   }
+  },
+  "6_integrity": {
+   "checks": [
+    {
+     "name": "population = inventory positions 256-319",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "one request per question and seed: 64 x 2, none missing or extra",
+     "passed": true,
+     "detail": "128"
+    },
+    {
+     "name": "one score per policy, seed and question: 384",
+     "passed": true,
+     "detail": "384"
+    },
+    {
+     "name": "every request on its pinned database",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "run manifest: requested = the pin, seeds [200, 201]",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "every policy's denominator is 128 (64 questions x 2 seeds)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "one run directory and one analysis directory (no rerun)",
+     "passed": true,
+     "detail": "['20261107T182054Z']"
+    },
+    {
+     "name": "the run log shows 128 requests once each, in the records' order",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "analysis.json names the run",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "SHA256SUMS verifies 11 files",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the bundle = every file of <runs>/dbe/ (byte-identical) plus the ledger, all under SHA256SUMS",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "the bundled ledger = the live ledger (now)",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 12,
+   "failures": 0,
+   "info": {}
+  },
+  "7_report": {
+   "checks": [
+    {
+     "name": "report: D0 counts row",
+     "passed": true,
+     "detail": "| D0 | 38 | 32 | 70 |"
+    },
+    {
+     "name": "report: D1 counts row",
+     "passed": true,
+     "detail": "| D1 | 41 | 39 | 80 |"
+    },
+    {
+     "name": "report: V1 counts row",
+     "passed": true,
+     "detail": "| V1 | 40 | 40 | 80 |"
+    },
+    {
+     "name": "report: V1-D1 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)",
+     "passed": true,
+     "detail": "| V1-D1 | +0 | -1, +1 | 3 | 3 | [-5, +5] | -1 | False | 1.000 |"
+    },
+    {
+     "name": "report: D1-D0 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)",
+     "passed": true,
+     "detail": "| D1-D0 | +10 | +3, +7 | 10 | 0 | [+4, +18] | +8 | True | 0.031 |"
+    },
+    {
+     "name": "report: V1-D0 comparison row (pooled, seeds, recoveries, regressions, interval, LOO min, rule, sign-flip)",
+     "passed": true,
+     "detail": "| V1-D0 | +10 | +2, +8 | 11 | 1 | [+3, +18] | +7 | True | 0.031 |"
+    },
+    {
+     "name": "report: V1-D1 interval and its percentage points",
+     "passed": true,
+     "detail": "[-5, +5] correct answers out of 128, about -3.9 to +3.9"
+    },
+    {
+     "name": "report: D1-D0 interval in percentage points",
+     "passed": true,
+     "detail": "about +3.1 to +14.1 percentage points"
+    },
+    {
+     "name": "report: V1-D0 interval in percentage points",
+     "passed": true,
+     "detail": "about +2.3 to +14.1 points"
+    },
+    {
+     "name": "report: transition V1 fixes",
+     "passed": true,
+     "detail": "| V1 right where D1 is wrong | 3 |"
+    },
+    {
+     "name": "report: transition D1 right V1 wrong",
+     "passed": true,
+     "detail": "| D1 right where V1 is wrong | 3 |"
+    },
+    {
+     "name": "report: initially correct",
+     "passed": true,
+     "detail": "| initially correct (D0) | 70 |"
+    },
+    {
+     "name": "report: broken by",
+     "passed": true,
+     "detail": "| initially correct, broken by D1 / V1 | 0 / 1 |"
+    },
+    {
+     "name": "report: fixed by",
+     "passed": true,
+     "detail": "| initially wrong, fixed by D1 / V1 | 10 / 11 |"
+    },
+    {
+     "name": "report: database row computer_student",
+     "passed": true,
+     "detail": "| computer_student | 4 | 4 | 4 | 4 |"
+    },
+    {
+     "name": "report: database row disney",
+     "passed": true,
+     "detail": "| disney | 5 | 4 | 6 | 6 |"
+    },
+    {
+     "name": "report: database row food_inspection",
+     "passed": true,
+     "detail": "| food_inspection | 4 | 6 | 6 | 6 |"
+    },
+    {
+     "name": "report: database row hockey",
+     "passed": true,
+     "detail": "| hockey | 4 | 4 | 4 | 4 |"
+    },
+    {
+     "name": "report: database row ice_hockey_draft",
+     "passed": true,
+     "detail": "| ice_hockey_draft | 5 | 4 | 4 | 5 |"
+    },
+    {
+     "name": "report: database row image_and_language",
+     "passed": true,
+     "detail": "| image_and_language | 4 | 3 | 5 | 6 |"
+    },
+    {
+     "name": "report: database row music_platform_2",
+     "passed": true,
+     "detail": "| music_platform_2 | 5 | 8 | 8 | 8 |"
+    },
+    {
+     "name": "report: database row professional_basketball",
+     "passed": true,
+     "detail": "| professional_basketball | 5 | 1 | 3 | 2 |"
+    },
+    {
+     "name": "report: database row public_review_platform",
+     "passed": true,
+     "detail": "| public_review_platform | 4 | 4 | 6 | 6 |"
+    },
+    {
+     "name": "report: database row simpson_episodes",
+     "passed": true,
+     "detail": "| simpson_episodes | 5 | 6 | 7 | 6 |"
+    },
+    {
+     "name": "report: database row soccer_2016",
+     "passed": true,
+     "detail": "| soccer_2016 | 4 | 4 | 5 | 5 |"
+    },
+    {
+     "name": "report: database row software_company",
+     "passed": true,
+     "detail": "| software_company | 5 | 7 | 7 | 7 |"
+    },
+    {
+     "name": "report: database row talkingdata",
+     "passed": true,
+     "detail": "| talkingdata | 5 | 5 | 5 | 5 |"
+    },
+    {
+     "name": "report: database row world",
+     "passed": true,
+     "detail": "| world | 5 | 10 | 10 | 10 |"
+    },
+    {
+     "name": "report: D0 cost row",
+     "passed": true,
+     "detail": "| D0 | 517.1 | 0.0 | 0.0 | 3.3 | 520.4 | 4.07 | 7.4 | 332,006 | 7,092 | 11.06 |"
+    },
+    {
+     "name": "report: D1 cost row",
+     "passed": true,
+     "detail": "| D1 | 1039.5 | 0.0 | 8.6 | 3.2 | 1051.3 | 8.21 | 13.1 | 684,238 | 14,154 | 11.13 |"
+    },
+    {
+     "name": "report: V1 cost row",
+     "passed": true,
+     "detail": "| V1 | 1063.1 | 6.2 | 11.7 | 6.1 | 1087.1 | 8.49 | 13.6 | 719,542 | 14,308 | 11.23 |"
+    },
+    {
+     "name": "report: V1's end-to-end cost increase",
+     "passed": true,
+     "detail": "3.4% higher than D1's"
+    },
+    {
+     "name": "report: cost sentence",
+     "passed": true,
+     "detail": "V1's end-to-end cost was 1,087 s, against D1's 1,051 s (+3.4%)"
+    },
+    {
+     "name": "report: lookup seconds total, median, max",
+     "passed": true,
+     "detail": "6.2 s in total, median 0.008 s, maximum 0.55 s"
+    },
+    {
+     "name": "lookup total = 6.2 s (own)",
+     "passed": true,
+     "detail": "6.166"
+    },
+    {
+     "name": "report: payload median and maximum",
+     "passed": true,
+     "detail": "the payload median was 786 characters, with a maximum of 1,718"
+    },
+    {
+     "name": "report: scan-limit count",
+     "passed": true,
+     "detail": "12 hit a scan limit"
+    },
+    {
+     "name": "report: unresolved count",
+     "passed": true,
+     "detail": "30 recorded unresolved columns"
+    },
+    {
+     "name": "report: same final SQL count",
+     "passed": true,
+     "detail": "V1 and D1 end on the same final SQL in 91 of 128"
+    },
+    {
+     "name": "report: revisions that changed the initial SQL",
+     "passed": true,
+     "detail": "(48 revisions changed it, against 33)"
+    },
+    {
+     "name": "report: V1 - D1 leaving out one database is in {-1, 0, +1}",
+     "passed": true,
+     "detail": "[-1, 0, 1]"
+    },
+    {
+     "name": "report: V1 broke only bird23tf-00441/200, D1 none",
+     "passed": true,
+     "detail": "[(200, 'bird23tf-00441')]"
+    },
+    {
+     "name": "report: signal-group row no flagged signal",
+     "passed": true,
+     "detail": "| no flagged signal | 85 | 49 | 54 | 56 | 3 | 1 | 0 |"
+    },
+    {
+     "name": "report: signal-group row other signal",
+     "passed": true,
+     "detail": "| other signal | 42 | 21 | 26 | 24 | 0 | 2 | 1 |"
+    },
+    {
+     "name": "report: signal-group row value not stored",
+     "passed": true,
+     "detail": "| value not stored | 1 | 0 | 0 | 0 | 0 | 0 | 0 |"
+    },
+    {
+     "name": "report: all three V1-only recoveries are in the no-flagged-signal group (own grouping)",
+     "passed": true,
+     "detail": "[((200, 'bird23tf-03981'), 'no signal'), ((201, 'bird23tf-02677'), 'no signal'), ((201, 'bird23tf-04913'), 'no signal')]"
+    },
+    {
+     "name": "report: the one V1 regression of an initially correct answer is in the other-signal group",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "report: every no-flagged-signal payload (85) is non-empty and shows declared keys, column notes, near-miss columns or tables",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "report: the one 'value not stored' request stayed wrong under all three",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "report: the six discordant requests and their D0 / D1 / V1 correctness",
+     "passed": true,
+     "detail": "[(200, 'bird23tf-00441'), (200, 'bird23tf-01144'), (200, 'bird23tf-03981'), (201, 'bird23tf-01645'), (201, 'bird23tf-02677'), (201, 'bird23tf-04913')]"
+    },
+    {
+     "name": "report: six-request row bird23tf-01144/200",
+     "passed": true,
+     "detail": "| bird23tf-01144, seed 200 (professional_basketball) | 0 / 1 / 0 |"
+    },
+    {
+     "name": "report: six-request row bird23tf-00441/200",
+     "passed": true,
+     "detail": "| bird23tf-00441, seed 200 (talkingdata) | 1 / 1 / 0 |"
+    },
+    {
+     "name": "report: six-request row bird23tf-03981/200",
+     "passed": true,
+     "detail": "| bird23tf-03981, seed 200 (talkingdata) | 0 / 0 / 1 |"
+    },
+    {
+     "name": "report: six-request row bird23tf-01645/201",
+     "passed": true,
+     "detail": "| bird23tf-01645, seed 201 (simpson_episodes) | 0 / 1 / 0 |"
+    },
+    {
+     "name": "report: six-request row bird23tf-02677/201",
+     "passed": true,
+     "detail": "| bird23tf-02677, seed 201 (ice_hockey_draft) | 0 / 0 / 1 |"
+    },
+    {
+     "name": "report: six-request row bird23tf-04913/201",
+     "passed": true,
+     "detail": "| bird23tf-04913, seed 201 (image_and_language) | 0 / 0 / 1 |"
+    },
+    {
+     "name": "01144/200: as described (D1 drops T3.award; V1 keeps it, LIKE 'California%', fails, abstains; payload silent on the column, recorded unresolved)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "00441/200: as described (D1 adds DISTINCT; V1 swaps in events_relevant, first listed table, 0 rows)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "03981/200: as described (D1 unchanged, abstains; V1 joins through events_relevant, which the payload lists in its declared keys)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "01645/201: as described (D1 uses Award.person; V1 keeps T1.name, abstains; payload silent, unresolved)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "02677/201: as described (D1 averages PlayerInfo.height; V1 joins height_info on the listed key)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "04913/201: as described (D1 unchanged, abstains; V1 joins OBJ_CLASSES on the listed key)",
+     "passed": true,
+     "detail": ""
+    },
+    {
+     "name": "report: host load at or below 3.0",
+     "passed": true,
+     "detail": "2.96"
+    },
+    {
+     "name": "report: a 533 MiB foreign process on the GPU, as the ledger recorded at start and end",
+     "passed": true,
+     "detail": "[{'name': '.venv/bin/python', 'pid': 514236, 'used_memory': '533 MiB'}]"
+    },
+    {
+     "name": "report: reservation hours",
+     "passed": true,
+     "detail": "The run took 0.461 GPU-reservation hours"
+    },
+    {
+     "name": "report: ledger total",
+     "passed": true,
+     "detail": "ledger stands at 23.951"
+    },
+    {
+     "name": "report: PR #71's D1 - D0 was +2",
+     "passed": true,
+     "detail": ""
+    }
+   ],
+   "passed": 67,
+   "failures": 0,
+   "info": {
+    "report": {
+     "commit": "c14764d7d23ad660e84ac83ac7d069957c58de99",
+     "sha256": "ceb82eb13904facfa46eac717f44bb2a561a0fa030de2924a801d8bb97538c29"
+    },
+    "no_signal_payload_kinds": {
+     "Declared keys around": 85,
+     "Column ": 81,
+     "Columns near": 70,
+     "Other tables matching the question": 85
+    },
+    "03981_events_relevant_where": [
+     "Declared keys around app_events, gender_",
+     "Other tables matching the question: 1. a"
+    ]
+   }
+  }
+ },
+ "checks": 165,
+ "failures": 0,
+ "inputs": {
+  "/home/seanjazm27/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/blobs/a585dec894e63da457d9440ec6aa7caa16d20860": {
+   "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+   "bytes": 7756
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/SHA256SUMS": {
+   "sha256": "819e47012307ca9b0b2325f478a695a08334cb6fe827e83c214b23df1dd6e662",
+   "bytes": 1094
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/analysis/20261107T184900Z/analysis.json": {
+   "sha256": "23156d612f2b5ed10d9b068b8f12399306f6e5e5a835fea4248e7dafcf10df71",
+   "bytes": 18122
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/analysis/20261107T184900Z/manifest.json": {
+   "sha256": "ab983045aa2f6d2016d3c8a972002d317ed79b00ed13d0c89d82f13d084dbd32",
+   "bytes": 5301
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/gpu_ledger.jsonl": {
+   "sha256": "00897a6f97b714dc44b90ee0d2bab1fe83c212d964105a5a86b1972cda5f5386",
+   "bytes": 407331
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/logs/analyze_20261107T182053Z.log": {
+   "sha256": "9e76ea12ba2651cad14c5cc86b20bfb24e3f15f39a407dab670b3e4cd884b30b",
+   "bytes": 1130
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/logs/chain_20261107T182053Z.log": {
+   "sha256": "7923f0f28b1aeb792c5386ecb6725f3a65a03818aa1401dde98debc0e86f725e",
+   "bytes": 225
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/logs/cotenancy_20261107T182053Z.log": {
+   "sha256": "cb13a2652650005ce86e00ad3f58dd946c09b598949caba3012bb4211305b503",
+   "bytes": 2907
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/logs/run_20261107T182053Z.log": {
+   "sha256": "23e9a84ba47f809a6979d5fbecbba55d1362dd1d791e11ae6d19bd04f4aa96b5",
+   "bytes": 12977
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/manifest.json": {
+   "sha256": "ae592fa95f8da4f75592094d4a99cb8832c207e9290f2f5df276b76a4bd4ae11",
+   "bytes": 11124
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/requests.jsonl": {
+   "sha256": "a35c07c18cd1398dfc005736035cb292760e51742af30197e270d7575c7c82e8",
+   "bytes": 1368658
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/scores.jsonl": {
+   "sha256": "6244c7ae88d5172f77e25011eaea4a9e89e332c0b7a2670cf1fa750eb7315f57",
+   "bytes": 369166
+  },
+  "/home/seanjazm27/projects/universa-recurrent-dbe/research/ti_tnn/scaling/evidence/dbe_v1/run/20261107T182054Z/summary.json": {
+   "sha256": "72dce65723fa7e8aca3b0156d2216a605cbb4be665e7605f332b18fe9a3d8d3b",
+   "bytes": 155
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/computer_student/computer_student.sqlite": {
+   "sha256": "617669575dff24ed08efacf95e05bb53347f2d895f053faa2dcbcd047b27a513",
+   "bytes": 45056
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/disney/disney.sqlite": {
+   "sha256": "0356fc508607fa20da3c94dc785705f05a4b8a9455bb4ac02fb1271fe3bd5c25",
+   "bytes": 258048
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/food_inspection/food_inspection.sqlite": {
+   "sha256": "c76a6576ba7fe150e12b64a9eefa0ad418b10449f771f91830a87319e34f64c1",
+   "bytes": 5021696
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/hockey/hockey.sqlite": {
+   "sha256": "2987cba3921e2544fcd4603eccf5ff97b17f63103d8feb6fb908d55eb5bd9ba2",
+   "bytes": 6893568
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/ice_hockey_draft/ice_hockey_draft.sqlite": {
+   "sha256": "4b297d4b7f8c0ff3b751a4017c4d2355aa8eeb11159cf258600995a56f53bf18",
+   "bytes": 1028096
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/image_and_language/image_and_language.sqlite": {
+   "sha256": "e2fde5486e977b4fde2097bbfbb789be5950753872a3707956b946c92080d0f1",
+   "bytes": 138891264
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/music_platform_2/music_platform_2.sqlite": {
+   "sha256": "5267beadeb3928665704da6b5f265400b4821988404666ce337b35203a8f9a09",
+   "bytes": 1554345984
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/professional_basketball/professional_basketball.sqlite": {
+   "sha256": "11bc18807f9209e4fae852695907c77961a208639e25b59def05802c9f0b8839",
+   "bytes": 6668288
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/public_review_platform/public_review_platform.sqlite": {
+   "sha256": "d87fa4bbcb2d5daec149330d5c47378b2c669222e616bfe2c04cc3624e7ad4ba",
+   "bytes": 65339392
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/simpson_episodes/simpson_episodes.sqlite": {
+   "sha256": "777172b55c622b0106dc4e0a03a1c1af61a0413d0a358f40e6210b8f0ca64f4d",
+   "bytes": 753664
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/soccer_2016/soccer_2016.sqlite": {
+   "sha256": "84651eed21dbfae9f36a15697a5df81f3cb6ad78740f7301096e99dd7c4c06d5",
+   "bytes": 17170432
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/software_company/software_company.sqlite": {
+   "sha256": "21b00d9d2b3bf20af55597c5e844223340ae35efb034797b34100681827e2ca2",
+   "bytes": 342118400
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/talkingdata/talkingdata.sqlite": {
+   "sha256": "a195526a8824c48ebdb1f0e5ddf5019d467a377022d52bda6b886936b09c1a50",
+   "bytes": 1903886336
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/databases/world/world.sqlite": {
+   "sha256": "813faade795b875f6d46cf81d9651e2400524b414a407aa9d473aa9a8c142861",
+   "bytes": 253952
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/data/raw/hf/bird23_train_filtered.train-00000-of-00001.jsonl": {
+   "sha256": "2ee64aa593e1adc59be7d5b9ce2395372a8ee27fdd94a3fb4d2fe09f3cd34bc8",
+   "bytes": 2654294
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/analysis/20261107T184900Z/analysis.json": {
+   "sha256": "23156d612f2b5ed10d9b068b8f12399306f6e5e5a835fea4248e7dafcf10df71",
+   "bytes": 18122
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/analysis/20261107T184900Z/manifest.json": {
+   "sha256": "ab983045aa2f6d2016d3c8a972002d317ed79b00ed13d0c89d82f13d084dbd32",
+   "bytes": 5301
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/logs/analyze_20261107T182053Z.log": {
+   "sha256": "9e76ea12ba2651cad14c5cc86b20bfb24e3f15f39a407dab670b3e4cd884b30b",
+   "bytes": 1130
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/logs/chain_20261107T182053Z.log": {
+   "sha256": "7923f0f28b1aeb792c5386ecb6725f3a65a03818aa1401dde98debc0e86f725e",
+   "bytes": 225
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/logs/cotenancy_20261107T182053Z.log": {
+   "sha256": "cb13a2652650005ce86e00ad3f58dd946c09b598949caba3012bb4211305b503",
+   "bytes": 2907
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/logs/run_20261107T182053Z.log": {
+   "sha256": "23e9a84ba47f809a6979d5fbecbba55d1362dd1d791e11ae6d19bd04f4aa96b5",
+   "bytes": 12977
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/run/20261107T182054Z/manifest.json": {
+   "sha256": "ae592fa95f8da4f75592094d4a99cb8832c207e9290f2f5df276b76a4bd4ae11",
+   "bytes": 11124
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/run/20261107T182054Z/requests.jsonl": {
+   "sha256": "a35c07c18cd1398dfc005736035cb292760e51742af30197e270d7575c7c82e8",
+   "bytes": 1368658
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/run/20261107T182054Z/scores.jsonl": {
+   "sha256": "6244c7ae88d5172f77e25011eaea4a9e89e332c0b7a2670cf1fa750eb7315f57",
+   "bytes": 369166
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/dbe/run/20261107T182054Z/summary.json": {
+   "sha256": "72dce65723fa7e8aca3b0156d2216a605cbb4be665e7605f332b18fe9a3d8d3b",
+   "bytes": 155
+  },
+  "/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling/gpu_ledger.jsonl": {
+   "sha256": "00897a6f97b714dc44b90ee0d2bab1fe83c212d964105a5a86b1972cda5f5386",
+   "bytes": 407331
+  },
+  "/tmp/claude-1000/-home-seanjazm27/7be45db0-2608-4151-8825-79c9a73be53e/scratchpad/verify_dbe/worker_out.json": {
+   "sha256": "d35a7480dfbd0560b29726ddbb126cd33893aaa7369ce411423a892d2c845da3",
+   "bytes": 2022997
+  },
+  "git:2f76bb7:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "184456817ca126efdb772f6b53937e519c36b9966c225e4e2f3bca097b075cb5",
+   "bytes": 24870
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/contracts.py": {
+   "sha256": "091c928b93722c515e31e9dac0a381eace6a1de3a7ba08ef3fc95cb2c53a7206",
+   "bytes": 11598
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/db_evidence.py": {
+   "sha256": "4bf793adf1757e14805e7c84ca4575f63a5b46591f3fb38b02287a85f5770cc0",
+   "bytes": 39860
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/dbe_run.py": {
+   "sha256": "36ff67e4a6b00d4eff9e37ab77899b6cd73e359b29a989483785daf4dad18032",
+   "bytes": 29392
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/docs/PROTOCOL_database_evidence_revision.md": {
+   "sha256": "89d877fb2ecf057ee14dda82d37b4446822d65f84c17ae75b7da4ee87142599f",
+   "bytes": 11764
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/gi_llm.py": {
+   "sha256": "b8b7f7388312a86a834436613e428ace37826b626aa448a8c082fdf3b624a672",
+   "bytes": 5555
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/pins/dbe_new_eval.json": {
+   "sha256": "5848813d2e0b95412e6d299b1aa388e69b986e5d2b148b06818788051c6ee96c",
+   "bytes": 3414
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/pins/dbe_prior_use_scan.json": {
+   "sha256": "acdad1aa994a7fea427e06972da9713727a1454995ade3ac269d4a0aa7cef710",
+   "bytes": 1185
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/pins/dbe_protocol.json": {
+   "sha256": "80a3d62d0b52ca86f75c105dd21e458c82982779a7daf83da57f71ea58856160",
+   "bytes": 1859
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/pins/inventory_v1.json": {
+   "sha256": "6c164f63c27df7d1dd4c39a73201f931d8d9348b9dd92be9e4a8d1ebdb77885e",
+   "bytes": 22624
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/pins/snapshots_v1.json": {
+   "sha256": "9450b33e8eec4968d6e9493276ed386ea16eec2a86bdaebfdcb27e0028766aa0",
+   "bytes": 20898
+  },
+  "git:8e1ee1b:research/ti_tnn/scaling/spr_run.py": {
+   "sha256": "184456817ca126efdb772f6b53937e519c36b9966c225e4e2f3bca097b075cb5",
+   "bytes": 24870
+  },
+  "git:HEAD:research/ti_tnn/scaling/docs/REPORT_database_evidence_revision.md": {
+   "sha256": "ceb82eb13904facfa46eac717f44bb2a561a0fa030de2924a801d8bb97538c29",
+   "bytes": 13093
+  },
+  "git:HEAD:research/ti_tnn/scaling/evidence/spr_v1/analysis/20261107T030307Z_corrected_v2/analysis_v2.json": {
+   "sha256": "4e200c53c11004351fabeb9fc1a11bfa02757eba0ffe60d29a238eb938c208ea",
+   "bytes": 9286
+  }
+ }
+}
