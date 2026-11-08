@@ -5,29 +5,40 @@
 
 **The bundle** is `evidence/dbe_v1/`: every file of `<runs root>/dbe/` and the GPU ledger, under `SHA256SUMS`.
 
-**The report.** It checks the sums and the frozen pins, then validates the records:
-- exactly one request per question and seed;
-- one score per policy, seed and question;
-- integer 0/1 correctness;
-- finite, nonnegative times.
+**The report** checks the sums and then, before building anything:
+- **The frozen pins:** the protocol, population, prior-use scan, lookup and harness sha256 (`dbe_run.protocol_identity`).
+- **The population binding:** every request and score names a pinned question and its pinned database.
+- **The run identity:** the one run and its analysis name each other. Both manifests record the same clean commit,
+  the frozen protocol, the pinned questions, seeds and lookup. The summary's reservation is the ledger's.
+- **The raw values,** with the protections of #73:
+  - integer seeds;
+  - integer 0/1 correctness;
+  - nonnegative integer token, row and memory counts;
+  - genuine Booleans;
+  - finite nonnegative generation, lookup, tool, submitted-execution and allowed times.
 
-It recomputes every analysed quantity from the bundled records with the frozen `dbe_run.analyze`, and refuses any
-disagreement with `analysis.json`. This module changes nothing the run used: the policies, the lookup, the rule and
-the analysis are the frozen harness's.
+It then recomputes every analysed quantity from the bundled records with the frozen `dbe_run.analyze`. It recomputes
+the GPU reservation and the ledger totals from the bundled ledger with `ledger.usage`. It compares all of them, and
+the analysis's exact key set, with `analysis.json` (types checked before any tolerance), and refuses any
+disagreement. A matching file hash alone verifies nothing displayed.
+
+This module changes nothing the run used: the policies, the lookup, the rule and the analysis are the frozen
+harness's.
 """
 from __future__ import annotations
 
 import json
-import math
 import shutil
 import sys
 from pathlib import Path
 
 from . import contracts as C
 from . import evidence
-from .spr_report import Inconsistent, _differ
+from .spr_report import Inconsistent, _check, _count, _differ, _flag, _num, _time
 
 BUNDLE = C.SCALING / "evidence" / "dbe_v1"
+LEDGER_FIELDS = ("cap_hours", "authorization", "used_hours", "remaining_hours")
+STORED_ONLY = ("protocol", "run", "gpu_reservations", "ledger")   # analysis.json fields not produced by analyze
 
 
 def bundle(dest: Path = BUNDLE) -> int:
@@ -48,10 +59,13 @@ def _load(path: Path) -> list:
     return [json.loads(x) for x in path.read_text().splitlines() if x.strip()]
 
 
-def _validate(reqs: list, scores: list, ids: list, seeds) -> None:
+def _validate(reqs: list, scores: list, ids: list, seeds, db_of: "dict | None" = None) -> None:
+    """The exact inventory, the population binding and every raw value, before anything is built."""
     from collections import Counter
 
     from . import dbe_run as D
+    for x in reqs + scores:
+        _check(type(x["seed"]) is int, f"{x['task_id']}: seed {x['seed']!r} is not an integer")
     want_r = {(s, t) for s in seeds for t in ids}
     got_r = Counter((r["seed"], r["task_id"]) for r in reqs)
     if set(got_r) != want_r or any(n != 1 for n in got_r.values()):
@@ -60,35 +74,116 @@ def _validate(reqs: list, scores: list, ids: list, seeds) -> None:
     got_s = Counter((x["policy"], x["seed"], x["task_id"]) for x in scores)
     if set(got_s) != want_s or any(n != 1 for n in got_s.values()):
         raise Inconsistent("scores: not exactly one per policy, seed and question")
+    if db_of is not None:
+        for x in reqs + scores:
+            if x["db_id"] != db_of[x["task_id"]]:
+                raise Inconsistent(f"{x['task_id']}: database {x['db_id']!r} is not the pinned one")
     for x in scores:
+        w = f"score {x['policy']}/{x['seed']}/{x['task_id']}"
         c = x["score"]["correct"]
-        if type(c) is not int or c not in (0, 1):
-            raise Inconsistent(f"{x['task_id']}/{x['seed']}/{x['policy']}: correctness {c!r}")
+        if not (_num(c) and isinstance(c, int) and c in (0, 1)):
+            raise Inconsistent(f"{w}: correctness {c!r} is not integer 0 or 1")
+        pr = x["score"]["predicted"]
+        _time(pr["elapsed_seconds"], f"{w}: predicted.elapsed_seconds")
+        for k in ("row_count", "distinct_rows"):
+            if pr.get(k) is not None:
+                _count(pr[k], f"{w}: predicted.{k}")
     for r in reqs:
-        times = [r["original"]["call"]["seconds"], r["evidence"]["seconds"]] + \
-            [r[p]["revised"]["call"]["seconds"] for p in ("D1", "V1")]
-        if any(not (isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v >= 0)
-               for v in times):
-            raise Inconsistent(f"{r['task_id']}/{r['seed']}: a time is not finite and nonnegative")
+        w = f"request {r['seed']}/{r['task_id']}"
         if r["D0"] != {"source": "original", "sql": r["original"]["sql"]}:
             raise Inconsistent(f"{r['task_id']}/{r['seed']}: D0 is not the shared initial proposal")
+        for name, cand in [("original", r["original"])] + [(f"{p}.revised", r[p]["revised"]) for p in ("D1", "V1")]:
+            call, ex = cand["call"], cand["execution"]
+            _time(call["seconds"], f"{w}: {name}.call.seconds (generation)")
+            for k in ("prompt_tokens", "generated_tokens", "peak_memory_bytes"):
+                _count(call[k], f"{w}: {name}.call.{k}")
+            _time(ex["seconds"], f"{w}: {name}.execution.seconds (tool)")
+            if ex.get("row_count") is not None:
+                _count(ex["row_count"], f"{w}: {name}.execution.row_count")
+            _flag(ex.get("truncated", False), f"{w}: {name}.execution.truncated")
+        ev = r["evidence"]
+        _flag(ev["ok"], f"{w}: evidence.ok")
+        _time(ev["seconds"], f"{w}: evidence.seconds (lookup)")
+        if ev["ok"]:
+            pkg = ev["package"]
+            for k in ("truncated", "wall_safety_stop"):
+                _flag(pkg[k], f"{w}: evidence.package.{k}")
+            for k in ("payload_chars", "payload_chars_untruncated", "queries", "instructions"):
+                _count(pkg[k], f"{w}: evidence.package.{k}")
+            _time(pkg["latency_seconds"], f"{w}: evidence.package.latency_seconds")
+        _time(r["revision_seconds_allowed"], f"{w}: revision_seconds_allowed")
+
+
+def _run_identity(run: Path, adir: Path, analysis: dict, identity: dict, ids: list) -> None:
+    """The one run and its analysis name each other; both manifests record the same clean commit and the frozen
+    protocol; the run's manifest records the pinned questions, seeds and lookup."""
+    from . import dbe_run as D
+    problems = [f"analysis.protocol{p}" for p in _differ(analysis["protocol"], identity)]
+    if analysis["run"] != "dbe/run/" + run.name:
+        problems.append(f"analysis.run {analysis['run']!r} is not the bundled run dbe/run/{run.name}")
+    rm, am = (json.loads((d / "manifest.json").read_text()) for d in (run, adir))
+    for name, m in (("run", rm), ("analysis", am)):
+        g = m["git"]
+        if not (isinstance(g["commit"], str) and len(g["commit"]) == 40) or g["commit"] != rm["git"]["commit"]:
+            problems.append(f"{name} manifest commit")
+        if g["research_tree_dirty"] is not False or g["dirty_paths"] != []:
+            problems.append(f"{name} manifest: the tree was not clean")
+        problems += [f"{name} manifest protocol{p}" for p in _differ(m["config"]["protocol"], identity)]
+    problems += [f"run manifest requested{p}" for p in _differ(rm["config"]["requested"], ids)]
+    problems += [f"run manifest seeds{p}" for p in _differ(rm["config"]["seeds"], list(D.SEEDS))]
+    if rm["config"]["lookup"] != D.EVIDENCE_VERSION or rm["config"]["command"] != "dbe run":
+        problems.append("run manifest lookup or command")
+    if am["config"]["run"] != analysis["run"] or am["config"]["command"] != "dbe analyze":
+        problems.append("analysis manifest run or command")
+    if problems:
+        raise Inconsistent("the run identity disagrees: " + "; ".join(problems[:12]))
+
+
+def _ledger(run: Path) -> tuple:
+    """(reservations, totals) recomputed from the bundled ledger; exactly one 'dbe' reservation, the summary's."""
+    from . import ledger
+    u = ledger.usage(BUNDLE / "gpu_ledger.jsonl")
+    res = [{"command": r["command"], "id": r["reservation"], "hours": r["hours"], "status": r["status"]}
+           for r in u["reservations"] if r["command"].startswith("dbe ")]
+    summary = json.loads((run / "summary.json").read_text())
+    if len(res) != 1 or res[0]["id"] != summary["reservation"]["id"] or res[0]["status"] != "ok":
+        raise Inconsistent(f"the ledger does not hold exactly the run's one completed reservation: {res}")
+    return res, {k: u[k] for k in LEDGER_FIELDS}
 
 
 def reconstruct() -> tuple:
-    """(recomputed, analysis): every analysed quantity from the bundled records, checked against analysis.json."""
+    """(recomputed, analysis): the pins, the population, the run identity and every raw value checked first; then
+    every analysed quantity, the GPU reservation and the ledger totals recomputed and compared with analysis.json."""
     from . import dbe_run as D
     evidence._checked(BUNDLE)
-    (run,) = sorted(p for p in BUNDLE.glob("run/*") if (p / "scores.jsonl").exists())
-    (adir,) = sorted(BUNDLE.glob("analysis/*"))
+    runs = sorted(p for p in BUNDLE.glob("run/*") if p.is_dir())
+    adirs = sorted(p for p in BUNDLE.glob("analysis/*") if p.is_dir())
+    if len(runs) != 1 or len(adirs) != 1 or not (runs[0] / "scores.jsonl").exists():
+        raise Inconsistent(f"{len(runs)} runs and {len(adirs)} analyses in the bundle; exactly one each is required")
+    run, adir = runs[0], adirs[0]
     analysis = json.loads((adir / "analysis.json").read_text())
+    try:
+        identity = D.protocol_identity()
+    except SystemExit as stop:
+        raise Inconsistent(f"the frozen pins do not hold: {stop}") from None
     pin = json.loads(D.NEW_PIN.read_text())
     ids, db_of = pin["task_ids"], dict(zip(pin["task_ids"], pin["db_ids"]))
     reqs, scores = _load(run / "requests.jsonl"), _load(run / "scores.jsonl")
-    _validate(reqs, scores, ids, D.SEEDS)
+    _validate(reqs, scores, ids, D.SEEDS, db_of)
+    _run_identity(run, adir, analysis, identity, ids)
     got = D.analyze(reqs, scores, ids, db_of, D.SEEDS)
-    problems = [p for k in got for p in _differ(got[k], analysis.get(k), f".{k}")]
+    expected = set(got) | set(STORED_ONLY)
+    if set(analysis) != expected:
+        raise Inconsistent(f"analysis.json fields differ: {sorted(set(analysis) ^ expected)}")
+    reservations, totals = _ledger(run)
+    if not isinstance(analysis["ledger"].get("ledger"), str):
+        raise Inconsistent("analysis.ledger.ledger is not a path")
+    problems = [p for k in got for p in _differ(got[k], analysis[k], f".{k}")]
+    problems += _differ(reservations, analysis["gpu_reservations"], ".gpu_reservations")
+    problems += _differ(totals, {k: analysis["ledger"].get(k) for k in LEDGER_FIELDS}, ".ledger")
     if problems:
         raise Inconsistent("the records disagree with analysis.json: " + "; ".join(problems[:12]))
+    got = {**got, "gpu_reservations": reservations, "ledger": totals}
     return got, analysis
 
 
@@ -139,8 +234,8 @@ def tables() -> str:
             f"unresolved columns; {lk['wall_safety_stops']} wall-clock safety stops; total {lk['seconds_total']:.1f} s, "
             f"max {lk['seconds_max']:.2f} s; largest payload {lk['payload_chars_max']} characters.",
             "", "GPU reservations: " + "; ".join(f"{r['command']} {r['hours']:.3f} h ({r['status']})"
-                                                 for r in analysis["gpu_reservations"]) +
-            f". Ledger: {analysis['ledger']['used_hours']:.3f} of {analysis['ledger']['cap_hours']} h."]
+                                                 for r in got["gpu_reservations"]) +
+            f". Ledger: {got['ledger']['used_hours']:.3f} of {got['ledger']['cap_hours']} h."]
     out += ["", "| database | questions | D0 | D1 | V1 |", "|---|---|---|---|---|"]
     by_db = {}
     for t, q in got["per_question"].items():
