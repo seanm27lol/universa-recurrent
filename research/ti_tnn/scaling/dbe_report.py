@@ -9,7 +9,8 @@
 - **The frozen pins:** the protocol, population, prior-use scan, lookup and harness sha256 (`dbe_run.protocol_identity`).
 - **The population binding:** every request and score names a pinned question and its pinned database.
 - **The run identity:** the one run and its analysis name each other. Both manifests record the same clean commit,
-  the frozen protocol, the pinned questions, seeds and lookup. The summary's reservation is the ledger's.
+  the frozen protocol, the pinned questions, seeds and lookup. The summary's reservation is the ledger's, and the
+  ledger's start entry for that reservation names this run directory.
 - **The raw values,** with the protections of #73:
   - integer seeds;
   - integer 0/1 correctness;
@@ -148,6 +149,11 @@ def _ledger(run: Path) -> tuple:
     summary = json.loads((run / "summary.json").read_text())
     if len(res) != 1 or res[0]["id"] != summary["reservation"]["id"] or res[0]["status"] != "ok":
         raise Inconsistent(f"the ledger does not hold exactly the run's one completed reservation: {res}")
+    starts = [e for e in ledger.read(BUNDLE / "gpu_ledger.jsonl")
+              if e.get("event") == "start" and e.get("reservation") == res[0]["id"]]
+    if len(starts) != 1 or (starts[0].get("extra") or {}).get("run_dir") != "dbe/run/" + run.name:
+        raise Inconsistent(f"the run identity disagrees: the ledger's reservation names "
+                           f"{[(e.get('extra') or {}).get('run_dir') for e in starts]}, not dbe/run/{run.name}")
     return res, {k: u[k] for k in LEDGER_FIELDS}
 
 

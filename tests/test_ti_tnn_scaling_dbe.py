@@ -347,3 +347,16 @@ def test_legitimate_roundoff_passes(bundle_copy):
     evidence.write_sums(copy)
     got, _a = R.reconstruct()
     assert got["pooled"]["V1"] == 80
+
+
+def test_a_consistently_renamed_run_directory_is_refused(bundle_copy):
+    """The reporting-correction review's finding: renaming the run and every reference to it in the analysis was
+    accepted, because only the ledger's start entry, written by the run itself, still names the original."""
+    copy, run, adir = bundle_copy
+    new = run.with_name("20991231T000000Z")
+    run.rename(new)
+    _edit_json(adir / "analysis.json", _set("run", "dbe/run/" + new.name))
+    _edit_json(adir / "manifest.json", _set("config", "run", "dbe/run/" + new.name))
+    evidence.write_sums(copy)
+    with pytest.raises(R.Inconsistent, match="ledger's reservation names"):
+        R.reconstruct()
