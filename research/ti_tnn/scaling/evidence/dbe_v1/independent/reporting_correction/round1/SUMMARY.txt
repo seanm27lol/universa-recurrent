@@ -1,0 +1,42 @@
+Reporting-correction verification of d304831 (dbe_report.py, tests only), by the independent reviewer.
+Separate from, and leaving unchanged, the 165-check reconstruction (verify_dbe.py d71704da...).
+
+(a) Diff 5498055..d304831: PASS. Only research/ti_tnn/scaling/dbe_report.py and tests/test_ti_tnn_scaling_dbe.py
+    change. dbe_run.py, db_evidence.py, spr_run.py, spr_report.py, the pins, the docs, independent/ and the whole
+    evidence/dbe_v1 bundle are unchanged.
+
+(b) Corruption probes (probes.py; a fresh bundle copy per case, SHA256SUMS regenerated; code from the reviewer's own
+    clean clone of d304831): 195 cases. 184 refused or accepted as expected, 10 judgement calls, 1 wrongly accepted.
+    Pin probes (pin_probes.py): 5 of 5 refused (population pin, protocol pin, protocol text, db_evidence.py,
+    dbe_run.py).
+    - WRONGLY ACCEPTED: the run directory renamed (20261107T182054Z -> 20261107T182055Z) with analysis.json "run"
+      and the analysis manifest's config.run updated to match. Nothing ties the run directory's name to the ledger's
+      "dbe run" start entry (extra.run_dir = dbe/run/20261107T182054Z), so the run identity is not stable against a
+      consistent relabelling. Suggested fix: require the ledger reservation's extra.run_dir == "dbe/run/" + run.name.
+    - Judgement (accepted; no displayed value changes):
+      both manifests changed to the same other 40-hex commit (the commit is not bound to the frozen commit; the pin's
+      frozen_at is 644c090, the run commit 8e1ee1b); the ledger end entry's informational "hours" field; a heartbeat
+      below the maximum; the ledger start entry's extra.run_dir; summary.json reservation hours and load_seconds (not
+      compared with the ledger); -0.0 and 1e308 in evidence.package.latency_seconds and revision_seconds_allowed
+      (validated as finite and nonnegative, not displayed).
+    - Refused as required: every class in requirements 1-3; the dbe end entry's elapsed, status or removal; a heartbeat
+      above the end; another reservation's elapsed (ledger total); a second "dbe " reservation (also of zero hours);
+      the summary reservation id; NaN, +/-Infinity, -1e-9 and True in every time; -0.0 and 1e308 in every displayed
+      time; True, False, 1.0, -1 and NaN in every count; 0, 1, 'false' and None in truncated, ok and
+      wall_safety_stop; correct True, 1.0, 2, NaN; seeds 200.0, True, '200'; manifest commit, short commit,
+      dirty flags, requested list (reordered or replaced), seeds, lookup, protocol; a moved run directory; a second run
+      or analysis directory; extra or missing analysis keys; request or score db_id.
+    - Legitimate round-off accepted: 1e-12 relative in a cost, per-request seconds, ledger used_hours, reservation
+      hours and lookup seconds_total; the unchanged copy.
+
+(c) Relocation: PASS. `python -m scaling.dbe_report` from the reviewer's own relocated clean clones, with no runs
+    root: d304831 and the pre-correction 5498055 both print sha256
+    b81cbe674e5f29198dce495a87ee6f795d9f12dcd4fb047253cde1cd9b0830f2. Focused tests (dbe, db_evidence, spr) in the
+    d304831 clone: 137 passed.
+
+(d) Earlier review and records: PASS. The bundle's independent/ files at 5498055 and d304831 are byte-identical to
+    the reviewer's scratch outputs (verify_dbe.json a1721cee..., summary 35674986..., score_mapping 18e3d733...,
+    LIMITATIONS, worker files); verify_dbe.py at d304831 is d71704da.... The run's requests, scores, manifest,
+    summary and analysis in the bundle equal the runs-root originals.
+
+Discipline: CPU cores 0-4,10-14; nothing written under the runs root or the worktrees; no commits.

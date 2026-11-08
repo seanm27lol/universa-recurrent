@@ -1,0 +1,9 @@
+{
+ "previously_refused": 178,
+ "still_refused": 178,
+ "newly_refused": [
+  "run dir renamed, analysis and its manifest updated to match",
+  "ledger: the dbe run's start extra.run_dir changed"
+ ],
+ "legit_accepted": true
+}

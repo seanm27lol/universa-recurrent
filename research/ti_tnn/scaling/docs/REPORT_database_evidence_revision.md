@@ -206,6 +206,43 @@ with 0 failures. Its outputs and limitations are in `evidence/dbe_v1/independent
 - the foreign GPU process's activity between the reservation's start and end is not logged;
 - partial overlaps between a payload and a gold result cannot be told apart from legitimate database facts.
 
+## Reporting correction: the public reconstruction (after the review above)
+
+At the owner's request, the public reconstruction (`dbe_report.py`) was completed. Nothing the run used, nothing it
+recorded, and no displayed number changed; the output of `python -m scaling.dbe_report` is byte-identical (sha256
+b81cbe67…).
+
+**It now checks, before building anything:**
+- the frozen pins;
+- the population binding;
+- a stable run identity:
+  - the bundled run, its analysis and both manifests name each other;
+  - both manifests record the same clean commit;
+  - the ledger's start entry for the run's one reservation names the run directory;
+- every raw value, with #73's protections:
+  - integer seeds;
+  - integer 0/1 correctness;
+  - nonnegative integer counts;
+  - genuine Booleans;
+  - finite nonnegative times.
+
+It requires the analysis's exact key set. It recomputes the GPU reservation and the ledger totals from the bundled
+ledger instead of trusting file hashes.
+
+**Verification.** The independent reviewer verified the correction in two labelled rounds, stored in
+`evidence/dbe_v1/independent/reporting_correction/`.
+- **Round 1:** 195 corruption probes on copies with regenerated checksums. One case was wrongly accepted: a
+  consistently renamed run directory. It was fixed by binding the directory to the ledger's start entry.
+- **Round 2:** 198 probes, none wrongly accepted, and every earlier refusal kept. The pin probes were refused,
+  legitimate round-off at 1e-12 passed, the reconstruction from a relocated clean clone was byte-identical, and 138
+  focused tests passed.
+- **Remaining judgement calls,** none of which changes a displayed value:
+  - a relabel that also rewrites the bundled ledger;
+  - the same other commit in both manifests;
+  - informational ledger fields;
+  - the summary's reservation hours, which differ from the ledger by about 5e-8 h by construction;
+  - two undisplayed times.
+
 ## What this does and does not show
 
 - **The rule was not met.** The frozen db-evidence-v1.4 payload, added to ordinary revision, did not meet the

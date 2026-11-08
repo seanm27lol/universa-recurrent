@@ -1,0 +1,5 @@
+OK  pins/dbe_new_eval.json: one task id replaced: refused: the frozen pins do not hold: differs from the frozen pin: ['population']
+OK  pins/dbe_protocol.json: protocol sha changed: refused: the frozen pins do not hold: differs from the frozen pin: ['protocol']
+OK  docs/PROTOCOL_database_evidence_revision.md: one character: refused: the frozen pins do not hold: differs from the frozen pin: ['protocol']
+OK  db_evidence.py: a comment added: refused: the frozen pins do not hold: differs from the frozen pin: ['lookup']
+OK  dbe_run.py: a comment added: refused: the frozen pins do not hold: differs from the frozen pin: ['harness']

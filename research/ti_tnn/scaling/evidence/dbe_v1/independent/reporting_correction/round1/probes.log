@@ -1,0 +1,196 @@
+OK  analysis: extra top-level key: refused: analysis.json fields differ: ['extra']
+OK  analysis: missing key 'cost': refused: analysis.json fields differ: ['cost']
+OK  analysis: protocol sha changed: refused: the run identity disagrees: analysis.protocol.sha256
+OK  analysis: protocol frozen_at changed: refused: the run identity disagrees: analysis.protocol.frozen_at
+OK  analysis: run path changed: refused: the run identity disagrees: analysis.run 'dbe/run/20261107T000000Z' is not the bundled run dbe/run/20261107T182054Z; analysis manifest run or command
+OK  analysis: gpu_reservations hours +0.01: refused: the records disagree with analysis.json: .gpu_reservations[0].hours
+OK  analysis: gpu_reservations status 'failed': refused: the records disagree with analysis.json: .gpu_reservations[0].status
+OK  analysis: gpu_reservations id changed: refused: the records disagree with analysis.json: .gpu_reservations[0].id
+OK  analysis: a second gpu reservation: refused: the records disagree with analysis.json: .gpu_reservations[len]
+OK  analysis: ledger used_hours +0.1: refused: the records disagree with analysis.json: .ledger.used_hours
+OK  analysis: ledger used_hours NaN: refused: the records disagree with analysis.json: .ledger.used_hours
+OK  analysis: ledger remaining_hours changed: refused: the records disagree with analysis.json: .ledger.remaining_hours
+OK  analysis: ledger cap_hours 32 (int): refused: the records disagree with analysis.json: .ledger.cap_hours
+OK  analysis: ledger authorization 2.0: refused: the records disagree with analysis.json: .ledger.authorization
+OK  analysis: ledger.ledger not a string: refused: analysis.ledger.ledger is not a path
+OK  analysis: an analysed value changed (pooled V1 81): refused: the records disagree with analysis.json: .pooled.V1
+OK  run manifest: commit changed: refused: the run identity disagrees: analysis manifest commit
+OK  analysis manifest: commit changed: refused: the run identity disagrees: analysis manifest commit
+??  both manifests: same other commit: accepted
+OK  run manifest: short commit: refused: the run identity disagrees: run manifest commit; analysis manifest commit
+OK  run manifest: research_tree_dirty True: refused: the run identity disagrees: run manifest: the tree was not clean
+OK  run manifest: research_tree_dirty 0: refused: the run identity disagrees: run manifest: the tree was not clean
+OK  analysis manifest: dirty_paths non-empty: refused: the run identity disagrees: analysis manifest: the tree was not clean
+OK  run manifest: requested list reordered: refused: the run identity disagrees: run manifest requested[0]; run manifest requested[1]; run manifest requested[2]; run manifest requested[3]; run manifest requested[4
+OK  run manifest: one requested id replaced: refused: the run identity disagrees: run manifest requested[0]
+OK  run manifest: seeds [200, 202]: refused: the run identity disagrees: run manifest seeds[1]
+OK  run manifest: seeds [200.0, 201]: refused: the run identity disagrees: run manifest seeds[0]
+OK  run manifest: lookup version: refused: the run identity disagrees: run manifest lookup or command
+OK  run manifest: protocol sha: refused: the run identity disagrees: run manifest protocol.sha256
+OK  analysis manifest: protocol frozen_at: refused: the run identity disagrees: analysis manifest protocol.frozen_at
+OK  analysis manifest: run changed: refused: the run identity disagrees: analysis manifest run or command
+OK  run dir moved (renamed, references not updated): refused: the run identity disagrees: analysis.run 'dbe/run/20261107T182054Z' is not the bundled run dbe/run/20261107T182055Z
+BAD run dir renamed, analysis and its manifest updated to match: accepted
+OK  a second run directory: refused: 2 runs and 1 analyses in the bundle; exactly one each is required
+OK  a second analysis directory: refused: 1 runs and 2 analyses in the bundle; exactly one each is required
+OK  request db_id changed: refused: bird23tf-01663: database 'world' is not the pinned one
+OK  score db_id changed: refused: bird23tf-01663: database 'world' is not the pinned one
+OK  ledger: dbe end entry elapsed +60 s: refused: the records disagree with analysis.json: .gpu_reservations[0].hours; .ledger.remaining_hours; .ledger.used_hours
+??  ledger: dbe end entry hours field changed (usage ignores it): accepted
+OK  ledger: dbe end entry status 'failed': refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st
+OK  ledger: dbe end entry removed: refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.46688733008971517, 's
+??  ledger: a mid heartbeat of the dbe run changed (below the max): accepted
+OK  ledger: a heartbeat raised above the end elapsed: refused: the records disagree with analysis.json: .gpu_reservations[0].hours; .ledger.remaining_hours; .ledger.used_hours
+OK  ledger: an earlier (non-dbe) reservation's end elapsed +60 s: refused: the records disagree with analysis.json: .ledger.remaining_hours; .ledger.used_hours
+OK  ledger: a second 'dbe ' reservation: refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st
+OK  ledger: a second 'dbe ' reservation of zero hours: refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st
+??  ledger: the dbe run's start extra.run_dir changed: accepted
+OK  summary: reservation id changed: refused: the ledger does not hold exactly the run's one completed reservation: [{'command': 'dbe run', 'id': '20261107T182054-3c584e74', 'hours': 0.4614516618858357, 'st
+??  summary: reservation hours changed: accepted
+??  summary: load_seconds NaN: accepted
+OK  time generation (original.call.seconds) = NaN: refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = nan is not a finite nonnegative time
+OK  time generation (original.call.seconds) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = inf is not a finite nonnegative time
+OK  time generation (original.call.seconds) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = -inf is not a finite nonnegative time
+OK  time generation (original.call.seconds) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = -1e-09 is not a finite nonnegative time
+OK  time generation (original.call.seconds) = True: refused: invalid record value: request 200/bird23tf-01663: original.call.seconds (generation) = True is not a finite nonnegative time
+OK  time generation (original.call.seconds) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.D0.generation_seconds; .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.total_seconds; .co
+OK  time generation (original.call.seconds) = 1e308: refused: the records disagree with analysis.json: .cost.D0.generation_seconds; .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.total_seconds; .co
+OK  time generation (D1 revision) = NaN: refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = nan is not a finite nonnegative time
+OK  time generation (D1 revision) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = inf is not a finite nonnegative time
+OK  time generation (D1 revision) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = -inf is not a finite nonnegative time
+OK  time generation (D1 revision) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = -1e-09 is not a finite nonnegative time
+OK  time generation (D1 revision) = True: refused: invalid record value: request 200/bird23tf-01663: D1.revised.call.seconds (generation) = True is not a finite nonnegative time
+OK  time generation (D1 revision) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.D1.generation_seconds; .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.total_seconds
+OK  time generation (D1 revision) = 1e308: refused: the records disagree with analysis.json: .cost.D1.generation_seconds; .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.total_seconds
+OK  time generation (V1 revision) = NaN: refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = nan is not a finite nonnegative time
+OK  time generation (V1 revision) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = inf is not a finite nonnegative time
+OK  time generation (V1 revision) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = -inf is not a finite nonnegative time
+OK  time generation (V1 revision) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = -1e-09 is not a finite nonnegative time
+OK  time generation (V1 revision) = True: refused: invalid record value: request 200/bird23tf-01663: V1.revised.call.seconds (generation) = True is not a finite nonnegative time
+OK  time generation (V1 revision) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.V1.generation_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.total_seconds
+OK  time generation (V1 revision) = 1e308: refused: the records disagree with analysis.json: .cost.V1.generation_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.total_seconds
+OK  time tool (original.execution.seconds) = NaN: refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = nan is not a finite nonnegative time
+OK  time tool (original.execution.seconds) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = inf is not a finite nonnegative time
+OK  time tool (original.execution.seconds) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = -inf is not a finite nonnegative time
+OK  time tool (original.execution.seconds) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = -1e-09 is not a finite nonnegative time
+OK  time tool (original.execution.seconds) = True: refused: invalid record value: request 200/bird23tf-01663: original.execution.seconds (tool) = True is not a finite nonnegative time
+OK  time tool (original.execution.seconds) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.tool_seconds; .cost.D1.total_seconds; .cost.V1.
+OK  time tool (original.execution.seconds) = 1e308: refused: the records disagree with analysis.json: .cost.D1.per_ex_correct_seconds; .cost.D1.per_request_seconds; .cost.D1.tool_seconds; .cost.D1.total_seconds; .cost.V1.
+OK  time tool (V1 revision execution) = NaN: refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = nan is not a finite nonnegative time
+OK  time tool (V1 revision execution) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = inf is not a finite nonnegative time
+OK  time tool (V1 revision execution) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = -inf is not a finite nonnegative time
+OK  time tool (V1 revision execution) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = -1e-09 is not a finite nonnegative time
+OK  time tool (V1 revision execution) = True: refused: invalid record value: request 200/bird23tf-01663: V1.revised.execution.seconds (tool) = True is not a finite nonnegative time
+OK  time tool (V1 revision execution) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.tool_seconds; .cost.V1.total_seconds
+OK  time tool (V1 revision execution) = 1e308: refused: the records disagree with analysis.json: .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1.tool_seconds; .cost.V1.total_seconds
+OK  time lookup (evidence.seconds) = NaN: refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = nan is not a finite nonnegative time
+OK  time lookup (evidence.seconds) = +Infinity: refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = inf is not a finite nonnegative time
+OK  time lookup (evidence.seconds) = -Infinity: refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = -inf is not a finite nonnegative time
+OK  time lookup (evidence.seconds) = -1e-9: refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = -1e-09 is not a finite nonnegative time
+OK  time lookup (evidence.seconds) = True: refused: invalid record value: request 200/bird23tf-01663: evidence.seconds (lookup) = True is not a finite nonnegative time
+OK  time lookup (evidence.seconds) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .lookup.seconds_total; .cost.V1.lookup_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_request_seconds; .cost.V1
+OK  time lookup (evidence.seconds) = 1e308: refused: the records disagree with analysis.json: .lookup.seconds_max; .lookup.seconds_total; .cost.V1.lookup_seconds; .cost.V1.per_ex_correct_seconds; .cost.V1.per_requ
+OK  time lookup package latency_seconds = NaN: refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = nan is not a finite nonnegative time
+OK  time lookup package latency_seconds = +Infinity: refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = inf is not a finite nonnegative time
+OK  time lookup package latency_seconds = -Infinity: refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = -inf is not a finite nonnegative time
+OK  time lookup package latency_seconds = -1e-9: refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = -1e-09 is not a finite nonnegative time
+OK  time lookup package latency_seconds = True: refused: invalid record value: request 200/bird23tf-01663: evidence.package.latency_seconds = True is not a finite nonnegative time
+??  time lookup package latency_seconds = -0.0 (replacing a nonzero value): accepted
+??  time lookup package latency_seconds = 1e308: accepted
+OK  time revision_seconds_allowed = NaN: refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = nan is not a finite nonnegative time
+OK  time revision_seconds_allowed = +Infinity: refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = inf is not a finite nonnegative time
+OK  time revision_seconds_allowed = -Infinity: refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = -inf is not a finite nonnegative time
+OK  time revision_seconds_allowed = -1e-9: refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = -1e-09 is not a finite nonnegative time
+OK  time revision_seconds_allowed = True: refused: invalid record value: request 200/bird23tf-01663: revision_seconds_allowed = True is not a finite nonnegative time
+??  time revision_seconds_allowed = -0.0 (replacing a nonzero value): accepted
+??  time revision_seconds_allowed = 1e308: accepted
+OK  time submitted execution (score predicted.elapsed_seconds) = NaN: refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = nan is not a finite nonnegative time
+OK  time submitted execution (score predicted.elapsed_seconds) = +Infinity: refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = inf is not a finite nonnegative time
+OK  time submitted execution (score predicted.elapsed_seconds) = -Infinity: refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = -inf is not a finite nonnegative time
+OK  time submitted execution (score predicted.elapsed_seconds) = -1e-9: refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = -1e-09 is not a finite nonnegative time
+OK  time submitted execution (score predicted.elapsed_seconds) = True: refused: invalid record value: score D0/200/bird23tf-01663: predicted.elapsed_seconds = True is not a finite nonnegative time
+OK  time submitted execution (score predicted.elapsed_seconds) = -0.0 (replacing a nonzero value): refused: the records disagree with analysis.json: .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.submitted_execution_seconds; .cost.D0.total_sec
+OK  time submitted execution (score predicted.elapsed_seconds) = 1e308: refused: the records disagree with analysis.json: .cost.D0.per_ex_correct_seconds; .cost.D0.per_request_seconds; .cost.D0.submitted_execution_seconds; .cost.D0.total_sec
+OK  count original prompt_tokens = True: refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = True is not a nonnegative integer
+OK  count original prompt_tokens = False: refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = False is not a nonnegative integer
+OK  count original prompt_tokens = 1.0: refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = 1.0 is not a nonnegative integer
+OK  count original prompt_tokens = -1: refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = -1 is not a nonnegative integer
+OK  count original prompt_tokens = NaN: refused: invalid record value: request 200/bird23tf-03129: original.call.prompt_tokens = nan is not a nonnegative integer
+OK  count V1 generated_tokens = True: refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = True is not a nonnegative integer
+OK  count V1 generated_tokens = False: refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = False is not a nonnegative integer
+OK  count V1 generated_tokens = 1.0: refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = 1.0 is not a nonnegative integer
+OK  count V1 generated_tokens = -1: refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = -1 is not a nonnegative integer
+OK  count V1 generated_tokens = NaN: refused: invalid record value: request 200/bird23tf-03129: V1.revised.call.generated_tokens = nan is not a nonnegative integer
+OK  count D1 peak_memory_bytes = True: refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = True is not a nonnegative integer
+OK  count D1 peak_memory_bytes = False: refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = False is not a nonnegative integer
+OK  count D1 peak_memory_bytes = 1.0: refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = 1.0 is not a nonnegative integer
+OK  count D1 peak_memory_bytes = -1: refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = -1 is not a nonnegative integer
+OK  count D1 peak_memory_bytes = NaN: refused: invalid record value: request 200/bird23tf-03129: D1.revised.call.peak_memory_bytes = nan is not a nonnegative integer
+OK  count V1 execution.row_count = True: refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = True is not a nonnegative integer
+OK  count V1 execution.row_count = False: refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = False is not a nonnegative integer
+OK  count V1 execution.row_count = 1.0: refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = 1.0 is not a nonnegative integer
+OK  count V1 execution.row_count = -1: refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = -1 is not a nonnegative integer
+OK  count V1 execution.row_count = NaN: refused: invalid record value: request 200/bird23tf-03129: V1.revised.execution.row_count = nan is not a nonnegative integer
+OK  count package payload_chars = True: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = True is not a nonnegative integer
+OK  count package payload_chars = False: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = False is not a nonnegative integer
+OK  count package payload_chars = 1.0: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = 1.0 is not a nonnegative integer
+OK  count package payload_chars = -1: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = -1 is not a nonnegative integer
+OK  count package payload_chars = NaN: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars = nan is not a nonnegative integer
+OK  count package queries = True: refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = True is not a nonnegative integer
+OK  count package queries = False: refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = False is not a nonnegative integer
+OK  count package queries = 1.0: refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = 1.0 is not a nonnegative integer
+OK  count package queries = -1: refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = -1 is not a nonnegative integer
+OK  count package queries = NaN: refused: invalid record value: request 200/bird23tf-03129: evidence.package.queries = nan is not a nonnegative integer
+OK  count package instructions = True: refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = True is not a nonnegative integer
+OK  count package instructions = False: refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = False is not a nonnegative integer
+OK  count package instructions = 1.0: refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = 1.0 is not a nonnegative integer
+OK  count package instructions = -1: refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = -1 is not a nonnegative integer
+OK  count package instructions = NaN: refused: invalid record value: request 200/bird23tf-03129: evidence.package.instructions = nan is not a nonnegative integer
+OK  count package payload_chars_untruncated = True: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = True is not a nonnegative integer
+OK  count package payload_chars_untruncated = False: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = False is not a nonnegative integer
+OK  count package payload_chars_untruncated = 1.0: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = 1.0 is not a nonnegative integer
+OK  count package payload_chars_untruncated = -1: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = -1 is not a nonnegative integer
+OK  count package payload_chars_untruncated = NaN: refused: invalid record value: request 200/bird23tf-03129: evidence.package.payload_chars_untruncated = nan is not a nonnegative integer
+OK  count score predicted.row_count = True: refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = True is not a nonnegative integer
+OK  count score predicted.row_count = False: refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = False is not a nonnegative integer
+OK  count score predicted.row_count = 1.0: refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = 1.0 is not a nonnegative integer
+OK  count score predicted.row_count = -1: refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = -1 is not a nonnegative integer
+OK  count score predicted.row_count = NaN: refused: invalid record value: score D1/200/bird23tf-01663: predicted.row_count = nan is not a nonnegative integer
+OK  count score predicted.distinct_rows = True: refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = True is not a nonnegative integer
+OK  count score predicted.distinct_rows = False: refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = False is not a nonnegative integer
+OK  count score predicted.distinct_rows = 1.0: refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = 1.0 is not a nonnegative integer
+OK  count score predicted.distinct_rows = -1: refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = -1 is not a nonnegative integer
+OK  count score predicted.distinct_rows = NaN: refused: invalid record value: score D1/200/bird23tf-01663: predicted.distinct_rows = nan is not a nonnegative integer
+OK  Boolean V1 execution.truncated = 0: refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 0 is not a Boolean
+OK  Boolean V1 execution.truncated = 1: refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 1 is not a Boolean
+OK  Boolean V1 execution.truncated = 'false': refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = 'false' is not a Boolean
+OK  Boolean V1 execution.truncated = None: refused: invalid record value: request 200/bird23tf-02662: V1.revised.execution.truncated = None is not a Boolean
+OK  Boolean evidence.ok = 0: refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 0 is not a Boolean
+OK  Boolean evidence.ok = 1: refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 1 is not a Boolean
+OK  Boolean evidence.ok = 'false': refused: invalid record value: request 200/bird23tf-02662: evidence.ok = 'false' is not a Boolean
+OK  Boolean evidence.ok = None: refused: invalid record value: request 200/bird23tf-02662: evidence.ok = None is not a Boolean
+OK  Boolean package.truncated = 0: refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 0 is not a Boolean
+OK  Boolean package.truncated = 1: refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 1 is not a Boolean
+OK  Boolean package.truncated = 'false': refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = 'false' is not a Boolean
+OK  Boolean package.truncated = None: refused: invalid record value: request 200/bird23tf-02662: evidence.package.truncated = None is not a Boolean
+OK  Boolean package.wall_safety_stop = 0: refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 0 is not a Boolean
+OK  Boolean package.wall_safety_stop = 1: refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 1 is not a Boolean
+OK  Boolean package.wall_safety_stop = 'false': refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = 'false' is not a Boolean
+OK  Boolean package.wall_safety_stop = None: refused: invalid record value: request 200/bird23tf-02662: evidence.package.wall_safety_stop = None is not a Boolean
+OK  correct = True: refused: score D0/200/bird23tf-03129: correctness True is not integer 0 or 1
+OK  correct = 1.0: refused: score D0/200/bird23tf-03129: correctness 1.0 is not integer 0 or 1
+OK  correct = 2: refused: score D0/200/bird23tf-03129: correctness 2 is not integer 0 or 1
+OK  correct = NaN: refused: score D0/200/bird23tf-03129: correctness nan is not integer 0 or 1
+OK  request seed = 200.0: refused: invalid record value: bird23tf-01663: seed 200.0 is not an integer
+OK  score seed = 200.0: refused: invalid record value: bird23tf-01663: seed 200.0 is not an integer
+OK  request seed = True: refused: invalid record value: bird23tf-01663: seed True is not an integer
+OK  score seed = True: refused: invalid record value: bird23tf-01663: seed True is not an integer
+OK  request seed = '200': refused: invalid record value: bird23tf-01663: seed '200' is not an integer
+OK  score seed = '200': refused: invalid record value: bird23tf-01663: seed '200' is not an integer
+OK  LEGIT: unchanged copy: accepted
+OK  LEGIT: analysis cost V1 total_seconds * (1+1e-12): accepted
+OK  LEGIT: analysis cost D0 per_request_seconds * (1-1e-12): accepted
+OK  LEGIT: analysis ledger used_hours * (1+1e-12): accepted
+OK  LEGIT: analysis gpu_reservations hours * (1+1e-12): accepted
+OK  LEGIT: analysis lookup seconds_total * (1+1e-12): accepted
+SUMMARY {"cases": 195, "as_expected": 184, "unexpected": 1, "judgement": 10}

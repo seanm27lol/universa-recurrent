@@ -1,0 +1,27 @@
+[
+ {
+  "case": "pins/dbe_new_eval.json: one task id replaced",
+  "outcome": "refused: the frozen pins do not hold: differs from the frozen pin: ['population']",
+  "as_expected": true
+ },
+ {
+  "case": "pins/dbe_protocol.json: protocol sha changed",
+  "outcome": "refused: the frozen pins do not hold: differs from the frozen pin: ['protocol']",
+  "as_expected": true
+ },
+ {
+  "case": "docs/PROTOCOL_database_evidence_revision.md: one character",
+  "outcome": "refused: the frozen pins do not hold: differs from the frozen pin: ['protocol']",
+  "as_expected": true
+ },
+ {
+  "case": "db_evidence.py: a comment added",
+  "outcome": "refused: the frozen pins do not hold: differs from the frozen pin: ['lookup']",
+  "as_expected": true
+ },
+ {
+  "case": "dbe_run.py: a comment added",
+  "outcome": "refused: the frozen pins do not hold: differs from the frozen pin: ['harness']",
+  "as_expected": true
+ }
+]
