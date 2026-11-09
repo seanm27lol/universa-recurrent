@@ -100,6 +100,14 @@ The separate clean engineering profiles measured 27,355/27,923/25,726/25,277 tok
 full profiler's sampler/hash/logging costs. The clean 124.05M typed profile measured **10,822.11 tokens/s**,
 4.15 GB allocated, 4.96 GB reserved, and a 1.489 GB checkpoint in 12.47 s.
 
+Twenty measured updates (40,747 loss tokens) decomposed as follows; diagnostics include routing, and persistence
+includes the batch journal and fsynced learning log:
+
+| Typed profile | Data loading | Forward | Backward | Optimizer | Diagnostics | Persistence | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Engineering | 0.1118 s | 0.3475 s | 0.7079 s | 0.1909 s | 0.0133 s | 0.2405 s | 1.6120 s |
+| Serious 124.05M | 0.1127 s | 0.7393 s | 1.4594 s | 1.0825 s | 0.0151 s | 0.3562 s | 3.7652 s |
+
 Final checkpoints (all 21 checkpoint positions per arm are journaled):
 
 | Arm | Final checkpoint | SHA256 |
