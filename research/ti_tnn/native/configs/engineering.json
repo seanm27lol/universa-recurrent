@@ -1,0 +1,45 @@
+{
+  "name": "engineering",
+  "model": {
+    "vocab_size": 50257,
+    "context_length": 256,
+    "d_model": 192,
+    "n_heads": 4,
+    "d_slot": 48,
+    "d_ff": 768,
+    "mode": "typed",
+    "n_state_classes": 32,
+    "n_passes": 4,
+    "n_experts": 4,
+    "n_slots": 4
+  },
+  "counts_context_length": 256,
+  "active_parameter_rule": "Stored tensor shapes with one selected expert for untyped/typed; shared weights count once.",
+  "mac_rule": "One decoded token attending to 256 keys, including four passes, interfaces, routers, attention, and output head; probe work is separate.",
+  "modes": {
+    "dense": {
+      "total": 21860352,
+      "active": 21860352,
+      "decoded_token_macs": 12844224,
+      "decoded_token_macs_with_probes": 12868800
+    },
+    "shared": {
+      "total": 20084544,
+      "active": 20084544,
+      "decoded_token_macs": 12844224,
+      "decoded_token_macs_with_probes": 12868800
+    },
+    "untyped": {
+      "total": 21415300,
+      "active": 20085316,
+      "decoded_token_macs": 12847296,
+      "decoded_token_macs_with_probes": 12871872
+    },
+    "typed": {
+      "total": 21499780,
+      "active": 20169796,
+      "decoded_token_macs": 13182144,
+      "decoded_token_macs_with_probes": 13206720
+    }
+  }
+}

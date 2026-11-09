@@ -1,0 +1,45 @@
+{
+  "name": "serious",
+  "model": {
+    "vocab_size": 50257,
+    "context_length": 256,
+    "d_model": 832,
+    "n_heads": 16,
+    "d_slot": 208,
+    "d_ff": 3328,
+    "mode": "typed",
+    "n_state_classes": 32,
+    "n_passes": 4,
+    "n_experts": 4,
+    "n_slots": 4
+  },
+  "counts_context_length": 256,
+  "active_parameter_rule": "Stored tensor shapes with one selected expert for untyped/typed; shared weights count once.",
+  "mac_rule": "One decoded token attending to 256 keys, including four passes, interfaces, routers, attention, and output head; probe work is separate.",
+  "modes": {
+    "dense": {
+      "total": 130803712,
+      "active": 130803712,
+      "decoded_token_macs": 96126784,
+      "decoded_token_macs_with_probes": 96233280
+    },
+    "shared": {
+      "total": 97549504,
+      "active": 97549504,
+      "decoded_token_macs": 96126784,
+      "decoded_token_macs_with_probes": 96233280
+    },
+    "untyped": {
+      "total": 122485380,
+      "active": 97552836,
+      "decoded_token_macs": 96140096,
+      "decoded_token_macs_with_probes": 96246592
+    },
+    "typed": {
+      "total": 124049540,
+      "active": 99116996,
+      "decoded_token_macs": 102383424,
+      "decoded_token_macs_with_probes": 102489920
+    }
+  }
+}
