@@ -1,11 +1,12 @@
 # TI-TNN native: reproduction interface
 
-**Status: implemented and locally construction-tested.** The native causal LM is in
-[`model.py`](model.py), with training in [`train.py`](train.py), evaluation in
-[`evaluate.py`](evaluate.py), and the design contract in [`ARCHITECTURE.md`](ARCHITECTURE.md). The last
-full native test run passed **214 tests**. The **complete repository test rerun is still pending** and is not
-claimed here. These checks establish construction and execution behavior, not learning, downstream
-quality, or efficiency. **No WSP phase has begun.**
+**Status: complete four-arm engineering run with measured development results.** Read
+[`REPORT.md`](REPORT.md) for learning curves, complete-generation results, resource accounting and the 125M
+proposal. The native causal LM is in [`model.py`](model.py), with training in [`train.py`](train.py), evaluation in
+[`evaluate.py`](evaluate.py), and the design contract in [`ARCHITECTURE.md`](ARCHITECTURE.md). Native construction
+checks passed **214 tests**, the independent artifact review passed **113 checks**, and the final full local suite
+passed **2,165 tests with 12 skips**. These are bounded development results, not architectural confirmation.
+**No WSP phase has begun.**
 
 All commands below start at the repository root and use the same shell environment:
 
