@@ -1461,7 +1461,14 @@ def _validate_train(protocol: Mapping, mode: str, arm: Path) -> dict:
     if run_config.get("source_config_sha256") != protocol["configs"][mode]["sha256"]:
         raise StudyIncomplete(f"{mode} used a different engineering config")
     if run_config.get("code_identity") != protocol["repository"]["native_code_identity"]:
-        raise StudyIncomplete(f"{mode} used different native code")
+        stage_train = _read_json(arm / "stage-train.json")
+        compatibility = _orchestration_only_profile_commit(
+            protocol["repository"],
+            stage_train.get("training_commit", ""),
+            run_config.get("code_identity", ""),
+        )
+        if compatibility is None:
+            raise StudyIncomplete(f"{mode} used different native code")
     for key, value in (
         ("train_data_identity", protocol["data"]["train_data_identity"]),
         ("dev_data_identity", protocol["data"]["dev_data_identity"]),
