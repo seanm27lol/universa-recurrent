@@ -173,11 +173,15 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
         assert record["data_loading_seconds"] >= (
             record["sampler_next_batch_seconds"] + record["batch_hash_transfer_seconds"]
         )
+        assert record["diagnostic_seconds"] > 0
+        assert record["persistence_seconds"] > 0
         assert record["wall_seconds"] == pytest.approx(sum(record[name] for name in (
             "data_loading_seconds",
             "forward_seconds",
             "backward_seconds",
             "gradient_clipping_optimizer_seconds",
+            "diagnostic_seconds",
+            "persistence_seconds",
         )))
         expected_tokens += actual
     training = report["training"]
@@ -197,6 +201,8 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
             "forward_seconds",
             "backward_seconds",
             "gradient_clipping_optimizer_seconds",
+            "diagnostic_seconds",
+            "persistence_seconds",
         )
     ))
     assert report["evaluation"]["teacher_forced"]

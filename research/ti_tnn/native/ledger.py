@@ -70,6 +70,14 @@ def validate_shared_reservation_paths(path: Path | None = None, lock: Path | Non
         raise RuntimeError(f"the native ledger must be {ledger}, not {path}")
     if lock is not None and Path(lock).resolve() != lock_path:
         raise RuntimeError(f"the native reservation lock must be {lock_path}, not {lock}")
+    if not ledger.is_file() or ledger.stat().st_size == 0:
+        raise RuntimeError(f"the production GPU ledger must already contain the preserved historical charges: {ledger}")
+    historical = _base.usage(ledger)["used_hours"]
+    if historical + 1e-12 < HISTORICAL_HOURS:
+        raise RuntimeError(
+            f"the production GPU ledger reconstructs {historical:.15f} h, below the preserved "
+            f"{HISTORICAL_HOURS:.15f} h historical baseline; refusing to reset accounting"
+        )
     return ledger, lock_path
 
 

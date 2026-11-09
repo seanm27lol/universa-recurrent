@@ -257,12 +257,37 @@ def test_production_paths_reject_alternate_files(anchored_runs, tmp_path, overri
     assert not (runs / "gpu.lock").exists()
 
 
+def _write_history(path, hours=native.HISTORICAL_HOURS):
+    records = [
+        {"event": "start", "reservation": "history", "t": 1.0, "authorization": 2},
+        {"event": "end", "reservation": "history", "t": 2.0, "elapsed": hours * 3600, "status": "ok"},
+    ]
+    path.write_text("".join(json.dumps(record) + "\n" for record in records))
+
+
 def test_valid_production_paths_are_canonical_and_read_only(anchored_runs):
     runs, anchor = anchored_runs
     expected = (runs / "gpu_ledger.jsonl", runs / "gpu.lock")
-    before = anchor.read_bytes()
+    _write_history(expected[0])
+    before = (anchor.read_bytes(), expected[0].read_bytes())
     assert native.validate_shared_reservation_paths() == expected
     assert native.validate_shared_reservation_paths(path=expected[0], lock=expected[1]) == expected
-    assert anchor.read_bytes() == before
-    assert not expected[0].exists()
+    assert (anchor.read_bytes(), expected[0].read_bytes()) == before
     assert not expected[1].exists()
+
+
+@pytest.mark.parametrize("content", [None, "", "{not json}\n"])
+def test_production_paths_refuse_missing_empty_or_malformed_history(anchored_runs, content):
+    runs, _ = anchored_runs
+    ledger = runs / "gpu_ledger.jsonl"
+    if content is not None:
+        ledger.write_text(content)
+    with pytest.raises(RuntimeError, match="historical|valid JSON"):
+        native.validate_shared_reservation_paths()
+
+
+def test_production_paths_refuse_truncated_history(anchored_runs):
+    runs, _ = anchored_runs
+    _write_history(runs / "gpu_ledger.jsonl", hours=native.HISTORICAL_HOURS - 1)
+    with pytest.raises(RuntimeError, match="below.*historical|refusing to reset"):
+        native.validate_shared_reservation_paths()

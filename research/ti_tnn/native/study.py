@@ -250,6 +250,9 @@ def _validate_train_hyperparameters(overrides: Mapping | None) -> dict:
     for key, value in result.items():
         if isinstance(value, float) and not math.isfinite(value):
             raise StudyError(f"{key} must be finite")
+    if result["warmup_fraction"] != DEFAULT_TRAIN["warmup_fraction"] \
+            or result["final_lr_fraction"] != DEFAULT_TRAIN["final_lr_fraction"]:
+        raise StudyError("profiled scheduler fractions are fixed at warmup 0.02 and final LR fraction 0.1")
     return result
 
 
@@ -609,6 +612,7 @@ def _validate_native_profile_bindings(
     train: Mapping,
     evaluation: Mapping,
     repository: Mapping,
+    identities: Mapping | None = None,
 ) -> None:
     from .data import ARRAY_NAMES as ARRAY_NAMES_FOR_STUDY
 
@@ -681,7 +685,37 @@ def _validate_native_profile_bindings(
                     or component.get("eos_token_id") != evaluation["eos_token_id"] \
                     or component.get("use_cache") is not evaluation["use_cache"]:
                 raise StudyError(f"{mode} profile {name} decoding limits do not match the frozen protocol")
-        measured_data = raw.get("data", {})
+        if identities is not None:
+            sampler = raw.get("execution", {}).get("sampler", {})
+            expected_sampler = {
+                "factory": "native.train.make_sampler",
+                "data_seed": identities["development_seed"],
+                "data_identity": identities["train_data_identity"],
+                "dev_data_identity": identities["dev_data_identity"],
+                "order_identity": identities["order_identity"],
+            }
+            for name, wanted in expected_sampler.items():
+                if sampler.get(name) != wanted:
+                    raise StudyError(f"{mode} profile sampler {name} does not match the frozen data order")
+            if recipe.get("seed") != identities["development_seed"] \
+                    or recipe.get("data_seed") != identities["development_seed"]:
+                raise StudyError(f"{mode} profile seed differs from the frozen development seed")
+            measured_data = raw.get("data", {})
+            for name in ("train_data_identity", "dev_data_identity", "order_identity"):
+                if measured_data.get(name) != identities[name]:
+                    raise StudyError(f"{mode} profile {name} does not match the frozen data")
+            for name, wanted in (
+                ("tokenizer_sha256", identities["tokenizer_sha256"]),
+                ("code_generation_sha256", identities["code_generation_sha256"]),
+                ("reconstruction_replay_sha256", identities["replay_sha256"]),
+            ):
+                if recipe.get(name) != wanted:
+                    raise StudyError(f"{mode} profile {name} does not match the frozen evaluation inputs")
+            if recipe.get("structured_sha256") != identities["structured_sha256"]:
+                raise StudyError(f"{mode} profile structured inputs differ from the frozen generation splits")
+            if raw.get("reconstruction", {}).get("replay_spec_sha256") != identities["replay_sha256"] \
+                    or components.get("state_interventions", {}).get("replay_spec_sha256") != identities["replay_sha256"]:
+                raise StudyError(f"{mode} profile replay identity differs between evaluation and reconstruction")
         if measured_data.get("manifest_sha256") != expected_manifest_sha256:
             raise StudyError(f"{mode} engineering profile used a different prepared manifest")
         for split in ("train", "dev"):
@@ -879,7 +913,21 @@ def freeze_study(
         data_seed=development_seed,
         dev_sequence_limit=evaluation_rules["dev_batches"] * evaluation_rules["batch_size"],
     )
-    _validate_native_profile_bindings(profiles, engineering_config, data, train, evaluation_rules, binding)
+    profile_identities = {
+        "development_seed": development_seed,
+        "train_data_identity": prepared.train_data_identity,
+        "dev_data_identity": prepared.dev_data_identity,
+        "order_identity": prepared.order_identity,
+        "tokenizer_sha256": tokenizer_descriptor["sha256"],
+        "replay_sha256": replay["sha256"],
+        "structured_sha256": {
+            split: generation["structured"][split]["sha256"] for split in STRUCTURED_SPLITS
+        },
+        "code_generation_sha256": generation["code"]["sha256"],
+    }
+    _validate_native_profile_bindings(
+        profiles, engineering_config, data, train, evaluation_rules, binding, profile_identities
+    )
     provisional_plan = prepared.plan(provisional_loss_tokens)
     minimum_updates = max(3, train["dev_every"] + 1)
     minimum_plan = prepared.plan_updates(minimum_updates)

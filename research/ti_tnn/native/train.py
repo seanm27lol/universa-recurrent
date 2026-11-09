@@ -871,14 +871,14 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
     device = torch.device(args.device)
     if device.type not in ("cpu", "cuda"):
         raise ValueError("device must be cpu or a CUDA device")
-    if device.type == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA was requested but is not available")
     if device.type == "cuda":
         from . import ledger as native_ledger
 
         ledger_path, ledger_lock = native_ledger.validate_shared_reservation_paths(
             args.ledger_path, args.ledger_lock
         )
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA was requested but is not available")
     base_config = NativeConfig.from_json(args.config)
     model_config = replace(base_config, mode=args.mode)
     data_root = Path(args.data)

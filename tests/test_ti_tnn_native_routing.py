@@ -108,3 +108,23 @@ def test_router_inputs_follow_generic_and_typed_contract():
         model(torch.tensor([[1, 2]]))
         assert seen[-1] == expected_width
     assert seen == [16, 16, 16, 16, 32, 32, 32, 32]
+
+
+@pytest.mark.parametrize("mode", ["untyped", "typed"])
+def test_load_stats_exclude_right_padding(mode):
+    model = make_model(mode)
+    output = model(
+        torch.tensor([[1, 2, 3, 4]]),
+        key_padding_mask=torch.tensor([[False, False, True, True]]),
+        return_aux=True,
+    )
+    live_indices = output.route_indices[:, :2]
+    live_probs = output.route_probs[:, :2]
+    expected = torch.nn.functional.one_hot(live_indices.reshape(-1), num_classes=4).float().mean(dim=0)
+    assert torch.allclose(output.load_stats["selected_fraction"], expected)
+    assert torch.allclose(output.load_stats["mean_probability"], live_probs.reshape(-1, 4).mean(dim=0))
+    assert output.load_stats["live_decisions"] == 8
+    padded = model(torch.tensor([[1, 2]]), key_padding_mask=torch.ones(1, 2, dtype=torch.bool), return_aux=True)
+    assert padded.load_stats["live_decisions"] == 0
+    assert padded.load_stats["selected_fraction"].eq(0).all()
+    assert padded.load_stats["mean_probability"].eq(0).all()

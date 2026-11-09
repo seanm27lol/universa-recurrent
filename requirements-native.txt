@@ -5,6 +5,7 @@ numpy==2.5.4
 pyarrow==26.0.1
 pytest==9.1.1
 safetensors==0.8.0
+sqlglot==30.24.0
 tokenizers==0.23.3
 torch==2.13.0+cu130
 transformers==5.20.2

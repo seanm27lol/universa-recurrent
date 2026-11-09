@@ -3,7 +3,7 @@
 **Status: implemented and locally construction-tested.** The native causal LM is in
 [`model.py`](model.py), with training in [`train.py`](train.py), evaluation in
 [`evaluate.py`](evaluate.py), and the design contract in [`ARCHITECTURE.md`](ARCHITECTURE.md). The last
-full native test run passed **208 tests**. The **full repository test suite is still pending** and is not
+full native test run passed **214 tests**. The **complete repository test rerun is still pending** and is not
 claimed here. These checks establish construction and execution behavior, not learning, downstream
 quality, or efficiency. **No WSP phase has begun.**
 
@@ -14,7 +14,12 @@ cd /home/seanjazm27/projects/universa-recurrent-native
 PY=.venv-native/bin/python
 export PYTHONPATH=research/ti_tnn
 export PYTHONDONTWRITEBYTECODE=1
+export TI_TNN_SCALING_RUNS=/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling
 ```
+
+`TI_TNN_SCALING_RUNS` is the anchored historical **ledger** root. Native artifacts remain separate under
+`/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native`; setting the artifact root as the ledger
+root would split the one-owner lock and is refused. The native reservation commands below inherit this environment.
 
 ## 1. Isolated CPython 3.12 uv environment
 
@@ -23,8 +28,8 @@ install native packages into, or upgrade,
 `/home/seanjazm27/projects/universa-recurrent-scaling/.venv-scaling`.
 
 [`requirements-native.txt`](../../../requirements-native.txt) pins the direct dependencies.
-[`requirements-native-lock.txt`](../../../requirements-native-lock.txt) records the complete 57-package
-environment. From a checkout without `.venv-native`, reproduce it with:
+[`requirements-native-lock.txt`](../../../requirements-native-lock.txt) records the complete 58-package
+environment. From a checkout without `.venv-native`, reproduce it and install the project metadata with:
 
 ```bash
 cd /home/seanjazm27/projects/universa-recurrent-native
@@ -33,6 +38,7 @@ uv pip install --python .venv-native/bin/python \
   --index-url https://pypi.org/simple \
   --extra-index-url https://download.pytorch.org/whl/cu130 \
   --requirement requirements-native-lock.txt
+uv pip install --python .venv-native/bin/python --no-deps -e .
 ```
 
 The extra index supplies `torch==2.13.0+cu130`; the remaining pins come from PyPI. Confirm the import

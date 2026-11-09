@@ -164,6 +164,10 @@ def _training_step(model, optimizer, scheduler, batch, args, dtype: torch.dtype)
     scheduler.step()
     _synchronize(device)
     optimizer_seconds = time.perf_counter() - started
+    diagnostic_started = time.perf_counter()
+    route_usage = T._route_usage(output, batch["key_padding_mask"])
+    _synchronize(device)
+    diagnostic_seconds = time.perf_counter() - diagnostic_started
     del output
     return {
         "actual_shifted_loss_tokens": actual_tokens,
@@ -174,6 +178,8 @@ def _training_step(model, optimizer, scheduler, batch, args, dtype: torch.dtype)
         "backward_seconds": backward_seconds,
         "gradient_clipping_optimizer_seconds": optimizer_seconds,
         "optimizer_seconds": optimizer_seconds,
+        "diagnostic_seconds": diagnostic_seconds,
+        "route_usage": route_usage,
     }
 
 
@@ -192,6 +198,8 @@ def _run_training_steps(
     count: int,
 ) -> list[dict]:
     records = []
+    journal = C.CheckpointJournal(Path(args.output).with_suffix(f".steps-{first_step}.journal.jsonl"))
+    learning_log = Path(args.output).with_suffix(f".steps-{first_step}.learning.jsonl")
     for local_step in range(count):
         _check_reservation(reservation)
         step = first_step + local_step
@@ -218,11 +226,17 @@ def _run_training_steps(
             **identities,
             **timing,
         })
+        persistence_started = time.perf_counter()
+        journal.append_batch(sampler_batch, sampler)
+        T._append_jsonl(learning_log, record)
+        record["persistence_seconds"] = time.perf_counter() - persistence_started
         record["wall_seconds"] = (
             timing["data_loading_seconds"]
             + record["forward_seconds"]
             + record["backward_seconds"]
             + record["gradient_clipping_optimizer_seconds"]
+            + record["diagnostic_seconds"]
+            + record["persistence_seconds"]
         )
         record["actual_shifted_loss_tokens_per_second"] = (
             expected_tokens / record["wall_seconds"] if record["wall_seconds"] > 0 else 0.0
@@ -648,10 +662,19 @@ def _state_interventions(model, tokenizer, records, replay, args, reservation) -
     }
 
 
-def _complete_evaluation(model, datasets, inputs, args, device, reservation) -> dict:
+def _complete_evaluation(model, datasets, inputs, args, device, reservation, checkpoint=None) -> dict:
+    restore_started = time.perf_counter()
+    if checkpoint is not None:
+        E.load_native_model(checkpoint["path"], expected_sha256=checkpoint["sha256"])
+        model, _ = E.load_native_model(checkpoint["path"], expected_sha256=checkpoint["sha256"])
+    restore_seconds = time.perf_counter() - restore_started
     teacher_seconds, teacher = _complete_teacher_forced(
         model, datasets["dev"], args, device, reservation
     )
+    teacher_seconds += restore_seconds
+    teacher["evaluation_checkpoint_restore_seconds"] = restore_seconds
+    teacher["evaluation_checkpoint_loads"] = 2 if checkpoint is not None else 0
+    teacher["model_reused_from_profiling"] = checkpoint is None
     structured_records = None
     structured = {"status": "not_run", "valid": False, "seconds": 0.0, "reason": "no structured directory"}
     code = {"status": "not_run", "valid": False, "seconds": 0.0, "reason": "no code-generation file"}
@@ -769,6 +792,8 @@ def summarize_steps(records: Sequence[Mapping]) -> dict:
         "forward_seconds",
         "backward_seconds",
         "gradient_clipping_optimizer_seconds",
+        "diagnostic_seconds",
+        "persistence_seconds",
         "wall_seconds",
     )
     totals = {name: math.fsum(float(record[name]) for record in records) for name in names}
@@ -1013,6 +1038,12 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "structured_directory": str(complete_inputs["structured"]) if complete_inputs["structured"] else None,
             "code_generation": str(complete_inputs["code"]) if complete_inputs["code"] else None,
             "tokenizer": str(complete_inputs["tokenizer"]) if complete_inputs["tokenizer"] else None,
+            "tokenizer_sha256": sha256_file(complete_inputs["tokenizer"]) if complete_inputs["tokenizer"] else None,
+            "structured_sha256": {
+                split: sha256_file(complete_inputs["structured"] / f"{split}.jsonl")
+                for split in E.SPLIT_NAMES
+            } if complete_inputs["structured"] else None,
+            "code_generation_sha256": sha256_file(complete_inputs["code"]) if complete_inputs["code"] else None,
             "reconstruction_replay": str(complete_inputs["replay_path"]) if complete_inputs["replay_path"] else None,
             "reconstruction_replay_sha256": complete_inputs["replay"].get("spec_sha256") if complete_inputs["replay"] else None,
             "token_rule": "count labels[:, 1:] != -100 on actual PackedDataset batches",
@@ -1218,7 +1249,7 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
         "cost_accounting": "next_batch/permutation, batch_identity, sampler state, trainer batch hashes, and transfer are measured in data_loading_seconds",
     }
     report["complete_evaluation"] = _complete_evaluation(
-        model, datasets, complete_inputs, args, device, reservation
+        model, datasets, complete_inputs, args, device, reservation, checkpoint=descriptor
     )
     report["reconstruction"] = _reconstruction(
         descriptor, complete_inputs["replay"], args, reservation

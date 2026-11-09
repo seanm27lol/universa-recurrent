@@ -379,12 +379,14 @@ class NativeModel(nn.Module):
                 route_weights = stacked_weights
                 flat_probs = stacked_probs.reshape(-1, 4)
                 flat_indices = route_indices.reshape(-1)
-                selected_fraction = torch.nn.functional.one_hot(
-                    flat_indices, num_classes=4
-                ).to(flat_probs.dtype).mean(dim=0).detach()
+                live = (~key_padding_mask).reshape(-1, 1).expand(-1, 4).reshape(-1)
+                count = live.sum().clamp_min(1).to(flat_probs.dtype)
+                selected = torch.nn.functional.one_hot(flat_indices, num_classes=4).to(flat_probs.dtype)
+                selected_fraction = (selected[live].sum(dim=0) / count).detach()
                 load_stats = {
                     "selected_fraction": selected_fraction,
-                    "mean_probability": flat_probs.mean(dim=0),
+                    "mean_probability": flat_probs[live].sum(dim=0) / count,
+                    "live_decisions": live.sum().detach(),
                 }
         return NativeOutput(
             logits=logits,
