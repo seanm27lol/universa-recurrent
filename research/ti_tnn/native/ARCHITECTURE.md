@@ -1,8 +1,14 @@
 # Native causal LM: architecture differences and design contract
 
-**Status: proposed, not implemented or evaluated here.** This is a new randomly initialized native
-causal language model, not the project's first trained weights. Earlier adaptive TI-TNN models already
-trained **202M-parameter** variants and a later **129M-parameter** variant. They did not meet the frozen
+**Status: implemented and locally construction-tested.** The model and training/evaluation paths are in
+[`model.py`](model.py), [`train.py`](train.py), and [`evaluate.py`](evaluate.py). The last full native
+run passed **208 tests**; see the [reproduction interface](README.md) and
+[`tests/test_ti_tnn_native_model.py`](../../../tests/test_ti_tnn_native_model.py). The full repository
+suite is still pending. These are construction and execution checks, not learning, quality, efficiency,
+or WSP evidence; no WSP phase has begun.
+
+This is a new randomly initialized native causal language model, not the project's first trained weights.
+Earlier adaptive TI-TNN models already trained **202M-parameter** variants and a later **129M-parameter** variant. They did not meet the frozen
 quality/efficiency bars: the 202M models remained outside the 2% quality band, with a smaller dense model
 winning at the 50% cap, and the 129M model reached 57.21 validation perplexity after the lookup fixes
 ([adaptive report](../reports/adaptive_compute.md),
@@ -36,8 +42,8 @@ The reference points are standard causal Transformers (Vaswani et al., 2017,
 (Dehghani et al., 2018, [arXiv:1807.03819](https://arxiv.org/abs/1807.03819)), sparsely gated experts
 (Shazeer et al., 2017, [arXiv:1701.06538](https://arxiv.org/abs/1701.06538)), and straight-through
 estimators (Bengio, Léonard and Courville, 2013,
-[arXiv:1308.3432](https://arxiv.org/abs/1308.3432)). This note proposes a particular combination; it
-does not claim that the combination learns or helps.
+[arXiv:1308.3432](https://arxiv.org/abs/1308.3432)). This note specifies their implemented combination;
+it does not claim that the combination learns or helps.
 
 ## The four modes
 
@@ -150,8 +156,10 @@ each of the four passes for each prior token. For a new token, it locally constr
 `s_{t,k}^0`, then runs passes one through four. At pass `r`, it attends to the cached pass-`r` K/V tensors
 and appends the new token's pass-`r` K/V tensors. Prior tokens do not resume or change their slots.
 
-This describes a valid cache dependency, not a measured speedup or an already passing equivalence test.
-Cached and full-sequence execution must still be checked in the implementation's actual dtypes.
+The implementation follows this dependency. Local construction tests exercise full-versus-cached logits
+and routes, and [`reconstruct.py`](reconstruct.py) replays hidden/slot traces at the restored checkpoint
+dtype. CUDA profiling also requires cache correctness before its timing can be marked valid. These checks
+establish execution equivalence within stated tolerances, not a measured speedup or learning evidence.
 
 ## Top-1 routing and training losses
 
@@ -237,7 +245,11 @@ accuracy, intervention effects, and task accuracy are separate evidence and must
 
 **Total parameters** count unique stored trainable tensors. A shared B/C/D cell is counted once even
 though it runs four times; all four experts count toward C/D total parameters whether or not selected.
-`E` and `U` count separately. Report total and per-token active parameters separately.
+`E` and `U` count separately. For C/D, a token's actual active set is the union of experts selected over
+its four passes. The configuration's `active` value is only the backward-compatible nominal one-expert
+count, not a route prediction; [`cost.py`](cost.py) computes route-union bounds and observed values. See
+the [corrected count tables](README.md#corrected-parameter-and-mac-counts) and
+[`configs/engineering.json`](configs/engineering.json).
 
 **Forward compute** counts work actually performed. For a decoded token, report at least
 
@@ -265,7 +277,7 @@ cached-versus-full execution, including routing, attention, head, and interface 
 
 ## Construction checks, not learning evidence
 
-A minimal implementation should check:
+The implemented local suite covers this construction checklist:
 
 1. **Shape and call contract:** `h` and all four slots have the declared shapes; exactly four passes run
    for every token; A has four distinct core parameter sets, B/C/D share theirs; `E` and `U` are untied.
