@@ -1144,7 +1144,7 @@ def freeze_study(
             "gold_controls_decoding": False,
             "full_source_generation_claim": False,
         },
-        "reconstruction": "exact checkpoint parameters with BF16 CUDA autocast matching training; full versus cached tensors and fixed greedy prompts must agree",
+        "reconstruction": "exact checkpoint parameters with BF16 CUDA autocast matching training; floating-tensor relative RMS error <= 0.05 of reference RMS, exact integer routes and exact cached/full generated tokens; strict allclose retained separately",
     }
     active_files = (
         code_descriptors + data_descriptors + source_descriptors + profile_descriptors

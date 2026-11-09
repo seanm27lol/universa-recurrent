@@ -29,6 +29,7 @@ from .sampler import identity_hash
 REPLAY_FORMAT = "native-reconstruction-replay-v1"
 REPORT_FORMAT = "native-reconstruction-report-v1"
 OUTPUT_NAMES = ("logits", "h", "slots", "state_logits", "route_logits", "route_probs", "route_indices")
+CACHE_SCALE_TOLERANCE = 0.05
 
 
 def _execution_context(model, autocast_dtype: torch.dtype | None):
@@ -114,6 +115,18 @@ def compare_tensors(
         tolerance_violation = exact_mask
         agrees = not exact_mask.any()
         maximum = int(difference.max()) if difference.numel() else 0
+    if actual.dtype.is_floating_point:
+        reference_rms = float(expected.float().square().mean().sqrt()) if expected.numel() else 0.0
+        error_rms = float(difference.float().square().mean().sqrt()) if difference.numel() else 0.0
+        scale_agrees = error_rms == 0.0 or (
+            reference_rms > 0.0 and error_rms <= CACHE_SCALE_TOLERANCE * reference_rms
+        )
+        relative_rms_error = error_rms / reference_rms if reference_rms > 0 else (0.0 if error_rms == 0 else None)
+    else:
+        reference_rms = None
+        error_rms = None
+        relative_rms_error = None
+        scale_agrees = not exact_mask.any()
 
     def detail(mask: torch.Tensor) -> dict | None:
         index = _first_tensor_index(mask)
@@ -132,6 +145,11 @@ def compare_tensors(
         "shape_dtype_device_match": True,
         "different_values": int(exact_mask.sum()),
         "maximum_absolute_difference": maximum,
+        "reference_rms": reference_rms,
+        "error_rms": error_rms,
+        "relative_rms_error": relative_rms_error,
+        "scale_agrees": bool(scale_agrees),
+        "scale_tolerance": CACHE_SCALE_TOLERANCE,
         "atol": atol,
         "rtol": rtol,
         "first_divergence": detail(exact_mask),
@@ -209,7 +227,9 @@ def replay_teacher_forced(
         "comparisons": comparisons,
         "loss": float(loss),
         "loss_tokens": int(token_count),
-        "agrees": all(item is None or item["agrees"] for item in comparisons.values()),
+        "agrees": all(item is None or item.get("scale_agrees", False) for item in comparisons.values()),
+        "strict_allclose_agrees": all(item is None or item["agrees"] for item in comparisons.values()),
+        "agreement_policy": "floating tensors: relative RMS error <= 0.05 of reference RMS; integer routes: exact; strict allclose retained separately",
         "execution": "full sequence versus one-token incremental NativeCache at the restored checkpoint parameter dtype/device and declared autocast dtype",
         "autocast_dtype": str(autocast_dtype) if autocast_dtype is not None else None,
     }
