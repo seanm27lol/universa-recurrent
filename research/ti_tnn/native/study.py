@@ -605,6 +605,58 @@ def _load_profiles(paths: Sequence[Path]) -> tuple[dict, list[dict]]:
     return profiles, descriptors
 
 
+def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str, reported_identity: str) -> dict | None:
+    if "root" not in repository:
+        return None
+    root = Path(repository["root"])
+    current = repository["commit"]
+    if profile_commit == current:
+        return None
+    ancestor = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", profile_commit, current],
+        cwd=root, capture_output=True, check=False,
+    )
+    if ancestor.returncode:
+        return None
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", profile_commit, current, "--", "research/ti_tnn/native"],
+        cwd=root, capture_output=True, text=True, check=False,
+    )
+    if changed.returncode or changed.stdout.splitlines() != ["research/ti_tnn/native/study.py"]:
+        return None
+    native = root / "research" / "ti_tnn" / "native"
+    files = sorted(native.glob("*.py"))
+    scaling_ledger = native.parent / "scaling" / "ledger.py"
+    if scaling_ledger.is_file():
+        files.append(scaling_ledger)
+    digest = hashlib.sha256()
+    for path in files:
+        relative_repository = path.relative_to(root)
+        if relative_repository.as_posix() == "research/ti_tnn/native/study.py":
+            content = subprocess.run(
+                ["git", "show", f"{profile_commit}:{relative_repository.as_posix()}"],
+                cwd=root, capture_output=True, check=False,
+            )
+            if content.returncode:
+                return None
+            payload = content.stdout
+        else:
+            payload = path.read_bytes()
+        relative = path.relative_to(native.parent)
+        digest.update(str(relative).encode())
+        digest.update(b"\0")
+        digest.update(payload)
+        digest.update(b"\0")
+    if digest.hexdigest() != reported_identity:
+        return None
+    return {
+        "profile_commit": profile_commit,
+        "frozen_commit": current,
+        "changed_native_files": ["research/ti_tnn/native/study.py"],
+        "reason": "orchestration-only change; model, trainer, profiler, data and evaluator producer bytes are identical",
+    }
+
+
 def _validate_native_profile_bindings(
     profiles: Mapping,
     engineering_config: Path,
@@ -643,9 +695,17 @@ def _validate_native_profile_bindings(
                     raise StudyError(f"{mode} profile execution limit {name} does not match the frozen protocol")
             continue
         profile_code = raw.get("code", {})
-        if profile_code.get("identity") != repository["native_code_identity"] \
-                or profile_code.get("git_commit_at_attempt_start") != repository["commit"]:
-            raise StudyError(f"{mode} profile code identity or attempt commit differs from the frozen repository")
+        profile_commit = profile_code.get("git_commit_at_attempt_start")
+        if profile_commit == repository["commit"]:
+            if profile_code.get("identity") != repository["native_code_identity"]:
+                raise StudyError(f"{mode} profile code identity or attempt commit differs from the frozen repository")
+        else:
+            compatibility = _orchestration_only_profile_commit(
+                repository, profile_commit, profile_code.get("identity", "")
+            )
+            if compatibility is None:
+                raise StudyError(f"{mode} profile code identity or attempt commit differs from the frozen repository")
+            profile["commit_equivalence"] = compatibility
         config = raw.get("config", {})
         if config.get("sha256") != expected_config_sha256:
             raise StudyError(f"{mode} engineering profile used a different source config")
@@ -677,11 +737,11 @@ def _validate_native_profile_bindings(
             raise StudyError(f"{mode} profile structured limit does not match the frozen protocol")
         if code.get("limit") != evaluation["code_limit"]:
             raise StudyError(f"{mode} profile code limit does not match the frozen protocol")
-        for name, component, token_bound in (
-            ("structured", structured, "max_new_tokens"),
-            ("code", code, "max_new_tokens"),
+        for name, component, component_bound, evaluation_bound in (
+            ("structured", structured, "max_new_tokens", "max_new_tokens"),
+            ("code", code, "max_new_tokens", "code_max_new_tokens"),
         ):
-            if component.get(token_bound) != evaluation[token_bound] \
+            if component.get(component_bound) != evaluation[evaluation_bound] \
                     or component.get("eos_token_id") != evaluation["eos_token_id"] \
                     or component.get("use_cache") is not evaluation["use_cache"]:
                 raise StudyError(f"{mode} profile {name} decoding limits do not match the frozen protocol")
