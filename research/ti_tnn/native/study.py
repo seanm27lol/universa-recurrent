@@ -679,7 +679,7 @@ def _validate_native_profile_bindings(
             raise StudyError(f"{mode} profile code limit does not match the frozen protocol")
         for name, component, token_bound in (
             ("structured", structured, "max_new_tokens"),
-            ("code", code, "code_max_new_tokens"),
+            ("code", code, "max_new_tokens"),
         ):
             if component.get(token_bound) != evaluation[token_bound] \
                     or component.get("eos_token_id") != evaluation["eos_token_id"] \
