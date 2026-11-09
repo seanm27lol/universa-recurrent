@@ -49,8 +49,8 @@ _TARGET_PATTERN = re.compile(
 
 def _cpu_device(device) -> torch.device:
     result = torch.device(device)
-    if result.type != "cpu":
-        raise ValueError("native evaluation and reconstruction are CPU-only")
+    if result.type not in ("cpu", "cuda"):
+        raise ValueError("native evaluation and reconstruction require a CPU or CUDA device")
     return result
 
 
@@ -92,7 +92,7 @@ def load_native_model(
     expected_sha256: str | None = None,
     device="cpu",
 ) -> tuple[NativeModel, dict]:
-    """Validate checkpoint bytes, infer its dtype, and restore exact CPU weights."""
+    """Validate checkpoint bytes, infer its dtype, and restore exact weights on the selected device."""
     device = _cpu_device(device)
     payload = load_checkpoint(checkpoint_path, expected_sha256=expected_sha256)
     config = _native_config(payload["config"])
@@ -1204,7 +1204,7 @@ def main(argv=None) -> int:
         "teacher_forced": ("complete" if report["teacher_forced"]["complete"] else "partial")
         if "sources" in report["teacher_forced"] else report["teacher_forced"]["status"],
         "structured_generation": report["structured_generation"].get(
-            "study_visible_summary", report["structured_generation"]["status"]
+            "study_visible_summary", report["structured_generation"].get("status", "complete")
         ),
         "code_generation": report["code_generation"]["status"],
     }, sort_keys=True))

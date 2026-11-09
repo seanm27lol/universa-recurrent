@@ -1,9 +1,9 @@
-"""CPU reconstruction and first-divergence replay for native checkpoints.
+"""Reconstruction and first-divergence replay for native checkpoints.
 
 A JSON replay spec fixes token IDs, positions, document boundaries, padding,
 and teacher-forced labels. Reconstruction verifies the checkpoint SHA256,
-restores its exact configuration and floating dtype, then compares full and
-cached execution without silently upcasting the model. Output hashes identify
+restores its exact configuration and floating parameter dtype, then compares full and
+cached execution with an explicitly declared device and autocast dtype. Output hashes identify
 the replay tensors; first-divergence records retain exact indices and values.
 """
 from __future__ import annotations
@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import os
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -28,6 +29,13 @@ from .sampler import identity_hash
 REPLAY_FORMAT = "native-reconstruction-replay-v1"
 REPORT_FORMAT = "native-reconstruction-report-v1"
 OUTPUT_NAMES = ("logits", "h", "slots", "state_logits", "route_logits", "route_probs", "route_indices")
+
+
+def _execution_context(model, autocast_dtype: torch.dtype | None):
+    device = next(model.parameters()).device
+    if device.type == "cuda" and autocast_dtype is not None:
+        return torch.autocast(device_type="cuda", dtype=autocast_dtype)
+    return nullcontext()
 
 
 class ReconstructionError(RuntimeError):
@@ -151,28 +159,32 @@ def replay_teacher_forced(
     *,
     atol: float,
     rtol: float,
+    autocast_dtype: torch.dtype | None = None,
 ) -> dict:
     """Replay one fixed sample in full and token-by-token cached execution."""
     inputs = _model_inputs(sample)
     if inputs["input_ids"].ndim != 2 or inputs["input_ids"].shape[1] < 2:
         raise ReconstructionError("teacher-forced input_ids must have shape [B,T], with T >= 2")
-    full = model(**inputs, return_aux=True, return_trace=True)
-    cache = None
-    pieces = []
-    for token_index in range(inputs["input_ids"].shape[1]):
-        step_inputs = {
-            name: value[:, token_index: token_index + 1]
-            for name, value in inputs.items()
-        }
-        step = model(
-            **step_inputs,
-            cache=cache,
-            use_cache=True,
-            return_aux=True,
-            return_trace=True,
-        )
-        cache = step.cache
-        pieces.append(step)
+    device = next(model.parameters()).device
+    inputs = {name: value.to(device) for name, value in inputs.items()}
+    with _execution_context(model, autocast_dtype):
+        full = model(**inputs, return_aux=True, return_trace=True)
+        cache = None
+        pieces = []
+        for token_index in range(inputs["input_ids"].shape[1]):
+            step_inputs = {
+                name: value[:, token_index: token_index + 1]
+                for name, value in inputs.items()
+            }
+            step = model(
+                **step_inputs,
+                cache=cache,
+                use_cache=True,
+                return_aux=True,
+                return_trace=True,
+            )
+            cache = step.cache
+            pieces.append(step)
     comparisons = {}
     full_hashes = {}
     cached_hashes = {}
@@ -187,7 +199,7 @@ def replay_teacher_forced(
             comparisons[name] = compare_tensors(actual, expected, atol=atol, rtol=rtol)
     if "labels" not in sample:
         raise ReconstructionError("teacher-forced replay sample requires labels")
-    loss, token_count = next_token_cross_entropy(full.logits, sample["labels"])
+    loss, token_count = next_token_cross_entropy(full.logits, sample["labels"].to(device))
     sample_hash = identity_hash({name: sample[name] for name in sorted(sample)})
     return {
         "sample_sha256": sample_hash,
@@ -198,7 +210,8 @@ def replay_teacher_forced(
         "loss": float(loss),
         "loss_tokens": int(token_count),
         "agrees": all(item is None or item["agrees"] for item in comparisons.values()),
-        "execution": "full sequence versus one-token incremental NativeCache at the restored checkpoint dtype/device",
+        "execution": "full sequence versus one-token incremental NativeCache at the restored checkpoint parameter dtype/device and declared autocast dtype",
+        "autocast_dtype": str(autocast_dtype) if autocast_dtype is not None else None,
     }
 
 
@@ -235,45 +248,50 @@ def replay_generation_prompts(
     *,
     max_new_tokens: int,
     eos_token_id: int | None,
+    autocast_dtype: torch.dtype | None = None,
 ) -> dict:
     """Replay fixed tokenized prompts with full and cached greedy decoding."""
+    device = next(model.parameters()).device
     records = []
-    for index, prompt in enumerate(prompts):
-        ids, positions = _prompt_tensors(prompt)
-        if ids.shape[1] + max_new_tokens > model.config.context_length:
-            raise ReconstructionError("generation replay exceeds the restored context_length")
-        sequences = {}
-        for cached in (False, True):
-            sequence = greedy_generate(
-                model,
-                ids,
-                max_new_tokens=max_new_tokens,
-                positions=positions,
-                eos_token_id=eos_token_id,
-                pad_token_id=eos_token_id,
-                use_cache=cached,
-            )
-            sequences[cached] = sequence
-        full = sequences[False][0].cpu().tolist()
-        cached = sequences[True][0].cpu().tolist()
-        prompt_length = ids.shape[1]
-        divergence = _sequence_divergence(cached[prompt_length:], full[prompt_length:])
-        records.append({
-            "example_id": prompt.get("example_id", f"prompt-{index}"),
-            "prompt_sha256": identity_hash({"input_ids": ids, "positions": positions}),
-            "full_sequence_sha256": tensor_sha256(sequences[False]),
-            "cached_sequence_sha256": tensor_sha256(sequences[True]),
-            "full_generated_ids": full[prompt_length:],
-            "cached_generated_ids": cached[prompt_length:],
-            "agrees": divergence is None,
-            "first_divergence": divergence,
-        })
+    with _execution_context(model, autocast_dtype):
+        for index, prompt in enumerate(prompts):
+            ids, positions = _prompt_tensors(prompt)
+            ids, positions = ids.to(device), positions.to(device)
+            if ids.shape[1] + max_new_tokens > model.config.context_length:
+                raise ReconstructionError("generation replay exceeds the restored context_length")
+            sequences = {}
+            for cached in (False, True):
+                sequence = greedy_generate(
+                    model,
+                    ids,
+                    max_new_tokens=max_new_tokens,
+                    positions=positions,
+                    eos_token_id=eos_token_id,
+                    pad_token_id=eos_token_id,
+                    use_cache=cached,
+                )
+                sequences[cached] = sequence
+            full = sequences[False][0].cpu().tolist()
+            cached = sequences[True][0].cpu().tolist()
+            prompt_length = ids.shape[1]
+            divergence = _sequence_divergence(cached[prompt_length:], full[prompt_length:])
+            records.append({
+                "example_id": prompt.get("example_id", f"prompt-{index}"),
+                "prompt_sha256": identity_hash({"input_ids": ids, "positions": positions}),
+                "full_sequence_sha256": tensor_sha256(sequences[False]),
+                "cached_sequence_sha256": tensor_sha256(sequences[True]),
+                "full_generated_ids": full[prompt_length:],
+                "cached_generated_ids": cached[prompt_length:],
+                "agrees": divergence is None,
+                "first_divergence": divergence,
+            })
     return {
         "max_new_tokens": max_new_tokens,
         "eos_token_id": eos_token_id,
         "model_inputs": ["input_ids", "positions"],
         "records": records,
         "agrees": all(record["agrees"] for record in records),
+        "autocast_dtype": str(autocast_dtype) if autocast_dtype is not None else None,
     }
 
 
@@ -406,17 +424,23 @@ def reconstruct_checkpoint(
     *,
     expected_sha256: str | None = None,
     expected_report: Mapping | None = None,
+    device: str = "cpu",
+    autocast_dtype: torch.dtype | None = None,
 ) -> dict:
-    """Restore and replay entirely at the checkpoint's actual CPU dtype."""
-    model, payload = load_native_model(checkpoint_path, expected_sha256=expected_sha256, device="cpu")
+    """Restore exact parameters and replay with an explicitly declared execution precision."""
+    model, payload = load_native_model(checkpoint_path, expected_sha256=expected_sha256, device=device)
     dtype = checkpoint_model_dtype(payload)
-    tolerances = dtype_tolerances(dtype)
-    teacher = replay_teacher_forced(model, replay_spec["teacher_forced"], **tolerances)
+    execution_dtype = autocast_dtype or dtype
+    tolerances = dtype_tolerances(execution_dtype)
+    teacher = replay_teacher_forced(
+        model, replay_spec["teacher_forced"], autocast_dtype=autocast_dtype, **tolerances
+    )
     generation = replay_generation_prompts(
         model,
         replay_spec["generation_prompts"],
         max_new_tokens=replay_spec["max_new_tokens"],
         eos_token_id=replay_spec.get("eos_token_id"),
+        autocast_dtype=autocast_dtype,
     )
     config = _native_config(payload["config"])
     report = {
@@ -443,10 +467,16 @@ def reconstruct_checkpoint(
             "exact_restore": True,
         },
         "replay_spec_sha256": replay_spec.get("spec_sha256", identity_hash(replay_spec)),
+        "execution": {
+            "device": str(next(model.parameters()).device),
+            "parameter_dtype": str(dtype),
+            "autocast_dtype": str(autocast_dtype) if autocast_dtype is not None else None,
+            "tolerances": tolerances,
+        },
         "teacher_forced": teacher,
         "generation": generation,
         "agreement": teacher["agrees"] and generation["agrees"],
-        "dtype_device_policy": "no dtype override: full and cached replay both use the floating dtype stored in the checkpoint on CPU",
+        "dtype_device_policy": "exact checkpoint parameter dtype; full and cached replay use the declared device and autocast dtype without overriding stored weights",
     }
     if expected_report is not None:
         report["reference_replay"] = compare_reference_replay(report, expected_report)
@@ -474,6 +504,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--spec", required=True, help="fixed token-ID replay JSON")
     result.add_argument("--expected-report", help="optional previous reconstruction report for hash comparison")
     result.add_argument("--output", required=True)
+    result.add_argument("--device", default="cpu", choices=("cpu", "cuda"))
+    result.add_argument("--autocast-dtype", choices=("bfloat16", "float16"))
     return result
 
 
@@ -486,6 +518,8 @@ def main(argv=None) -> int:
         spec,
         expected_sha256=args.expected_sha256,
         expected_report=expected,
+        device=args.device,
+        autocast_dtype=getattr(torch, args.autocast_dtype) if args.autocast_dtype else None,
     )
     digest = write_reconstruction_report(args.output, report)
     print(json.dumps({

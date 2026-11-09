@@ -6,7 +6,7 @@ comparative outcome is read.  Atomic batches can cross a requested token count, 
 the protocol freezes the exact common endpoint produced by the shared sampler.
 
 The parent orchestrator never opens a GPU reservation.  ``native.train`` owns its
-CUDA reservation directly.  The committed evaluator and reconstructor are CPU-only,
+CUDA reservation directly.  Evaluation runs on CPU and reconstruction uses the declared training-precision path,
 so separate child wrappers hold one reservation each while running their exact
 ``python -m native.evaluate`` and ``python -m native.reconstruct`` commands.  State
 interventions use the evaluator's Python API inside the evaluation reservation.
@@ -622,7 +622,12 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
         ["git", "diff", "--name-only", profile_commit, current, "--", "research/ti_tnn/native"],
         cwd=root, capture_output=True, text=True, check=False,
     )
-    if changed.returncode or changed.stdout.splitlines() != ["research/ti_tnn/native/study.py"]:
+    allowed = [
+        "research/ti_tnn/native/evaluate.py",
+        "research/ti_tnn/native/reconstruct.py",
+        "research/ti_tnn/native/study.py",
+    ]
+    if changed.returncode or changed.stdout.splitlines() != allowed:
         return None
     native = root / "research" / "ti_tnn" / "native"
     files = sorted(native.glob("*.py"))
@@ -632,7 +637,7 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
     digest = hashlib.sha256()
     for path in files:
         relative_repository = path.relative_to(root)
-        if relative_repository.as_posix() == "research/ti_tnn/native/study.py":
+        if relative_repository.as_posix() in allowed:
             content = subprocess.run(
                 ["git", "show", f"{profile_commit}:{relative_repository.as_posix()}"],
                 cwd=root, capture_output=True, check=False,
@@ -652,8 +657,8 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
     return {
         "profile_commit": profile_commit,
         "frozen_commit": current,
-        "changed_native_files": ["research/ti_tnn/native/study.py"],
-        "reason": "orchestration-only change; model, trainer, profiler, data and evaluator producer bytes are identical",
+        "changed_native_files": allowed,
+        "reason": "instrumentation-only change; model, trainer, profiler and data producer bytes are identical; reconstruction projection retains the older, conservative CPU measurement",
     }
 
 
@@ -1139,7 +1144,7 @@ def freeze_study(
             "gold_controls_decoding": False,
             "full_source_generation_claim": False,
         },
-        "reconstruction": "restored checkpoint dtype; full versus cached tensors and fixed greedy prompts must agree",
+        "reconstruction": "exact checkpoint parameters with BF16 CUDA autocast matching training; full versus cached tensors and fixed greedy prompts must agree",
     }
     active_files = (
         code_descriptors + data_descriptors + source_descriptors + profile_descriptors
@@ -1219,7 +1224,8 @@ def freeze_study(
             "stages": ["train", "evaluate", "reconstruct"],
             "train_device": "cuda",
             "evaluation_device": "cpu",
-            "reconstruction_device": "cpu",
+            "reconstruction_device": "cuda",
+            "reconstruction_autocast_dtype": "bfloat16",
             "parent_opens_reservation": False,
             "one_child_reservation_per_stage": True,
             "ledger_path": str(ledger_path),
@@ -1380,6 +1386,8 @@ def _reconstruct_command(protocol: Mapping, checkpoint: Mapping, output: Path) -
         "--expected-sha256", checkpoint["sha256"],
         "--spec", protocol["evaluation"]["replay"]["path"],
         "--output", str(output),
+        "--device", protocol["execution"]["reconstruction_device"],
+        "--autocast-dtype", protocol["execution"]["reconstruction_autocast_dtype"],
     ]
 
 
