@@ -1,0 +1,57 @@
+{
+  "name": "serious",
+  "model": {
+    "vocab_size": 50257,
+    "context_length": 256,
+    "d_model": 832,
+    "n_heads": 16,
+    "d_slot": 208,
+    "d_ff": 3328,
+    "mode": "typed",
+    "n_state_classes": 32,
+    "n_passes": 4,
+    "n_experts": 4,
+    "n_slots": 4
+  },
+  "counts_context_length": 256,
+  "active_parameter_rule": "active is a backward-compatible alias for nominal_one_expert_active, not a route-dependent prediction. Actual per-token active parameters use the union of experts selected across four passes and lie between active_min and active_max; use route_active_parameters or active_parameter_report with route_indices.",
+  "mac_rule": "One decoded token attending to 256 keys, including four passes, four slot readers and writers per pass, routers, attention, and output head; probe work is separate.",
+  "modes": {
+    "dense": {
+      "total": 130803712,
+      "active": 130803712,
+      "nominal_one_expert_active": 130803712,
+      "active_min": 130803712,
+      "active_max": 130803712,
+      "decoded_token_macs": 102356800,
+      "decoded_token_macs_with_probes": 102463296
+    },
+    "shared": {
+      "total": 97549504,
+      "active": 97549504,
+      "nominal_one_expert_active": 97549504,
+      "active_min": 97549504,
+      "active_max": 97549504,
+      "decoded_token_macs": 102356800,
+      "decoded_token_macs_with_probes": 102463296
+    },
+    "untyped": {
+      "total": 122485380,
+      "active": 97552836,
+      "nominal_one_expert_active": 97552836,
+      "active_min": 97552836,
+      "active_max": 122485380,
+      "decoded_token_macs": 102370112,
+      "decoded_token_macs_with_probes": 102476608
+    },
+    "typed": {
+      "total": 124049540,
+      "active": 99116996,
+      "nominal_one_expert_active": 99116996,
+      "active_min": 99116996,
+      "active_max": 124049540,
+      "decoded_token_macs": 102383424,
+      "decoded_token_macs_with_probes": 102489920
+    }
+  }
+}
