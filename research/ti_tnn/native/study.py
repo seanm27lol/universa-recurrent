@@ -627,7 +627,8 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
         "research/ti_tnn/native/reconstruct.py",
         "research/ti_tnn/native/study.py",
     ]
-    if changed.returncode or changed.stdout.splitlines() != allowed:
+    changed_files = changed.stdout.splitlines()
+    if changed.returncode or not changed_files or any(path not in allowed for path in changed_files):
         return None
     native = root / "research" / "ti_tnn" / "native"
     files = sorted(native.glob("*.py"))
@@ -657,7 +658,7 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
     return {
         "profile_commit": profile_commit,
         "frozen_commit": current,
-        "changed_native_files": allowed,
+        "changed_native_files": changed_files,
         "reason": "instrumentation-only change; model, trainer, profiler and data producer bytes are identical; reconstruction projection uses the original FP32 serving measurement",
     }
 
