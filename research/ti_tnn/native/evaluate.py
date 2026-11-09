@@ -1132,6 +1132,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--code-max-new-tokens", type=int, default=128)
     result.add_argument("--eos-token-id", type=int, default=50256)
     result.add_argument("--limit-per-split", type=int, help="explicit partial smoke check; never presented as complete")
+    result.add_argument("--code-limit", type=int, help="independent first-N code-generation sample; overrides --limit-per-split")
     result.add_argument("--no-cache", action="store_true")
     return result
 
@@ -1189,7 +1190,7 @@ def main(argv=None) -> int:
             max_new_tokens=args.code_max_new_tokens,
             eos_token_id=args.eos_token_id,
             use_cache=not args.no_cache,
-            limit=args.limit_per_split,
+            limit=args.code_limit if args.code_limit is not None else args.limit_per_split,
         )
     else:
         report["code_generation"] = {

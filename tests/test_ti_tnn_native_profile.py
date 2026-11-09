@@ -264,12 +264,16 @@ def test_discovered_complete_inputs_are_measured_and_study_compatible(tmp_path, 
         split: [
             {"split": split, "example_id": f"{split}-{index}", "prompt": f"prompt-{split}-{index}",
              "target_text": "r0=0 r1=0 r2=0 r3=0"}
-            for index in range(2)
+            for index in range(130)
         ]
         for split in P.E.SPLIT_NAMES
     }
+    code_records = [
+        {"example_id": f"code-{index}", "prompt": f"code-prompt-{index}", "target_text": "return 0\n"}
+        for index in range(65)
+    ]
     files = {
-        split: {"path": str(structured / f"{split}.jsonl"), "sha256": "a" * 64, "examples": 2}
+        split: {"path": str(structured / f"{split}.jsonl"), "sha256": "a" * 64, "examples": 130}
         for split in P.E.SPLIT_NAMES
     }
     replay = {
@@ -295,12 +299,13 @@ def test_discovered_complete_inputs_are_measured_and_study_compatible(tmp_path, 
 
     def teacher(model, dataset, **kwargs):
         model_calls.append(model)
-        assert kwargs["max_batches"] is None and kwargs["device"] == "cpu"
+        assert kwargs["max_batches"] == 16 and kwargs["batch_size"] == 8
+        assert kwargs["device"] == "cpu"
         return {
-            "complete": True,
-            "batches": 1,
-            "sequences": 2,
-            "overall": {"loss_tokens": 14},
+            "complete": False,
+            "batches": 16,
+            "sequences": 128,
+            "overall": {"loss_tokens": 1000},
         }
 
     def generation(model, tokenizer, selected, **kwargs):
@@ -336,15 +341,13 @@ def test_discovered_complete_inputs_are_measured_and_study_compatible(tmp_path, 
     monkeypatch.setattr(P.E, "load_structured_records", lambda path: (records, files))
     monkeypatch.setattr(P.E, "_generation_metrics", generation)
     monkeypatch.setattr(P.E, "structured_baseline_report", lambda selected: {"mock": True})
-    monkeypatch.setattr(P.E, "_load_jsonl", lambda path: records["train"])
+    monkeypatch.setattr(P.E, "_load_jsonl", lambda path: code_records)
     monkeypatch.setattr(P.E, "evaluate_state_interventions", interventions)
     monkeypatch.setattr(P.R, "load_replay_spec", lambda path: replay)
     monkeypatch.setattr(P.R, "reconstruct_checkpoint", reconstruct)
 
     argv = profile_argv(config, data, output, "typed") + [
         "--tokenizer", str(tokenizer_path),
-        "--structured-limit-per-split", "1",
-        "--code-generation-limit", "1",
         "--max-new-tokens", "2",
         "--code-max-new-tokens", "3",
     ]
@@ -352,24 +355,50 @@ def test_discovered_complete_inputs_are_measured_and_study_compatible(tmp_path, 
     assert json.loads(capsys.readouterr().out)["status"] == "dry_run"
     report = json.loads(output.read_text())
     complete = report["complete_evaluation"]
-    assert complete["valid"] and complete["status"] == "complete"
+    assert complete["valid"] and complete["status"] == "bounded_frozen_sample"
+    assert complete["bounded_frozen_sample"]
+    assert complete["limits"] == {
+        "complete_evaluation_max_batches": 16,
+        "complete_evaluation_batch_size": 8,
+        "teacher_forced_max_sequences": 128,
+        "structured_limit_per_split": 128,
+        "code_generation_limit": 64,
+        "max_new_tokens": 2,
+        "code_max_new_tokens": 3,
+    }
+    assert report["config"]["profile"]["complete_evaluation_max_batches"] == 16
+    assert report["execution"]["complete_evaluation_limits"] == complete["limits"]
     assert complete["child_processes"] == 0
     for name in (
         "teacher_forced_seconds", "structured_generation_seconds",
         "code_generation_seconds", "state_interventions_seconds",
     ):
         assert complete[name] > 0
+    teacher_report = complete["components"]["teacher_forced"]
+    assert teacher_report["status"] == "bounded_frozen_sample"
+    assert teacher_report["batches"] == 16 and teacher_report["sequences"] == 128
+    assert teacher_report["max_batches"] == teacher_report["complete_evaluation_max_batches"] == 16
+    assert teacher_report["max_sequences"] == 128
+    assert teacher_report["actual_shifted_loss_tokens"] == 1000
     structured_report = complete["components"]["structured_generation"]
-    assert structured_report["status"] == "projected_from_fixed_sample"
-    assert structured_report["seconds"] > structured_report["measured_seconds"]
+    assert structured_report["status"] == "bounded_frozen_sample"
+    assert structured_report["limit_per_split"] == structured_report["effective_limit_per_split"] == 128
+    assert structured_report["seconds"] == structured_report["measured_seconds"]
+    assert structured_report["seconds"] == structured_report["bounded_evaluation_seconds"]
+    assert structured_report["full_source_examples"] == 4 * 130
+    assert structured_report["evaluated_examples"] == 4 * 128
     for split in P.E.SPLIT_NAMES:
         values = structured_report["splits"][split]
-        assert values["examples"] == 2 and values["evaluated"] == 1
-        assert values["projected_complete_seconds"] == pytest.approx(2 * values["measured_seconds"])
+        assert values["full_source_examples"] == 130 and values["evaluated"] == 128
+        assert values["bounded_evaluation_seconds"] == values["measured_seconds"]
+        assert "projected_complete_seconds" not in values
     code = complete["components"]["code_generation"]
-    assert code["status"] == "projected_from_fixed_sample"
-    assert code["examples"] == 2 and code["evaluated"] == 1
-    assert code["seconds"] > code["measured_seconds"]
+    assert code["status"] == "bounded_frozen_sample"
+    assert code["limit"] == code["effective_limit"] == 64
+    assert code["full_source_examples"] == 65 and code["evaluated"] == 64
+    assert code["seconds"] == code["measured_seconds"] == code["bounded_evaluation_seconds"]
+    assert "projected_complete_generation_seconds" not in structured_report
+    assert "projected_complete_generation_seconds" not in code
     assert complete["components"]["state_interventions"]["valid"]
     assert "correct" not in structured_report and "exact_match" not in code
     assert len({id(model) for model in model_calls + [call[0] for call in generation_calls]}) == 1
@@ -402,6 +431,66 @@ def test_discovered_complete_inputs_are_measured_and_study_compatible(tmp_path, 
     arm = feasibility["arms"]["typed"]
     assert arm["complete_evaluation_seconds"] == pytest.approx(complete["total_seconds"])
     assert arm["reconstruction_seconds"] == pytest.approx(report["reconstruction"]["seconds"])
+
+
+def test_unlimited_complete_evaluation_requires_explicit_zero(tmp_path, monkeypatch):
+    data = write_packed(tmp_path / "data")
+    code_path = data / "code_generation.jsonl"
+    code_path.write_text("{}\n")
+    config = write_config(tmp_path / "config.json")
+    args = P.parser().parse_args(profile_argv(config, data, tmp_path / "unused.json", "dense"))
+    assert args.complete_evaluation_max_batches == 16
+    assert args.complete_evaluation_batch_size == 8
+    assert args.structured_limit_per_split == 128
+    assert args.code_generation_limit == 64
+    args.complete_evaluation_max_batches = 0
+    args.structured_limit_per_split = 0
+    args.code_generation_limit = 0
+    records = {
+        split: [
+            {"split": split, "example_id": f"{split}-{index}", "prompt": "p", "target_text": "r0=0 r1=0 r2=0 r3=0"}
+            for index in range(2)
+        ]
+        for split in P.E.SPLIT_NAMES
+    }
+    files = {
+        split: {"path": str(data / "structured" / f"{split}.jsonl"), "sha256": "a" * 64, "examples": 2}
+        for split in P.E.SPLIT_NAMES
+    }
+    limits = []
+
+    def teacher(model, dataset, **kwargs):
+        limits.append(kwargs["max_batches"])
+        return {"complete": True, "batches": 1, "sequences": 2, "overall": {"loss_tokens": 14}}
+
+    def generation(model, tokenizer, selected, **kwargs):
+        limits.append(kwargs["limit"])
+        return {"examples": len(selected), "evaluated": len(selected), "complete": True}
+
+    monkeypatch.setattr(P, "_synchronize", lambda device: None)
+    monkeypatch.setattr(P.E, "teacher_forced_evaluate", teacher)
+    monkeypatch.setattr(P.E, "load_structured_records", lambda path: (records, files))
+    monkeypatch.setattr(P.E, "_generation_metrics", generation)
+    monkeypatch.setattr(P.E, "structured_baseline_report", lambda selected: {})
+    monkeypatch.setattr(P.E, "_load_jsonl", lambda path: records["train"])
+    model = P.NativeModel(tiny_config())
+    _, teacher_report = P._complete_teacher_forced(
+        model, PackedDataset(data, "dev"), args, torch.device("cpu"), None
+    )
+    assert teacher_report["status"] == "complete" and teacher_report["source_complete"]
+    assert teacher_report["max_batches"] is None and teacher_report["max_sequences"] is None
+    structured_report, _ = P._structured_generation(
+        model, object(), data / "structured", args, None
+    )
+    code_report = P._code_generation(model, object(), code_path, args, None)
+    assert structured_report["status"] == "complete"
+    assert structured_report["bounded_evaluation_seconds"] is None
+    assert structured_report["seconds"] == structured_report["measured_seconds"]
+    assert structured_report["full_source_examples"] == structured_report["evaluated_examples"] == 8
+    assert code_report["status"] == "complete" and code_report["bounded_evaluation_seconds"] is None
+    assert code_report["full_source_examples"] == code_report["evaluated"] == 2
+    assert code_report["seconds"] == code_report["measured_seconds"]
+    assert limits == [None] * 6
 
 
 def test_profiling_losses_forward_padding_mask_when_api_supports_it(tmp_path, monkeypatch):

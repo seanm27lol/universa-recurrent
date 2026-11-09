@@ -419,21 +419,23 @@ def _complete_teacher_forced(model, dataset, args, device, reservation) -> tuple
     model.eval()
     _synchronize(device)
     transfer_seconds = time.perf_counter() - started
+    max_batches = args.complete_evaluation_max_batches or None
     _synchronize(cpu)
     started = time.perf_counter()
     measured = E.teacher_forced_evaluate(
         model,
         dataset,
         batch_size=args.complete_evaluation_batch_size,
-        max_batches=None,
+        max_batches=max_batches,
         device="cpu",
     )
     _synchronize(cpu)
     wall_seconds = time.perf_counter() - started
-    if not measured.get("complete"):
-        raise AssertionError("complete teacher-forced profiling did not consume the full dev split")
+    if measured["batches"] <= 0 or measured["overall"]["loss_tokens"] <= 0:
+        raise ValueError("teacher-forced evaluation produced no shifted loss tokens")
+    bounded = max_batches is not None and not measured["complete"]
     return transfer_seconds + wall_seconds, {
-        "status": "complete",
+        "status": "bounded_frozen_sample" if bounded else "complete",
         "valid": True,
         "device": "cpu",
         "model_reused_from_profiling": True,
@@ -441,8 +443,17 @@ def _complete_teacher_forced(model, dataset, args, device, reservation) -> tuple
         "measured_seconds": wall_seconds,
         "batches": measured["batches"],
         "sequences": measured["sequences"],
+        "evaluated_sequences": measured["sequences"],
+        "source_sequences": len(dataset),
+        "source_complete": bool(measured["complete"]),
         "actual_shifted_loss_tokens": measured["overall"]["loss_tokens"],
         "batch_size": args.complete_evaluation_batch_size,
+        "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
+        "max_batches": max_batches,
+        "max_sequences": (
+            args.complete_evaluation_max_batches * args.complete_evaluation_batch_size
+            if max_batches is not None else None
+        ),
     }
 
 
@@ -455,7 +466,6 @@ def _structured_generation(model, tokenizer, directory: Path, args, reservation)
     limit = args.structured_limit_per_split or None
     split_reports = {}
     sample_seconds = 0.0
-    projected_seconds = 0.0
     for split in E.SPLIT_NAMES:
         _check_reservation(reservation)
         _synchronize(cpu)
@@ -476,16 +486,18 @@ def _structured_generation(model, tokenizer, directory: Path, args, reservation)
         examples = int(measured["examples"])
         evaluated = int(measured["evaluated"])
         if examples <= 0 or evaluated <= 0:
-            raise ValueError(f"{split}: cannot project complete structured generation from an empty sample")
-        projected = elapsed * examples / evaluated
+            raise ValueError(f"{split}: cannot measure structured generation from an empty sample")
+        if limit is None and not measured["complete"]:
+            raise AssertionError(f"{split}: unlimited structured generation did not complete")
         sample_seconds += elapsed
-        projected_seconds += projected
         split_reports[split] = {
             "examples": examples,
+            "full_source_examples": examples,
             "evaluated": evaluated,
             "sample_complete": bool(measured["complete"]),
+            "status": "bounded_frozen_sample" if limit is not None else "complete",
             "measured_seconds": elapsed,
-            "projected_complete_seconds": projected,
+            "bounded_evaluation_seconds": elapsed if limit is not None else None,
             "file": files[split],
         }
     _check_reservation(reservation)
@@ -493,24 +505,26 @@ def _structured_generation(model, tokenizer, directory: Path, args, reservation)
     E.structured_baseline_report(records)
     baseline_seconds = time.perf_counter() - started
     fixed_seconds = loading_seconds + baseline_seconds
-    complete_seconds = fixed_seconds + projected_seconds
+    evaluation_seconds = fixed_seconds + sample_seconds
     return {
-        "status": "complete" if all(item["sample_complete"] for item in split_reports.values())
-                else "projected_from_fixed_sample",
+        "status": "bounded_frozen_sample" if limit is not None else "complete",
         "valid": True,
         "directory": str(directory.resolve()),
         "max_new_tokens": args.max_new_tokens,
         "eos_token_id": args.eos_token_id,
         "use_cache": True,
         "limit_per_split": args.structured_limit_per_split,
+        "effective_limit_per_split": limit,
+        "full_source_examples": sum(item["full_source_examples"] for item in split_reports.values()),
+        "evaluated_examples": sum(item["evaluated"] for item in split_reports.values()),
         "loading_seconds": loading_seconds,
         "baseline_seconds": baseline_seconds,
         "sample_generation_seconds": sample_seconds,
-        "measured_seconds": fixed_seconds + sample_seconds,
-        "projected_complete_generation_seconds": projected_seconds,
-        "seconds": complete_seconds,
+        "measured_seconds": evaluation_seconds,
+        "bounded_evaluation_seconds": evaluation_seconds if limit is not None else None,
+        "seconds": evaluation_seconds,
         "splits": split_reports,
-        "projection_rule": "per-split measured generation seconds times examples/evaluated, plus measured loading and baseline costs",
+        "cost_rule": "measured fixed loading/baseline cost plus measured evaluated-sample generation; no full-source scaling",
     }, records
 
 
@@ -520,7 +534,8 @@ def _code_generation(model, tokenizer, path: Path, args, reservation) -> dict:
     records = E._load_jsonl(path)
     loading_seconds = time.perf_counter() - started
     if not records:
-        raise ValueError(f"{path}: cannot project complete code generation from an empty input")
+        raise ValueError(f"{path}: cannot measure code generation from an empty input")
+    limit = args.code_generation_limit or None
     _synchronize(torch.device("cpu"))
     started = time.perf_counter()
     measured = E._generation_metrics(
@@ -531,7 +546,7 @@ def _code_generation(model, tokenizer, path: Path, args, reservation) -> dict:
         eos_token_id=args.eos_token_id,
         strict_registers=False,
         use_cache=True,
-        limit=args.code_generation_limit or None,
+        limit=limit,
         prompt_policy="keep_last",
     )
     _synchronize(torch.device("cpu"))
@@ -540,25 +555,29 @@ def _code_generation(model, tokenizer, path: Path, args, reservation) -> dict:
     evaluated = int(measured["evaluated"])
     if evaluated <= 0:
         raise ValueError(f"{path}: code-generation sample is empty")
-    projected = generation_seconds * examples / evaluated
+    if limit is None and not measured["complete"]:
+        raise AssertionError(f"{path}: unlimited code generation did not complete")
+    evaluation_seconds = loading_seconds + generation_seconds
     return {
-        "status": "complete" if measured["complete"] else "projected_from_fixed_sample",
+        "status": "bounded_frozen_sample" if limit is not None else "complete",
         "valid": True,
         "path": str(path.resolve()),
         "sha256": sha256_file(path),
         "examples": examples,
+        "full_source_examples": examples,
         "evaluated": evaluated,
         "sample_complete": bool(measured["complete"]),
         "max_new_tokens": args.code_max_new_tokens,
         "eos_token_id": args.eos_token_id,
         "use_cache": True,
         "limit": args.code_generation_limit,
+        "effective_limit": limit,
         "loading_seconds": loading_seconds,
         "sample_generation_seconds": generation_seconds,
-        "measured_seconds": loading_seconds + generation_seconds,
-        "projected_complete_generation_seconds": projected,
-        "seconds": loading_seconds + projected,
-        "projection_rule": "measured generation seconds times examples/evaluated, plus measured input-loading cost",
+        "measured_seconds": evaluation_seconds,
+        "bounded_evaluation_seconds": evaluation_seconds if limit is not None else None,
+        "seconds": evaluation_seconds,
+        "cost_rule": "measured input-loading cost plus measured evaluated-sample generation; no full-source scaling",
     }
 
 
@@ -627,12 +646,16 @@ def _complete_evaluation(model, datasets, inputs, args, device, reservation) -> 
         structured["tokenizer_loading_seconds"] = tokenizer_seconds
         structured["seconds"] += tokenizer_seconds
         structured["measured_seconds"] += tokenizer_seconds
+        if structured["bounded_evaluation_seconds"] is not None:
+            structured["bounded_evaluation_seconds"] += tokenizer_seconds
     if inputs["code"] is not None:
         code = _code_generation(model, tokenizer, inputs["code"], args, reservation)
         if inputs["structured"] is None:
             code["tokenizer_loading_seconds"] = tokenizer_seconds
             code["seconds"] += tokenizer_seconds
             code["measured_seconds"] += tokenizer_seconds
+            if code["bounded_evaluation_seconds"] is not None:
+                code["bounded_evaluation_seconds"] += tokenizer_seconds
     interventions = _state_interventions(
         model, tokenizer, structured_records, inputs["replay"], args, reservation
     )
@@ -649,15 +672,31 @@ def _complete_evaluation(model, datasets, inputs, args, device, reservation) -> 
         "state_interventions_seconds": interventions["seconds"],
     }
     valid = all(component.get("valid") is True for component in components.values())
+    bounded = any(component.get("status") == "bounded_frozen_sample" for component in components.values())
+    limits = {
+        "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
+        "complete_evaluation_batch_size": args.complete_evaluation_batch_size,
+        "teacher_forced_max_sequences": (
+            args.complete_evaluation_max_batches * args.complete_evaluation_batch_size
+            if args.complete_evaluation_max_batches else None
+        ),
+        "structured_limit_per_split": args.structured_limit_per_split,
+        "code_generation_limit": args.code_generation_limit,
+        "max_new_tokens": args.max_new_tokens,
+        "code_max_new_tokens": args.code_max_new_tokens,
+    }
     return {
         **seconds,
         "total_seconds": math.fsum(seconds.values()),
-        "status": "complete" if valid else "incomplete",
+        "status": "bounded_frozen_sample" if valid and bounded else ("complete" if valid else "incomplete"),
         "valid": valid,
+        "bounded_frozen_sample": bounded,
+        "limits": limits,
+        "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
         "components": components,
         "device": "cpu",
         "child_processes": 0,
-        "accounting": "final checkpoint evaluation, disjoint from training-dev passes and setup.fixed_seconds",
+        "accounting": "bounded frozen-sample or explicitly unlimited final evaluation, disjoint from training-dev passes and setup.fixed_seconds",
     }
 
 
@@ -839,7 +878,10 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("evaluation_batches must be nonnegative; zero evaluates the full dev split")
     if args.complete_evaluation_batch_size <= 0:
         raise ValueError("complete_evaluation_batch_size must be positive")
-    for name in ("structured_limit_per_split", "code_generation_limit", "max_new_tokens", "code_max_new_tokens"):
+    for name in (
+        "complete_evaluation_max_batches", "structured_limit_per_split", "code_generation_limit",
+        "max_new_tokens", "code_max_new_tokens",
+    ):
         value = getattr(args, name)
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             raise ValueError(f"{name} must be a nonnegative integer; zero disables the sample limit where applicable")
@@ -926,6 +968,7 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "compile_mode": args.compile_mode if args.execution == "compile" else None,
             "dry_run": args.dry_run,
             "complete_evaluation_batch_size": args.complete_evaluation_batch_size,
+            "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
             "structured_limit_per_split": args.structured_limit_per_split,
             "code_generation_limit": args.code_generation_limit,
             "max_new_tokens": args.max_new_tokens,
@@ -969,6 +1012,18 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "compile_mode": run_config["profile"]["compile_mode"],
             "parameters_dtype": "float32",
             "autocast": dtype_name if device.type == "cuda" and dtype != torch.float32 else None,
+            "complete_evaluation_limits": {
+                "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
+                "complete_evaluation_batch_size": args.complete_evaluation_batch_size,
+                "teacher_forced_max_sequences": (
+                    args.complete_evaluation_max_batches * args.complete_evaluation_batch_size
+                    if args.complete_evaluation_max_batches else None
+                ),
+                "structured_limit_per_split": args.structured_limit_per_split,
+                "code_generation_limit": args.code_generation_limit,
+                "max_new_tokens": args.max_new_tokens,
+                "code_max_new_tokens": args.code_max_new_tokens,
+            },
         },
     })
     report["setup"] = {"data_preparation_seconds": time.perf_counter() - preparation_started}
@@ -1395,15 +1450,17 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--evaluation-batches", type=int, default=1, help="0 evaluates the complete dev split")
     result.add_argument("--evaluation-batch-size", type=int, default=None)
     result.add_argument("--complete-evaluation-batch-size", type=int, default=8)
+    result.add_argument("--complete-evaluation-max-batches", type=int, default=16,
+                        help="frozen teacher-forced batch cap; 0 explicitly requests the full dev split")
     result.add_argument("--structured", "--structured-directory", dest="structured", default=None,
                         help="four-split structured JSONL directory; defaults to DATA/structured when present")
     result.add_argument("--code-generation", default=None,
                         help="code-suffix JSONL; defaults to DATA/code_generation.jsonl when present")
     result.add_argument("--tokenizer", default=None, help="hash-pinned tokenizer.json required by generation inputs")
-    result.add_argument("--structured-limit-per-split", type=int, default=1,
-                        help="fixed first-N generation sample per split; 0 measures every record")
-    result.add_argument("--code-generation-limit", type=int, default=1,
-                        help="fixed first-N code-suffix sample; 0 measures every record")
+    result.add_argument("--structured-limit-per-split", type=int, default=128,
+                        help="frozen first-N generation sample per split; 0 explicitly measures every record")
+    result.add_argument("--code-generation-limit", type=int, default=64,
+                        help="frozen first-N code-suffix sample; 0 explicitly measures every record")
     result.add_argument("--max-new-tokens", type=int, default=48)
     result.add_argument("--code-max-new-tokens", type=int, default=128)
     result.add_argument("--eos-token-id", type=int, default=50256)

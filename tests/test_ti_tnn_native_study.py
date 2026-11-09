@@ -13,6 +13,7 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "research" / "ti_tnn"))
+from native import evaluate as E  # noqa: E402
 from native import ledger as native_ledger  # noqa: E402
 from native import study as S  # noqa: E402
 from native.config import MODES  # noqa: E402
@@ -34,9 +35,9 @@ def clean_snapshot(repository):
     return {"clean": True, "commit": COMMIT, "tracked_files": tracked}
 
 
-def write_packed(root: Path) -> Path:
+def write_packed(root: Path, *, dev_rows=2) -> Path:
     context = 8
-    for split, rows in (("train", 4), ("dev", 2)):
+    for split, rows in (("train", 4), ("dev", dev_rows)):
         directory = root / split
         directory.mkdir(parents=True)
         arrays = {
@@ -94,6 +95,21 @@ def write_packed(root: Path) -> Path:
     return root
 
 
+def expand_generation_population(data: Path, *, structured_count: int, code_count: int):
+    for split in S.STRUCTURED_SPLITS:
+        path = data / "structured" / f"{split}.jsonl"
+        first = json.loads(path.read_text().splitlines()[0])
+        records = []
+        for index in range(structured_count):
+            records.append({**first, "example_id": f"{split}-{index}"})
+        path.write_text("".join(json.dumps(record) + "\n" for record in records))
+    path = data / "code_generation.jsonl"
+    first = json.loads(path.read_text().splitlines()[0])
+    path.write_text("".join(
+        json.dumps({**first, "example_id": f"code-{index}"}) + "\n" for index in range(code_count)
+    ))
+
+
 def write_replay(path: Path) -> Path:
     values = {
         "format": REPLAY_FORMAT,
@@ -119,6 +135,13 @@ def write_replay(path: Path) -> Path:
 def measured_profile(mode: str, *, throughput: float = 1000.0) -> dict:
     return {
         "mode": mode,
+        "execution": {
+            "batch_size": 8,
+            "evaluation_batch_size": 8,
+            "dev_batches": 16,
+            "limit_per_split": 128,
+            "code_limit": 64,
+        },
         "measured": {
             "training": {
                 "fixed_seconds": 1.0,
@@ -169,7 +192,7 @@ def fixture(tmp_path):
     }
 
 
-def freeze(fixture, output: Path, *, available=12.0, provisional=100, snapshot=clean_snapshot):
+def freeze(fixture, output: Path, *, available=12.0, provisional=100, snapshot=clean_snapshot, evaluation=None):
     return S.freeze_study(
         output,
         data=fixture["data"],
@@ -183,7 +206,8 @@ def freeze(fixture, output: Path, *, available=12.0, provisional=100, snapshot=c
         ledger_path=fixture["ledger"],
         ledger_lock=fixture["lock"],
         provisional_loss_tokens=provisional,
-        train_hyperparameters={"batch_size": 2, "checkpoint_every": 2, "dev_every": 2},
+        train_hyperparameters={"checkpoint_every": 2, "dev_every": 2},
+        evaluation=evaluation,
         git_snapshot_fn=snapshot,
     )
 
@@ -270,6 +294,11 @@ def fake_train(protocol, mode: str, output: Path, reservation: str) -> dict:
                 "step": step,
                 "consumed_loss_tokens": consumed,
                 "loss_tokens": protocol["data"]["dev_loss_tokens"],
+                "batches": min(
+                    protocol["train"]["dev_batches"],
+                    (protocol["data"]["dev_source_sequences"] + protocol["train"]["batch_size"] - 1)
+                    // protocol["train"]["batch_size"],
+                ),
                 "language_loss": 8.0 / step,
                 "route_usage": [{"pass": index, "decisions": 2} for index in range(4)]
                 if mode in ("untyped", "typed") else [],
@@ -338,10 +367,13 @@ def generation_report(frozen, *, partial=False):
         "target_text": "fake target",
         "correct": False,
     } for sample in frozen["samples"]]
+    if partial:
+        records = records[:-1]
+    source_complete = len(frozen["samples"]) == frozen["source_examples"] and not partial
     return {
-        "status": "partial" if partial else "complete",
-        "complete": not partial,
-        "examples": len(records),
+        "status": "complete" if source_complete else "partial",
+        "complete": source_complete,
+        "examples": frozen["source_examples"],
         "evaluated": len(records),
         "correct": 0,
         "exact_match": 0.0,
@@ -354,7 +386,9 @@ def fake_evaluation(protocol, mode: str, checkpoint, output: Path, *, partial=Fa
     structured = {"files": {}, "splits": {}, "baselines": {"boundary": "fake baseline"}}
     for split in S.STRUCTURED_SPLITS:
         frozen = protocol["evaluation"]["samples"]["structured"][split]
-        structured["files"][split] = {"path": frozen["path"], "sha256": frozen["sha256"]}
+        structured["files"][split] = {
+            "path": frozen["path"], "sha256": frozen["sha256"], "examples": frozen["source_examples"]
+        }
         structured["splits"][split] = generation_report(frozen, partial=partial and split == "dev")
     code_frozen = protocol["evaluation"]["samples"]["code"]
     code = generation_report(code_frozen)
@@ -367,7 +401,12 @@ def fake_evaluation(protocol, mode: str, checkpoint, output: Path, *, partial=Fa
         "format": "native-evaluation-v1",
         "checkpoint": {"path": checkpoint["path"], "sha256": checkpoint["sha256"], "config": {}},
         "teacher_forced": {
-            "complete": True,
+            "complete": len(protocol["data"]["dev_sequences"]) == protocol["data"]["dev_source_sequences"],
+            "batches": min(
+                protocol["evaluation"]["dev_batches"],
+                (protocol["data"]["dev_source_sequences"] + protocol["evaluation"]["batch_size"] - 1)
+                // protocol["evaluation"]["batch_size"],
+            ),
             "sequences": len(protocol["data"]["dev_sequences"]),
             "overall": {"loss": 3.0, "loss_tokens": protocol["data"]["dev_loss_tokens"]},
             "sources": {
@@ -519,10 +558,17 @@ def test_freeze_precedes_run_and_complete_summary_has_all_required_evidence(fixt
     assert protocol["budget"]["actual_loss_tokens"] >= protocol["budget"]["requested_loss_tokens"]
     assert protocol["budget"]["actual_loss_tokens"] == protocol["feasibility"]["provisional_plan"]["actual_loss_tokens"]
     assert len(protocol["data"]["dev_sequences"]) == 2
+    assert protocol["data"]["dev_population"] == "bounded_frozen_sample"
+    assert protocol["train"]["dev_batches"] == 16
+    assert protocol["evaluation"]["dev_batches"] == 16
+    assert protocol["evaluation"]["limit_per_split"] == 128
+    assert protocol["evaluation"]["code_limit"] == 64
     assert all(len(values["samples"]) == 1 for values in protocol["evaluation"]["samples"]["structured"].values())
     assert protocol["evaluation"]["samples"]["code"]["samples"][0]["example_id"] == "code-0"
-    assert protocol["evaluation"]["scoring_rules"]["structured"]["limit_per_split"] is None
-    assert protocol["evaluation"]["scoring_rules"]["code"]["limit"] is None
+    assert protocol["evaluation"]["scoring_rules"]["population"] == "bounded_frozen_sample"
+    assert protocol["evaluation"]["scoring_rules"]["structured"]["limit_per_split"] == 128
+    assert protocol["evaluation"]["scoring_rules"]["code"]["limit"] == 64
+    assert not protocol["evaluation"]["full_corpus_evaluation"]
     assert [protocol["configs"][mode]["model"]["mode"] for mode in MODES] == list(MODES)
 
     status, fake = run(tmp_path / "study", protocol)
@@ -534,6 +580,14 @@ def test_freeze_precedes_run_and_complete_summary_has_all_required_evidence(fixt
     assert not fixture["lock"].exists()
     summary = json.loads((tmp_path / "study" / "summary.json").read_text())
     assert summary["status"] == "complete"
+    assert summary["evaluation_population"] == "bounded_frozen_sample"
+    assert not summary["full_corpus_evaluation"]
+    assert summary["evaluation_limits"] == {
+        "dev_batches": 16,
+        "evaluation_batch_size": 8,
+        "structured_limit_per_split": 128,
+        "code_limit": 64,
+    }
     assert set(summary["arms"]) == set(MODES)
     assert summary["equal_actual_loss_tokens_per_arm"] == protocol["budget"]["actual_loss_tokens"]
     for mode, arm in summary["arms"].items():
@@ -559,8 +613,11 @@ def test_freeze_precedes_run_and_complete_summary_has_all_required_evidence(fixt
     )
     train_stage = json.loads((tmp_path / "study" / "arms" / "typed" / "stage-evaluate.json").read_text())
     assert train_stage["exact_native_command"][2] == "native.evaluate"
-    assert "--limit-per-split" not in train_stage["exact_native_command"]
-    assert "--max-batches" not in train_stage["exact_native_command"]
+    evaluate_arguments = arguments(train_stage["exact_native_command"])
+    assert evaluate_arguments["--max-batches"] == "16"
+    assert evaluate_arguments["--limit-per-split"] == "128"
+    assert evaluate_arguments["--code-limit"] == "64"
+    assert arguments(fake.calls[0])["--dev-batches"] == "16"
     reconstruct = json.loads((tmp_path / "study" / "arms" / "typed" / "stage-reconstruct.json").read_text())
     assert reconstruct["exact_native_command"][2] == "native.reconstruct"
 
@@ -639,7 +696,7 @@ def test_partial_frozen_generation_is_refused(fixture, tmp_path):
     status, fake = run(tmp_path / "study", protocol, fake)
     assert status == 3
     assert len(fake.calls) == 2
-    assert "generation is not complete" in json.loads(
+    assert "did not evaluate every selected example" in json.loads(
         (tmp_path / "study" / "arms" / "dense" / "status.json").read_text()
     )["error"]
     assert S.summarize_study(tmp_path / "study", git_snapshot_fn=clean_snapshot)["status"] == "incomplete"
@@ -702,12 +759,16 @@ def test_native_profile_projection_scales_complete_dev_and_checkpoint_counts():
         "evaluation": {"actual_shifted_loss_tokens": 200, "wall_seconds": 4.0},
         "checkpoint": {"wall_seconds": 2.0, "bytes": 1024},
         "complete_evaluation": {
+            "valid": True,
             "teacher_forced_seconds": 8.0,
             "structured_generation_seconds": 6.0,
-            "code_generation_seconds": 3.0,
+            "code_generation_seconds": 999.0,
             "state_interventions_seconds": 1.0,
+            "components": {
+                "code_generation": {"measured_seconds": 3.0},
+            },
         },
-        "reconstruction": {"seconds": 2.0},
+        "reconstruction": {"valid": True, "seconds": 2.0},
     }
     profile = {"mode": "dense", "projection": S._profile_projection(raw)}
     projection = S.project_arm(
@@ -726,3 +787,160 @@ def test_native_profile_projection_scales_complete_dev_and_checkpoint_counts():
     raw["dry_run"] = True
     with pytest.raises(S.StudyError, match="cache-validated CUDA"):
         S._profile_projection(raw)
+
+
+
+def test_default_bounded_populations_freeze_exact_identities_and_reduced_dev_tokens(fixture, tmp_path):
+    data = write_packed(tmp_path / "large-data", dev_rows=130)
+    expand_generation_population(data, structured_count=130, code_count=65)
+    fixture["data"] = data
+    protocol = freeze(fixture, tmp_path / "study")["protocol"]
+
+    assert len(protocol["data"]["dev_sequences"]) == 128
+    assert protocol["data"]["dev_sequences"][0]["index"] == 0
+    assert protocol["data"]["dev_sequences"][-1]["index"] == 127
+    assert protocol["data"]["dev_source_sequences"] == 130
+    labels = np.load(data / "dev" / "labels.npy")
+    expected_tokens = int(np.count_nonzero(labels[:128, 1:] != IGNORE_INDEX))
+    full_source_tokens = int(np.count_nonzero(labels[:, 1:] != IGNORE_INDEX))
+    assert protocol["data"]["dev_loss_tokens"] == expected_tokens < full_source_tokens
+    assert protocol["evaluation"]["scoring_rules"]["teacher_forced"]["selected_dev_loss_tokens"] == expected_tokens
+    for split in S.STRUCTURED_SPLITS:
+        frozen = protocol["evaluation"]["samples"]["structured"][split]
+        assert frozen["population"] == "bounded_frozen_sample"
+        assert frozen["source_examples"] == 130
+        assert len(frozen["samples"]) == 128
+        assert frozen["samples"][0]["example_id"] == f"{split}-0"
+        assert frozen["samples"][-1]["example_id"] == f"{split}-127"
+        assert all(sample["example_id"] != f"{split}-128" for sample in frozen["samples"])
+    code = protocol["evaluation"]["samples"]["code"]
+    assert code["source_examples"] == 65
+    assert len(code["samples"]) == 64
+    assert code["samples"][-1]["example_id"] == "code-63"
+
+    checkpoint = {"path": "unused.pt", "sha256": "0" * 64}
+    evaluate_arguments = arguments(S._evaluate_command(protocol, checkpoint, tmp_path / "evaluation.json"))
+    assert evaluate_arguments["--batch-size"] == "8"
+    assert evaluate_arguments["--max-batches"] == "16"
+    assert evaluate_arguments["--limit-per-split"] == "128"
+    assert evaluate_arguments["--code-limit"] == "64"
+    train_arguments = arguments(S._train_command(protocol, "dense", tmp_path / "train"))
+    assert train_arguments["--dev-batches"] == "16"
+
+
+def test_bounded_partial_generation_is_accepted_without_full_source_claim(fixture, tmp_path):
+    expand_generation_population(fixture["data"], structured_count=2, code_count=2)
+    for path in fixture["profiles"]:
+        profile = json.loads(path.read_text())
+        profile["execution"]["limit_per_split"] = 1
+        profile["execution"]["code_limit"] = 1
+        path.write_text(json.dumps(profile))
+    protocol = freeze(
+        fixture,
+        tmp_path / "study",
+        evaluation={"limit_per_split": 1, "code_limit": 1},
+    )["protocol"]
+    status, _ = run(tmp_path / "study", protocol)
+    assert status == 0
+    summary = json.loads((tmp_path / "study" / "summary.json").read_text())
+    assert summary["evaluation_population"] == "bounded_frozen_sample"
+    assert not summary["full_corpus_evaluation"]
+    for arm in summary["arms"].values():
+        for split in S.STRUCTURED_SPLITS:
+            report = arm["generation"]["structured"]["splits"][split]
+            assert report["examples"] == 2
+            assert report["evaluated"] == 1
+            assert report["complete"] is False
+            assert report["status"] == "partial"
+            assert len(report["records"]) == 1
+        code = arm["generation"]["code"]
+        assert code["examples"] == 2 and code["evaluated"] == 1
+        assert code["complete"] is False and code["status"] == "partial"
+
+
+def test_profile_execution_limit_mismatch_is_refused_before_run(fixture, tmp_path):
+    path = fixture["profiles"][0]
+    profile = json.loads(path.read_text())
+    profile["execution"]["code_limit"] = 63
+    path.write_text(json.dumps(profile))
+    with pytest.raises(S.StudyError, match="execution limit code_limit"):
+        freeze(fixture, tmp_path / "study")
+    assert not (tmp_path / "study" / "protocol.json").exists()
+
+
+def test_evaluator_code_limit_is_independent_and_forwarded(tmp_path, monkeypatch, capsys):
+    code = tmp_path / "code_generation.jsonl"
+    code.write_text(json.dumps({"example_id": "code-0", "prompt": "p", "target_text": "t"}) + "\n")
+    output = tmp_path / "evaluation.json"
+    monkeypatch.setattr(E, "load_native_model", lambda *args, **kwargs: (
+        object(), {"sha256": "fake", "step": 0, "config": {}}
+    ))
+    monkeypatch.setattr(E, "checkpoint_model_dtype", lambda payload: "torch.float32")
+    monkeypatch.setattr(E, "load_gpt2_tokenizer", lambda path: object())
+    seen = {}
+
+    def fake_code_generation(model, tokenizer, path, **kwargs):
+        seen.update(kwargs)
+        return {"status": "partial", "complete": False}
+
+    monkeypatch.setattr(E, "evaluate_code_generation", fake_code_generation)
+    status = E.main([
+        "--checkpoint", str(tmp_path / "checkpoint.pt"),
+        "--code-generation", str(code),
+        "--tokenizer", str(tmp_path / "tokenizer.json"),
+        "--output", str(output),
+        "--limit-per-split", "128",
+        "--code-limit", "64",
+    ])
+    assert status == 0
+    assert seen["limit"] == 64
+    assert json.loads(capsys.readouterr().out)["code_generation"] == "partial"
+    assert json.loads(output.read_text())["code_generation"]["status"] == "partial"
+
+
+
+def test_native_profile_complete_evaluation_limit_mismatch_is_refused(fixture):
+    engineering = json.loads(fixture["engineering"].read_text())
+    recipe = {
+        name: (list(S.DEFAULT_TRAIN[name]) if name == "betas" else S.DEFAULT_TRAIN[name])
+        for name in (
+            "batch_size", "learning_rate", "weight_decay", "betas", "eps", "grad_clip",
+            "lambda_balance", "lambda_route", "lambda_state",
+        )
+    }
+    recipe.update({
+        "evaluation_batches": 16,
+        "evaluation_batch_size": 8,
+        "requested_dtype": "bfloat16",
+    })
+    raw = {
+        "format": "native-profile-v1",
+        "config": {
+            "sha256": hashlib.sha256(fixture["engineering"].read_bytes()).hexdigest(),
+            "model": {**engineering["model"], "mode": "dense"},
+            "profile": recipe,
+        },
+        "execution": {"mode": "eager"},
+        "complete_evaluation": {
+            "components": {
+                "teacher_forced": {
+                    "batch_size": 8,
+                    "complete_evaluation_max_batches": 16,
+                    "max_batches": 16,
+                },
+                "structured_generation": {
+                    "limit_per_split": 128,
+                    "effective_limit_per_split": 128,
+                },
+                "code_generation": {"limit": 63},
+            },
+        },
+    }
+    with pytest.raises(S.StudyError, match="profile code limit"):
+        S._validate_native_profile_bindings(
+            {"dense": {"measured": raw}},
+            fixture["engineering"],
+            fixture["data"],
+            S.DEFAULT_TRAIN,
+            S.DEFAULT_EVALUATION,
+        )

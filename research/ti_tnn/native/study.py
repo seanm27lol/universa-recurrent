@@ -55,10 +55,13 @@ DEFAULT_TRAIN = {
     "final_lr_fraction": 0.1,
     "checkpoint_every": 100,
     "dev_every": 100,
-    "dev_batches": 0,
+    "dev_batches": 16,
 }
 DEFAULT_EVALUATION = {
     "batch_size": 8,
+    "dev_batches": 16,
+    "limit_per_split": 128,
+    "code_limit": 64,
     "max_new_tokens": 48,
     "code_max_new_tokens": 128,
     "eos_token_id": 50256,
@@ -227,12 +230,10 @@ def _validate_train_hyperparameters(overrides: Mapping | None) -> dict:
     if unknown:
         raise StudyError(f"unknown fixed training hyperparameters: {sorted(unknown)}")
     result = {**DEFAULT_TRAIN, **dict(overrides or {})}
-    for name in ("batch_size", "checkpoint_every", "dev_every"):
+    for name in ("batch_size", "checkpoint_every", "dev_every", "dev_batches"):
         value = result[name]
         if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
             raise StudyError(f"{name} must be a positive integer")
-    if result["dev_batches"] != 0:
-        raise StudyError("dev_batches must remain zero so every frozen dev sequence is scored")
     if len(result["betas"]) != 2:
         raise StudyError("betas must contain exactly two values")
     for key, value in result.items():
@@ -244,11 +245,13 @@ def _validate_train_hyperparameters(overrides: Mapping | None) -> dict:
 class PreparedData:
     """Memory-mapped prepared inputs and exact sampler-prefix planning on CPU."""
 
-    def __init__(self, root: Path, *, batch_size: int, data_seed: int) -> None:
+    def __init__(self, root: Path, *, batch_size: int, data_seed: int, dev_sequence_limit: int) -> None:
         from .data import ARRAY_NAMES, PackedDataset
         from .sampler import identity_hash
         from .train import make_sampler
 
+        if isinstance(dev_sequence_limit, bool) or not isinstance(dev_sequence_limit, int) or dev_sequence_limit <= 0:
+            raise StudyError("dev_sequence_limit must be a positive integer")
         self.root = Path(root).resolve()
         self.batch_size = batch_size
         self.data_seed = data_seed
@@ -261,15 +264,17 @@ class PreparedData:
         self.train_data_identity = template.data_identity
         self.dev_data_identity = dev_template.data_identity
         self.order_identity = template.order_identity
+        self.dev_source_sequences = len(self.dev)
+        selected = min(self.dev_source_sequences, dev_sequence_limit)
         self.dev_sequences = []
-        for index in range(len(self.dev)):
+        for index in range(selected):
             row = {name: self.dev.arrays[name][index] for name in ARRAY_NAMES}
             self.dev_sequences.append({"index": index, "sha256": identity_hash(row)})
         self.dev_loss_tokens = sum(
-            int((self.dev.arrays["labels"][index][1:] != -100).sum()) for index in range(len(self.dev))
+            int((self.dev.arrays["labels"][index][1:] != -100).sum()) for index in range(selected)
         )
         if not self.dev_sequences or self.dev_loss_tokens <= 0:
-            raise StudyError("the frozen dev split has no shifted loss targets")
+            raise StudyError("the bounded frozen dev sample has no shifted loss targets")
 
     def _record(self, sampler, digest: hashlib.sha256, requested: int) -> dict:
         return {
@@ -315,41 +320,62 @@ def _jsonl(path: Path) -> list[dict]:
     return records
 
 
-def _sample_identities(path: Path) -> list[dict]:
+def _sample_identities(path: Path, *, limit: int) -> tuple[list[dict], int]:
+    if isinstance(limit, bool) or not isinstance(limit, int) or limit <= 0:
+        raise StudyError("frozen generation limits must be positive integers")
     result = []
     seen = set()
+    source_examples = 0
     for index, record in enumerate(_jsonl(path)):
+        source_examples += 1
         for field in ("example_id", "prompt", "target_text"):
             if not isinstance(record.get(field), str):
                 raise StudyError(f"{path}: every sample needs string {field}")
         if record["example_id"] in seen:
             raise StudyError(f"{path}: duplicate example_id {record['example_id']!r}")
         seen.add(record["example_id"])
-        result.append({
-            "index": index,
-            "example_id": record["example_id"],
-            "record_sha256": _identity(record),
-            "prompt_sha256": hashlib.sha256(record["prompt"].encode()).hexdigest(),
-            "target_text_sha256": hashlib.sha256(record["target_text"].encode()).hexdigest(),
-        })
-    return result
+        if index < limit:
+            result.append({
+                "index": index,
+                "example_id": record["example_id"],
+                "record_sha256": _identity(record),
+                "prompt_sha256": hashlib.sha256(record["prompt"].encode()).hexdigest(),
+                "target_text_sha256": hashlib.sha256(record["target_text"].encode()).hexdigest(),
+            })
+    return result, source_examples
 
 
-def _freeze_generation(data: Path) -> dict:
+def _freeze_generation(data: Path, *, structured_limit: int, code_limit: int) -> dict:
+    from .evaluate import load_structured_records
+
+    load_structured_records(data / "structured")
     structured = {}
     for split in STRUCTURED_SPLITS:
         path = data / "structured" / f"{split}.jsonl"
-        samples = _sample_identities(path)
+        samples, source_examples = _sample_identities(path, limit=structured_limit)
         if not samples:
-            raise StudyError(f"{path}: a complete generation split cannot be empty")
-        structured[split] = {**_descriptor(path), "samples": samples}
+            raise StudyError(f"{path}: the bounded frozen generation sample is empty")
+        structured[split] = {
+            **_descriptor(path),
+            "population": "bounded_frozen_sample",
+            "selection": f"first {structured_limit} records in saved JSONL order",
+            "source_examples": source_examples,
+            "samples": samples,
+        }
     code_path = data / "code_generation.jsonl"
-    code_samples = _sample_identities(code_path)
+    code_samples, code_source_examples = _sample_identities(code_path, limit=code_limit)
     if not code_samples:
-        raise StudyError(f"{code_path}: complete code generation cannot be empty")
+        raise StudyError(f"{code_path}: the bounded frozen code sample is empty")
     return {
+        "population": "bounded_frozen_sample",
         "structured": structured,
-        "code": {**_descriptor(code_path), "samples": code_samples},
+        "code": {
+            **_descriptor(code_path),
+            "population": "bounded_frozen_sample",
+            "selection": f"first {code_limit} records in saved JSONL order",
+            "source_examples": code_source_examples,
+            "samples": code_samples,
+        },
     }
 
 
@@ -406,6 +432,9 @@ def _profile_projection(raw: Mapping) -> dict:
                 "native-profile-v1 needs complete_evaluation projections for structured/code generation and state interventions"
             )
         reconstruction = raw.get("reconstruction", {})
+        if not complete.get("valid") or not reconstruction.get("valid"):
+            raise StudyError("complete evaluation and reconstruction must be valid for projection")
+        code = complete.get("components", {}).get("code_generation", {})
         return {
             "train_fixed_seconds": _number(raw["setup"], "fixed_seconds"),
             "loss_tokens_per_second": measured_tokens / measured_seconds,
@@ -415,10 +444,13 @@ def _profile_projection(raw: Mapping) -> dict:
             "seconds_per_dev_token": measured_dev_seconds / measured_dev_tokens,
             "measured_dev_tokens": measured_dev_tokens,
             "evaluation": {
-                name: _number(complete, f"{name}_seconds")
-                for name in ("teacher_forced", "structured_generation", "code_generation", "state_interventions")
+                "teacher_forced": _number(complete, "teacher_forced_seconds"),
+                "structured_generation": _number(complete, "structured_generation_seconds"),
+                "code_generation": _number(code, "measured_seconds"),
+                "state_interventions": _number(complete, "state_interventions_seconds"),
             },
             "reconstruction_seconds": _number(reconstruction, "seconds"),
+            "code_projection": "bounded measured_seconds only; full-source extrapolation is never used",
             "source_format": "native-profile-v1",
         }
     measured = raw.get("measured", raw)
@@ -484,6 +516,7 @@ def _profile_provenance(raw: Mapping) -> dict:
     reconstruction = measured.get("reconstruction", {})
     return {
         "mode": raw.get("mode"),
+        "execution": dict(raw.get("execution", {})),
         "measured": {
             "training": {
                 key: training[key]
@@ -563,6 +596,7 @@ def _validate_native_profile_bindings(
     engineering_config: Path,
     data: Path,
     train: Mapping,
+    evaluation: Mapping,
 ) -> None:
     from .data import ARRAY_NAMES as ARRAY_NAMES_FOR_STUDY
 
@@ -576,6 +610,17 @@ def _validate_native_profile_bindings(
     for mode, profile in profiles.items():
         raw = profile["measured"]
         if raw.get("format") != "native-profile-v1":
+            execution = raw.get("execution", {})
+            expected_limits = {
+                "batch_size": train["batch_size"],
+                "evaluation_batch_size": evaluation["batch_size"],
+                "dev_batches": evaluation["dev_batches"],
+                "limit_per_split": evaluation["limit_per_split"],
+                "code_limit": evaluation["code_limit"],
+            }
+            for name, wanted in expected_limits.items():
+                if execution.get(name) != wanted:
+                    raise StudyError(f"{mode} profile execution limit {name} does not match the frozen protocol")
             continue
         config = raw.get("config", {})
         if config.get("sha256") != expected_config_sha256:
@@ -587,8 +632,24 @@ def _validate_native_profile_bindings(
             wanted = list(train[name]) if name == "betas" else train[name]
             if recipe.get(name) != wanted:
                 raise StudyError(f"{mode} engineering profile changed training recipe field {name}")
+        if recipe.get("evaluation_batches") != train["dev_batches"] \
+                or recipe.get("evaluation_batch_size") != train["batch_size"]:
+            raise StudyError(f"{mode} profile training-dev execution limits do not match the frozen protocol")
         if recipe.get("requested_dtype") != "bfloat16" or raw.get("execution", {}).get("mode") != "eager":
             raise StudyError(f"{mode} profile must match eager bfloat16 native.train autocast")
+        components = raw.get("complete_evaluation", {}).get("components", {})
+        teacher = components.get("teacher_forced", {})
+        structured = components.get("structured_generation", {})
+        code = components.get("code_generation", {})
+        if teacher.get("batch_size") != evaluation["batch_size"] \
+                or teacher.get("complete_evaluation_max_batches") != evaluation["dev_batches"] \
+                or teacher.get("max_batches") != evaluation["dev_batches"]:
+            raise StudyError(f"{mode} profile complete teacher-forced limits do not match the frozen protocol")
+        if structured.get("limit_per_split") != evaluation["limit_per_split"] \
+                or structured.get("effective_limit_per_split") != evaluation["limit_per_split"]:
+            raise StudyError(f"{mode} profile structured limit does not match the frozen protocol")
+        if code.get("limit") != evaluation["code_limit"]:
+            raise StudyError(f"{mode} profile code limit does not match the frozen protocol")
         measured_data = raw.get("data", {})
         if measured_data.get("manifest_sha256") != expected_manifest_sha256:
             raise StudyError(f"{mode} engineering profile used a different prepared manifest")
@@ -748,11 +809,22 @@ def freeze_study(
     evaluation_rules = {**DEFAULT_EVALUATION, **dict(evaluation or {})}
     if set(evaluation_rules) != set(DEFAULT_EVALUATION):
         raise StudyError("unknown evaluation scoring rule")
+    for name in ("batch_size", "dev_batches", "limit_per_split", "code_limit"):
+        value = evaluation_rules[name]
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise StudyError(f"evaluation {name} must be a positive integer")
+    if train["dev_batches"] != evaluation_rules["dev_batches"] \
+            or train["batch_size"] != evaluation_rules["batch_size"]:
+        raise StudyError("train and external evaluation must share the frozen dev batch size and batch limit")
     binding, code_descriptors = _repository_binding(repository, git_snapshot_fn)
     data_descriptors = _data_files(data)
     tokenizer_descriptor = _descriptor(tokenizer, name="tokenizer.json")
     replay = _freeze_replay(Path(replay_spec).resolve())
-    generation = _freeze_generation(data)
+    generation = _freeze_generation(
+        data,
+        structured_limit=evaluation_rules["limit_per_split"],
+        code_limit=evaluation_rules["code_limit"],
+    )
     profiles, profile_descriptors = _load_profiles([Path(path) for path in engineering_profiles])
     engineering_raw = _read_json(engineering_config)
     serious_raw = _read_json(serious_config)
@@ -765,8 +837,13 @@ def freeze_study(
         _descriptor(engineering_config, name="engineering.json"),
         _descriptor(serious_config, name="serious.json"),
     ]
-    prepared = PreparedData(data, batch_size=train["batch_size"], data_seed=development_seed)
-    _validate_native_profile_bindings(profiles, engineering_config, data, train)
+    prepared = PreparedData(
+        data,
+        batch_size=train["batch_size"],
+        data_seed=development_seed,
+        dev_sequence_limit=evaluation_rules["dev_batches"] * evaluation_rules["batch_size"],
+    )
+    _validate_native_profile_bindings(profiles, engineering_config, data, train, evaluation_rules)
     provisional_plan = prepared.plan(provisional_loss_tokens)
     minimum_updates = max(3, train["dev_every"] + 1)
     minimum_plan = prepared.plan_updates(minimum_updates)
@@ -860,25 +937,42 @@ def freeze_study(
         configs[mode] = {"path": str(path), "sha256": digest, "model": mode_config.to_dict()}
         config_descriptors.append(_descriptor(path, name=f"frozen-{mode}.json"))
     scoring_rules = {
+        "population": "bounded_frozen_sample",
+        "full_corpus_evaluation": False,
         "teacher_forced": {
+            "population": "bounded_frozen_sample",
+            "selection": "first dev rows in packed order, bounded by dev_batches * batch_size",
             "shift": "logits[:, :-1] -> labels[:, 1:]",
             "sources": "source_ids[:, 1:] with micro-averaged cross entropy and next-token accuracy",
-            "complete_dev_sequences": len(prepared.dev_sequences),
-            "complete_dev_loss_tokens": prepared.dev_loss_tokens,
-            "max_batches": None,
+            "selected_dev_sequences": len(prepared.dev_sequences),
+            "selected_dev_loss_tokens": prepared.dev_loss_tokens,
+            "source_dev_sequences": prepared.dev_source_sequences,
+            "batch_size": evaluation_rules["batch_size"],
+            "max_batches": evaluation_rules["dev_batches"],
+            "full_dev_or_full_source_claim": False,
         },
         "structured": {
+            "population": "bounded_frozen_sample",
             "metric": "complete canonical final-register target text and independent strict parser",
             "all_splits": list(STRUCTURED_SPLITS),
-            "limit_per_split": None,
+            "selection": "first N records of each saved split",
+            "limit_per_split": evaluation_rules["limit_per_split"],
+            "source_examples": {
+                split: generation["structured"][split]["source_examples"] for split in STRUCTURED_SPLITS
+            },
             "prompt_policy": "error",
             "gold_controls_decoding": False,
+            "full_source_generation_claim": False,
         },
         "code": {
+            "population": "bounded_frozen_sample",
             "metric": "bounded free-generated code-suffix exact text match",
-            "limit": None,
+            "selection": "first N records in saved JSONL order",
+            "limit": evaluation_rules["code_limit"],
+            "source_examples": generation["code"]["source_examples"],
             "prompt_policy": "keep_last",
             "gold_controls_decoding": False,
+            "full_source_generation_claim": False,
         },
         "reconstruction": "restored checkpoint dtype; full versus cached tensors and fixed greedy prompts must agree",
     }
@@ -907,6 +1001,10 @@ def freeze_study(
             "train_data_identity": prepared.train_data_identity,
             "dev_data_identity": prepared.dev_data_identity,
             "order_identity": prepared.order_identity,
+            "dev_population": "bounded_frozen_sample",
+            "dev_selection": "first rows up to dev_batches * batch_size",
+            "dev_sequence_limit": evaluation_rules["dev_batches"] * evaluation_rules["batch_size"],
+            "dev_source_sequences": prepared.dev_source_sequences,
             "dev_sequences": prepared.dev_sequences,
             "dev_sequence_order": list(range(len(prepared.dev_sequences))),
             "dev_loss_tokens": prepared.dev_loss_tokens,
@@ -927,6 +1025,8 @@ def freeze_study(
         "feasibility": feasibility,
         "evaluation": {
             **evaluation_rules,
+            "population": "bounded_frozen_sample",
+            "full_corpus_evaluation": False,
             "scoring_rules": scoring_rules,
             "samples": generation,
             "tokenizer": tokenizer_descriptor,
@@ -957,7 +1057,7 @@ def freeze_study(
             "budget_reallocation_after_freeze": False,
         },
         "active_files": active_files,
-        "evidence_boundary": "single-seed engineering measurements are not multi-seed learning or composition evidence",
+        "evidence_boundary": "bounded_frozen_sample metrics are not full-corpus estimates; single-seed engineering measurements are not multi-seed learning or composition evidence",
     }
     protocol_path = output / "protocol.json"
     protocol_sha256 = _write_json(protocol_path, protocol)
@@ -1073,7 +1173,7 @@ def _train_command(protocol: Mapping, mode: str, output: Path) -> list[str]:
         "--final-lr-fraction", str(train["final_lr_fraction"]),
         "--checkpoint-every", str(train["checkpoint_every"]),
         "--dev-every", str(train["dev_every"]),
-        "--dev-batches", "0",
+        "--dev-batches", str(train["dev_batches"]),
         "--projected-hours", str(protocol["budget"]["projection"]["arms"][mode]["stage_projected_hours"]["train"]),
         "--ledger-path", protocol["execution"]["ledger_path"],
         "--ledger-lock", protocol["execution"]["ledger_lock"],
@@ -1093,6 +1193,9 @@ def _evaluate_command(protocol: Mapping, checkpoint: Mapping, output: Path) -> l
         "--code-generation", evaluation["samples"]["code"]["path"],
         "--output", str(output),
         "--batch-size", str(evaluation["batch_size"]),
+        "--max-batches", str(evaluation["dev_batches"]),
+        "--limit-per-split", str(evaluation["limit_per_split"]),
+        "--code-limit", str(evaluation["code_limit"]),
         "--max-new-tokens", str(evaluation["max_new_tokens"]),
         "--code-max-new-tokens", str(evaluation["code_max_new_tokens"]),
         "--eos-token-id", str(evaluation["eos_token_id"]),
@@ -1203,16 +1306,32 @@ def _validate_train(protocol: Mapping, mode: str, arm: Path) -> dict:
         if training.get(key) != value:
             raise StudyIncomplete(f"{mode} changed frozen training field {key}")
     dev = result.get("dev", {})
-    if dev.get("loss_tokens") != protocol["data"]["dev_loss_tokens"] or dev.get("consumed_loss_tokens") != budget["actual_loss_tokens"]:
-        raise StudyIncomplete(f"{mode} final training dev pass is partial or belongs to another endpoint")
+    expected_dev_batches = min(
+        protocol["train"]["dev_batches"],
+        math.ceil(protocol["data"]["dev_source_sequences"] / protocol["train"]["batch_size"]),
+    )
+    if dev.get("loss_tokens") != protocol["data"]["dev_loss_tokens"] \
+            or dev.get("consumed_loss_tokens") != budget["actual_loss_tokens"] \
+            or dev.get("batches") != expected_dev_batches:
+        raise StudyIncomplete(f"{mode} final training dev pass differs from the bounded frozen sample or endpoint")
     learning_path = Path(result["learning_log"])
     learning = _jsonl(learning_path)
     train_steps = {record.get("step") for record in learning if record.get("event") in ("train", "replay")}
     if train_steps != set(range(1, budget["planned_updates"] + 1)):
         raise StudyIncomplete(f"{mode} learning curve is missing training updates")
-    final_dev = [record for record in learning if record.get("event") == "dev" and record.get("consumed_loss_tokens") == budget["actual_loss_tokens"]]
-    if not final_dev or final_dev[-1].get("loss_tokens") != protocol["data"]["dev_loss_tokens"]:
-        raise StudyIncomplete(f"{mode} has no complete final dev record")
+    dev_records = [record for record in learning if record.get("event") == "dev"]
+    expected_dev_steps = [
+        step for step in range(1, budget["planned_updates"] + 1)
+        if step == budget["planned_updates"] or step % protocol["train"]["dev_every"] == 0
+    ]
+    if [record.get("step") for record in dev_records] != expected_dev_steps:
+        raise StudyIncomplete(f"{mode} periodic/final dev records do not match the frozen schedule")
+    if any(
+        record.get("loss_tokens") != protocol["data"]["dev_loss_tokens"]
+        or record.get("batches") != expected_dev_batches
+        for record in dev_records
+    ):
+        raise StudyIncomplete(f"{mode} periodic/final dev record differs from the bounded frozen sample")
     journal_path = Path(result["journal"])
     journal = _jsonl(journal_path)
     checkpoint_records = []
@@ -1237,10 +1356,14 @@ def _validate_train(protocol: Mapping, mode: str, arm: Path) -> dict:
 
 
 def _assert_sample_results(frozen: Mapping, report: Mapping, label: str) -> None:
-    if not report.get("complete") or report.get("status") != "complete":
-        raise StudyIncomplete(f"{label} generation is not complete")
-    if report.get("examples") != len(frozen["samples"]) or report.get("evaluated") != len(frozen["samples"]):
-        raise StudyIncomplete(f"{label} generation did not evaluate every frozen sample")
+    selected = len(frozen["samples"])
+    source = frozen["source_examples"]
+    source_complete = selected == source
+    if report.get("examples") != source or report.get("evaluated") != selected:
+        raise StudyIncomplete(f"{label} did not evaluate every selected example from the full source population")
+    if report.get("complete") is not source_complete \
+            or report.get("status") != ("complete" if source_complete else "partial"):
+        raise StudyIncomplete(f"{label} has inconsistent bounded-sample completion status")
     records = report.get("records", [])
     actual = [record.get("example_id") for record in records]
     expected = [sample["example_id"] for sample in frozen["samples"]]
@@ -1253,10 +1376,18 @@ def _validate_evaluation(protocol: Mapping, mode: str, arm: Path, checkpoint: Ma
     if report.get("format") != "native-evaluation-v1" or report.get("checkpoint", {}).get("sha256") != checkpoint["sha256"]:
         raise StudyIncomplete(f"{mode} evaluation is missing or belongs to another checkpoint")
     teacher = report.get("teacher_forced", {})
-    if not teacher.get("complete") or teacher.get("sequences") != len(protocol["data"]["dev_sequences"]):
-        raise StudyIncomplete(f"{mode} teacher-forced evaluation did not cover every frozen dev sequence")
+    source_sequences = protocol["data"]["dev_source_sequences"]
+    expected_batches = min(
+        protocol["evaluation"]["dev_batches"],
+        math.ceil(source_sequences / protocol["evaluation"]["batch_size"]),
+    )
+    source_complete = expected_batches * protocol["evaluation"]["batch_size"] >= source_sequences
+    if teacher.get("complete") is not source_complete \
+            or teacher.get("sequences") != len(protocol["data"]["dev_sequences"]) \
+            or teacher.get("batches") != expected_batches:
+        raise StudyIncomplete(f"{mode} teacher-forced evaluation differs from the bounded frozen dev sample")
     if teacher.get("overall", {}).get("loss_tokens") != protocol["data"]["dev_loss_tokens"]:
-        raise StudyIncomplete(f"{mode} teacher-forced evaluation did not score every frozen dev target")
+        raise StudyIncomplete(f"{mode} teacher-forced evaluation did not score every selected dev target")
     structured = report.get("structured_generation", {})
     if set(structured.get("splits", {})) != set(STRUCTURED_SPLITS):
         raise StudyIncomplete(f"{mode} structured generation is missing a frozen split")
@@ -1264,8 +1395,9 @@ def _validate_evaluation(protocol: Mapping, mode: str, arm: Path, checkpoint: Ma
         frozen = protocol["evaluation"]["samples"]["structured"][split]
         values = structured["splits"][split]
         _assert_sample_results(frozen, values, f"{mode}/{split}")
-        if structured.get("files", {}).get(split, {}).get("sha256") != frozen["sha256"]:
-            raise StudyIncomplete(f"{mode}/{split} structured source hash changed")
+        file = structured.get("files", {}).get(split, {})
+        if file.get("sha256") != frozen["sha256"] or file.get("examples") != frozen["source_examples"]:
+            raise StudyIncomplete(f"{mode}/{split} structured source hash or population changed")
         if values.get("max_new_tokens") != protocol["evaluation"]["max_new_tokens"]:
             raise StudyIncomplete(f"{mode}/{split} changed its frozen decoding bound")
     code = report.get("code_generation", {})
@@ -1691,7 +1823,10 @@ def summarize_study(study, *, git_snapshot_fn=git_snapshot) -> dict:
                     stage["stage"]: stage["gpu_accounting"]["reservation"]["hours"] for stage in bundle["stages"]
                 },
             },
+            "evaluation_population": "bounded_frozen_sample",
+            "full_corpus_evaluation": False,
             "per_source_metrics": bundle["evaluation"]["teacher_forced"]["sources"],
+            "per_source_metrics_scope": "selected frozen dev rows only; not full-source estimates",
             "teacher_forced": bundle["evaluation"]["teacher_forced"],
             "generation": {
                 "structured": bundle["evaluation"]["structured_generation"],
@@ -1719,6 +1854,14 @@ def summarize_study(study, *, git_snapshot_fn=git_snapshot) -> dict:
         "repository_commit": protocol["repository"]["commit"],
         "native_code_identity": protocol["repository"]["native_code_identity"],
         "development_seed": protocol["development"]["seed"],
+        "evaluation_population": "bounded_frozen_sample",
+        "full_corpus_evaluation": False,
+        "evaluation_limits": {
+            "dev_batches": protocol["evaluation"]["dev_batches"],
+            "evaluation_batch_size": protocol["evaluation"]["batch_size"],
+            "structured_limit_per_split": protocol["evaluation"]["limit_per_split"],
+            "code_limit": protocol["evaluation"]["code_limit"],
+        },
         "equal_actual_loss_tokens_per_arm": protocol["budget"]["actual_loss_tokens"],
         "requested_loss_tokens_per_arm": protocol["budget"]["requested_loss_tokens"],
         "budget_reduction": protocol["budget"]["reduction"],
