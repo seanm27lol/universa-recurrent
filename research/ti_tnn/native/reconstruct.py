@@ -278,12 +278,56 @@ def replay_generation_prompts(
 
 
 def _normalize_teacher_sample(values: Mapping) -> dict[str, torch.Tensor]:
+    """Validate recorded teacher arrays without repairing their recorded shapes."""
+    if not isinstance(values, Mapping):
+        raise ReconstructionError("teacher_forced must be a mapping of batched [B,T] arrays")
+    required = (*MODEL_INPUT_ARRAYS, "labels", "source_ids")
+    missing = [name for name in required if name not in values]
+    if missing:
+        raise ReconstructionError(
+            f"teacher_forced is missing required [B,T] arrays {missing}; "
+            "regenerate the replay with every model input, labels, and source_ids"
+        )
     result = {}
+    expected_shape = None
+    for name in required:
+        dtype = torch.bool if name == "key_padding_mask" else torch.long
+        try:
+            tensor = torch.as_tensor(values[name], dtype=dtype)
+        except (TypeError, ValueError) as error:
+            raise ReconstructionError(
+                f"teacher_forced.{name} cannot be converted to a {dtype} [B,T] array: {error}"
+            ) from error
+        shape = list(tensor.shape)
+        if tensor.ndim != 2:
+            suggestion = (
+                f" For one recorded sequence of {shape[0]} tokens, use [1, {shape[0]}]."
+                if tensor.ndim == 1 and shape[0] > 0 else ""
+            )
+            raise ReconstructionError(
+                f"teacher_forced.{name} must have rank-2 shape [B,T], with nonempty batch B and T >= 2; "
+                f"got shape {shape}.{suggestion} Regenerate the artifact with an explicit batch dimension; "
+                "automatic reshaping is disabled."
+            )
+        if tensor.shape[0] == 0 or tensor.shape[1] < 2:
+            raise ReconstructionError(
+                f"teacher_forced.{name} must have nonempty batch B and sequence length T >= 2; "
+                f"got shape {shape}. Regenerate the artifact with valid [B,T] arrays."
+            )
+        if expected_shape is None:
+            expected_shape = tuple(tensor.shape)
+        elif tuple(tensor.shape) != expected_shape:
+            raise ReconstructionError(
+                f"teacher_forced.{name} has shape {shape}, expected {list(expected_shape)} to match "
+                "teacher_forced.input_ids. Every model input, labels, and source_ids must have identical "
+                "batch and time dimensions; automatic reshaping is disabled."
+            )
+        result[name] = tensor
     for name, value in values.items():
+        if name in result:
+            continue
         if name == "key_padding_mask" or name.endswith("_mask"):
             result[name] = torch.as_tensor(value, dtype=torch.bool)
-        elif name in {"route_targets", "state_targets"}:
-            result[name] = torch.as_tensor(value).long()
         else:
             result[name] = torch.as_tensor(value).long()
     return result
@@ -297,6 +341,7 @@ def load_replay_spec(path) -> dict:
         raise ReconstructionError(f"replay spec format must be {REPLAY_FORMAT}")
     if not isinstance(raw.get("teacher_forced"), Mapping):
         raise ReconstructionError("replay spec needs a teacher_forced sample")
+    teacher_forced = _normalize_teacher_sample(raw["teacher_forced"])
     prompts = raw.get("generation_prompts")
     if not isinstance(prompts, list):
         raise ReconstructionError("replay spec needs a generation_prompts list")
@@ -314,7 +359,7 @@ def load_replay_spec(path) -> dict:
         raise ReconstructionError("max_new_tokens must be a nonnegative integer")
     return {
         "format": REPLAY_FORMAT,
-        "teacher_forced": _normalize_teacher_sample(raw["teacher_forced"]),
+        "teacher_forced": teacher_forced,
         "generation_prompts": normalized_prompts,
         "max_new_tokens": max_new_tokens,
         "eos_token_id": raw.get("eos_token_id"),

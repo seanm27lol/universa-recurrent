@@ -117,8 +117,12 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
     def forbidden_reservation(**kwargs):
         raise AssertionError("CPU dry-run attempted to open a native Reservation")
 
+    def forbidden_path_validation(*args):
+        raise AssertionError("CPU dry-run attempted shared reservation-path validation")
+
     monkeypatch.setattr(P, "_synchronize", synchronize)
     monkeypatch.setattr(P, "Reservation", forbidden_reservation)
+    monkeypatch.setattr(P.native_ledger, "validate_shared_reservation_paths", forbidden_path_validation)
     assert P.main(profile_argv(config, data, output, mode)) == 0
     summary = json.loads(capsys.readouterr().out)
     assert summary["status"] == "dry_run" and not summary["timing_valid"]
@@ -145,11 +149,30 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
     assert report["training"]["warmup_steps_excluded"] == 1
 
     dataset = PackedDataset(data, "train")
+    expected_sampler = P.T.make_sampler(dataset, batch_size=2, data_seed=0)
+    expected_sampler.next_batch()
+    assert report["order_identity"] == expected_sampler.order_identity
+    assert report["execution"]["sampler"]["order_identity"] == expected_sampler.order_identity
+    assert report["data"]["train_data_identity"] == expected_sampler.data_identity
+    assert report["data"]["order_identity"] == expected_sampler.order_identity
     expected_tokens = 0
     for record in report["training"]["steps"]:
+        expected_batch = expected_sampler.next_batch()
+        assert record["indices"] == list(expected_batch.indices)
+        assert record["batch_identity"] == expected_batch.batch_identity
+        assert record["order_identity"] == expected_sampler.order_identity
+        assert record["consumed_loss_tokens"] == expected_batch.consumed_loss_tokens
+        _, expected_identities, _ = P.T._load_batch(dataset, expected_batch.indices, torch.device("cpu"))
+        for name, value in expected_identities.items():
+            assert record[name] == value
         labels = dataset.batch(record["indices"])["labels"]
         actual = int(torch.count_nonzero(labels[:, 1:] != IGNORE_INDEX))
-        assert record["actual_shifted_loss_tokens"] == actual
+        assert record["actual_shifted_loss_tokens"] == actual == expected_batch.loss_tokens
+        assert record["sampler_next_batch_seconds"] > 0
+        assert record["batch_hash_transfer_seconds"] > 0
+        assert record["data_loading_seconds"] >= (
+            record["sampler_next_batch_seconds"] + record["batch_hash_transfer_seconds"]
+        )
         assert record["wall_seconds"] == pytest.approx(sum(record[name] for name in (
             "data_loading_seconds",
             "forward_seconds",
@@ -158,6 +181,12 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
         )))
         expected_tokens += actual
     training = report["training"]
+    assert training["sampler_next_batch_seconds"] == pytest.approx(sum(
+        record["sampler_next_batch_seconds"] for record in training["steps"]
+    ))
+    assert training["batch_hash_transfer_seconds"] == pytest.approx(sum(
+        record["batch_hash_transfer_seconds"] for record in training["steps"]
+    ))
     assert training["actual_shifted_loss_tokens"] == expected_tokens
     assert training["actual_shifted_loss_tokens_per_second"] == pytest.approx(
         expected_tokens / training["wall_seconds"]
@@ -185,6 +214,10 @@ def test_cpu_dry_run_uses_packed_batches_and_writes_real_checkpoint(tmp_path, mo
         report["setup"]["warmup_actual_shifted_loss_tokens"] + expected_tokens
     )
     assert restored["optimizer"] is not None and restored["scheduler"] is not None
+    assert restored["sampler"] == expected_sampler.state_dict()
+    assert restored["identities"]["data"] == expected_sampler.data_identity
+    assert restored["identities"]["order"] == expected_sampler.order_identity
+    assert report["sampler"]["state_at_checkpoint"] == expected_sampler.state_dict()
     assert restored["extra"]["measurement_checkpoint"] is True
     assert report["checkpoint"]["real_write"]
     assert report["checkpoint_seconds"] > 0
@@ -223,6 +256,14 @@ def test_failed_cuda_attempt_enters_reservation_before_cuda_probe(tmp_path, monk
         def check(self):
             events.append("check")
 
+    canonical_ledger = tmp_path / "canonical-ledger.jsonl"
+    canonical_lock = tmp_path / "canonical.gpu.lock"
+
+    def validate_paths(path, lock):
+        events.append(("validate", path, lock))
+        return canonical_ledger, canonical_lock
+
+    monkeypatch.setattr(P.native_ledger, "validate_shared_reservation_paths", validate_paths)
     monkeypatch.setattr(P, "Reservation", FakeReservation)
     monkeypatch.setattr(P.torch.cuda, "is_available", lambda: events.append("cuda_probe") or False)
     output = tmp_path / "failed.json"
@@ -237,8 +278,11 @@ def test_failed_cuda_attempt_enters_reservation_before_cuda_probe(tmp_path, monk
     ])
     with pytest.raises(RuntimeError, match="CUDA.*not available"):
         P.run_profile(args)
-    assert events[0][0] == "constructed"
-    assert events[1:3] == ["enter", "cuda_probe"]
+    assert events[0] == ("validate", None, None)
+    assert events[1][0] == "constructed"
+    assert events[1][1]["path"] == canonical_ledger
+    assert events[1][1]["lock"] == canonical_lock
+    assert events[2:4] == ["enter", "cuda_probe"]
     assert events[-1] == ("exit", RuntimeError)
     assert not (tmp_path / "not-read.json").exists()
     report = json.loads(output.read_text())

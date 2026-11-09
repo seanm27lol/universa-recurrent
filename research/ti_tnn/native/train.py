@@ -873,6 +873,12 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
         raise ValueError("device must be cpu or a CUDA device")
     if device.type == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA was requested but is not available")
+    if device.type == "cuda":
+        from . import ledger as native_ledger
+
+        ledger_path, ledger_lock = native_ledger.validate_shared_reservation_paths(
+            args.ledger_path, args.ledger_lock
+        )
     base_config = NativeConfig.from_json(args.config)
     model_config = replace(base_config, mode=args.mode)
     data_root = Path(args.data)
@@ -945,11 +951,7 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
             batch_hook=batch_hook,
         )
 
-    from .ledger import Reservation
-
-    ledger_path = Path(args.ledger_path) if args.ledger_path is not None else None
-    ledger_lock = Path(args.ledger_lock) if args.ledger_lock is not None else None
-    reservation = Reservation(
+    reservation = native_ledger.Reservation(
         command=f"native.train mode={args.mode} data={data_root} output={args.output}",
         projected_hours=args.projected_hours,
         path=ledger_path,

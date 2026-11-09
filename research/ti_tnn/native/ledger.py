@@ -50,6 +50,29 @@ def cap_of(version: int) -> float:
     raise KeyError(f"no authorization version {version}")
 
 
+def validate_shared_reservation_paths(path: Path | None = None, lock: Path | None = None) -> tuple[Path, Path]:
+    """Validate production paths without creating an anchor, ledger, lock, or directory.
+
+    Real CUDA/study callers must use the existing anchor and the canonical files below its resolved runs root.
+    Ordinary CPU tests can still give the base ``Reservation`` both temporary paths directly.
+    """
+    runs = shared_runs().resolve()
+    anchor = anchor_file()
+    if not anchor.is_file():
+        raise RuntimeError(f"a production GPU reservation needs the existing shared ledger anchor at {anchor}")
+    anchored = anchor.read_text().strip()
+    if anchored != str(runs):
+        raise RuntimeError(f"the shared ledger anchor is {anchored!r}, not the resolved TI_TNN_SCALING_RUNS root "
+                           f"{str(runs)!r}")
+    ledger = runs / "gpu_ledger.jsonl"
+    lock_path = runs / "gpu.lock"
+    if path is not None and Path(path).resolve() != ledger:
+        raise RuntimeError(f"the native ledger must be {ledger}, not {path}")
+    if lock is not None and Path(lock).resolve() != lock_path:
+        raise RuntimeError(f"the native reservation lock must be {lock_path}, not {lock}")
+    return ledger, lock_path
+
+
 def usage(path: Path | None = None, now: float | None = None) -> dict:
     """Return base durations and every reservation, plus native use beyond the fixed historical baseline."""
     report = _base.usage(path=path, now=now)

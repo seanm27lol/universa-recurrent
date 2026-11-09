@@ -65,6 +65,91 @@ def replay_spec(tmp_path):
     return path
 
 
+def shape_replay(path, shape):
+    teacher = {}
+    for name in (*R.MODEL_INPUT_ARRAYS, "labels", "source_ids"):
+        dtype = torch.bool if name == "key_padding_mask" else torch.long
+        teacher[name] = torch.zeros(shape, dtype=dtype).tolist()
+    payload = {
+        "format": R.REPLAY_FORMAT,
+        "teacher_forced": teacher,
+        "generation_prompts": [],
+        "max_new_tokens": 0,
+        "eos_token_id": 7,
+    }
+    path.write_text(json.dumps(payload, sort_keys=True) + "\n")
+    return path
+
+
+def test_bare_256_teacher_replay_is_rejected_before_model_execution(tmp_path, monkeypatch):
+    path = shape_replay(tmp_path / "bare-256.json", (256,))
+    model_called = False
+
+    def forbidden_model_load(*args, **kwargs):
+        nonlocal model_called
+        model_called = True
+        raise AssertionError("model execution must not start for a malformed replay")
+
+    monkeypatch.setattr(R, "load_native_model", forbidden_model_load)
+    with pytest.raises(R.ReconstructionError) as caught:
+        spec = R.load_replay_spec(path)
+        R.reconstruct_checkpoint(tmp_path / "unused-checkpoint.pt", spec)
+    assert not model_called
+    message = str(caught.value)
+    assert "teacher_forced.input_ids" in message
+    assert "rank-2 shape [B,T]" in message
+    assert "got shape [256]" in message
+    assert "use [1, 256]" in message
+    assert "automatic reshaping is disabled" in message
+
+
+def test_valid_batched_256_teacher_replay_loads_without_reshaping(tmp_path):
+    spec = R.load_replay_spec(shape_replay(tmp_path / "batched-256.json", (1, 256)))
+    for name in (*R.MODEL_INPUT_ARRAYS, "labels", "source_ids"):
+        assert spec["teacher_forced"][name].shape == (1, 256)
+    assert spec["teacher_forced"]["key_padding_mask"].dtype == torch.bool
+    assert spec["teacher_forced"]["input_ids"].dtype == torch.long
+
+
+@pytest.mark.parametrize("name", [*R.MODEL_INPUT_ARRAYS, "labels", "source_ids"])
+def test_every_teacher_array_rejects_a_bare_256_vector(tmp_path, name):
+    path = shape_replay(tmp_path / f"bad-{name}.json", (1, 256))
+    payload = json.loads(path.read_text())
+    payload["teacher_forced"][name] = payload["teacher_forced"][name][0]
+    path.write_text(json.dumps(payload) + "\n")
+    with pytest.raises(R.ReconstructionError, match=rf"teacher_forced\.{name}.*rank-2 shape \[B,T\]"):
+        R.load_replay_spec(path)
+
+
+def test_teacher_arrays_must_share_batch_time_dimensions_and_have_two_tokens(tmp_path):
+    path = shape_replay(tmp_path / "mismatched-labels.json", (1, 256))
+    payload = json.loads(path.read_text())
+    payload["teacher_forced"]["labels"] = torch.zeros(2, 256, dtype=torch.long).tolist()
+    path.write_text(json.dumps(payload) + "\n")
+    with pytest.raises(R.ReconstructionError, match=r"labels.*expected \[1, 256\].*identical batch and time"):
+        R.load_replay_spec(path)
+
+    path = shape_replay(tmp_path / "single-token.json", (1, 1))
+    with pytest.raises(R.ReconstructionError, match=r"input_ids.*T >= 2.*shape \[1, 1\]"):
+        R.load_replay_spec(path)
+
+
+def test_empty_teacher_batch_and_missing_source_ids_are_rejected(tmp_path):
+    values = {
+        name: torch.zeros((0, 256), dtype=torch.bool if name == "key_padding_mask" else torch.long)
+        for name in (*R.MODEL_INPUT_ARRAYS, "labels", "source_ids")
+    }
+    with pytest.raises(R.ReconstructionError, match=r"input_ids.*nonempty batch B.*shape \[0, 256\]"):
+        R._normalize_teacher_sample(values)
+
+    path = shape_replay(tmp_path / "missing-source-ids.json", (1, 256))
+    payload = json.loads(path.read_text())
+    del payload["teacher_forced"]["source_ids"]
+    path.write_text(json.dumps(payload) + "\n")
+    with pytest.raises(R.ReconstructionError, match=r"missing required \[B,T\] arrays \['source_ids'\]"):
+        R.load_replay_spec(path)
+
+
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64, torch.bfloat16])
 def test_reconstruction_restores_actual_dtype_and_replays_full_cached_and_reference(
     tmp_path, dtype

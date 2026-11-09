@@ -195,3 +195,74 @@ def test_killed_process_is_charged_to_heartbeat_plus_one_interval(tmp_path):
     assert report["reservations"] == scaling.usage(path)["reservations"]
     assert math.isclose(report["native_used_hours"], expected_hours, rel_tol=0.0, abs_tol=1e-14)
     assert math.isclose(report["native_remaining_hours"], 12.0 - expected_hours, rel_tol=0.0, abs_tol=1e-14)
+
+
+
+@pytest.fixture
+def anchored_runs(tmp_path, monkeypatch):
+    runs = (tmp_path / "shared-runs").resolve()
+    runs.mkdir()
+    anchor = tmp_path / "ledger-anchor"
+    anchor.write_text(str(runs) + "\n")
+    monkeypatch.setenv("TI_TNN_SCALING_RUNS", str(runs))
+    monkeypatch.setattr(native, "anchor_file", lambda: anchor)
+    return runs, anchor
+
+
+def test_production_paths_require_the_shared_runs_environment(tmp_path, monkeypatch):
+    anchor = tmp_path / "ledger-anchor"
+    monkeypatch.delenv("TI_TNN_SCALING_RUNS", raising=False)
+    monkeypatch.setattr(native, "anchor_file", lambda: anchor)
+    with pytest.raises(RuntimeError, match="TI_TNN_SCALING_RUNS"):
+        native.validate_shared_reservation_paths()
+    assert not anchor.exists()
+    assert not (tmp_path / "gpu_ledger.jsonl").exists()
+    assert not (tmp_path / "gpu.lock").exists()
+
+
+def test_production_paths_require_an_existing_anchor_without_creating_it(tmp_path, monkeypatch):
+    runs = (tmp_path / "shared-runs").resolve()
+    runs.mkdir()
+    anchor = tmp_path / "missing-anchor"
+    monkeypatch.setenv("TI_TNN_SCALING_RUNS", str(runs))
+    monkeypatch.setattr(native, "anchor_file", lambda: anchor)
+    with pytest.raises(RuntimeError, match="existing.*anchor"):
+        native.validate_shared_reservation_paths()
+    assert not anchor.exists()
+    assert not (runs / "gpu_ledger.jsonl").exists()
+    assert not (runs / "gpu.lock").exists()
+
+
+def test_production_paths_reject_a_mismatched_anchor_without_rewriting_it(anchored_runs, tmp_path):
+    runs, anchor = anchored_runs
+    anchor.write_text(str((tmp_path / "different-runs").resolve()) + "\n")
+    before = anchor.read_bytes()
+    with pytest.raises(RuntimeError, match="anchor.*not.*TI_TNN_SCALING_RUNS"):
+        native.validate_shared_reservation_paths()
+    assert anchor.read_bytes() == before
+    assert not (runs / "gpu_ledger.jsonl").exists()
+    assert not (runs / "gpu.lock").exists()
+
+
+@pytest.mark.parametrize("override", ["path", "lock"])
+def test_production_paths_reject_alternate_files(anchored_runs, tmp_path, override):
+    runs, anchor = anchored_runs
+    before = anchor.read_bytes()
+    alternate = tmp_path / "alternate" / ("gpu_ledger.jsonl" if override == "path" else "gpu.lock")
+    with pytest.raises(RuntimeError, match="native.*not"):
+        native.validate_shared_reservation_paths(**{override: alternate})
+    assert anchor.read_bytes() == before
+    assert not alternate.exists()
+    assert not (runs / "gpu_ledger.jsonl").exists()
+    assert not (runs / "gpu.lock").exists()
+
+
+def test_valid_production_paths_are_canonical_and_read_only(anchored_runs):
+    runs, anchor = anchored_runs
+    expected = (runs / "gpu_ledger.jsonl", runs / "gpu.lock")
+    before = anchor.read_bytes()
+    assert native.validate_shared_reservation_paths() == expected
+    assert native.validate_shared_reservation_paths(path=expected[0], lock=expected[1]) == expected
+    assert anchor.read_bytes() == before
+    assert not expected[0].exists()
+    assert not expected[1].exists()

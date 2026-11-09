@@ -25,6 +25,7 @@ import math
 import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -150,6 +151,16 @@ def _run_git(repository: Path, arguments: Sequence[str]) -> str:
         ["git", *arguments], cwd=repository, check=True, capture_output=True, text=True
     )
     return completed.stdout
+
+
+def validate_shared_reservation_paths(ledger_path, ledger_lock):
+    """Fail closed unless native.ledger confirms the anchored ledger and lock."""
+    from . import ledger as native_ledger
+
+    validator = getattr(native_ledger, "validate_shared_reservation_paths", None)
+    if validator is None:
+        raise StudyError("native.ledger.validate_shared_reservation_paths is required before GPU work")
+    return validator(Path(ledger_path), Path(ledger_lock))
 
 
 def git_snapshot(repository) -> dict:
@@ -597,6 +608,7 @@ def _validate_native_profile_bindings(
     data: Path,
     train: Mapping,
     evaluation: Mapping,
+    repository: Mapping,
 ) -> None:
     from .data import ARRAY_NAMES as ARRAY_NAMES_FOR_STUDY
 
@@ -617,11 +629,19 @@ def _validate_native_profile_bindings(
                 "dev_batches": evaluation["dev_batches"],
                 "limit_per_split": evaluation["limit_per_split"],
                 "code_limit": evaluation["code_limit"],
+                "max_new_tokens": evaluation["max_new_tokens"],
+                "code_max_new_tokens": evaluation["code_max_new_tokens"],
+                "eos_token_id": evaluation["eos_token_id"],
+                "use_cache": evaluation["use_cache"],
             }
             for name, wanted in expected_limits.items():
                 if execution.get(name) != wanted:
                     raise StudyError(f"{mode} profile execution limit {name} does not match the frozen protocol")
             continue
+        profile_code = raw.get("code", {})
+        if profile_code.get("identity") != repository["native_code_identity"] \
+                or profile_code.get("git_commit_at_attempt_start") != repository["commit"]:
+            raise StudyError(f"{mode} profile code identity or attempt commit differs from the frozen repository")
         config = raw.get("config", {})
         if config.get("sha256") != expected_config_sha256:
             raise StudyError(f"{mode} engineering profile used a different source config")
@@ -635,6 +655,9 @@ def _validate_native_profile_bindings(
         if recipe.get("evaluation_batches") != train["dev_batches"] \
                 or recipe.get("evaluation_batch_size") != train["batch_size"]:
             raise StudyError(f"{mode} profile training-dev execution limits do not match the frozen protocol")
+        for name in ("max_new_tokens", "code_max_new_tokens", "eos_token_id"):
+            if recipe.get(name) != evaluation[name]:
+                raise StudyError(f"{mode} profile decoding field {name} does not match the frozen protocol")
         if recipe.get("requested_dtype") != "bfloat16" or raw.get("execution", {}).get("mode") != "eager":
             raise StudyError(f"{mode} profile must match eager bfloat16 native.train autocast")
         components = raw.get("complete_evaluation", {}).get("components", {})
@@ -650,6 +673,14 @@ def _validate_native_profile_bindings(
             raise StudyError(f"{mode} profile structured limit does not match the frozen protocol")
         if code.get("limit") != evaluation["code_limit"]:
             raise StudyError(f"{mode} profile code limit does not match the frozen protocol")
+        for name, component, token_bound in (
+            ("structured", structured, "max_new_tokens"),
+            ("code", code, "code_max_new_tokens"),
+        ):
+            if component.get(token_bound) != evaluation[token_bound] \
+                    or component.get("eos_token_id") != evaluation["eos_token_id"] \
+                    or component.get("use_cache") is not evaluation["use_cache"]:
+                raise StudyError(f"{mode} profile {name} decoding limits do not match the frozen protocol")
         measured_data = raw.get("data", {})
         if measured_data.get("manifest_sha256") != expected_manifest_sha256:
             raise StudyError(f"{mode} engineering profile used a different prepared manifest")
@@ -751,6 +782,9 @@ def _project_study(
     return {
         "arms": arms,
         "total_gpu_hours": raw_hours,
+        "total_checkpoint_bytes": sum(
+            arm["checkpoints"]["projected_bytes"] for arm in arms.values()
+        ),
         "planning_margin": reserve_fraction,
         "projected_reservation_hours": raw_hours * (1.0 + reserve_fraction),
     }
@@ -783,10 +817,12 @@ def freeze_study(
     provisional_loss_tokens: int = PROVISIONAL_LOSS_TOKENS,
     reserve_fraction: float = RESERVE_FRACTION,
     available_gpu_hours: float | None = None,
+    available_storage_bytes: int | None = None,
     ledger_path=None,
     ledger_lock=None,
     train_hyperparameters: Mapping | None = None,
     evaluation: Mapping | None = None,
+    reservation_path_validator=None,
     git_snapshot_fn=git_snapshot,
 ) -> dict:
     """Freeze design, samples, exact token endpoint, and measured feasibility before outcomes."""
@@ -843,25 +879,31 @@ def freeze_study(
         data_seed=development_seed,
         dev_sequence_limit=evaluation_rules["dev_batches"] * evaluation_rules["batch_size"],
     )
-    _validate_native_profile_bindings(profiles, engineering_config, data, train, evaluation_rules)
+    _validate_native_profile_bindings(profiles, engineering_config, data, train, evaluation_rules, binding)
     provisional_plan = prepared.plan(provisional_loss_tokens)
     minimum_updates = max(3, train["dev_every"] + 1)
     minimum_plan = prepared.plan_updates(minimum_updates)
     if ledger_path is None:
         from . import ledger as native_ledger
 
-        ledger_path = native_ledger.ledger_path()
+        ledger_path = native_ledger.shared_runs() / "gpu_ledger.jsonl"
     ledger_path = Path(ledger_path).resolve()
     ledger_lock = Path(ledger_lock).resolve() if ledger_lock else ledger_path.with_name("gpu.lock")
     ledger_usage = None
     if available_gpu_hours is None:
         from . import ledger as native_ledger
 
+        (reservation_path_validator or validate_shared_reservation_paths)(ledger_path, ledger_lock)
         ledger_usage = native_ledger.usage(ledger_path)
         available_gpu_hours = ledger_usage["native_remaining_hours"]
     if not isinstance(available_gpu_hours, (int, float)) or isinstance(available_gpu_hours, bool) \
             or not math.isfinite(available_gpu_hours) or available_gpu_hours < 0:
         raise StudyError("available_gpu_hours must be a finite nonnegative measured allowance")
+    if available_storage_bytes is None:
+        available_storage_bytes = shutil.disk_usage(output).free
+    if isinstance(available_storage_bytes, bool) or not isinstance(available_storage_bytes, int) \
+            or available_storage_bytes < 0:
+        raise StudyError("available_storage_bytes must be a nonnegative integer")
     available_hours = min(float(available_gpu_hours), 12.0)
     raw_hour_cap = available_hours / (1.0 + reserve_fraction)
     projection_inputs = {
@@ -870,6 +912,13 @@ def freeze_study(
     }
     provisional_projection = _project_study(profiles, provisional_plan, train, **projection_inputs)
     minimum_projection = _project_study(profiles, minimum_plan, train, **projection_inputs)
+
+    def fits(projection: Mapping) -> bool:
+        return (
+            projection["projected_reservation_hours"] <= available_hours
+            and projection["total_checkpoint_bytes"] <= available_storage_bytes
+        )
+
     feasibility = {
         "available_native_gpu_hours": float(available_gpu_hours),
         "available_hours_within_native_cap": available_hours,
@@ -881,6 +930,12 @@ def freeze_study(
         "minimum_projection": minimum_projection,
         "provisional_plan": provisional_plan,
         "provisional_projection": provisional_projection,
+        "storage": {
+            "available_bytes": available_storage_bytes,
+            "policy": "the complete frozen all-checkpoints schedule must fit before any arm starts",
+            "provisional_checkpoint_bytes": provisional_projection["total_checkpoint_bytes"],
+            "minimum_checkpoint_bytes": minimum_projection["total_checkpoint_bytes"],
+        },
         "ledger_usage_at_freeze": ledger_usage,
         "ledger_path": str(ledger_path),
         "ledger_sha256_at_freeze": _sha256(ledger_path) if ledger_path.is_file() else None,
@@ -895,10 +950,10 @@ def freeze_study(
             "feasibility": feasibility,
             "profiles": profiles,
         })
-    if provisional_projection["projected_reservation_hours"] > available_hours:
-        if minimum_projection["projected_reservation_hours"] > available_hours:
+    if not fits(provisional_projection):
+        if not fits(minimum_projection):
             return _write_infeasible(output, {
-                "reason": "measured projections cannot fund even the minimum complete curve with the declared reserve",
+                "reason": "measured GPU/storage projections cannot fund even the minimum complete curve with the declared reserve",
                 "feasibility": feasibility,
                 "profiles": profiles,
             })
@@ -910,21 +965,23 @@ def freeze_study(
             middle = (low + high) // 2
             candidate_plan = prepared.plan(middle)
             candidate_projection = _project_study(profiles, candidate_plan, train, **projection_inputs)
-            if candidate_projection["projected_reservation_hours"] <= available_hours:
+            if fits(candidate_projection):
                 best_plan, best_projection = candidate_plan, candidate_projection
                 low = middle + 1
             else:
                 high = middle - 1
         chosen_plan, chosen_projection = best_plan, best_projection
         reduction = {
-            "reason": "the provisional 20M/arm projection exceeds the measured allowance after reserve",
+            "reason": "the provisional 20M/arm projection exceeds measured GPU-hour or checkpoint-storage allowances",
             "selected_before_comparative_outcomes": True,
             "equal_actual_loss_tokens_per_arm": chosen_plan["actual_loss_tokens"],
             "provisional_projected_reservation_hours": provisional_projection["projected_reservation_hours"],
             "selected_projected_reservation_hours": chosen_projection["projected_reservation_hours"],
+            "provisional_checkpoint_bytes": provisional_projection["total_checkpoint_bytes"],
+            "selected_checkpoint_bytes": chosen_projection["total_checkpoint_bytes"],
         }
-    if chosen_projection["projected_reservation_hours"] > available_hours:
-        raise AssertionError("budget search selected an infeasible projection")
+    if not fits(chosen_projection):
+        raise AssertionError("budget search selected an infeasible GPU/storage projection")
     configs = {}
     config_descriptors = []
     base_model = NativeConfig.from_json(engineering_config)
@@ -1021,6 +1078,12 @@ def freeze_study(
             "equal_across_arms": True,
             "reduction": reduction,
             "projection": chosen_projection,
+            "storage": {
+                "available_bytes": available_storage_bytes,
+                "required_all_checkpoint_bytes": chosen_projection["total_checkpoint_bytes"],
+                "fits": chosen_projection["total_checkpoint_bytes"] <= available_storage_bytes,
+                "retention": "all checkpoints in the frozen schedule",
+            },
         },
         "feasibility": feasibility,
         "evaluation": {
@@ -1234,13 +1297,13 @@ def _reserved_command(
         "--mode", mode,
         "--stage", stage,
         "--protocol-sha256", protocol_sha256,
+        "--protocol", str(arm_directory.parent.parent / "protocol.json"),
         "--child-stdout", str(arm_directory / f"{stage}.native.stdout.log"),
         "--child-stderr", str(arm_directory / f"{stage}.native.stderr.log"),
     ]
     if stage == "evaluate":
         arguments.extend([
             "--interventions", str(arm_directory / "state_interventions.json"),
-            "--protocol", str(arm_directory.parent.parent / "protocol.json"),
             "--checkpoint-for-interventions", checkpoint["path"],
             "--expected-checkpoint-sha256", checkpoint["sha256"],
         ])
@@ -1492,11 +1555,21 @@ def _stage_accounting(accounting_reader, protocol: Mapping, result: Mapping | No
     )
 
 
-def run_study(study, *, runner=subprocess.run, accounting_reader=reservation_accounting, git_snapshot_fn=git_snapshot) -> int:
+def run_study(
+    study,
+    *,
+    runner=subprocess.run,
+    accounting_reader=reservation_accounting,
+    reservation_path_validator=None,
+    git_snapshot_fn=git_snapshot,
+) -> int:
     """Run arms in baseline-then-candidate order and stop on the first incomplete arm."""
     study = Path(study).resolve()
     try:
         protocol, protocol_sha256 = _load_protocol(study, git_snapshot_fn)
+        (reservation_path_validator or validate_shared_reservation_paths)(
+            protocol["execution"]["ledger_path"], protocol["execution"]["ledger_lock"]
+        )
     except Exception as error:
         _write_status(study / "run-status.json", {
             "format": RUN_STATUS_FORMAT, "status": "incomplete", "reason": str(error), "updated_at": _now(),
@@ -1675,38 +1748,126 @@ def propose_serious_125m(
     *,
     target_loss_tokens: int = SERIOUS_LOSS_TOKENS,
     reserve_fraction: float = RESERVE_FRACTION,
+    checkpoint_every: int = DEFAULT_TRAIN["checkpoint_every"],
+    retention_limit: int = 2,
+    available_storage_bytes: int | None = None,
 ) -> dict:
-    """MAC-scale measured end-to-end tokens/GPU-hour; this never grants a reservation."""
+    """Scale measured stage costs independently; never grant a serious reservation."""
     if target_loss_tokens != SERIOUS_LOSS_TOKENS:
         raise StudyError("this proposal function is explicitly fixed to the serious 125M allocation")
+    for name, value in (("checkpoint_every", checkpoint_every), ("retention_limit", retention_limit)):
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise StudyError(f"{name} must be a positive integer")
+    if available_storage_bytes is not None and (
+        isinstance(available_storage_bytes, bool)
+        or not isinstance(available_storage_bytes, int)
+        or available_storage_bytes < 0
+    ):
+        raise StudyError("available_storage_bytes must be a nonnegative integer or None")
     projections = {}
     total_hours = 0.0
+    retain_all_hours = 0.0
+    retain_all_bytes = 0
+    bounded_bytes = 0
     for mode in MODES:
         arm = arms[mode]
         tokens = arm["actual_loss_tokens"]
+        updates = arm["planned_updates"]
+        stages = {stage["stage"]: stage for stage in arm["reservations"]}
         hours = sum(stage["gpu_accounting"]["reservation"]["hours"] for stage in arm["reservations"])
-        train_hours = next(
-            stage["gpu_accounting"]["reservation"]["hours"] for stage in arm["reservations"] if stage["stage"] == "train"
-        )
-        if tokens <= 0 or hours <= 0:
-            raise StudyIncomplete(f"{mode} lacks measured tokens/GPU-hour for a serious proposal")
+        train_hours = stages["train"]["gpu_accounting"]["reservation"]["hours"]
+        evaluation_hours = stages["evaluate"]["gpu_accounting"]["reservation"]["hours"]
+        reconstruction_hours = stages["reconstruct"]["gpu_accounting"]["reservation"]["hours"]
+        checkpoint_seconds = arm["time"]["training"].get("checkpoint_seconds")
+        checkpoint_count = len(arm["checkpoints"]["all_journal_checkpoints"])
+        checkpoint_bytes = arm["checkpoints"]["final"]["bytes"]
+        if tokens <= 0 or updates <= 0 or hours <= 0 or train_hours <= 0 \
+                or evaluation_hours <= 0 or reconstruction_hours <= 0 \
+                or not isinstance(checkpoint_seconds, (int, float)) or checkpoint_seconds <= 0 \
+                or checkpoint_count <= 0 or checkpoint_bytes <= 0:
+            raise StudyIncomplete(f"{mode} lacks measured stage, checkpoint, or token/GPU-hour evidence")
+        checkpoint_hours = checkpoint_seconds / 3600.0
+        training_without_checkpoints = train_hours - checkpoint_hours
+        if training_without_checkpoints <= 0:
+            raise StudyIncomplete(f"{mode} checkpoint time exceeds its training reservation")
         engineering_macs = engineering_config["modes"][mode]["decoded_token_macs"]
         serious_macs = serious_config["modes"][mode]["decoded_token_macs"]
-        measured_rate = tokens / hours
-        serious_rate = measured_rate * engineering_macs / serious_macs
-        projected_hours = target_loss_tokens / serious_rate
+        engineering_eval_macs = engineering_config["modes"][mode]["decoded_token_macs_with_probes"]
+        serious_eval_macs = serious_config["modes"][mode]["decoded_token_macs_with_probes"]
+        engineering_parameters = engineering_config["modes"][mode]["total"]
+        serious_parameters = serious_config["modes"][mode]["total"]
+        token_growth = target_loss_tokens / tokens
+        training_mac_ratio = engineering_macs / serious_macs
+        evaluation_mac_ratio = engineering_eval_macs / serious_eval_macs
+        checkpoint_size_ratio = serious_parameters / engineering_parameters
+        projected_training_hours = training_without_checkpoints * token_growth * training_mac_ratio
+        projected_evaluation_hours = evaluation_hours * evaluation_mac_ratio
+        projected_reconstruction_hours = reconstruction_hours * evaluation_mac_ratio
+        hours_per_checkpoint = checkpoint_hours / checkpoint_count
+        bounded_checkpoint_hours = hours_per_checkpoint * checkpoint_size_ratio * retention_limit
+        projected_updates = math.ceil(updates * token_growth)
+        all_checkpoint_count = 2 + (projected_updates - 1) // checkpoint_every
+        retain_all_checkpoint_hours = hours_per_checkpoint * checkpoint_size_ratio * all_checkpoint_count
+        bytes_per_checkpoint = math.ceil(checkpoint_bytes * checkpoint_size_ratio)
+        arm_retain_all_bytes = all_checkpoint_count * bytes_per_checkpoint
+        arm_bounded_bytes = retention_limit * bytes_per_checkpoint
+        projected_hours = (
+            projected_training_hours + projected_evaluation_hours
+            + projected_reconstruction_hours + bounded_checkpoint_hours
+        )
         total_hours += projected_hours
+        retain_all_hours += (
+            projected_training_hours + projected_evaluation_hours
+            + projected_reconstruction_hours + retain_all_checkpoint_hours
+        )
+        retain_all_bytes += arm_retain_all_bytes
+        bounded_bytes += arm_bounded_bytes
         projections[mode] = {
             "measured_actual_loss_tokens": tokens,
+            "measured_planned_updates": updates,
             "measured_total_reservation_gpu_hours": hours,
             "measured_train_reservation_gpu_hours": train_hours,
-            "measured_end_to_end_tokens_per_gpu_hour": measured_rate,
+            "measured_checkpoint_seconds": checkpoint_seconds,
+            "measured_checkpoint_count": checkpoint_count,
+            "token_growth": token_growth,
+            "training_mac_ratio": training_mac_ratio,
+            "evaluation_reconstruction_mac_ratio": evaluation_mac_ratio,
+            "checkpoint_size_ratio": checkpoint_size_ratio,
             "engineering_decoded_token_macs": engineering_macs,
             "serious_decoded_token_macs": serious_macs,
-            "mac_adjusted_serious_tokens_per_gpu_hour": serious_rate,
             "proposed_serious_loss_tokens": target_loss_tokens,
+            "projected_updates": projected_updates,
+            "component_gpu_hours": {
+                "training_without_checkpoints": projected_training_hours,
+                "bounded_checkpoints": bounded_checkpoint_hours,
+                "fixed_evaluation": projected_evaluation_hours,
+                "fixed_reconstruction": projected_reconstruction_hours,
+            },
+            "retain_all_alternative": {
+                "checkpoint_count": all_checkpoint_count,
+                "checkpoint_gpu_hours": retain_all_checkpoint_hours,
+                "checkpoint_bytes": arm_retain_all_bytes,
+            },
+            "bounded_retention_requirement": {
+                "checkpoint_count": retention_limit,
+                "checkpoint_gpu_hours": bounded_checkpoint_hours,
+                "checkpoint_bytes": arm_bounded_bytes,
+                "bytes_per_checkpoint": bytes_per_checkpoint,
+            },
             "proposed_serious_gpu_hours": projected_hours,
         }
+    warnings = []
+    retain_all_fits = None
+    bounded_fits = None
+    if available_storage_bytes is None:
+        warnings.append("Storage capacity was not supplied; neither retain-all nor bounded retention is affirmed affordable.")
+    else:
+        retain_all_fits = retain_all_bytes <= available_storage_bytes
+        bounded_fits = bounded_bytes <= available_storage_bytes
+        if not retain_all_fits:
+            warnings.append("The estimated retain-all schedule exceeds available storage and is not the proposed retention policy.")
+        if not bounded_fits:
+            warnings.append("Even bounded retention exceeds available storage; a future allocation must add storage or reduce the schedule.")
     return {
         "status": "measured_proposal_only_not_authorization",
         "authorization": False,
@@ -1715,13 +1876,28 @@ def propose_serious_125m(
         "arms": projections,
         "typed_profile": serious_config["modes"]["typed"],
         "total_four_arm_gpu_hours_before_reserve": total_hours,
+        "retain_all_alternative_gpu_hours_before_reserve": retain_all_hours,
         "reserve_fraction": reserve_fraction,
         "required_available_gpu_hours_to_preserve_reserve": total_hours * (1.0 + reserve_fraction),
-        "method": "each arm's measured tokens/all reservation hours, scaled by serious/engineering decoded-token MAC ratio",
+        "storage": {
+            "available_bytes": available_storage_bytes,
+            "retain_all_checkpoint_bytes": retain_all_bytes,
+            "retain_all_fits": retain_all_fits,
+            "bounded_retention_checkpoint_bytes": bounded_bytes,
+            "bounded_retention_fits": bounded_fits,
+            "required_retention": {
+                "policy": "retain only the final checkpoint and latest recovery checkpoint per arm",
+                "max_checkpoints_per_arm": retention_limit,
+                "required_before_any_future_allocation": True,
+            },
+            "warnings": warnings,
+        },
+        "method": "training scales by token growth and decoded-token MAC ratio; fixed evaluation/reconstruction scales only by probe-inclusive MAC ratio; checkpoint I/O and storage scale by parameter/storage ratio with bounded retention",
         "limits": [
-            "The measured denominator includes training, checkpoints, complete evaluation/interventions, and reconstruction.",
-            "MAC scaling is an engineering estimate, not a measured serious throughput or learning projection.",
-            "A future freeze must replan atomic endpoints, checkpoint counts, complete evaluation, and current ledger capacity.",
+            "Evaluation and reconstruction are fixed bounded-population costs and are not multiplied by training-token growth.",
+            "The retain-all schedule is an affordability warning, not the proposed policy; bounded retention is required for any future serious freeze.",
+            "Update counts and atomic endpoints are estimates until a future freeze replans them.",
+            "MAC and parameter scaling are engineering estimates, not measured serious throughput or learning projections.",
             "This JSON does not authorize GPU work or alter the native 12-hour authorization.",
         ],
     }
@@ -1867,7 +2043,12 @@ def summarize_study(study, *, git_snapshot_fn=git_snapshot) -> dict:
         "budget_reduction": protocol["budget"]["reduction"],
         "arms": arms,
         "future_serious_125m_proposal": propose_serious_125m(
-            arms, protocol["engineering_config"], protocol["serious_config"], reserve_fraction=protocol["feasibility"]["reserve_fraction"]
+            arms,
+            protocol["engineering_config"],
+            protocol["serious_config"],
+            reserve_fraction=protocol["feasibility"]["reserve_fraction"],
+            checkpoint_every=protocol["train"]["checkpoint_every"],
+            available_storage_bytes=protocol["budget"]["storage"]["available_bytes"],
         ),
         "gpu_accounting": {
             "scope": "every start, heartbeat, end, charge, status, command and foreign-process observation retained per stage reservation",
@@ -1890,6 +2071,8 @@ def run_state_interventions(protocol: Mapping, checkpoint_path: str, expected_sh
 
     model, checkpoint = E.load_native_model(checkpoint_path, expected_sha256=expected_sha256, device="cpu")
     replay = load_replay_spec(protocol["evaluation"]["replay"]["path"])
+    if replay.get("spec_sha256") != protocol["evaluation"]["replay"]["sha256"]:
+        raise StudyError("loaded replay specification hash differs from the frozen replay hash")
     prompts = []
     for frozen in protocol["interventions"]["samples"]:
         path = Path(protocol["evaluation"]["samples"]["structured"][frozen["split"]]["path"])
@@ -1923,10 +2106,27 @@ def run_state_interventions(protocol: Mapping, checkpoint_path: str, expected_sh
     return result
 
 
+def _verified_child_protocol(path, expected_sha256: str) -> dict:
+    protocol_path = Path(path)
+    receipt = protocol_path.with_name("protocol.sha256")
+    if not protocol_path.is_file() or not receipt.is_file():
+        raise StudyError("child protocol or SHA256 receipt is missing")
+    actual = _sha256(protocol_path)
+    recorded = receipt.read_text(encoding="utf-8").strip()
+    if actual != expected_sha256 or recorded != expected_sha256:
+        raise StudyError("child protocol SHA256 receipt does not match the parent-frozen protocol")
+    protocol = _read_json(protocol_path)
+    if not isinstance(protocol, dict):
+        raise StudyError("child protocol is not a JSON object")
+    return protocol
+
+
 def _reserved_main(args: argparse.Namespace) -> int:
     """Child-only reservation wrapper; the parent orchestrator never calls this function."""
     from . import ledger as native_ledger
 
+    protocol = _verified_child_protocol(args.protocol, args.protocol_sha256)
+    validate_shared_reservation_paths(args.ledger_path, args.ledger_lock)
     exact = [sys.executable, "-m", args.module, *args.native_arguments]
     reservation = native_ledger.Reservation(
         command=" ".join(shlex.quote(part) for part in exact),
@@ -1949,7 +2149,6 @@ def _reserved_main(args: argparse.Namespace) -> int:
             if child.returncode:
                 raise StudyError(f"{args.module} exited with status {child.returncode}")
             if args.interventions:
-                protocol = _read_json(Path(args.protocol))
                 run_state_interventions(
                     protocol,
                     args.checkpoint_for_interventions,
@@ -1988,6 +2187,7 @@ def parser() -> argparse.ArgumentParser:
     freeze.add_argument("--provisional-loss-tokens", type=int, default=PROVISIONAL_LOSS_TOKENS)
     freeze.add_argument("--reserve-fraction", type=float, default=RESERVE_FRACTION)
     freeze.add_argument("--available-gpu-hours", type=float)
+    freeze.add_argument("--available-storage-bytes", type=int)
     freeze.add_argument("--ledger-path")
     freeze.add_argument("--ledger-lock")
     freeze.add_argument("--train-hyperparameters", help="JSON overrides for the fixed shared training recipe")
@@ -2005,7 +2205,7 @@ def parser() -> argparse.ArgumentParser:
     reserved.add_argument("--child-stdout", required=True)
     reserved.add_argument("--child-stderr", required=True)
     reserved.add_argument("--interventions")
-    reserved.add_argument("--protocol")
+    reserved.add_argument("--protocol", required=True)
     reserved.add_argument("--checkpoint-for-interventions")
     reserved.add_argument("--expected-checkpoint-sha256")
     reserved.add_argument("native_arguments", nargs=argparse.REMAINDER)
@@ -2030,6 +2230,7 @@ def main(argv=None) -> int:
                 provisional_loss_tokens=args.provisional_loss_tokens,
                 reserve_fraction=args.reserve_fraction,
                 available_gpu_hours=args.available_gpu_hours,
+                available_storage_bytes=args.available_storage_bytes,
                 ledger_path=args.ledger_path,
                 ledger_lock=args.ledger_lock,
                 train_hyperparameters=overrides,
@@ -2050,8 +2251,8 @@ def main(argv=None) -> int:
         if args.command == "_reserved":
             if args.native_arguments and args.native_arguments[0] == "--":
                 args.native_arguments = args.native_arguments[1:]
-            if bool(args.interventions) != bool(args.protocol):
-                raise StudyError("intervention output and protocol must be supplied together")
+            if args.interventions and not (args.checkpoint_for_interventions and args.expected_checkpoint_sha256):
+                raise StudyError("interventions require a checkpoint path and expected SHA256")
             return _reserved_main(args)
         raise StudyError(f"unknown command {args.command}")
     except (StudyError, ValueError, OSError, json.JSONDecodeError) as error:

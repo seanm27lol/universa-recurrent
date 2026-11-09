@@ -439,3 +439,66 @@ def test_cpu_never_writes_historical_ledger_or_opens_lock(tmp_path, monkeypatch)
     assert result["reservation_id"] is None
     assert ledger.read_bytes() == historical
     assert not (shared / "gpu.lock").exists()
+
+
+def test_cuda_override_validation_precedes_reservation_and_model(tmp_path, monkeypatch):
+    args = args_for(
+        tmp_path / "missing-config.json",
+        tmp_path / "missing-data",
+        tmp_path / "cuda",
+        device="cuda",
+        ledger_path=str(tmp_path / "unanchored" / "gpu_ledger.jsonl"),
+        ledger_lock=str(tmp_path / "unanchored" / "gpu.lock"),
+    )
+    monkeypatch.setattr(T.torch.cuda, "is_available", lambda: True)
+    calls = []
+
+    def refuse_unanchored(path, lock):
+        calls.append((path, lock))
+        raise RuntimeError("unanchored production override")
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("CUDA setup passed the reservation-path validation boundary")
+
+    monkeypatch.setattr(native_ledger, "validate_shared_reservation_paths", refuse_unanchored)
+    monkeypatch.setattr(native_ledger, "Reservation", forbidden)
+    monkeypatch.setattr(T, "NativeModel", forbidden)
+    monkeypatch.setattr(T, "PackedDataset", forbidden)
+    with pytest.raises(RuntimeError, match="unanchored production override"):
+        T.run_training(args)
+    assert calls == [(args.ledger_path, args.ledger_lock)]
+
+
+def test_cuda_reservation_uses_validated_temporary_pair(tmp_path, monkeypatch):
+    data = write_packed(tmp_path / "data")
+    config = write_config(tmp_path / "config.json")
+    args = args_for(
+        config,
+        data,
+        tmp_path / "cuda",
+        budget=1,
+        device="cuda",
+        ledger_path=str(tmp_path / "requested-ledger.jsonl"),
+        ledger_lock=str(tmp_path / "requested-lock"),
+    )
+    anchored = (tmp_path / "anchored" / "gpu_ledger.jsonl", tmp_path / "anchored" / "gpu.lock")
+    monkeypatch.setattr(T.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(native_ledger, "validate_shared_reservation_paths", lambda path, lock: anchored)
+    captured = {}
+
+    class CaptureReservation:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+            raise RuntimeError("stop before opening reservation context")
+
+    def forbidden_model(*args, **kwargs):
+        raise AssertionError("model initialization occurred before the reservation boundary")
+
+    monkeypatch.setattr(native_ledger, "Reservation", CaptureReservation)
+    monkeypatch.setattr(T, "NativeModel", forbidden_model)
+    with pytest.raises(RuntimeError, match="stop before opening reservation context"):
+        T.run_training(args)
+    assert captured["path"] == anchored[0]
+    assert captured["lock"] == anchored[1]
+    assert not anchored[0].exists()
+    assert not anchored[1].exists()

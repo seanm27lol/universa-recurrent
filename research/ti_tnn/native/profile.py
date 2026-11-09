@@ -31,6 +31,7 @@ import torch
 from scaling import ledger as scaling_ledger
 from . import checkpoint as C
 from . import evaluate as E
+from . import ledger as native_ledger
 from . import reconstruct as R
 from . import train as T
 from .config import MODES, NativeConfig
@@ -123,9 +124,20 @@ def _load_batch(
     return batch, loss_tokens, time.perf_counter() - started
 
 
-def _batch_indices(step: int, batch_size: int, rows: int) -> tuple[int, ...]:
-    start = (step * batch_size) % rows
-    return tuple((start + offset) % rows for offset in range(batch_size))
+def _load_sampler_batch(dataset: PackedDataset, sampler, device: torch.device):
+    started = time.perf_counter()
+    sampler_started = time.perf_counter()
+    sampler_batch = sampler.next_batch()
+    batch_identity = sampler_batch.batch_identity
+    sampler.state_dict()
+    sampler_seconds = time.perf_counter() - sampler_started
+    batch, identities, hash_transfer_seconds = T._load_batch(dataset, sampler_batch.indices, device)
+    timing = {
+        "sampler_next_batch_seconds": sampler_seconds,
+        "batch_hash_transfer_seconds": hash_transfer_seconds,
+        "data_loading_seconds": time.perf_counter() - started,
+    }
+    return batch, sampler_batch, batch_identity, identities, timing
 
 
 def _training_step(model, optimizer, scheduler, batch, args, dtype: torch.dtype) -> dict:
@@ -170,6 +182,7 @@ def _run_training_steps(
     optimizer,
     scheduler,
     dataset: PackedDataset,
+    sampler,
     args,
     dtype: torch.dtype,
     device: torch.device,
@@ -182,8 +195,10 @@ def _run_training_steps(
     for local_step in range(count):
         _check_reservation(reservation)
         step = first_step + local_step
-        indices = _batch_indices(step, args.batch_size, len(dataset))
-        batch, expected_tokens, loading_seconds = _load_batch(dataset, indices, device)
+        batch, sampler_batch, batch_identity, identities, timing = _load_sampler_batch(
+            dataset, sampler, device
+        )
+        expected_tokens = sampler_batch.loss_tokens
         record = _training_step(model, optimizer, scheduler, batch, args, dtype)
         if record["actual_shifted_loss_tokens"] != expected_tokens:
             raise AssertionError(
@@ -192,11 +207,19 @@ def _run_training_steps(
             )
         record.update({
             "step": step + 1,
-            "indices": list(indices),
-            "data_loading_seconds": loading_seconds,
+            "indices": list(sampler_batch.indices),
+            "dropped_indices": list(sampler_batch.dropped_indices),
+            "epoch": sampler_batch.epoch,
+            "cursor": sampler_batch.cursor,
+            "batches_consumed": sampler_batch.batches_consumed,
+            "consumed_loss_tokens": sampler_batch.consumed_loss_tokens,
+            "batch_identity": batch_identity,
+            "order_identity": sampler_batch.order_identity,
+            **identities,
+            **timing,
         })
         record["wall_seconds"] = (
-            loading_seconds
+            timing["data_loading_seconds"]
             + record["forward_seconds"]
             + record["backward_seconds"]
             + record["gradient_clipping_optimizer_seconds"]
@@ -756,6 +779,13 @@ def summarize_steps(records: Sequence[Mapping]) -> dict:
         "actual_shifted_loss_tokens": tokens,
         **totals,
         "optimizer_seconds": totals["gradient_clipping_optimizer_seconds"],
+        "sampler_next_batch_seconds": math.fsum(
+            float(record.get("sampler_next_batch_seconds", 0.0)) for record in records
+        ),
+        "batch_hash_transfer_seconds": math.fsum(
+            float(record.get("batch_hash_transfer_seconds", 0.0)) for record in records
+        ),
+        "sampler_cost_accounting": "sampler and batch/hash/transfer subtotals are included in data_loading_seconds, not additional wall time",
         "actual_shifted_loss_tokens_per_second": (
             tokens / totals["wall_seconds"] if totals["wall_seconds"] > 0 else 0.0
         ),
@@ -934,14 +964,18 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
     if int(datasets["train"].arrays["input_ids"].max()) >= model_config.vocab_size:
         raise ValueError("packed token id exceeds NativeConfig.vocab_size")
     data_identity = _data_identity(data_root, datasets)
+    sampler = T.make_sampler(datasets["train"], args.batch_size, args.seed)
+    dev_sampler = T.make_sampler(datasets["dev"], args.batch_size, args.seed)
+    data_identity.update({
+        "train_data_identity": sampler.data_identity,
+        "dev_data_identity": dev_sampler.data_identity,
+        "train_sampler_data_identity": sampler.data_identity,
+        "dev_sampler_data_identity": dev_sampler.data_identity,
+        "order_identity": sampler.order_identity,
+    })
     complete_inputs = _discover_complete_inputs(args, data_root)
     code_identity = T._code_identity()
-    order_identity = identity_hash({
-        "format": "native-profile-order-v1",
-        "data_identity": data_identity["identity"],
-        "batch_size": args.batch_size,
-        "rule": "cyclic contiguous packed rows",
-    })
+    order_identity = sampler.order_identity
     source_config = json.loads(Path(args.config).read_text())
     run_config = {
         "format": PROFILE_FORMAT,
@@ -953,6 +987,8 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "warmup_steps": args.warmup_steps,
             "measured_steps": args.measured_steps,
             "seed": args.seed,
+            "model_seed": args.seed,
+            "data_seed": args.seed,
             "learning_rate": args.learning_rate,
             "weight_decay": args.weight_decay,
             "betas": list(args.betas),
@@ -982,8 +1018,9 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "token_rule": "count labels[:, 1:] != -100 on actual PackedDataset batches",
         },
         "source_config_sha256": sha256_file(args.config),
-        "data_identity": data_identity["identity"],
-        "dev_data_identity": identity_hash(data_identity["splits"]["dev"]),
+        "data_identity": sampler.data_identity,
+        "train_data_identity": sampler.data_identity,
+        "dev_data_identity": dev_sampler.data_identity,
         "order_identity": order_identity,
         "code_identity": code_identity,
     }
@@ -1012,6 +1049,14 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
             "compile_mode": run_config["profile"]["compile_mode"],
             "parameters_dtype": "float32",
             "autocast": dtype_name if device.type == "cuda" and dtype != torch.float32 else None,
+            "sampler": {
+                "factory": "native.train.make_sampler",
+                "data_seed": args.seed,
+                "batch_size": args.batch_size,
+                "data_identity": sampler.data_identity,
+                "dev_data_identity": dev_sampler.data_identity,
+                "order_identity": order_identity,
+            },
             "complete_evaluation_limits": {
                 "complete_evaluation_max_batches": args.complete_evaluation_max_batches,
                 "complete_evaluation_batch_size": args.complete_evaluation_batch_size,
@@ -1066,6 +1111,7 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
         optimizer,
         scheduler,
         datasets["train"],
+        sampler,
         args,
         dtype,
         device,
@@ -1080,7 +1126,7 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
     report["setup"]["warmup_actual_shifted_loss_tokens"] = warmup["actual_shifted_loss_tokens"]
     cache_batch, _, cache_data_seconds = _load_batch(
         datasets["train"],
-        _batch_indices(args.warmup_steps, args.batch_size, len(datasets["train"])),
+        warmup_records[-1]["indices"],
         device,
     )
     atol, rtol = _cache_tolerances(args, dtype)
@@ -1106,6 +1152,7 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
         optimizer,
         scheduler,
         datasets["train"],
+        sampler,
         args,
         dtype,
         device,
@@ -1133,14 +1180,12 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
         model,
         optimizer,
         scheduler,
-        step=args.warmup_steps + args.measured_steps,
-        cursor=(args.warmup_steps + args.measured_steps) * args.batch_size,
-        consumed_loss_tokens=warmup["actual_shifted_loss_tokens"] + report["training"]["actual_shifted_loss_tokens"],
+        sampler=sampler,
         config=run_config,
         code_identity=code_identity,
-        data_identity=data_identity["identity"],
+        data_identity=sampler.data_identity,
         order_identity=order_identity,
-        identities={"dev_data": identity_hash(data_identity["splits"]["dev"])},
+        identities={"dev_data": dev_sampler.data_identity},
         extra={
             "profile": str(Path(args.output).resolve()),
             "mode": args.mode,
@@ -1158,6 +1203,19 @@ def _execute(args: argparse.Namespace, reservation, report: dict) -> None:
         "wall_seconds": checkpoint_seconds,
         "bytes": actual_bytes,
         "real_write": True,
+    }
+    report["sampler"] = {
+        "factory": "native.train.make_sampler",
+        "seed": args.seed,
+        "data_seed": args.seed,
+        "batch_size": args.batch_size,
+        "shuffle": True,
+        "drop_last": False,
+        "data_identity": sampler.data_identity,
+        "dev_data_identity": dev_sampler.data_identity,
+        "order_identity": order_identity,
+        "state_at_checkpoint": sampler.state_dict(),
+        "cost_accounting": "next_batch/permutation, batch_identity, sampler state, trainer batch hashes, and transfer are measured in data_loading_seconds",
     }
     report["complete_evaluation"] = _complete_evaluation(
         model, datasets, complete_inputs, args, device, reservation
@@ -1256,11 +1314,14 @@ def run_profile(args: argparse.Namespace) -> dict:
     _validate_args(args)
     if args.dry_run:
         return _attempt(args, None)
+    ledger_path, ledger_lock = native_ledger.validate_shared_reservation_paths(
+        args.ledger_path, args.ledger_lock
+    )
     reservation = Reservation(
         command=f"native.profile mode={args.mode} config={args.config} data={args.data} output={args.output}",
         projected_hours=args.projected_hours,
-        path=Path(args.ledger_path) if args.ledger_path is not None else None,
-        lock=Path(args.ledger_lock) if args.ledger_lock is not None else None,
+        path=ledger_path,
+        lock=ledger_lock,
         extra={
             "format": PROFILE_FORMAT,
             "mode": args.mode,

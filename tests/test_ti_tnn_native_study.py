@@ -1,6 +1,7 @@
 """Offline orchestration checks with fake profiles, subprocesses, and GPU accounting."""
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -15,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "research" / "ti_tnn"))
 from native import evaluate as E  # noqa: E402
 from native import ledger as native_ledger  # noqa: E402
+from native import reconstruct as R  # noqa: E402
 from native import study as S  # noqa: E402
 from native.config import MODES  # noqa: E402
 from native.data import ARRAY_DTYPES, ARRAY_NAMES, IGNORE_INDEX  # noqa: E402
@@ -141,6 +143,10 @@ def measured_profile(mode: str, *, throughput: float = 1000.0) -> dict:
             "dev_batches": 16,
             "limit_per_split": 128,
             "code_limit": 64,
+            "max_new_tokens": 48,
+            "code_max_new_tokens": 128,
+            "eos_token_id": 50256,
+            "use_cache": True,
         },
         "measured": {
             "training": {
@@ -192,7 +198,10 @@ def fixture(tmp_path):
     }
 
 
-def freeze(fixture, output: Path, *, available=12.0, provisional=100, snapshot=clean_snapshot, evaluation=None):
+def freeze(
+    fixture, output: Path, *, available=12.0, provisional=100, snapshot=clean_snapshot,
+    evaluation=None, storage=None, path_validator=None,
+):
     return S.freeze_study(
         output,
         data=fixture["data"],
@@ -203,8 +212,10 @@ def freeze(fixture, output: Path, *, available=12.0, provisional=100, snapshot=c
         serious_config=fixture["serious"],
         repository=ROOT,
         available_gpu_hours=available,
+        available_storage_bytes=storage,
         ledger_path=fixture["ledger"],
         ledger_lock=fixture["lock"],
+        reservation_path_validator=path_validator,
         provisional_loss_tokens=provisional,
         train_hyperparameters={"checkpoint_every": 2, "dev_every": 2},
         evaluation=evaluation,
@@ -528,12 +539,17 @@ def fake_accounting(path, *, reservation_id, mode, stage, started, output):
     }
 
 
+def fake_reservation_paths(ledger_path, ledger_lock):
+    return Path(ledger_path), Path(ledger_lock)
+
+
 def run(study_path, protocol, fake=None, **kwargs):
     fake = fake or FakeSubprocesses(protocol)
     status = S.run_study(
         study_path,
         runner=fake,
         accounting_reader=fake_accounting,
+        reservation_path_validator=fake_reservation_paths,
         git_snapshot_fn=clean_snapshot,
         **kwargs,
     )
@@ -911,10 +927,14 @@ def test_native_profile_complete_evaluation_limit_mismatch_is_refused(fixture):
     recipe.update({
         "evaluation_batches": 16,
         "evaluation_batch_size": 8,
+        "max_new_tokens": 48,
+        "code_max_new_tokens": 128,
+        "eos_token_id": 50256,
         "requested_dtype": "bfloat16",
     })
     raw = {
         "format": "native-profile-v1",
+        "code": {"identity": "frozen-code", "git_commit_at_attempt_start": COMMIT},
         "config": {
             "sha256": hashlib.sha256(fixture["engineering"].read_bytes()).hexdigest(),
             "model": {**engineering["model"], "mode": "dense"},
@@ -931,8 +951,16 @@ def test_native_profile_complete_evaluation_limit_mismatch_is_refused(fixture):
                 "structured_generation": {
                     "limit_per_split": 128,
                     "effective_limit_per_split": 128,
+                    "max_new_tokens": 48,
+                    "eos_token_id": 50256,
+                    "use_cache": True,
                 },
-                "code_generation": {"limit": 63},
+                "code_generation": {
+                    "limit": 63,
+                    "code_max_new_tokens": 128,
+                    "eos_token_id": 50256,
+                    "use_cache": True,
+                },
             },
         },
     }
@@ -943,4 +971,271 @@ def test_native_profile_complete_evaluation_limit_mismatch_is_refused(fixture):
             fixture["data"],
             S.DEFAULT_TRAIN,
             S.DEFAULT_EVALUATION,
+            {"native_code_identity": "frozen-code", "commit": COMMIT},
         )
+
+
+
+def native_binding_material(fixture):
+    engineering = json.loads(fixture["engineering"].read_text())
+    recipe = {
+        name: (list(S.DEFAULT_TRAIN[name]) if name == "betas" else S.DEFAULT_TRAIN[name])
+        for name in (
+            "batch_size", "learning_rate", "weight_decay", "betas", "eps", "grad_clip",
+            "lambda_balance", "lambda_route", "lambda_state",
+        )
+    }
+    recipe.update({
+        "evaluation_batches": 16,
+        "evaluation_batch_size": 8,
+        "max_new_tokens": 48,
+        "code_max_new_tokens": 128,
+        "eos_token_id": 50256,
+        "requested_dtype": "bfloat16",
+    })
+    raw = {
+        "format": "native-profile-v1",
+        "code": {"identity": "frozen-code", "git_commit_at_attempt_start": COMMIT},
+        "config": {
+            "sha256": hashlib.sha256(fixture["engineering"].read_bytes()).hexdigest(),
+            "model": {**engineering["model"], "mode": "dense"},
+            "profile": recipe,
+        },
+        "execution": {"mode": "eager"},
+        "complete_evaluation": {
+            "components": {
+                "teacher_forced": {
+                    "batch_size": 8,
+                    "complete_evaluation_max_batches": 16,
+                    "max_batches": 16,
+                },
+                "structured_generation": {
+                    "limit_per_split": 128,
+                    "effective_limit_per_split": 128,
+                    "max_new_tokens": 48,
+                    "eos_token_id": 50256,
+                    "use_cache": True,
+                },
+                "code_generation": {
+                    "limit": 64,
+                    "code_max_new_tokens": 128,
+                    "eos_token_id": 50256,
+                    "use_cache": True,
+                },
+            },
+        },
+    }
+    repository = {"native_code_identity": "frozen-code", "commit": COMMIT}
+    return raw, repository
+
+
+def validate_native_raw(fixture, raw, repository):
+    return S._validate_native_profile_bindings(
+        {"dense": {"measured": raw}},
+        fixture["engineering"],
+        fixture["data"],
+        S.DEFAULT_TRAIN,
+        S.DEFAULT_EVALUATION,
+        repository,
+    )
+
+
+def test_freeze_without_gpu_override_uses_validated_live_ledger(fixture, tmp_path, monkeypatch):
+    validated = []
+
+    def validate(path, lock):
+        validated.append((Path(path), Path(lock)))
+        return Path(path), Path(lock)
+
+    monkeypatch.setattr(native_ledger, "validate_shared_reservation_paths", validate, raising=False)
+    monkeypatch.setattr(native_ledger, "usage", lambda path: {
+        "native_remaining_hours": 7.25,
+        "used_hours": 28.0,
+        "reservations": [],
+    })
+    frozen = freeze(fixture, tmp_path / "study", available=None)
+    assert validated == [(fixture["ledger"], fixture["lock"])]
+    feasibility = frozen["protocol"]["feasibility"]
+    assert feasibility["available_native_gpu_hours"] == 7.25
+    assert feasibility["ledger_usage_at_freeze"]["native_remaining_hours"] == 7.25
+    assert feasibility["ledger_usage_at_freeze"]["used_hours"] == 28.0
+
+
+def test_run_validates_anchor_before_launching_any_child(fixture, tmp_path):
+    protocol = freeze(fixture, tmp_path / "study")["protocol"]
+    validated = []
+
+    def reject(path, lock):
+        validated.append((Path(path), Path(lock)))
+        raise S.StudyError("protocol ledger is not the anchored shared ledger")
+
+    fake = FakeSubprocesses(protocol)
+    status = S.run_study(
+        tmp_path / "study",
+        runner=fake,
+        accounting_reader=fake_accounting,
+        reservation_path_validator=reject,
+        git_snapshot_fn=clean_snapshot,
+    )
+    assert status == 3
+    assert validated == [(fixture["ledger"], fixture["lock"])]
+    assert not fake.calls
+    assert "anchored shared ledger" in json.loads((tmp_path / "study" / "run-status.json").read_text())["reason"]
+
+
+@pytest.mark.parametrize("field", ["identity", "git_commit_at_attempt_start"])
+def test_native_profile_code_and_commit_must_match_frozen_repository(fixture, field):
+    raw, repository = native_binding_material(fixture)
+    raw["code"][field] = "stale"
+    with pytest.raises(S.StudyError, match="code identity or attempt commit"):
+        validate_native_raw(fixture, raw, repository)
+
+
+@pytest.mark.parametrize(("field", "value"), [
+    ("max_new_tokens", 47),
+    ("code_max_new_tokens", 127),
+    ("eos_token_id", 7),
+])
+def test_native_profile_recipe_decoding_must_match_protocol(fixture, field, value):
+    raw, repository = native_binding_material(fixture)
+    raw["config"]["profile"][field] = value
+    with pytest.raises(S.StudyError, match=f"decoding field {field}"):
+        validate_native_raw(fixture, raw, repository)
+
+
+def test_native_profile_cache_and_component_decoding_must_match_protocol(fixture):
+    raw, repository = native_binding_material(fixture)
+    components = raw["complete_evaluation"]["components"]
+    components["structured_generation"]["use_cache"] = False
+    with pytest.raises(S.StudyError, match="structured decoding limits"):
+        validate_native_raw(fixture, raw, repository)
+    raw, repository = native_binding_material(fixture)
+    raw["complete_evaluation"]["components"]["code_generation"]["code_max_new_tokens"] = 127
+    with pytest.raises(S.StudyError, match="code decoding limits"):
+        validate_native_raw(fixture, raw, repository)
+
+
+def test_reserved_child_rejects_receipt_mismatch_before_reservation(fixture, tmp_path, monkeypatch):
+    frozen = freeze(fixture, tmp_path / "study")
+    monkeypatch.setattr(
+        native_ledger,
+        "Reservation",
+        lambda **kwargs: pytest.fail("reservation opened before protocol receipt validation"),
+    )
+    args = SimpleNamespace(
+        protocol=tmp_path / "study" / "protocol.json",
+        protocol_sha256="0" * 64,
+        module="native.reconstruct",
+        native_arguments=[],
+        ledger_path=fixture["ledger"],
+        ledger_lock=fixture["lock"],
+    )
+    with pytest.raises(S.StudyError, match="receipt"):
+        S._reserved_main(args)
+
+
+def test_interventions_reject_actually_loaded_replay_hash_mismatch(fixture, tmp_path, monkeypatch):
+    protocol = freeze(fixture, tmp_path / "study")["protocol"]
+    monkeypatch.setattr(E, "load_native_model", lambda *args, **kwargs: (object(), {"sha256": "checkpoint"}))
+    monkeypatch.setattr(R, "load_replay_spec", lambda path: {"spec_sha256": "swapped"})
+    monkeypatch.setattr(
+        E,
+        "evaluate_state_interventions",
+        lambda *args, **kwargs: pytest.fail("interventions ran with a swapped replay specification"),
+    )
+    with pytest.raises(S.StudyError, match="loaded replay.*differs"):
+        S.run_state_interventions(protocol, "checkpoint.pt", "checkpoint", tmp_path / "interventions.json")
+
+
+def proposal_configs():
+    engineering = {
+        "modes": {
+            mode: {
+                "decoded_token_macs": 100,
+                "decoded_token_macs_with_probes": 120,
+                "total": 1000,
+            }
+            for mode in MODES
+        },
+    }
+    serious = {
+        "modes": {
+            mode: {
+                "decoded_token_macs": 200,
+                "decoded_token_macs_with_probes": 480,
+                "total": 4000,
+            }
+            for mode in MODES
+        },
+    }
+    return engineering, serious
+
+
+def proposal_arm():
+    def stage(name, hours):
+        return {
+            "stage": name,
+            "gpu_accounting": {"reservation": {"hours": hours, "open": False, "status": "ok"}},
+        }
+
+    return {
+        "actual_loss_tokens": 100_000,
+        "planned_updates": 100,
+        "reservations": [stage("train", 1.0), stage("evaluate", 0.25), stage("reconstruct", 0.1)],
+        "time": {"training": {"checkpoint_seconds": 360.0}},
+        "checkpoints": {
+            "final": {"bytes": 1000},
+            "all_journal_checkpoints": [{}, {}, {}],
+        },
+    }
+
+
+def test_serious_proposal_scales_stages_independently_and_requires_bounded_storage():
+    arms = {mode: copy.deepcopy(proposal_arm()) for mode in MODES}
+    engineering, serious = proposal_configs()
+    proposal = S.propose_serious_125m(
+        arms,
+        engineering,
+        serious,
+        checkpoint_every=50,
+        retention_limit=2,
+        available_storage_bytes=40_000_000,
+    )
+    typed = proposal["arms"]["typed"]
+    components = typed["component_gpu_hours"]
+    assert components["training_without_checkpoints"] == pytest.approx(0.9 * 1250 * 0.5)
+    assert components["fixed_evaluation"] == pytest.approx(0.25 * 0.25)
+    assert components["fixed_reconstruction"] == pytest.approx(0.1 * 0.25)
+    assert components["bounded_checkpoints"] == pytest.approx((0.1 / 3) * 4 * 2)
+    assert typed["retain_all_alternative"]["checkpoint_count"] == 2501
+    assert typed["retain_all_alternative"]["checkpoint_bytes"] == 2501 * 4000
+    assert typed["bounded_retention_requirement"]["checkpoint_bytes"] == 8000
+    assert proposal["storage"]["retain_all_checkpoint_bytes"] == 4 * 2501 * 4000
+    assert proposal["storage"]["bounded_retention_checkpoint_bytes"] == 4 * 8000
+    assert proposal["storage"]["retain_all_fits"] is False
+    assert proposal["storage"]["bounded_retention_fits"] is True
+    assert proposal["storage"]["required_retention"]["max_checkpoints_per_arm"] == 2
+    assert proposal["authorization"] is False and proposal["opens_reservation"] is False
+    assert proposal["total_four_arm_gpu_hours_before_reserve"] == pytest.approx(
+        4 * (0.9 * 1250 * 0.5 + 0.25 * 0.25 + 0.1 * 0.25 + (0.1 / 3) * 4 * 2)
+    )
+
+    constrained = S.propose_serious_125m(
+        arms,
+        engineering,
+        serious,
+        checkpoint_every=50,
+        retention_limit=2,
+        available_storage_bytes=31_000,
+    )
+    assert constrained["storage"]["bounded_retention_fits"] is False
+    assert any("Even bounded retention" in warning for warning in constrained["storage"]["warnings"])
+
+
+def test_freeze_refuses_checkpoint_schedule_exceeding_available_storage(fixture, tmp_path):
+    result = freeze(fixture, tmp_path / "study", storage=0)
+    assert result["status"] == "infeasible"
+    assert "GPU/storage" in result["reason"]
+    assert result["feasibility"]["storage"]["available_bytes"] == 0
+    assert result["feasibility"]["storage"]["minimum_checkpoint_bytes"] > 0
+    assert not (tmp_path / "study" / "protocol.json").exists()
