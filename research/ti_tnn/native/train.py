@@ -198,6 +198,7 @@ def forward_losses(
             route_indices=output.route_indices,
             route_targets=batch["route_targets"] if routed else None,
             route_mask=batch["route_mask"] if routed else None,
+            key_padding_mask=batch["key_padding_mask"],
             state_logits=output.state_logits,
             state_targets=batch["state_targets"],
             state_mask=batch["state_mask"],
@@ -340,6 +341,7 @@ def train_batch(
         "loss_tokens": actual_tokens,
         "route_targets": int(losses["route_count"].item()),
         "state_targets": int(losses["state_count"].item()),
+        "balance_decisions": int(losses["balance_count"].item()),
         "grad_norm": grad_norm,
         "learning_rate": learning_rate,
         "next_learning_rate": float(optimizer.param_groups[0]["lr"]),
@@ -425,7 +427,7 @@ def evaluate_teacher_forced(
                 sums["language"] += float(losses["language"]) * token_count
                 sums["route"] += float(losses["route"]) * route_count
                 sums["state"] += float(losses["state"]) * state_count
-                routing_decisions = int(batch["input_ids"].numel() * 4) if output.route_logits is not None else 0
+                routing_decisions = int(losses["balance_count"].item())
                 sums["balance"] += float(losses["balance"]) * routing_decisions
                 counts["language"] += token_count
                 counts["route"] += route_count
@@ -459,6 +461,7 @@ def evaluate_teacher_forced(
         "loss_tokens": counts["language"],
         "route_targets": counts["route"],
         "state_targets": counts["state"],
+        "balance_decisions": counts["balance"],
         "route_usage": _merge_route_usage(route_usage),
         "data_loading_seconds": data_seconds,
         "forward_seconds": forward_seconds,

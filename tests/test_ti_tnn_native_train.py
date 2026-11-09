@@ -230,6 +230,84 @@ def test_gradients_reach_native_modules_and_adamw_groups(tmp_path, mode):
         assert all(writer.weight.grad is not None and writer.weight.grad.abs().sum() > 0 for writer in model.slot_writers)
 
 
+def test_right_padding_preserves_total_objective_gradients_and_live_route_usage(tmp_path):
+    data = write_packed(tmp_path / "data")
+    dataset = PackedDataset(data, "train")
+    full = dataset.batch([0, 3])
+    live_length = 4
+    short = {name: tensor[:, :live_length].clone() for name, tensor in full.items()}
+    padded = {name: tensor.clone() for name, tensor in full.items()}
+    padded["input_ids"][:, live_length:] = 0
+    padded["labels"][:, live_length:] = IGNORE_INDEX
+    padded["source_ids"][:, live_length:] = -1
+    padded["positions"][:, live_length:] = 0
+    padded["doc_ids"][:, live_length:] = -1
+    padded["key_padding_mask"][:, live_length:] = True
+    padded["route_targets"][:, live_length:] = 3
+    padded["route_mask"][:, live_length:] = False
+    padded["state_targets"][:, live_length:] = 4
+    padded["state_mask"][:, live_length:] = False
+    assert not short["key_padding_mask"].any()
+    assert short["route_mask"].all() and short["state_mask"].all()
+
+    torch.manual_seed(23)
+    short_model = NativeModel(tiny_config("typed")).train()
+    padded_model = NativeModel(tiny_config("typed")).train()
+    padded_model.load_state_dict(short_model.state_dict())
+
+    def update(model, batch):
+        optimizer = T.build_optimizer(model, learning_rate=0.001, weight_decay=0.01)
+        scheduler = T.build_scheduler(optimizer, 1)
+        expected = int(torch.count_nonzero(batch["labels"][:, 1:] != IGNORE_INDEX))
+        record = T.train_batch(
+            model,
+            optimizer,
+            scheduler,
+            batch,
+            grad_clip=1e9,
+            lambda_balance=0.2,
+            lambda_route=0.3,
+            lambda_state=0.4,
+            expected_loss_tokens=expected,
+        )
+        gradients = {
+            name: None if parameter.grad is None else parameter.grad.detach().clone()
+            for name, parameter in model.named_parameters()
+        }
+        return record, gradients
+
+    short_record, short_gradients = update(short_model, short)
+    padded_record, padded_gradients = update(padded_model, padded)
+    for name in ("language_loss", "route_loss", "state_loss", "balance_loss", "objective_loss"):
+        assert short_record[name] > 0
+        assert padded_record[name] == pytest.approx(short_record[name], rel=2e-6, abs=2e-7)
+    for name in ("loss_tokens", "route_targets", "state_targets", "balance_decisions"):
+        assert padded_record[name] == short_record[name]
+    live_tokens = short["input_ids"].numel()
+    assert short_record["balance_decisions"] == live_tokens * 4
+    assert short_record["loss_tokens"] == int(torch.count_nonzero(short["labels"][:, 1:] != IGNORE_INDEX))
+
+    assert short_gradients.keys() == padded_gradients.keys()
+    for name, short_gradient in short_gradients.items():
+        padded_gradient = padded_gradients[name]
+        assert (short_gradient is None) == (padded_gradient is None), name
+        if short_gradient is not None:
+            torch.testing.assert_close(padded_gradient, short_gradient, rtol=2e-5, atol=2e-6, msg=name)
+
+    assert len(short_record["route_usage"]) == len(padded_record["route_usage"]) == 4
+    for short_pass, padded_pass in zip(short_record["route_usage"], padded_record["route_usage"]):
+        assert short_pass["decisions"] == padded_pass["decisions"] == live_tokens
+        assert sum(expert["count"] for expert in padded_pass["experts"]) == live_tokens
+        assert padded_pass["starved_experts"] == short_pass["starved_experts"]
+        assert padded_pass["load_balance"] == pytest.approx(short_pass["load_balance"], rel=2e-6, abs=2e-7)
+        for short_expert, padded_expert in zip(short_pass["experts"], padded_pass["experts"]):
+            assert padded_expert["count"] == short_expert["count"]
+            assert padded_expert["selected_fraction"] == short_expert["selected_fraction"]
+            assert padded_expert["mean_probability"] == pytest.approx(
+                short_expert["mean_probability"], rel=2e-6, abs=2e-7
+            )
+
+
 def test_two_percent_warmup_then_cosine_to_ten_percent():
     model = NativeModel(tiny_config())
     optimizer = T.build_optimizer(model, learning_rate=0.01, weight_decay=0.01)

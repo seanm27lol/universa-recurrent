@@ -77,10 +77,104 @@ def test_unlabelled_text_has_active_switch_balance_and_router_gradient():
     assert result["route"].item() == 0.0 and result["state"].item() == 0.0
     assert result["token_count"].item() == 0
     assert result["route_count"].item() == 0 and result["state_count"].item() == 0
+    assert result["balance_count"].item() == 16
 
     result["total"].backward()
     assert torch.isfinite(route_logits.grad).all()
     assert route_logits.grad.abs().sum() > 0
+
+
+def test_right_padding_preserves_live_balance_counts_and_gradients():
+    torch.manual_seed(6)
+    compact_route_logits = torch.randn(2, 2, 4, 4, requires_grad=True)
+    compact_route_indices = (torch.arange(16).reshape(2, 2, 4) + 2) % 4
+    padded_route_logits = torch.randn(2, 4, 4, 4)
+    padded_route_logits[:, :2] = compact_route_logits.detach()
+    padded_route_logits[:, 2:] = 100 * torch.randn(2, 2, 4, 4)
+    padded_route_logits.requires_grad_()
+    padded_route_indices = torch.zeros(2, 4, 4, dtype=torch.long)
+    padded_route_indices[:, :2] = compact_route_indices
+    padded_route_indices[:, 2:] = 3
+    key_padding_mask = torch.tensor([[False, False, True, True], [False, False, True, True]])
+
+    compact_balance = losses.switch_load_balance(compact_route_logits, compact_route_indices)
+    padded_balance = losses.switch_load_balance(
+        padded_route_logits, padded_route_indices, key_padding_mask
+    )
+    assert compact_balance.dtype == padded_balance.dtype == torch.float32
+    assert torch.allclose(padded_balance, compact_balance)
+
+    compact_language_logits = torch.randn(2, 2, 6)
+    padded_language_logits = torch.randn(2, 4, 6)
+    padded_language_logits[:, :2] = compact_language_logits
+    compact_labels = torch.tensor([[-100, 1], [-100, 2]])
+    padded_labels = torch.tensor([[-100, 1, -100, -100], [-100, 2, -100, -100]])
+    compact_result = losses.compute_losses(
+        compact_language_logits,
+        compact_labels,
+        route_logits=compact_route_logits,
+        route_indices=compact_route_indices,
+    )
+    padded_result = losses.compute_losses(
+        padded_language_logits,
+        padded_labels,
+        key_padding_mask=key_padding_mask,
+        route_logits=padded_route_logits,
+        route_indices=padded_route_indices,
+    )
+    unmasked_result = losses.compute_losses(
+        padded_language_logits,
+        padded_labels,
+        route_logits=padded_route_logits,
+        route_indices=padded_route_indices,
+    )
+    assert torch.allclose(padded_result["balance"], compact_result["balance"])
+    assert torch.allclose(padded_result["language"], compact_result["language"])
+    assert not torch.allclose(unmasked_result["balance"], compact_result["balance"])
+    assert compact_result["balance_count"].item() == padded_result["balance_count"].item() == 16
+    assert unmasked_result["balance_count"].item() == 32
+    assert compact_result["token_count"].item() == padded_result["token_count"].item() == 2
+    assert padded_result["route_count"].item() == 0 and padded_result["state_count"].item() == 0
+
+    compact_balance.backward()
+    padded_balance.backward()
+    assert torch.isfinite(compact_route_logits.grad).all()
+    assert compact_route_logits.grad.abs().sum() > 0
+    assert torch.isfinite(padded_route_logits.grad).all()
+    assert torch.count_nonzero(padded_route_logits.grad[:, 2:]) == 0
+    assert torch.allclose(padded_route_logits.grad[:, :2], compact_route_logits.grad)
+
+
+def test_all_padded_balance_is_finite_zero_with_zero_count_and_gradients():
+    torch.manual_seed(7)
+    language_logits = torch.randn(1, 3, 5, requires_grad=True)
+    route_logits = torch.randn(1, 3, 4, 4, requires_grad=True)
+    route_indices = torch.zeros(1, 3, 4, dtype=torch.long)
+    key_padding_mask = torch.ones(1, 3, dtype=torch.bool)
+    balance = losses.switch_load_balance(route_logits, route_indices, key_padding_mask)
+    assert balance.dtype == torch.float32
+    assert balance.item() == 0.0 and torch.isfinite(balance)
+    balance.backward()
+    assert torch.isfinite(route_logits.grad).all()
+    assert torch.count_nonzero(route_logits.grad) == 0
+
+    result = losses.compute_losses(
+        language_logits,
+        torch.full((1, 3), -100),
+        key_padding_mask=key_padding_mask,
+        route_logits=route_logits,
+        route_indices=route_indices,
+    )
+    assert result["balance"].item() == 0.0 and torch.isfinite(result["balance"])
+    assert result["total"].item() == 0.0 and torch.isfinite(result["total"])
+    assert result["balance_count"].item() == 0
+    assert result["token_count"].item() == 0
+    assert result["route_count"].item() == 0 and result["state_count"].item() == 0
+    result["total"].backward()
+    assert torch.isfinite(language_logits.grad).all() and torch.count_nonzero(language_logits.grad) == 0
+    assert torch.isfinite(route_logits.grad).all() and torch.count_nonzero(route_logits.grad) == 0
+    with pytest.raises(ValueError, match="key padding mask"):
+        losses.switch_load_balance(route_logits, route_indices, torch.ones(1, 2, dtype=torch.bool))
 
 
 def test_unbatched_auxiliaries_stay_unshifted_and_optional_tensors_are_unchanged():

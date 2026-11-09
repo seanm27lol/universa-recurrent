@@ -7,12 +7,17 @@ import torch
 
 from native.config import NativeConfig
 from native.cost import (
+    active_parameter_bounds,
+    active_parameter_report,
     active_parameters,
     count_model_parameters,
     counts_for_all_modes,
     dense_transform_parameters,
     executed_macs,
+    mac_breakdown,
+    nominal_one_expert_active_parameters,
     parameter_counts,
+    route_active_parameters,
     token_macs,
     total_parameters,
 )
@@ -247,27 +252,70 @@ def test_parameter_and_mac_formulas_match_modules(mode):
     model = make_model(mode)
     counts = parameter_counts(config)
     assert count_model_parameters(model) == counts["total"] == total_parameters(config)
-    assert active_parameters(config) == counts["active"]
+    nominal = counts["total"]
     if mode in ("untyped", "typed"):
-        assert counts["active"] == counts["total"] - 3 * dense_transform_parameters(config)
-    else:
-        assert counts["active"] == counts["total"]
+        nominal -= 3 * dense_transform_parameters(config)
+    assert active_parameters(config) == counts["active"] == nominal
+    assert nominal_one_expert_active_parameters(config) == counts["nominal_one_expert_active"] == nominal
+    assert counts["active_min"] == nominal
+    assert counts["active_max"] == counts["total"]
+    assert active_parameter_bounds(config) == {
+        "active_min": nominal,
+        "active_max": counts["total"],
+    }
 
     d = config.d_model
     d_s = config.d_slot
     expected = 4 * d * d_s + 4 * (4 * d * d + 2 * d)
     expected += 4 * 3 * d * config.d_ff + 4 * 2 * d * d
-    expected += 4 * (12 if mode == "typed" else 3) * d * d_s + d * config.vocab_size
+    expected += 4 * 12 * d * d_s + d * config.vocab_size
     if mode == "untyped":
         expected += 4 * 4 * d
     elif mode == "typed":
         expected += 4 * 4 * 2 * d
     assert token_macs(config, 1) == expected == executed_macs(config)
+    assert mac_breakdown(config)["slot_readers_writers"] == 4 * 12 * d * d_s
     assert token_macs(config, 2) - token_macs(config, 1) == 4 * 2 * d
     assert token_macs(config, 1, include_probes=True) - token_macs(config, 1) == 16 * d_s * 5
     full = executed_macs(config, sequence_length=3, cache_length=2)
     incremental = executed_macs(config, sequence_length=3, cache_length=2, incremental=True)
     assert full - incremental == 4 * 2 * d * (15 - 12)
+
+
+@pytest.mark.parametrize("mode", ["untyped", "typed"])
+def test_route_union_active_parameters_and_report(mode):
+    config = tiny_config(mode)
+    counts = parameter_counts(config)
+    expert = dense_transform_parameters(config)
+    non_expert = counts["total"] - 4 * expert
+    routes = torch.tensor([[[0, 0, 0, 0], [0, 1, 0, 1], [0, 1, 2, 2], [0, 1, 2, 3]]])
+    actual = route_active_parameters(config, routes)
+    expected = non_expert + torch.tensor([[1, 2, 3, 4]]) * expert
+    assert torch.equal(actual, expected)
+    assert actual[0, 0].item() == counts["active_min"]
+    assert actual[0, -1].item() == counts["active_max"]
+    report = active_parameter_report(config, routes)
+    assert report["nominal_one_expert_active"] == counts["active"]
+    assert report["observed_active_min"] == counts["active_min"]
+    assert report["observed_active_max"] == counts["active_max"]
+    assert report["observed_active_mean"] == expected.float().mean().item()
+    assert report["observed_token_count"] == 4
+
+
+EXPECTED_CONFIG_MACS = {
+    "engineering.json": {
+        "dense": (13176000, 13200576),
+        "shared": (13176000, 13200576),
+        "untyped": (13179072, 13203648),
+        "typed": (13182144, 13206720),
+    },
+    "serious.json": {
+        "dense": (102356800, 102463296),
+        "shared": (102356800, 102463296),
+        "untyped": (102370112, 102476608),
+        "typed": (102383424, 102489920),
+    },
+}
 
 
 @pytest.mark.parametrize("filename,minimum,maximum", [
@@ -280,6 +328,14 @@ def test_shipped_config_counts(filename, minimum, maximum):
     config = NativeConfig.from_json(path)
     expected = counts_for_all_modes(config)
     assert values["modes"] == expected
+    for mode, expected_macs in EXPECTED_CONFIG_MACS[filename].items():
+        actual_macs = expected[mode]
+        assert (actual_macs["decoded_token_macs"], actual_macs["decoded_token_macs_with_probes"]) == expected_macs
+        assert actual_macs["active"] == actual_macs["nominal_one_expert_active"]
+        assert actual_macs["active_min"] <= actual_macs["active_max"] == actual_macs["total"]
+    assert "nominal_one_expert_active" in values["active_parameter_rule"]
+    assert "union" in values["active_parameter_rule"]
+    assert "four slot readers and writers" in values["mac_rule"]
     assert minimum <= expected["typed"]["total"] <= maximum
     assert config.d_ff == 4 * config.d_model
     assert config.d_slot == config.d_model // 4

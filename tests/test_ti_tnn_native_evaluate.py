@@ -70,7 +70,7 @@ def test_teacher_forcing_separates_target_source_losses_and_collects_routing():
         inputs = {name: torch.from_numpy(data[name]).long() if name != "key_padding_mask"
                   else torch.from_numpy(data[name])
                   for name in E.MODEL_INPUT_ARRAYS}
-        output = model(**inputs)
+        output = model(**inputs, return_aux=True)
     shifted_logits = output.logits[:, :-1]
     shifted_labels = torch.from_numpy(data["labels"]).long()[:, 1:]
     shifted_sources = torch.from_numpy(data["source_ids"]).long()[:, 1:]
@@ -91,6 +91,31 @@ def test_teacher_forcing_separates_target_source_losses_and_collects_routing():
         assert values["mean_entropy_nats"] >= 0
         assert 0 <= values["mean_normalized_entropy"] <= 1
         assert values["load_balance_4sum_fP"] > 0
+    balance = report["auxiliary_losses"]["balance"]
+    assert balance["routing_decisions"] == 28
+    assert balance["key_padding_mask_applied"]
+    assert balance["compute_losses_mask_api"] == "key_padding_mask"
+    live = ~inputs["key_padding_mask"]
+    flat_indices = output.route_indices[live].reshape(-1)
+    flat_probabilities = output.route_probs[live].reshape(-1, 4)
+    fractions = F.one_hot(flat_indices, num_classes=4).float().mean(dim=0)
+    expected_balance = 4 * (fractions * flat_probabilities.mean(dim=0)).sum()
+    assert balance["loss"] == pytest.approx(float(expected_balance), abs=1e-6)
+    distinct = routing["distinct_experts_per_token"]
+    assert distinct["tokens"] == 7
+    assert sum(distinct["histogram"].values()) == 7
+    assert 1 <= distinct["mean"] <= distinct["max"] <= 4
+    active = routing["active_parameter_estimates"]
+    per_expert = E.cost.dense_transform_parameters(model.config)
+    union = active["evaluation_wide_route_union"]
+    assert not active["nominal_one_expert_is_observed_exact_cost"]
+    assert union["active_parameters"] == (
+        active["nominal_one_expert_active_parameters"] + (union["distinct_experts"] - 1) * per_expert
+    )
+    per_token = active["per_token_route_union"]
+    assert per_token["minimum_active_parameters"] >= active["non_expert_parameters"] + per_expert
+    assert per_token["maximum_active_parameters"] <= E.cost.total_parameters(model.config)
+    assert per_token["minimum_active_parameters"] <= per_token["mean_active_parameters"] <= per_token["maximum_active_parameters"]
 
 
 def test_checkpoint_and_real_packed_npy_teacher_forced_pipeline(tmp_path, capsys):
@@ -151,6 +176,33 @@ def test_routing_starvation_entropy_and_load_have_known_control_values():
         assert values["load_balance_4sum_fP"] == 4.0
 
 
+def test_distinct_route_union_histogram_and_active_estimates_exclude_padding():
+    config = tiny_model().config
+    indices = torch.tensor([[[0, 0, 1, 2], [1, 1, 1, 1], [0, 1, 2, 3]]])
+    probabilities = F.one_hot(indices, num_classes=4).float()
+    accumulator = E.RoutingAccumulator()
+    accumulator.update(
+        SimpleNamespace(route_indices=indices, route_probs=probabilities),
+        torch.tensor([[True, True, False]]),
+    )
+    report = accumulator.report(config)
+    distinct = report["distinct_experts_per_token"]
+    assert distinct["tokens"] == 2
+    assert distinct["histogram"] == {"1": 1, "2": 0, "3": 1, "4": 0}
+    assert distinct["mean"] == 2.0 and distinct["max"] == 3
+    active = report["active_parameter_estimates"]
+    per_expert = E.cost.dense_transform_parameters(config)
+    base = active["non_expert_parameters"]
+    assert active["evaluation_wide_route_union"]["experts"] == [0, 1, 2]
+    assert active["evaluation_wide_route_union"]["active_parameters"] == base + 3 * per_expert
+    per_token = active["per_token_route_union"]
+    assert per_token["minimum_active_parameters"] == base + per_expert
+    assert per_token["mean_active_parameters"] == base + 2 * per_expert
+    assert per_token["maximum_active_parameters"] == base + 3 * per_expert
+    if hasattr(E.cost, "route_active_parameters"):
+        assert active["cost_helper"] == ["cost.route_active_parameters"]
+
+
 def test_teacher_forcing_requires_source_ids_and_marks_dense_routing_not_applicable():
     data = packed_batch()
     del data["source_ids"]
@@ -180,13 +232,38 @@ def test_independent_strict_register_parser_rejects_partial_or_decorated_text():
 
 def structured_records():
     return {
-        "train": [make_example("train", [Instruction("set", 0, value=1)], (0, 0, 0, 0)).to_record()],
-        "dev": [make_example("dev", [Instruction("set", 0, value=2)], (0, 0, 0, 0)).to_record()],
-        "unseen_composition": [make_example(
-            "unseen_composition",
-            [Instruction("multiply", 0, src=1), Instruction("add", 0, src=1)],
-            (3, 2, 0, 0),
+        "train": [make_example(
+            "train",
+            [Instruction("set", 0, value=1), Instruction("add", 0, src=1)],
+            (0, 1, 0, 0),
         ).to_record()],
+        "dev": [make_example(
+            "dev",
+            [Instruction("set", 0, value=2), Instruction("copy", 1, src=0),
+             Instruction("add", 0, src=1), Instruction("copy", 2, src=1)],
+            (0, 0, 0, 0),
+        ).to_record()],
+        "unseen_composition": [
+            make_example(
+                "unseen_composition",
+                [Instruction("multiply", 0, src=1), Instruction("add", 0, src=1),
+                 Instruction("copy", 2, src=0)],
+                (3, 2, 0, 0),
+            ).to_record(),
+            make_example(
+                "unseen_composition",
+                [Instruction("set", 2, value=1), Instruction("multiply", 0, src=1),
+                 Instruction("add", 0, src=1), Instruction("copy", 3, src=0)],
+                (2, 3, 0, 0),
+            ).to_record(),
+            make_example(
+                "unseen_composition",
+                [Instruction("copy", 3, src=0), Instruction("set", 2, value=1),
+                 Instruction("multiply", 0, src=1), Instruction("add", 0, src=1),
+                 Instruction("copy", 2, src=0)],
+                (2, 2, 0, 0),
+            ).to_record(),
+        ],
         "longer_length": [make_example(
             "longer_length", [Instruction("add", 0, src=1)] * 6, (1, 1, 0, 0)
         ).to_record()],
@@ -288,23 +365,63 @@ def test_complete_structured_generation_and_baselines_are_separate(tmp_path, use
     report = E.evaluate_structured_with_baselines(
         model, tokenizer, tmp_path, max_new_tokens=8, eos_token_id=3, use_cache=use_cache
     )
+    expected_counts = {"train": 1, "dev": 1, "unseen_composition": 3, "longer_length": 1}
     for split, values in report["splits"].items():
         assert values["status"] == "complete"
-        assert values["examples"] == values["evaluated"] == 1
+        assert values["examples"] == values["evaluated"] == expected_counts[split]
         assert values["exact_match"] == values["valid_rate"] == 1.0
         assert values["eos_rate"] == 1.0
         assert values["truncated"] == 0
         assert not values["target_length_used_for_decoding"]
-        assert values["records"][0]["first_divergence"] is None
+        assert all(record["first_divergence"] is None for record in values["records"])
+    unseen = report["splits"]["unseen_composition"]
+    assert set(unseen["by_instruction_length"]) == {"3", "4", "5"}
+    assert sorted(record["instruction_length"] for record in unseen["records"]) == [3, 4, 5]
+    for length in ("3", "4", "5"):
+        assert unseen["by_instruction_length"][length]["examples"] == 1
+        assert unseen["by_instruction_length"][length]["exact_match"] == 1.0
+    comparison = report["composition_comparison"]
+    primary = comparison["composition_only_lengths_3_4"]
+    secondary = comparison["secondary_length_5"]
+    assert primary["role"] == "primary_composition_only_comparison"
+    assert primary["examples"] == primary["evaluated"] == 2
+    assert primary["exact_match"] == 1.0
+    assert secondary["role"] == "secondary_composition_plus_length"
+    assert secondary["examples"] == secondary["evaluated"] == 1
+    assert "length 5" in secondary["confound"] and "2-4" in secondary["confound"]
+    study = report["study_visible_summary"]
+    assert study["composition_only_lengths_3_4"]["examples"] == 2
+    assert study["secondary_length_5_composition_plus_length"]["examples"] == 1
+    assert study["unseen_composition_overall"]["examples"] == 3
+    assert "length 5 is secondary" in study["comparison_rule"]
+    assert report["instruction_lengths_are_scoring_only"]
     assert report["baselines"]["exact_lookup"]["train"]["exact_match"] == 1.0
     for split in ("dev", "unseen_composition", "longer_length"):
         assert report["baselines"]["exact_lookup"][split]["exact_match"] == 0.0
-        assert report["baselines"]["exact_lookup"][split]["missing"] == 1
+        assert report["baselines"]["exact_lookup"][split]["missing"] == expected_counts[split]
     for split in E.SPLIT_NAMES:
         assert report["baselines"]["supplied_program_executor"][split]["exact_match"] == 1.0
     assert "not learned composition" in report["baselines"]["boundary"]
     forbidden = {"program", "trace", "route_targets", "state_targets", "target_text", "labels"}
     assert all(forbidden.isdisjoint(call) for call in model.calls)
+
+
+def test_partial_unseen_evaluation_preserves_full_composition_stratum_sizes(tmp_path):
+    model, tokenizer, splits = scripted_fixture()
+    write_records(tmp_path, splits)
+    report = E.evaluate_structured_generation(
+        model, tokenizer, tmp_path, max_new_tokens=8, eos_token_id=3, limit_per_split=1
+    )
+    unseen = report["splits"]["unseen_composition"]
+    assert unseen["examples"] == 3 and unseen["evaluated"] == 1 and not unseen["complete"]
+    assert unseen["by_instruction_length"]["3"]["evaluated"] == 1
+    assert unseen["by_instruction_length"]["4"]["evaluated"] == 0
+    assert unseen["by_instruction_length"]["5"]["evaluated"] == 0
+    primary = report["composition_comparison"]["composition_only_lengths_3_4"]
+    secondary = report["composition_comparison"]["secondary_length_5"]
+    assert primary["examples"] == 2 and primary["evaluated"] == 1 and not primary["complete"]
+    assert secondary["examples"] == 1 and secondary["evaluated"] == 0
+    assert secondary["exact_match"] is None and not secondary["complete"]
 
 
 def test_code_suffix_generation_is_bounded_separate_and_absence_is_not_run(tmp_path):

@@ -45,27 +45,92 @@ def parameter_breakdown(config: NativeConfig) -> dict[str, int]:
 
 
 def parameter_counts(config: NativeConfig) -> dict[str, int]:
-    """Return total storage and the nominal one-expert active parameter set.
+    """Return total storage, a legacy nominal count, and route-union bounds.
 
-    Active parameters count the embedding tables and output head by their stored
-    shapes. For routed arms, one dense expert replaces the four-expert bank;
-    repeated use of shared weights does not multiply this parameter count.
+    ``active`` is retained for backward compatibility and is exactly the
+    nominal one-expert count, not a prediction of route-dependent execution.
+    A routed token uses the union of experts selected by its four passes, so
+    its actual active set lies between ``active_min`` and ``active_max``.
+    Embedding tables and the output head use their stored shapes throughout.
     """
 
-    breakdown = parameter_breakdown(config)
-    total = sum(breakdown.values())
-    active = total
+    total = sum(parameter_breakdown(config).values())
+    nominal = total
     if config.mode in ("untyped", "typed"):
-        active -= 3 * dense_transform_parameters(config)
-    return {"total": total, "active": active}
+        nominal -= 3 * dense_transform_parameters(config)
+    return {
+        "total": total,
+        "active": nominal,
+        "nominal_one_expert_active": nominal,
+        "active_min": nominal,
+        "active_max": total,
+    }
 
 
 def total_parameters(config: NativeConfig) -> int:
     return parameter_counts(config)["total"]
 
 
+def nominal_one_expert_active_parameters(config: NativeConfig) -> int:
+    """Return the legacy one-expert count, with no route-union claim."""
+
+    return parameter_counts(config)["nominal_one_expert_active"]
+
+
 def active_parameters(config: NativeConfig) -> int:
-    return parameter_counts(config)["active"]
+    """Backward-compatible alias for ``nominal_one_expert_active_parameters``."""
+
+    return nominal_one_expert_active_parameters(config)
+
+
+def active_parameter_bounds(config: NativeConfig) -> dict[str, int]:
+    """Return the minimum and maximum possible per-token union active sets."""
+
+    counts = parameter_counts(config)
+    return {"active_min": counts["active_min"], "active_max": counts["active_max"]}
+
+
+def route_active_parameters(config: NativeConfig, route_indices):
+    """Compute each token's active set from its union of four routed experts.
+
+    ``route_indices`` has shape ``[..., 4]``; the result has shape ``[...]``
+    and is an int64 tensor on the same device. Repeated selections count once.
+    """
+
+    import torch
+
+    if config.mode not in ("untyped", "typed"):
+        raise ValueError("route-dependent active parameters require untyped or typed mode")
+    route_indices = torch.as_tensor(route_indices)
+    if route_indices.ndim < 1 or route_indices.shape[-1] != 4:
+        raise ValueError("route_indices must have shape [...,4]")
+    if route_indices.is_floating_point() or route_indices.is_complex():
+        raise TypeError("route_indices must contain integer expert indices")
+    route_indices = route_indices.long()
+    if route_indices.numel() and (route_indices.min() < 0 or route_indices.max() >= 4):
+        raise ValueError("expert indices must be in [0,4)")
+    selected = torch.nn.functional.one_hot(route_indices, num_classes=4).bool()
+    distinct_experts = selected.any(dim=-2).sum(dim=-1)
+    expert_parameters = dense_transform_parameters(config)
+    non_expert = total_parameters(config) - 4 * expert_parameters
+    return non_expert + distinct_experts * expert_parameters
+
+
+def active_parameter_report(config: NativeConfig, route_indices=None) -> dict[str, int | float]:
+    """Report bounds and, when routes are supplied, observed token statistics."""
+
+    report: dict[str, int | float] = dict(parameter_counts(config))
+    if route_indices is not None:
+        per_token = route_active_parameters(config, route_indices)
+        if per_token.numel() == 0:
+            raise ValueError("route_indices must contain at least one token")
+        report.update(
+            observed_active_min=per_token.min().item(),
+            observed_active_max=per_token.max().item(),
+            observed_active_mean=per_token.float().mean().item(),
+            observed_token_count=per_token.numel(),
+        )
+    return report
 
 
 def count_model_parameters(model) -> int:
@@ -106,7 +171,7 @@ def mac_breakdown(
         "transforms": 4 * tokens * dense_transform_macs(config),
         "routers": 4 * tokens * 4 * ((2 if typed else 1) * d) if routed else 0,
         "h_readers_writers": 4 * tokens * 2 * d * d,
-        "slot_readers_writers": 4 * tokens * (12 if typed else 3) * d * d_s,
+        "slot_readers_writers": 4 * tokens * 12 * d * d_s,
         "state_probes": 4 * tokens * 4 * d_s * config.n_state_classes if include_probes else 0,
         "output_head": tokens * d * config.vocab_size,
     }
