@@ -6,7 +6,7 @@ comparative outcome is read.  Atomic batches can cross a requested token count, 
 the protocol freezes the exact common endpoint produced by the shared sampler.
 
 The parent orchestrator never opens a GPU reservation.  ``native.train`` owns its
-CUDA reservation directly.  Evaluation runs on CPU and reconstruction uses the declared training-precision path,
+CUDA reservation directly.  Evaluation and reconstruction run on the declared FP32 CPU serving path,
 so separate child wrappers hold one reservation each while running their exact
 ``python -m native.evaluate`` and ``python -m native.reconstruct`` commands.  State
 interventions use the evaluator's Python API inside the evaluation reservation.
@@ -658,7 +658,7 @@ def _orchestration_only_profile_commit(repository: Mapping, profile_commit: str,
         "profile_commit": profile_commit,
         "frozen_commit": current,
         "changed_native_files": allowed,
-        "reason": "instrumentation-only change; model, trainer, profiler and data producer bytes are identical; reconstruction projection retains the older, conservative CPU measurement",
+        "reason": "instrumentation-only change; model, trainer, profiler and data producer bytes are identical; reconstruction projection uses the original FP32 serving measurement",
     }
 
 
@@ -1144,7 +1144,7 @@ def freeze_study(
             "gold_controls_decoding": False,
             "full_source_generation_claim": False,
         },
-        "reconstruction": "exact checkpoint parameters with BF16 CUDA autocast matching training; floating-tensor relative RMS error <= 0.05 of reference RMS, exact integer routes and exact cached/full generated tokens; strict allclose retained separately",
+        "reconstruction": "exact checkpoint parameters on the FP32 CPU serving path; floating-tensor relative RMS error <= 0.05 of reference RMS, exact integer routes and exact cached/full generated tokens; strict allclose and BF16 diagnostics retained separately",
     }
     active_files = (
         code_descriptors + data_descriptors + source_descriptors + profile_descriptors
@@ -1224,8 +1224,8 @@ def freeze_study(
             "stages": ["train", "evaluate", "reconstruct"],
             "train_device": "cuda",
             "evaluation_device": "cpu",
-            "reconstruction_device": "cuda",
-            "reconstruction_autocast_dtype": "bfloat16",
+            "reconstruction_device": "cpu",
+            "reconstruction_autocast_dtype": None,
             "parent_opens_reservation": False,
             "one_child_reservation_per_stage": True,
             "ledger_path": str(ledger_path),
@@ -1380,15 +1380,17 @@ def _evaluate_command(protocol: Mapping, checkpoint: Mapping, output: Path) -> l
 
 
 def _reconstruct_command(protocol: Mapping, checkpoint: Mapping, output: Path) -> list[str]:
-    return [
+    command = [
         protocol["execution"]["python"], "-m", "native.reconstruct",
         "--checkpoint", checkpoint["path"],
         "--expected-sha256", checkpoint["sha256"],
         "--spec", protocol["evaluation"]["replay"]["path"],
         "--output", str(output),
         "--device", protocol["execution"]["reconstruction_device"],
-        "--autocast-dtype", protocol["execution"]["reconstruction_autocast_dtype"],
     ]
+    if protocol["execution"].get("reconstruction_autocast_dtype") is not None:
+        command.extend(["--autocast-dtype", protocol["execution"]["reconstruction_autocast_dtype"]])
+    return command
 
 
 def _reserved_command(
