@@ -74,21 +74,30 @@ def export(run, data, output):
     }
     for mode in protocol['arms']:
         arm = run / 'arms' / mode
-        arm_status = load(arm / 'status.json')
-        copy(arm / 'status.json', f'arms/{mode}/status.json')
-        if arm_status['status'] != 'completed':
-            summary['arms'][mode] = arm_status
-            continue
-        result = load(arm / 'train-result.json')
-        evaluation = load(arm / 'evaluation.json')
-        reconstruction = load(arm / 'reconstruction.json')
+        status_path = arm / 'status.json'
+        arm_status = load(status_path) if status_path.is_file() else status['arms'].get(
+            mode, {'status': 'not_run', 'reason': 'no per-arm status was written'})
+        if status_path.is_file():
+            copy(status_path, f'arms/{mode}/status.json')
+        else:
+            destination = output / f'arms/{mode}/status.json'
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(json.dumps(arm_status, indent=2, sort_keys=True) + '\n')
         for name in ('train-result.json', 'evaluation.json', 'train_state_path.json',
                      'dev_state_path.json', 'reconstruction.json'):
-            copy(arm / name, f'arms/{mode}/{name}')
+            source = arm / name
+            if source.is_file():
+                copy(source, f'arms/{mode}/{name}')
         for name in ('run_config.json', 'learning_curve.jsonl', 'checkpoint_journal.jsonl', 'recovery.jsonl'):
             source = arm / 'train' / name
             if source.is_file():
                 copy(source, f'arms/{mode}/{name}')
+        if arm_status['status'] != 'completed':
+            summary['arms'][mode] = {'status': arm_status}
+            continue
+        result = load(arm / 'train-result.json')
+        evaluation = load(arm / 'evaluation.json')
+        reconstruction = load(arm / 'reconstruction.json')
         checkpoint = result['final_checkpoint']
         copy(checkpoint['manifest_path'], f'checkpoints/{mode}.manifest.json')
         summary['arms'][mode] = {
@@ -161,11 +170,13 @@ This bundle contains no neural weights, packed arrays or raw text/code corpus. T
 separate development examples are executable synthetic programs. Checkpoint manifests identify, but do not contain,
 the preserved local weights. Training-set exact answers measure memorization only, not generalization or superiority.
 
-To independently execute all source programs and rescore every saved generation:
+To independently execute all source programs and rescore every saved generation, run this from a source checkout,
+replacing `BUNDLE` with this bundle's absolute or relative path:
 
 ```bash
+export BUNDLE=/path/to/exported-bundle
 python research/ti_tnn/native/independent/rescore_generations.py \\
-  --study . --data ./data --output ./generation_diagnostics.reproduced.json
+  --study "$BUNDLE" --data "$BUNDLE/data" --output "$BUNDLE/generation_diagnostics.reproduced.json"
 ```
 
 `generation_diagnostics.json` is the preserved first rescore. Apart from the `study` path, the reproduced JSON must

@@ -93,3 +93,69 @@ def test_acquisition_export_is_weight_free_and_independently_rescoreable(tmp_pat
     for line in (output / 'SHA256SUMS').read_text().splitlines():
         expected, relative = line.split('  ', 1)
         assert hashlib.sha256((output / relative).read_bytes()).hexdigest() == expected
+
+
+def test_failed_and_unstarted_arms_remain_exportable_and_rescoreable(tmp_path):
+    run = tmp_path / 'data/acquisition/failed-attempt'
+    data = tmp_path / 'data'
+    protocol = {
+        'arms': ['dense', 'untyped'], 'max_updates': 4096, 'max_loss_tokens': 5201920,
+        'batch_size': 8, 'target_exact_answers': 31,
+    }
+    write(run / 'protocol.json', protocol)
+    (run / 'protocol.sha256').write_text(hashlib.sha256((run / 'protocol.json').read_bytes()).hexdigest() + '\n')
+    ledger = tmp_path / 'ledger.jsonl'
+    ledger.write_text(json.dumps({
+        'event': 'start', 'reservation': 'reservation-failed',
+        'extra': {'native_acquisition_run_id': 'failed-attempt'},
+    }) + '\n')
+    write(run / 'launch.json', {
+        'run_id': 'failed-attempt', 'source_commit': 'a' * 40,
+        'ledger_before': {'ledger': str(ledger)},
+    })
+    write(run / 'run_status.json', {
+        'complete': False, 'charged_hours': 0.01, 'one_hour_limit_respected': True,
+        'reservation_id': 'reservation-failed', 'failure': None,
+        'arms': {'dense': {'status': 'failed'}, 'untyped': {'status': 'not_run'}},
+    })
+    write(run / 'arms/dense/status.json', {
+        'status': 'failed', 'stage': 'reconstructing', 'error': 'synthetic failure',
+    })
+    (data / 'structured').mkdir(parents=True)
+    splits = {}
+    for split in ('train', 'dev'):
+        source = make_example(split, [Instruction('set', 0, value=1)], (0, 0, 0, 0)).to_record()
+        (data / 'structured' / f'{split}.jsonl').write_text(json.dumps(source) + '\n')
+        saved = {
+            'example_id': source['example_id'], 'completion_text': source['target_text'],
+            'target_text': source['target_text'], 'correct': True, 'valid': True,
+            'stopped_on_eos': True, 'truncated': False, 'prompt_truncated': False,
+        }
+        splits[split] = {
+            'generation': {'records': [saved]},
+            'state_path': {'answer_token_cross_entropy': {split: {'mean': 0.1}}},
+        }
+    write(run / 'arms/dense/evaluation.json', {
+        'format': 'native-acquisition-evaluation-v1', 'splits': splits,
+    })
+    for name in ('manifest.json', 'acquisition_protocol.json', 'acquisition_selection.json', 'source_provenance.json'):
+        write(data / name, {'test_fixture': True})
+    output = tmp_path / 'evidence'
+    summary = export(run, data, output)
+    assert summary['arms']['dense']['status']['error'] == 'synthetic failure'
+    assert summary['arms']['untyped']['status']['status'] == 'not_run'
+    assert not summary['matched_endpoints_verified']
+    assert (output / 'arms/dense/evaluation.json').is_file()
+    import subprocess
+    import sys
+    from pathlib import Path
+    subprocess.run([
+        sys.executable, 'research/ti_tnn/native/independent/rescore_generations.py',
+        '--study', str(output), '--data', str(output / 'data'),
+        '--output', str(output / 'generation_diagnostics.reproduced.json'),
+    ], cwd=Path(__file__).parents[1], check=True)
+    first = json.loads((output / 'generation_diagnostics.json').read_text())
+    reproduced = json.loads((output / 'generation_diagnostics.reproduced.json').read_text())
+    assert {key: value for key, value in first.items() if key != 'study'} == {
+        key: value for key, value in reproduced.items() if key != 'study'
+    }
