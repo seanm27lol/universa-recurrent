@@ -13,6 +13,25 @@ from .prepare_structured_study import prepare
 from .train import make_sampler
 
 
+def write_source_provenance(source, output, tokenizer):
+    source = Path(source).resolve()
+    provenance = {
+        'format': 'native-acquisition-source-provenance-v1',
+        'source_data': str(source),
+        'source_manifest_sha256': D.sha256_file(source / 'manifest.json'),
+        'tokenizer_path': str(Path(tokenizer).resolve()),
+        'tokenizer_sha256': D.sha256_file(tokenizer),
+        'structured_files': {
+            split: D.sha256_file(source / 'structured' / f'{split}.jsonl')
+            for split in ('train', 'dev')
+        },
+    }
+    path = Path(output) / 'source_provenance.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
+    return provenance
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', required=True)
@@ -22,6 +41,8 @@ def main():
     args = parser.parse_args()
     source = Path(args.source)
     output = Path(args.output)
+    if output.exists() and any(output.iterdir()):
+        raise RuntimeError(f'refusing to overwrite an existing acquisition freeze: {output}')
     (output / 'structured').mkdir(parents=True, exist_ok=True)
     tokenizer = args.tokenizer
     selected = {family: [] for family in structured.OP_ROUTES}
@@ -38,10 +59,13 @@ def main():
     for split, records in (('train', train), ('dev', heldout)):
         (output / 'structured' / f'{split}.jsonl').write_text(
             ''.join(json.dumps(record, sort_keys=True) + '\n' for record in records))
+    write_source_provenance(source, output, tokenizer)
     (output / 'manifest.json').write_text(json.dumps({'format': 'native-acquisition-source-v1'}, indent=2) + '\n')
     prepare(output, output, 10**12, 10**12, tokenizer_path=tokenizer)
     selection = {
         'format': 'native-acquisition-selection-v1',
+        'source_data': str(source.resolve()),
+        'source_provenance_sha256': D.sha256_file(output / 'source_provenance.json'),
         'examples_per_operation_family': {family: len(records) for family, records in selected.items()},
         'train_example_ids': [record['example_id'] for record in train],
         'heldout_example_ids': [record['example_id'] for record in heldout],

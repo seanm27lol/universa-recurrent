@@ -548,6 +548,14 @@ def _first_token_divergence(actual: Sequence[int], expected: Sequence[int]) -> d
     return None
 
 
+def _model_device(model) -> torch.device:
+    parameters = getattr(model, "parameters", None)
+    if parameters is None:
+        return torch.device("cpu")
+    parameter = next(parameters(), None)
+    return torch.device("cpu") if parameter is None else parameter.device
+
+
 @torch.no_grad()
 def generate_prompt(
     model,
@@ -576,8 +584,9 @@ def generate_prompt(
         if keep <= 0:
             raise ValueError("max_new_tokens leaves no room for a prompt in context_length")
         prompt_ids = prompt_ids[-keep:]
-    input_ids = torch.tensor([prompt_ids], dtype=torch.long)
-    positions = torch.arange(len(prompt_ids), dtype=torch.long).unsqueeze(0)
+    device = _model_device(model)
+    input_ids = torch.tensor([prompt_ids], dtype=torch.long, device=device)
+    positions = torch.arange(len(prompt_ids), dtype=torch.long, device=device).unsqueeze(0)
     sequence = greedy_generate(
         model,
         input_ids,

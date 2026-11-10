@@ -7,10 +7,10 @@ import re
 from collections import Counter
 from pathlib import Path
 
-REGISTER = re.compile(r"^r0=(\d+) r1=(\d+) r2=(\d+) r3=(\d+)$")
+REGISTER = re.compile(r"^r0=(0|[1-9][0-9]*) r1=(0|[1-9][0-9]*) r2=(0|[1-9][0-9]*) r3=(0|[1-9][0-9]*)$")
 MODES = ("dense", "shared", "untyped", "typed")
 SPLITS = ("train", "dev", "unseen_composition", "longer_length")
-INSTRUCTION = re.compile(r"^(set|add|multiply|copy) r([0-3]) (?:r([0-3])|(\d+))$")
+INSTRUCTION = re.compile(r"^(set|add|multiply|copy) r([0-3]) (?:r([0-3])|(0|[1-9][0-9]*))$")
 
 
 class ScoringError(ValueError):
@@ -67,8 +67,13 @@ def load(path):
 
 
 def registers(text):
+    if not isinstance(text, str):
+        return None
     match = REGISTER.fullmatch(text)
-    return tuple(int(value) for value in match.groups()) if match else None
+    if match is None:
+        return None
+    values = tuple(int(value) for value in match.groups())
+    return values if all(0 <= value < 32 for value in values) else None
 
 
 def source_records(data):
@@ -121,20 +126,30 @@ def summarize(records, source):
     score_changes = []
     for record in records:
         source_record = source[record["example_id"]]
-        expected = registers(record["target_text"])
+        if record.get("target_text") != source_record["target_text"]:
+            raise ScoringError(f"{record['example_id']}: saved generation target_text does not match validated source target")
+        expected = registers(source_record["target_text"])
+        if expected is None:
+            raise ScoringError(f"{record['example_id']}: validated source target is not canonical")
         actual = registers(record["completion_text"])
+        is_exact = (
+            expected is not None
+            and actual is not None
+            and actual == expected
+            and record["completion_text"] == record["target_text"]
+        )
         required = prerequisite(source_record)
         is_complete = required["complete"] and not record.get("prompt_truncated", False)
         complete += is_complete
         incomplete += not is_complete
-        exact += actual == expected
+        exact += is_exact
         valid += actual is not None
         eos += bool(record.get("stopped_on_eos"))
         truncated += bool(record.get("truncated"))
         first_error = error_details(record["completion_text"], record["target_text"], expected, actual)
-        if record.get("correct") is not None and record["correct"] != (actual == expected):
+        if record.get("correct") is not None and record["correct"] != is_exact:
             score_changes.append({"example_id": record["example_id"], "metric": "exact_match",
-                                  "original": record["correct"], "independent": actual == expected})
+                                  "original": record["correct"], "independent": is_exact})
         if record.get("valid") is not None and record["valid"] != (actual is not None):
             score_changes.append({"example_id": record["example_id"], "metric": "format_valid",
                                   "original": record["valid"], "independent": actual is not None})
@@ -145,7 +160,7 @@ def summarize(records, source):
             value_loss.append(sum(abs(left - right) for left, right in zip(actual, expected)) / 4)
         details.append({
             "example_id": record["example_id"],
-            "exact_match": actual == expected,
+            "exact_match": is_exact,
             "format_valid": actual is not None,
             "answer_value_loss": None if actual is None else sum(
                 abs(left - right) for left, right in zip(actual, expected)) / 4,
@@ -191,6 +206,21 @@ def rescore(study, data, output):
     result["target_validation"] = {"executed_programs": validated, "rejected_inconsistent_targets": []}
     for mode in (mode for mode in MODES if (study / "arms" / mode / "evaluation.json").is_file()):
         evaluation = load(study / "arms" / mode / "evaluation.json")
+        if evaluation.get("format") == "native-acquisition-evaluation-v1":
+            arm = {
+                "structured": {},
+                "code": {"status": "not_run", "reason": "code generation is not part of acquisition evaluation"},
+                "answer_token_cross_entropy": {},
+            }
+            for split in ("train", "dev"):
+                if split not in evaluation["splits"]:
+                    continue
+                split_evaluation = evaluation["splits"][split]
+                arm["structured"][split] = summarize(split_evaluation["generation"]["records"], sources)
+                answer_losses = split_evaluation["state_path"]["answer_token_cross_entropy"]
+                arm["answer_token_cross_entropy"][split] = answer_losses[split]
+            result["arms"][mode] = arm
+            continue
         arm = {"structured": {}, "code": None}
         for split in SPLITS:
             records = evaluation["structured_generation"]["splits"][split]["records"]
