@@ -515,16 +515,51 @@ def _blank_arrays(token_count: int, context_length: int) -> dict[str, np.ndarray
     return arrays
 
 
-def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH) -> tuple[dict[str, np.ndarray], dict]:
-    """Pack every run token, right-pad the final row, and mask sequence/document starts."""
+def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH,
+              packing: str = "legacy", structured_overflow: str = "error") -> tuple[dict[str, np.ndarray], dict]:
+    """Pack runs, optionally keeping every fitting structured example in one model-visible row."""
     if context_length <= 0:
         raise ValueError("context length must be positive")
-    token_count = sum(run.length for run in runs)
+    if packing not in ("legacy", "intact"):
+        raise ValueError(f"unknown packing version {packing!r}")
+    if structured_overflow not in ("error", "exclude"):
+        raise ValueError("structured_overflow must be 'error' or 'exclude'")
+    if packing == "legacy" and structured_overflow != "error":
+        raise ValueError("legacy packing does not support structured exclusion")
+    included = []
+    excluded = []
+    for run in runs:
+        if packing == "intact" and run.source == "structured" and run.length > context_length:
+            if structured_overflow == "error":
+                raise DataError(
+                    f"{run.tokenized.document.identity}: structured example has {run.length} tokens, "
+                    f"longer than context {context_length}; use structured_overflow='exclude' to audit exclusion"
+                )
+            excluded.append({"identity": run.tokenized.document.identity, "tokens": run.length})
+        else:
+            included.append(run)
+    token_count = sum(run.length for run in included)
     if token_count <= 0:
         raise ValueError("cannot pack an empty token stream")
-    arrays = _blank_arrays(token_count, context_length)
+    storage_tokens = token_count
+    if packing == "intact":
+        storage_cursor = 0
+        for run in included:
+            if run.source == "structured":
+                column = storage_cursor % context_length
+                if column and column + run.length > context_length:
+                    storage_cursor += context_length - column
+            storage_cursor += run.length
+        storage_tokens = storage_cursor
+    arrays = _blank_arrays(storage_tokens, context_length)
     cursor = 0
-    for run in runs:
+    structured_rows_padded = 0
+    for run in included:
+        if packing == "intact" and run.source == "structured":
+            column = cursor % context_length
+            if column and column + run.length > context_length:
+                cursor += context_length - column
+                structured_rows_padded += 1
         tokenized = run.tokenized
         run_start = cursor
         remaining = run.length
@@ -570,6 +605,13 @@ def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH)
         "source_tokens": source_tokens,
         "source_loss_tokens": source_loss_tokens,
         "token_fractions": {name: source_tokens[name] / token_count for name in SOURCE_ORDER},
+        "packing_version": packing,
+        "structured_overflow": structured_overflow,
+        "structured_rows_padded": structured_rows_padded,
+        "structured_examples_intact": sum(run.source == "structured" for run in included),
+        "long_examples_excluded": len(excluded),
+        "long_excluded_tokens": sum(item["tokens"] for item in excluded),
+        "long_examples": excluded,
     }
     return arrays, stats
 
@@ -680,7 +722,8 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
                   split_salt: str = SPLIT_SALT, source_inventory: Mapping | None = None,
                   tokenizer_spec: Mapping | None = None, eos_token_id: int = EOS_TOKEN_ID,
                   code_generation_count: int = CODE_GENERATION_DEFAULT_COUNT,
-                  code_generation_target_chars: int = CODE_GENERATION_DEFAULT_TARGET_CHARS) -> dict:
+                  code_generation_target_chars: int = CODE_GENERATION_DEFAULT_TARGET_CHARS,
+                  packing: str = "legacy", structured_overflow: str = "error") -> dict:
     """Build and write shared train/dev arrays plus enough metadata to audit every document."""
     output = Path(output_directory)
     output.mkdir(parents=True, exist_ok=True)
@@ -698,8 +741,15 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
                                         for document in ordinary_documents if document.source == source]
         tokenized[split]["structured"] = [tokenize_structured(example, tokenizer, eos_token_id=eos_token_id)
                                           for example in examples]
+    if packing == "intact" and structured_overflow == "exclude":
+        for split in ("train", "dev"):
+            tokenized[split]["structured"] = [
+                document for document in tokenized[split]["structured"]
+                if len(document.input_ids) <= context_length
+            ]
     manifest = {
         "version": "ti-tnn-native-data-v1", "context_length": context_length,
+        "packing_version": packing, "structured_overflow": structured_overflow,
         "vocab_size": VOCAB_SIZE, "eos_token_id": eos_token_id, "ignore_index": IGNORE_INDEX,
         "passes": N_PASSES, "experts": N_EXPERTS, "slots": N_SLOTS, "n_state_classes": N_STATE_CLASSES,
         "tokenizer": dict(tokenizer_spec or _tokenizer_identity(tokenizer)),
@@ -719,7 +769,9 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
         allocation = allocate_token_budget(budget, available)
         runs_by_source, consumed, all_documents = _runs_for_split(tokenized[split], allocation)
         runs = interleave_runs(runs_by_source, allocation)
-        arrays, stats = pack_runs(runs, context_length=context_length)
+        arrays, stats = pack_runs(
+            runs, context_length=context_length, packing=packing, structured_overflow=structured_overflow
+        )
         split_directory = output / split
         array_files = {name: _write_array(split_directory, name, arrays[name]) for name in ARRAY_NAMES}
         consumed_path = output / f"{split}_consumed_documents.jsonl"

@@ -47,6 +47,8 @@ def build(args: argparse.Namespace) -> dict:
         source_inventory=inventory, tokenizer_spec=data.TOKENIZER_SPEC,
         code_generation_count=args.code_generation_count,
         code_generation_target_chars=args.code_generation_target_chars,
+        packing=args.packing,
+        structured_overflow=args.structured_overflow,
     )
     manifest["structured_evaluation"] = {
         "files": structured_files,
@@ -75,6 +77,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--structured-longer", type=int, default=512)
     result.add_argument("--seed", type=int, default=20261108)
     result.add_argument("--structured-only", action="store_true", help="write synthetic scoring data, not LM arrays")
+    result.add_argument("--packing", choices=("legacy", "intact"), default="legacy")
+    result.add_argument("--structured-overflow", choices=("error", "exclude"), default="error")
     return result
 
 
