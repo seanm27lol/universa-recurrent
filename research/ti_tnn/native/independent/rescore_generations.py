@@ -74,7 +74,10 @@ def registers(text):
 def source_records(data):
     result = {}
     for split in SPLITS:
-        for line in (data / "structured" / f"{split}.jsonl").read_text().splitlines():
+        path = data / "structured" / f"{split}.jsonl"
+        if not path.is_file():
+            continue
+        for line in path.read_text().splitlines():
             record = json.loads(line)
             result[record["example_id"]] = record
     return result

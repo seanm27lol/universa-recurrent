@@ -9,11 +9,11 @@ from . import data as D
 from . import structured
 
 
-def prepare(source, output, train_tokens, dev_tokens, context_length=256):
+def prepare(source, output, train_tokens, dev_tokens, context_length=256, tokenizer_path=None):
     source = Path(source)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
-    tokenizer = D.load_gpt2_tokenizer(source.parent / 'cache/tokenizer/tokenizer.json')
+    tokenizer = D.load_gpt2_tokenizer(tokenizer_path or source.parent / 'cache/tokenizer/tokenizer.json')
     manifest = {
         'format': 'native-intact-structured-study-data-v1',
         'source_data': str(source),
@@ -74,8 +74,9 @@ def main():
     parser.add_argument('--output', required=True)
     parser.add_argument('--train-tokens', type=int, default=2_000_000)
     parser.add_argument('--dev-tokens', type=int, default=100_000)
+    parser.add_argument('--tokenizer')
     args = parser.parse_args()
-    manifest = prepare(args.source, args.output, args.train_tokens, args.dev_tokens)
+    manifest = prepare(args.source, args.output, args.train_tokens, args.dev_tokens, tokenizer_path=args.tokenizer)
     print(json.dumps({split: {'tokens': values['tokens'], 'loss_tokens': values['loss_tokens'],
                               'long_examples_excluded': values['long_examples_excluded']}
                       for split, values in manifest['splits'].items()}, sort_keys=True))

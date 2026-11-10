@@ -18,7 +18,11 @@ def _answer_cross_entropy(model, tokenizer, structured_directory):
     structured_directory = Path(structured_directory)
     results = {}
     for split in SPLIT_NAMES:
-        records = [json.loads(line) for line in (structured_directory / f'{split}.jsonl').read_text().splitlines()]
+        path = structured_directory / f'{split}.jsonl'
+        if not path.is_file():
+            results[split] = {'sum': 0.0, 'count': 0, 'mean': None, 'status': 'not_run'}
+            continue
+        records = [json.loads(line) for line in path.read_text().splitlines()]
         loss_sum = 0.0
         count = 0
         for record in records[:128]:
