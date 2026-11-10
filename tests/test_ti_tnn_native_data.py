@@ -279,3 +279,50 @@ def test_source_and_tokenizer_pins_are_complete_and_explicit():
         "3726a0239b5cb7d0ef3ea36886c533d0becc7404217763015559edb546d53c94")
     assert set(data.ALLOWED_CODE_LICENSES) == {"apache-2.0", "bsd-2-clause", "bsd-3-clause", "isc", "mit"}
     assert "not file-level legal clearance" in data.LICENSE_DISCLAIMER
+
+
+def test_prepare_data_cli_records_document_positions_and_preserves_legacy(tmp_path, monkeypatch):
+    from native import prepare_data
+
+    documents = ordinary_documents()
+    structured = generate_dataset(train=5, dev=3, unseen_composition=2, longer_length=2, seed=23)
+    tokenizer = make_tokenizer(documents, structured)
+    monkeypatch.setattr(data, "download_pinned", lambda cache: ({}, tmp_path / "tokenizer.json"))
+    monkeypatch.setattr(data, "ingest_sources", lambda paths: (documents, {"sources": {}}))
+    monkeypatch.setattr(data, "load_gpt2_tokenizer", lambda path: tokenizer)
+    common = [
+        "--structured-train", "5", "--structured-dev", "3", "--structured-unseen", "2",
+        "--structured-longer", "2", "--seed", "23", "--code-generation-count", "0",
+        "--packing", "intact", "--structured-overflow", "exclude",
+    ]
+    assert prepare_data.main([
+        "--cache", str(tmp_path / "cache"), "--output", str(tmp_path / "document"),
+        "--position-policy", "document", *common,
+    ]) == 0
+    assert prepare_data.main([
+        "--cache", str(tmp_path / "cache"), "--output", str(tmp_path / "legacy"), *common,
+    ]) == 0
+    assert prepare_data.parser().parse_args([]).position_policy == "row"
+    document_manifest = json.loads((tmp_path / "document" / "manifest.json").read_text())
+    legacy_manifest = json.loads((tmp_path / "legacy" / "manifest.json").read_text())
+    assert document_manifest["position_policy"] == "document"
+    assert legacy_manifest["position_policy"] == "row"
+    saw_internal_document_start = False
+    for split in ("train", "dev"):
+        assert document_manifest["splits"][split]["position_policy"] == "document"
+        assert legacy_manifest["splits"][split]["position_policy"] == "row"
+        document_positions = np.load(tmp_path / "document" / split / "positions.npy")
+        legacy_positions = np.load(tmp_path / "legacy" / split / "positions.npy")
+        doc_ids = np.load(tmp_path / "document" / split / "doc_ids.npy")
+        padding = np.load(tmp_path / "document" / split / "key_padding_mask.npy")
+        starts = np.concatenate((np.ones((len(doc_ids), 1), dtype=bool), doc_ids[:, 1:] != doc_ids[:, :-1]), axis=1)
+        starts &= ~padding
+        assert np.all(document_positions[starts] == 0)
+        saw_internal_document_start |= any(np.count_nonzero(starts[row]) > 1 for row in range(len(starts)))
+        for row in range(len(doc_ids)):
+            live = ~padding[row]
+            assert legacy_positions[row, live].tolist() == list(range(int(live.sum())))
+        for path in sorted((tmp_path / "document" / split).glob("*.npy")):
+            if path.name != "positions.npy":
+                assert np.array_equal(np.load(path), np.load(tmp_path / "legacy" / split / path.name)), path.name
+    assert saw_internal_document_start

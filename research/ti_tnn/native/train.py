@@ -850,6 +850,7 @@ def _execute(
         "optimizer_seconds": totals["optimizer"],
         "checkpoint_seconds": totals["checkpoint"],
         "actual_loss_tokens_per_second": processed_tokens / training_seconds if training_seconds > 0 else 0.0,
+        "training_seconds": training_seconds,
         "reservation_id": reservation_id,
         **_memory(device),
         "final_checkpoint": descriptor,
@@ -948,6 +949,30 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
             data_manifest_identity=data_manifest_identity,
             device=device,
             reservation=None,
+            batch_hook=batch_hook,
+        )
+
+    inherited = native_ledger.active()
+    if inherited is not None:
+        run_id = os.environ.get("TI_TNN_NATIVE_ACQUISITION_RUN_ID")
+        if inherited.extra.get("native_acquisition_run_id") != run_id or run_id is None:
+            raise RuntimeError("a nested GPU reservation is not an authorized acquisition owner")
+        run_config["acquisition_run_id"] = run_id
+        run_config["reservation_id"] = inherited.id
+        return _execute(
+            args,
+            model_config=model_config,
+            train_dataset=train_dataset,
+            dev_dataset=dev_dataset,
+            sampler=sampler,
+            dev_identity=dev_sampler.data_identity,
+            planned_updates=planned_updates,
+            planned_tokens=planned_tokens,
+            run_config=run_config,
+            code_identity=code_identity,
+            data_manifest_identity=data_manifest_identity,
+            device=device,
+            reservation=inherited,
             batch_hook=batch_hook,
         )
 

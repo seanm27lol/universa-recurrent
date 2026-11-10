@@ -40,8 +40,8 @@ def test_execution_requires_composition_and_updates_all_operation_families():
     assert program.events[2].routes == (2, 0, 2, 3)
     assert program.events[3].routes == (3, 0, 3, 3)
     for event in program.events:
-        assert event.states[:3] == (event.before,) * 3
-        assert event.states[3] == event.after
+        assert event.states[0] == event.before
+        assert event.states[1:] == (event.after,) * 3
 
 
 def test_modular_execution_and_validation():

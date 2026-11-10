@@ -1,0 +1,18 @@
+{
+  "format": "native-structured-boundary-counterexample-v1",
+  "context_length": 4,
+  "examples": [
+    {
+      "doc_id": 1,
+      "input_ids": [10, 11, 16, 17, 12, 13, 14, 15],
+      "required_after_state": [1, 2, 3, 4]
+    },
+    {
+      "doc_id": 2,
+      "input_ids": [20, 21, 22, 23, 12, 13, 14, 15],
+      "required_after_state": [5, 6, 7, 8]
+    }
+  ],
+  "visible_continuation_tokens": [12, 13, 14, 15],
+  "reason": "The second rows are token-identical, but their required states differ because the prerequisites are only in the first row."
+}

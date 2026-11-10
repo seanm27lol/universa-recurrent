@@ -37,6 +37,7 @@ BudgetExceeded = _base.BudgetExceeded
 Terminated = _base.Terminated
 LedgerCorrupt = _base.LedgerCorrupt
 read = _base.read
+active = _base.active
 shared_runs = _base.shared_runs
 ledger_path = _base.ledger_path
 anchor_file = _base.anchor_file

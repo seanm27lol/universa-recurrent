@@ -96,7 +96,7 @@ class ExecutionEvent:
 
     @property
     def states(self) -> tuple[tuple[int, ...], ...]:
-        return self.before, self.before, self.before, self.after
+        return self.before, self.after, self.after, self.after
 
 
 @dataclass(frozen=True)

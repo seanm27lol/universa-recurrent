@@ -502,3 +502,31 @@ def test_cuda_reservation_uses_validated_temporary_pair(tmp_path, monkeypatch):
     assert captured["lock"] == anchored[1]
     assert not anchored[0].exists()
     assert not anchored[1].exists()
+
+
+def test_cuda_training_reuses_only_the_matching_acquisition_reservation(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    data = write_packed(tmp_path / "data")
+    config = write_config(tmp_path / "config.json")
+    args = args_for(config, data, tmp_path / "cuda", budget=1, device="cuda",
+                    ledger_path=str(tmp_path / "ledger.jsonl"), ledger_lock=str(tmp_path / "gpu.lock"))
+    owner = SimpleNamespace(extra={"native_acquisition_run_id": "attempt-1"}, id="reservation-1")
+    monkeypatch.setattr(T.torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(native_ledger, "validate_shared_reservation_paths", lambda path, lock: (path, lock))
+    monkeypatch.setattr(native_ledger, "active", lambda: owner)
+    monkeypatch.setattr(native_ledger, "Reservation", lambda **kwargs: (_ for _ in ()).throw(
+        AssertionError("a nested reservation is forbidden")))
+    monkeypatch.setenv("TI_TNN_NATIVE_ACQUISITION_RUN_ID", "attempt-1")
+    captured = {}
+
+    def execute(args, **kwargs):
+        captured.update(kwargs)
+        return {"reservation_id": kwargs["reservation"].id}
+
+    monkeypatch.setattr(T, "_execute", execute)
+    assert T.run_training(args)["reservation_id"] == "reservation-1"
+    assert captured["reservation"] is owner
+    assert captured["run_config"]["acquisition_run_id"] == "attempt-1"
+    monkeypatch.setenv("TI_TNN_NATIVE_ACQUISITION_RUN_ID", "other-attempt")
+    with pytest.raises(RuntimeError, match="not an authorized acquisition owner"):
+        T.run_training(args)
