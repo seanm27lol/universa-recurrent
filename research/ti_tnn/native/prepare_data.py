@@ -49,6 +49,7 @@ def build(args: argparse.Namespace) -> dict:
         code_generation_target_chars=args.code_generation_target_chars,
         packing=args.packing,
         structured_overflow=args.structured_overflow,
+        position_policy=args.position_policy,
     )
     manifest["structured_evaluation"] = {
         "files": structured_files,
@@ -79,6 +80,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--structured-only", action="store_true", help="write synthetic scoring data, not LM arrays")
     result.add_argument("--packing", choices=("legacy", "intact"), default="legacy")
     result.add_argument("--structured-overflow", choices=("error", "exclude"), default="error")
+    result.add_argument("--position-policy", choices=("row", "document"), default="row",
+                        help="row preserves legacy absolute positions; document resets positions at document starts")
     return result
 
 

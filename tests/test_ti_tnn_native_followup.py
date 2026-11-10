@@ -87,7 +87,9 @@ def test_after_state_is_placed_before_downstream_read():
 
 
 @pytest.mark.parametrize("mode", ["dense", "shared", "untyped", "typed"])
-def test_instruction_state_intervention_changes_later_answer_through_cache(mode):
+def test_pass_two_writer_intervention_changes_later_answer_through_cache(mode):
+    from native.diagnose_learned_state import suppress_after_state_update
+
     torch.manual_seed(7)
     model = NativeModel(NativeConfig(
         vocab_size=32, context_length=8, d_model=16, d_slot=8, d_ff=32,
@@ -97,24 +99,14 @@ def test_instruction_state_intervention_changes_later_answer_through_cache(mode)
     instruction_index, answer_index = 2, 2
     baseline_prefix = model(input_ids[:, :3], use_cache=True)
     baseline_answer = model(input_ids[:, 3:], cache=baseline_prefix.cache).logits
-    reader = model.slot_reader if mode != "typed" else model.slot_readers[0]
-    calls = [0]
-
-    def mask_instruction_after_state(module, inputs):
-        calls[0] += 1
-        if calls[0] == (1 if mode == "typed" else 4):
-            changed = inputs[0].clone()
-            changed[:, instruction_index] = 0
-            return (changed,)
-        return inputs
-
-    handle = reader.register_forward_pre_hook(mask_instruction_after_state)
-    try:
+    with suppress_after_state_update(model, instruction_index) as intervention:
         intervened_prefix = model(input_ids[:, :3], use_cache=True)
-    finally:
-        handle.remove()
     intervened_answer = model(input_ids[:, 3:], cache=intervened_prefix.cache).logits
-    assert calls[0] == (4 if mode == "typed" else 16)
+    assert intervention["forwards"] == 1
+    assert intervention["completed_forwards"] == 1
+    assert intervention["targeted_forwards"] == 1
+    assert intervention["suppressed_writer_updates"] == 4
+    assert intervention["next_pass"] == 4
     assert not torch.equal(baseline_answer[:, answer_index], intervened_answer[:, answer_index])
 
 

@@ -731,7 +731,8 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
                   tokenizer_spec: Mapping | None = None, eos_token_id: int = EOS_TOKEN_ID,
                   code_generation_count: int = CODE_GENERATION_DEFAULT_COUNT,
                   code_generation_target_chars: int = CODE_GENERATION_DEFAULT_TARGET_CHARS,
-                  packing: str = "legacy", structured_overflow: str = "error") -> dict:
+                  packing: str = "legacy", structured_overflow: str = "error",
+                  position_policy: str = "row") -> dict:
     """Build and write shared train/dev arrays plus enough metadata to audit every document."""
     output = Path(output_directory)
     output.mkdir(parents=True, exist_ok=True)
@@ -758,6 +759,7 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
     manifest = {
         "version": "ti-tnn-native-data-v1", "context_length": context_length,
         "packing_version": packing, "structured_overflow": structured_overflow,
+        "position_policy": position_policy,
         "vocab_size": VOCAB_SIZE, "eos_token_id": eos_token_id, "ignore_index": IGNORE_INDEX,
         "passes": N_PASSES, "experts": N_EXPERTS, "slots": N_SLOTS, "n_state_classes": N_STATE_CLASSES,
         "tokenizer": dict(tokenizer_spec or _tokenizer_identity(tokenizer)),
@@ -778,7 +780,8 @@ def build_dataset(documents: Iterable[Document], structured_train: Sequence[Stru
         runs_by_source, consumed, all_documents = _runs_for_split(tokenized[split], allocation)
         runs = interleave_runs(runs_by_source, allocation)
         arrays, stats = pack_runs(
-            runs, context_length=context_length, packing=packing, structured_overflow=structured_overflow
+            runs, context_length=context_length, packing=packing, structured_overflow=structured_overflow,
+            position_policy=position_policy,
         )
         split_directory = output / split
         array_files = {name: _write_array(split_directory, name, arrays[name]) for name in ARRAY_NAMES}
