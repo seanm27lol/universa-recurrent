@@ -67,6 +67,10 @@ def export(run, data, output):
         'target_exact_answers': protocol['target_exact_answers'],
         'memorization_not_generalization': True,
         'charged_hours': status['charged_hours'],
+        'prior_acquisition_hours': status.get('prior_acquisition_hours', 0.0),
+        'cumulative_acquisition_charged_hours': status.get('cumulative_acquisition_charged_hours', status['charged_hours']),
+        'parent_acquisition': protocol.get('parent_acquisition'),
+        'position_policy': protocol.get('position_policy', 'row'),
         'one_hour_limit_respected': status['one_hour_limit_respected'],
         'reservation_id': status['reservation_id'],
         'failure': status['failure'],
@@ -141,8 +145,15 @@ def export(run, data, output):
 
     for name in ('launch.json', 'protocol.json', 'protocol.sha256', 'run_status.json'):
         copy(run / name, name)
+    for name in ('generation_diagnostics.json', 'position_diagnostic.json',
+                 'loss_gradient_diagnostic.json', 'loss_gradient_diagnostic_v2.json'):
+        source = run / name
+        if source.is_file():
+            copy(source, f'diagnostics/{name}')
     for name in ('manifest.json', 'acquisition_protocol.json', 'acquisition_selection.json', 'source_provenance.json'):
         copy(data / name, f'data/{name}')
+    if (data / 'position_correction_audit.json').is_file():
+        copy(data / 'position_correction_audit.json', 'data/position_correction_audit.json')
     for split in ('train', 'dev'):
         copy(data / 'structured' / f'{split}.jsonl', f'data/structured/{split}.jsonl')
     source = Path(__file__).resolve().parents[1] / 'configs/engineering.json'

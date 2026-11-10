@@ -195,3 +195,22 @@ def test_prepare_structured_study_uses_intact_examples_and_audits_exclusions(tmp
         doc_ids = np.load(tmp_path / "packed" / split / "doc_ids.npy")
         for row in doc_ids:
             assert len(set(row[row >= 0])) <= 1
+
+
+def test_document_position_reset_preserves_tokens_labels_and_supervision():
+    runs = [make_run(1, [11, 12, 13], [1, 2, 3, 4]), make_run(2, [21, 22, 23, 24], [5, 6, 7, 8])]
+    original, original_stats = pack_runs(runs, context_length=8, packing="intact")
+    explicit_row, _ = pack_runs(runs, context_length=8, packing="intact", position_policy="row")
+    corrected, corrected_stats = pack_runs(runs, context_length=8, packing="intact", position_policy="document")
+    for name in original:
+        if name == "positions":
+            assert np.array_equal(original[name], explicit_row[name])
+        else:
+            assert np.array_equal(original[name], corrected[name]), name
+    assert original["positions"][0].tolist() == list(range(7)) + [0]
+    assert corrected["positions"][0].tolist() == [0, 1, 2, 0, 1, 2, 3, 0]
+    assert corrected_stats["position_policy"] == "document"
+    assert original_stats["position_policy"] == "row"
+    assert corrected_stats["loss_tokens"] == original_stats["loss_tokens"]
+    with pytest.raises(ValueError, match="legacy packing requires"):
+        pack_runs(runs, context_length=8, packing="legacy", position_policy="document")

@@ -134,3 +134,52 @@ def test_source_provenance_binds_original_manifest_and_tokenizer(tmp_path):
     assert len(provenance['source_manifest_sha256']) == 64
     assert len(provenance['structured_files']['train']) == 64
     assert len(provenance['tokenizer_sha256']) == 64
+
+
+def test_corrective_reservation_includes_prior_charge_and_planning_margin():
+    protocol = {'projected_total_hours': 0.39, 'acquisition_prior_reservation_hours': 0.23620130574806097}
+    projected, prior = run_acquisition._reservation_projection(
+        protocol, {'native_remaining_hours': 8.0, 'reservations': []})
+    assert prior == protocol['acquisition_prior_reservation_hours']
+    assert projected < run_acquisition.RESERVATION_PROJECTED_HOURS
+    assert prior + projected * 1.5 + run_acquisition.SHUTDOWN_ALLOWANCE_HOURS <= 1.0
+    assert prior + protocol['projected_total_hours'] < 0.8
+    protocol['acquisition_prior_reservation_hours'] = 0.42
+    with pytest.raises(RuntimeError, match='planning margin'):
+        run_acquisition._reservation_projection(
+            protocol, {'native_remaining_hours': 8.0, 'reservations': []})
+
+
+def test_parent_ledger_charge_allows_float_sum_roundoff(tmp_path):
+    import hashlib
+    prior = 0.23620130574806097
+    parent = tmp_path / 'parent'
+    parent.mkdir()
+    status = {'reservation_id': 'parent-reservation', 'charged_hours': prior}
+    (parent / 'run_status.json').write_text(json.dumps(status))
+    (parent / 'position_diagnostic.json').write_text('{}')
+    (parent / 'loss_gradient_diagnostic.json').write_text('{}')
+    (parent / 'protocol.json').write_text('{"max_updates": 4096}\n')
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    protocol_sha256 = digest(parent / 'protocol.json')
+    (parent / 'protocol.sha256').write_text(protocol_sha256 + '\n')
+    protocol = {
+        'projected_total_hours': 0.39,
+        'acquisition_prior_reservation_hours': prior,
+        'parent_acquisition': {
+            'run_dir': str(parent), 'run_status_sha256': digest(parent / 'run_status.json'),
+            'protocol_sha256': protocol_sha256,
+            'reservation_id': 'parent-reservation',
+            'position_diagnostic_sha256': digest(parent / 'position_diagnostic.json'),
+            'loss_gradient_diagnostic_sha256': digest(parent / 'loss_gradient_diagnostic.json'),
+        },
+    }
+    before = {
+        'native_remaining_hours': 8.0,
+        'reservations': [{'reservation': 'parent-reservation', 'hours': prior - 4.7e-16}],
+    }
+    _, recovered_prior = run_acquisition._reservation_projection(protocol, before)
+    assert recovered_prior == prior
+    (parent / 'protocol.json').write_text('{"max_updates": 1}\n')
+    with pytest.raises(RuntimeError, match='parent training protocol'):
+        run_acquisition._reservation_projection(protocol, before)

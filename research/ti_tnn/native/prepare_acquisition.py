@@ -38,11 +38,27 @@ def main():
     parser.add_argument('--output', required=True)
     parser.add_argument('--tokenizer', required=True)
     parser.add_argument('--max-updates', type=int, default=4096)
+    parser.add_argument('--position-policy', choices=('row', 'document'), default='row')
+    parser.add_argument('--parent-run', help='preserved failed acquisition for the document-position correction')
     args = parser.parse_args()
     source = Path(args.source)
     output = Path(args.output)
     if output.exists() and any(output.iterdir()):
         raise RuntimeError(f'refusing to overwrite an existing acquisition freeze: {output}')
+    if args.parent_run and args.position_policy != 'document':
+        raise ValueError('a parent acquisition is used only by the document-position correction')
+    parent = Path(args.parent_run).resolve() if args.parent_run else None
+    parent_status = json.loads((parent / 'run_status.json').read_text()) if parent else None
+    prior_hours = parent_status['charged_hours'] if parent_status else 0.0
+    parent_identity = None if parent is None else {
+        'run_dir': str(parent),
+        'run_status_sha256': D.sha256_file(parent / 'run_status.json'),
+        'protocol_sha256': (parent / 'protocol.sha256').read_text().strip(),
+        'reservation_id': parent_status['reservation_id'],
+        'charged_hours': prior_hours,
+        'position_diagnostic_sha256': D.sha256_file(parent / 'position_diagnostic.json'),
+        'loss_gradient_diagnostic_sha256': D.sha256_file(parent / 'loss_gradient_diagnostic.json'),
+    }
     (output / 'structured').mkdir(parents=True, exist_ok=True)
     tokenizer = args.tokenizer
     selected = {family: [] for family in structured.OP_ROUTES}
@@ -61,7 +77,7 @@ def main():
             ''.join(json.dumps(record, sort_keys=True) + '\n' for record in records))
     write_source_provenance(source, output, tokenizer)
     (output / 'manifest.json').write_text(json.dumps({'format': 'native-acquisition-source-v1'}, indent=2) + '\n')
-    prepare(output, output, 10**12, 10**12, tokenizer_path=tokenizer)
+    prepare(output, output, 10**12, 10**12, tokenizer_path=tokenizer, position_policy=args.position_policy)
     selection = {
         'format': 'native-acquisition-selection-v1',
         'source_data': str(source.resolve()),
@@ -85,6 +101,7 @@ def main():
         'format': 'native-acquisition-protocol-v1',
         'arms': ['dense', 'untyped', 'typed'],
         'purpose': 'bounded memorization diagnostic, not generalization or architectural superiority',
+        'position_policy': args.position_policy,
         'max_updates': args.max_updates,
         'max_loss_tokens': max_loss_tokens,
         'batch_size': 8,
@@ -116,6 +133,19 @@ def main():
         'live_native_remaining_hours_at_freeze': ledger.usage()['native_remaining_hours'],
         'authorization': 'existing native v3 only; no 124M campaign and no WSP',
     }
+    if parent_identity is not None:
+        protocol.update({
+            'format': 'native-acquisition-protocol-v2-document-positions',
+            'hypothesis': 'resetting positions at intact document boundaries aligns training and standalone generation',
+            'only_change_from_parent': 'position_policy=document; identical examples, tokenizer, initialization, objective and update endpoint',
+            'parent_acquisition': parent_identity,
+            'acquisition_prior_reservation_hours': prior_hours,
+            'projected_hours_per_train': 0.08,
+            'projected_hours_per_evaluation': 0.05,
+            'projected_total_hours': 0.39,
+        })
+        if prior_hours + protocol['projected_total_hours'] > 0.8:
+            raise RuntimeError('parent plus corrective projection does not retain 20% of the one-hour acquisition cap')
     (output / 'acquisition_protocol.json').write_text(json.dumps(protocol, indent=2, sort_keys=True) + '\n')
     print(json.dumps({'max_updates': args.max_updates, 'max_loss_tokens': max_loss_tokens,
                       'projected_total_hours': protocol['projected_total_hours'],

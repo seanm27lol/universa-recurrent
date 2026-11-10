@@ -132,6 +132,44 @@ def _execute(protocol, root, run_dir, tokenizer, replay):
     return statuses
 
 
+def _reservation_projection(protocol, before):
+    prior = protocol.get('acquisition_prior_reservation_hours', 0.0)
+    if not 0 <= prior < BUDGET_HOURS:
+        raise RuntimeError(f'invalid prior acquisition charge: {prior}')
+    parent = protocol.get('parent_acquisition')
+    if parent:
+        parent_status_path = Path(parent['run_dir']) / 'run_status.json'
+        if sha256_file(parent_status_path) != parent['run_status_sha256']:
+            raise RuntimeError('the parent acquisition status no longer matches the corrective protocol')
+        parent_protocol = Path(parent['run_dir']) / 'protocol.json'
+        if sha256_file(parent_protocol) != parent['protocol_sha256']:
+            raise RuntimeError('the parent training protocol no longer matches the corrective protocol')
+        if (Path(parent['run_dir']) / 'protocol.sha256').read_text().strip() != parent['protocol_sha256']:
+            raise RuntimeError('the parent protocol sidecar differs from its recorded identity')
+        parent_status = json.loads(parent_status_path.read_text())
+        if (parent_status['reservation_id'] != parent['reservation_id']
+                or parent_status['charged_hours'] != prior):
+            raise RuntimeError('parent acquisition identity or charge differs from the corrective protocol')
+        reservations = {item['reservation']: item for item in before['reservations']}
+        if (parent['reservation_id'] not in reservations
+                or abs(reservations[parent['reservation_id']]['hours'] - prior) > 1e-9):
+            raise RuntimeError('the live ledger does not reproduce the parent acquisition charge')
+        for name, key in (('position_diagnostic', 'position_diagnostic_sha256'),
+                          ('loss_gradient_diagnostic', 'loss_gradient_diagnostic_sha256')):
+            if sha256_file(Path(parent['run_dir']) / f'{name}.json') != parent[key]:
+                raise RuntimeError(f'parent {name} no longer matches the corrective protocol')
+    if prior + protocol['projected_total_hours'] > 0.8 * BUDGET_HOURS:
+        raise RuntimeError('combined acquisition projection does not preserve a 20% planning margin')
+    available = BUDGET_HOURS - prior
+    if before['native_remaining_hours'] < available:
+        raise RuntimeError('the live native ledger cannot cover the remaining acquisition allowance')
+    projected = min(RESERVATION_PROJECTED_HOURS,
+                    (available - SHUTDOWN_ALLOWANCE_HOURS) / 1.5)
+    if projected <= 0 or prior + projected * 1.5 + SHUTDOWN_ALLOWANCE_HOURS > BUDGET_HOURS:
+        raise RuntimeError('the combined acquisition watchdog and shutdown allowance exceed one hour')
+    return projected, prior
+
+
 def run(data, repository, tokenizer, run_id=None):
     root = Path(data).resolve()
     repository = Path(repository).resolve()
@@ -158,6 +196,10 @@ def run(data, repository, tokenizer, run_id=None):
         raise RuntimeError('the acquisition tokenizer differs from frozen source provenance')
     if protocol['arms'] != ['dense', 'untyped', 'typed'] or protocol['projected_total_hours'] > 0.75:
         raise RuntimeError('the acquisition requires the frozen three arms and a total projection <=0.75 h')
+    manifest = json.loads((root / 'manifest.json').read_text())
+    for split in ('train', 'dev'):
+        if manifest['splits'][split].get('position_policy', 'row') != protocol.get('position_policy', 'row'):
+            raise RuntimeError(f'{split} packed positions differ from the acquisition protocol')
     sampler = make_sampler(PackedDataset(root, 'train'), protocol['batch_size'], protocol['data_seed'])
     planned_updates, planned_tokens = train._planned_budget(sampler, protocol['max_loss_tokens'])
     if (planned_updates, planned_tokens) != (protocol['max_updates'], protocol['max_loss_tokens']):
@@ -175,11 +217,7 @@ def run(data, repository, tokenizer, run_id=None):
         raise RuntimeError('the source-bound acquisition requires a clean, committed worktree')
     path, lock = ledger.validate_shared_reservation_paths()
     before = ledger.usage(path)
-    if before['native_remaining_hours'] < BUDGET_HOURS:
-        raise RuntimeError(f'one acquisition hour is not available: {before}')
-    if (RESERVATION_PROJECTED_HOURS * 1.5 + SHUTDOWN_ALLOWANCE_HOURS > BUDGET_HOURS
-            or protocol['projected_total_hours'] + 0.2 > BUDGET_HOURS):
-        raise RuntimeError('the complete acquisition and shutdown allowance exceed one hour')
+    reservation_hours, prior_hours = _reservation_projection(protocol, before)
     _write(run_dir / 'protocol.json', protocol)
     (run_dir / 'protocol.sha256').write_text(hashlib.sha256(protocol_bytes).hexdigest() + '\n')
     _write(run_dir / 'launch.json', {
@@ -188,8 +226,10 @@ def run(data, repository, tokenizer, run_id=None):
         'source_provenance_sha256': sha256_file(provenance), 'tokenizer': str(tokenizer),
         'tokenizer_sha256': sha256_file(tokenizer), 'replay': str(replay),
         'replay_sha256': sha256_file(replay), 'ledger_before': before,
-        'reservation_projected_hours': RESERVATION_PROJECTED_HOURS,
-        'maximum_watchdog_hours': RESERVATION_PROJECTED_HOURS * 1.5,
+        'prior_acquisition_hours': prior_hours,
+        'combined_projected_hours': prior_hours + protocol['projected_total_hours'],
+        'reservation_projected_hours': reservation_hours,
+        'maximum_watchdog_hours': reservation_hours * 1.5,
         'shutdown_allowance_hours': SHUTDOWN_ALLOWANCE_HOURS,
     })
     statuses = {mode: {'status': 'not_run'} for mode in protocol['arms']}
@@ -200,10 +240,11 @@ def run(data, repository, tokenizer, run_id=None):
     os.environ['TI_TNN_NATIVE_ACQUISITION_RUN_ID'] = run_id
     try:
         with ledger.Reservation(
-                f'native.acquisition run={run_id}', projected_hours=RESERVATION_PROJECTED_HOURS,
+                f'native.acquisition run={run_id}', projected_hours=reservation_hours,
                 path=path, lock=lock,
                 extra={'native_acquisition_run_id': run_id, 'source_commit': source,
-                       'protocol_sha256': hashlib.sha256(protocol_bytes).hexdigest()}) as active:
+                       'protocol_sha256': hashlib.sha256(protocol_bytes).hexdigest(),
+                       'prior_acquisition_hours': prior_hours}) as active:
             reservation_id = active.id
             statuses = _execute(protocol, root, run_dir, tokenizer, replay)
     except BaseException as error:
@@ -219,16 +260,20 @@ def run(data, repository, tokenizer, run_id=None):
         item.get('status') == 'completed' and item.get('updates') == protocol['max_updates']
         for item in statuses.values())
     charged = after['used_hours'] - before['used_hours']
+    cumulative_charged = prior_hours + charged
     result = {
         'format': 'native-acquisition-run-status-v2', 'run_id': run_id, 'source_commit': source,
         'complete': complete, 'arms': statuses, 'failure': failure, 'reservation_id': reservation_id,
         'wall_seconds': time.perf_counter() - started, 'charged_hours': charged,
-        'one_hour_limit_respected': charged <= BUDGET_HOURS,
+        'prior_acquisition_hours': prior_hours,
+        'cumulative_acquisition_charged_hours': cumulative_charged,
+        'one_hour_limit_respected': cumulative_charged <= BUDGET_HOURS,
         'ledger_before': before, 'ledger_after': after,
         'evidence_boundary': '32-example acquisition is memorization only, not generalization or architectural superiority',
     }
     _write(run_dir / 'run_status.json', result)
     print(json.dumps({'run_dir': str(run_dir), 'complete': complete, 'charged_hours': charged,
+                      'cumulative_acquisition_charged_hours': cumulative_charged,
                       'arms': statuses}, sort_keys=True, allow_nan=False))
     return 0 if complete else 3
 

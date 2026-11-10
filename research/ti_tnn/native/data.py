@@ -516,16 +516,19 @@ def _blank_arrays(token_count: int, context_length: int) -> dict[str, np.ndarray
 
 
 def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH,
-              packing: str = "legacy", structured_overflow: str = "error") -> tuple[dict[str, np.ndarray], dict]:
-    """Pack runs, optionally keeping every fitting structured example in one model-visible row."""
+              packing: str = "legacy", structured_overflow: str = "error",
+              position_policy: str = "row") -> tuple[dict[str, np.ndarray], dict]:
+    """Pack runs, optionally keeping examples intact and resetting positions at document boundaries."""
     if context_length <= 0:
         raise ValueError("context length must be positive")
     if packing not in ("legacy", "intact"):
         raise ValueError(f"unknown packing version {packing!r}")
     if structured_overflow not in ("error", "exclude"):
         raise ValueError("structured_overflow must be 'error' or 'exclude'")
-    if packing == "legacy" and structured_overflow != "error":
-        raise ValueError("legacy packing does not support structured exclusion")
+    if position_policy not in ("row", "document"):
+        raise ValueError(f"position_policy must be 'row' or 'document', not {position_policy!r}")
+    if packing == "legacy" and (structured_overflow != "error" or position_policy != "row"):
+        raise ValueError("legacy packing requires error overflow and row positions")
     included = []
     excluded = []
     for run in runs:
@@ -585,6 +588,10 @@ def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH,
     arrays["labels"][:, 0] = IGNORE_INDEX
     different_document = arrays["doc_ids"][:, 1:] != arrays["doc_ids"][:, :-1]
     arrays["labels"][:, 1:] = np.where(different_document, IGNORE_INDEX, arrays["labels"][:, 1:])
+    if position_policy == "document":
+        starts = np.concatenate((np.ones((len(arrays["doc_ids"]), 1), dtype=bool), different_document), axis=1)
+        start_columns = np.maximum.accumulate(np.where(starts, np.arange(context_length), 0), axis=1)
+        arrays["positions"][:] = np.arange(context_length)[None, :] - start_columns
     arrays["positions"][arrays["key_padding_mask"]] = 0
     if not np.array_equal(arrays["source_ids"] == PADDING_SOURCE_ID, arrays["key_padding_mask"]):
         raise AssertionError("source ids and padding mask disagree")
@@ -606,6 +613,7 @@ def pack_runs(runs: Sequence[TokenRun], *, context_length: int = CONTEXT_LENGTH,
         "source_loss_tokens": source_loss_tokens,
         "token_fractions": {name: source_tokens[name] / token_count for name in SOURCE_ORDER},
         "packing_version": packing,
+        "position_policy": position_policy,
         "structured_overflow": structured_overflow,
         "structured_rows_padded": structured_rows_padded,
         "structured_examples_intact": sum(run.source == "structured" for run in included),

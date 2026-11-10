@@ -9,7 +9,8 @@ from . import data as D
 from . import structured
 
 
-def prepare(source, output, train_tokens, dev_tokens, context_length=256, tokenizer_path=None):
+def prepare(source, output, train_tokens, dev_tokens, context_length=256, tokenizer_path=None,
+            position_policy='row'):
     source = Path(source)
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
@@ -21,6 +22,7 @@ def prepare(source, output, train_tokens, dev_tokens, context_length=256, tokeni
         'tokenizer': D.TOKENIZER_SPEC,
         'context_length': context_length,
         'packing': 'intact',
+        'position_policy': position_policy,
         'structured_overflow': 'exclude',
         'prerequisites': 'initial values and complete ordered program source are present in every packed example',
         'splits': {},
@@ -47,7 +49,8 @@ def prepare(source, output, train_tokens, dev_tokens, context_length=256, tokeni
             total += len(tokenized.input_ids)
         if total <= 0:
             raise D.DataError(f'{split}: no fitting intact structured examples are available')
-        arrays, stats = D.pack_runs(runs, context_length=context_length, packing='intact', structured_overflow='exclude')
+        arrays, stats = D.pack_runs(runs, context_length=context_length, packing='intact', structured_overflow='exclude',
+                                    position_policy=position_policy)
         files = {name: D._write_array(output / split, name, arrays[name]) for name in D.ARRAY_NAMES}
         consumed_path = output / f'{split}_consumed_documents.jsonl'
         D._atomic_jsonl(consumed_path, consumed)
