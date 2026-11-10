@@ -70,6 +70,13 @@ def main():
     copy(ROOT / 'study_v7/independent_review.json', 'original_113_check_review.json')
     copy(ROOT / 'study_v5/arms/untyped/reconstruction.json', 'numerical_history/untyped.bf16.route_failure.json')
     copy(ROOT / 'study_v3/arms/dense/reconstruction-omp4-failed.json', 'numerical_history/dense.fp32.strict_failure.json')
+    copy(FOLLOW / 'paired_protocol.json', 'paired/protocol.json')
+    copy(FOLLOW / 'paired_generation_diagnostics.json', 'paired/generation_diagnostics.json')
+    copy(FOLLOW / 'study_data/manifest.json', 'paired/study_data/manifest.json')
+    for mode in ('untyped', 'typed'):
+        arm_source = FOLLOW / 'arms' / mode
+        for name in ('train-result.json', 'evaluation.json', 'state_path.json', 'reconstruction.json'):
+            copy(arm_source / name, f'paired/arms/{mode}/{name}')
     copy(ROOT / 'data/manifest.json', 'data/manifest.json')
     copy(ROOT / 'data/code_generation.jsonl', 'data/code_generation.jsonl')
     for split in SPLITS:
@@ -112,6 +119,13 @@ PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/rescore_gene
   --study . --data ./data --output ./generation_diagnostics.json
 ```
 
+For the paired intact-data result:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/rescore_generations.py \
+  --study ./paired --data ./data --output ./paired/generation_diagnostics.json
+```
+
 The current diagnostics file is `./generation_diagnostics.json`. `reported_tables.json` contains the compact reported
 loss, source, routing, timing, intervention and reconstruction tables. The final FP32 and failed BF16/strict CPU
 reports remain separate in `numerical_history/`.
@@ -121,6 +135,9 @@ Original merged PR #76 revision: `eaa5faa9d4476296e60386bf7cd7179f9cc63b00`.
 '''
     (OUT / 'REPRODUCE.md').write_text(reproduction)
     copy(FOLLOW / 'generation_diagnostics.json', 'generation_diagnostics.json')
+    report_path = Path('/home/seanjazm27/projects/universa-recurrent-native-followup/research/ti_tnn/native/FOLLOWUP.md')
+    if report_path.is_file():
+        copy(report_path, 'FOLLOWUP.md')
     files = sorted(path for path in OUT.rglob('*') if path.is_file() and path.name != 'SHA256SUMS')
     (OUT / 'SHA256SUMS').write_text(''.join(f'{sha256(path)}  {path.relative_to(OUT)}\n' for path in files))
     manifest = {

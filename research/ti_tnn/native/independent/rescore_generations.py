@@ -123,20 +123,21 @@ def summarize(records, source):
 def rescore(study, data, output):
     sources = source_records(data)
     result = {"format": "native-independent-generation-rescore-v1", "study": str(study), "arms": {}}
-    for mode in MODES:
+    for mode in (mode for mode in MODES if (study / "arms" / mode / "evaluation.json").is_file()):
         evaluation = load(study / "arms" / mode / "evaluation.json")
         arm = {"structured": {}, "code": None}
         for split in SPLITS:
             records = evaluation["structured_generation"]["splits"][split]["records"]
             arm["structured"][split] = summarize(records, sources)
-        code_records = evaluation["code_generation"]["records"]
+        code_records = evaluation["code_generation"].get("records", [])
         exact = sum(record["completion_text"] == record["target_text"] for record in code_records)
         arm["code"] = {
+            "status": "complete" if code_records else evaluation["code_generation"].get("status", "not_run"),
             "examples": len(code_records),
             "exact_match": exact / len(code_records) if code_records else None,
             "exact_count": exact,
-            "eos_rate": sum(bool(record.get("stopped_on_eos")) for record in code_records) / len(code_records),
-            "completion_truncation_rate": sum(bool(record.get("truncated")) for record in code_records) / len(code_records),
+            "eos_rate": sum(bool(record.get("stopped_on_eos")) for record in code_records) / len(code_records) if code_records else None,
+            "completion_truncation_rate": sum(bool(record.get("truncated")) for record in code_records) / len(code_records) if code_records else None,
             "prerequisites": {
                 "complete": sum(not record.get("prompt_truncated", False) for record in code_records),
                 "truncated_or_incomplete": sum(bool(record.get("prompt_truncated", False)) for record in code_records),
