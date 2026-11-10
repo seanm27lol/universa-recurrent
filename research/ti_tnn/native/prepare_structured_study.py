@@ -45,8 +45,8 @@ def prepare(source, output, train_tokens, dev_tokens, context_length=256):
             consumed.append({'doc_id': doc_id, 'example_id': example.example_id,
                              'content_sha256': example.content_sha256, 'tokens': len(tokenized.input_ids)})
             total += len(tokenized.input_ids)
-        if total < budget:
-            raise D.DataError(f'{split}: only {total} fitting intact tokens available, requested {budget}')
+        if total <= 0:
+            raise D.DataError(f'{split}: no fitting intact structured examples are available')
         arrays, stats = D.pack_runs(runs, context_length=context_length, packing='intact', structured_overflow='exclude')
         files = {name: D._write_array(output / split, name, arrays[name]) for name in D.ARRAY_NAMES}
         consumed_path = output / f'{split}_consumed_documents.jsonl'
@@ -55,6 +55,8 @@ def prepare(source, output, train_tokens, dev_tokens, context_length=256):
             **stats,
             'requested_tokens': budget,
             'consumed_tokens': total,
+            'underfill_tokens': budget - total,
+            'underfill_reason': 'whole-example boundary or finite fitting inventory; no document was split to meet the cap',
             'arrays': files,
             'consumed_document_file': str(consumed_path),
             'consumed_document_sha256': D.sha256_file(consumed_path),

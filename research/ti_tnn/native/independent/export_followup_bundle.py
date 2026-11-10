@@ -37,7 +37,7 @@ def main():
         raise RuntimeError(f'refusing to overwrite an existing evidence bundle: {OUT}')
     OUT.mkdir(parents=True)
     summary = load(ROOT / 'study_v7/summary.json')
-    diagnostics = load(FOLLOW / 'generation_diagnostics.json')
+    diagnostics = load(FOLLOW / 'generation_diagnostics_executed.json')
     reported = {'format': 'native-followup-reported-tables-v1', 'arms': {}}
     for mode in MODES:
         arm_summary = summary['arms'][mode]
@@ -70,8 +70,15 @@ def main():
     copy(ROOT / 'study_v7/independent_review.json', 'original_113_check_review.json')
     copy(ROOT / 'study_v5/arms/untyped/reconstruction.json', 'numerical_history/untyped.bf16.route_failure.json')
     copy(ROOT / 'study_v3/arms/dense/reconstruction-omp4-failed.json', 'numerical_history/dense.fp32.strict_failure.json')
+    copy(FOLLOW / 'generation_diagnostics.json', 'original_generation_diagnostics.json')
+    copy(FOLLOW / 'generation_diagnostics_executed.json', 'generation_diagnostics.json')
+    copy(FOLLOW / 'paired_generation_diagnostics.json', 'paired/original_generation_diagnostics.json')
+    copy(FOLLOW / 'paired_generation_diagnostics_executed.json', 'paired/generation_diagnostics.json')
+    for mode in MODES:
+        copy(FOLLOW / f'answer_losses/{mode}.json', f'answer_losses/{mode}.json')
+    for mode in ('untyped', 'typed'):
+        copy(FOLLOW / f'answer_losses/paired_{mode}.json', f'answer_losses/paired_{mode}.json')
     copy(FOLLOW / 'paired_protocol.json', 'paired/protocol.json')
-    copy(FOLLOW / 'paired_generation_diagnostics.json', 'paired/generation_diagnostics.json')
     copy(FOLLOW / 'study_data/manifest.json', 'paired/study_data/manifest.json')
     for mode in ('untyped', 'typed'):
         arm_source = FOLLOW / 'arms' / mode
@@ -124,6 +131,11 @@ For the paired intact-data result:
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/rescore_generations.py \
   --study ./paired --data ./data --output ./paired/generation_diagnostics.json
+
+# Attach answer-token cross-entropy from the preserved checkpoint evaluations.
+PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/merge_answer_losses.py \
+  --root . --diagnostics ./generation_diagnostics.json \
+  --paired-diagnostics ./paired/generation_diagnostics.json
 ```
 
 The current diagnostics file is `./generation_diagnostics.json`. `reported_tables.json` contains the compact reported
@@ -134,7 +146,7 @@ Source follow-up revision at export: `{code_revision}`.
 Original merged PR #76 revision: `eaa5faa9d4476296e60386bf7cd7179f9cc63b00`.
 '''
     (OUT / 'REPRODUCE.md').write_text(reproduction)
-    copy(FOLLOW / 'generation_diagnostics.json', 'generation_diagnostics.json')
+    copy(FOLLOW / 'generation_diagnostics_executed.json', 'generation_diagnostics.json')
     report_path = Path('/home/seanjazm27/projects/universa-recurrent-native-followup/research/ti_tnn/native/FOLLOWUP.md')
     if report_path.is_file():
         copy(report_path, 'FOLLOWUP.md')

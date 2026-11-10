@@ -10,6 +10,56 @@ from pathlib import Path
 REGISTER = re.compile(r"^r0=(\d+) r1=(\d+) r2=(\d+) r3=(\d+)$")
 MODES = ("dense", "shared", "untyped", "typed")
 SPLITS = ("train", "dev", "unseen_composition", "longer_length")
+INSTRUCTION = re.compile(r"^(set|add|multiply|copy) r([0-3]) (?:r([0-3])|(\d+))$")
+
+
+class ScoringError(ValueError):
+    pass
+
+
+def execute_saved_program(record):
+    if record.get("modulus") != 32:
+        raise ScoringError(f"{record['example_id']}: modulus must be 32")
+    initial = record.get("initial")
+    if not isinstance(initial, list) or len(initial) != 4 or any(
+            not isinstance(value, int) or isinstance(value, bool) or not 0 <= value < 32 for value in initial):
+        raise ScoringError(f"{record['example_id']}: initial register values must be four integers in [0, 32)")
+    state = tuple(initial)
+    program = record.get("program")
+    if not isinstance(program, list) or not program:
+        raise ScoringError(f"{record['example_id']}: program must be nonempty")
+    for text in program:
+        match = INSTRUCTION.fullmatch(text)
+        if match is None:
+            raise ScoringError(f"{record['example_id']}: noncanonical instruction {text!r}")
+        operation, destination, source, immediate = match.groups()
+        destination = int(destination)
+        if operation == "set":
+            if source is not None or immediate is None:
+                raise ScoringError(f"{record['example_id']}: malformed set instruction {text!r}")
+            value = int(immediate)
+            if not 0 <= value < 32:
+                raise ScoringError(f"{record['example_id']}: immediate outside [0, 32): {text!r}")
+            state = tuple(value if index == destination else current for index, current in enumerate(state))
+        else:
+            if source is None or immediate is not None:
+                raise ScoringError(f"{record['example_id']}: malformed {operation} instruction {text!r}")
+            source = int(source)
+            if operation == "add":
+                values = (state[destination] + state[source]) % 32
+            elif operation == "multiply":
+                values = (state[destination] * state[source]) % 32
+            else:
+                values = state[source]
+            state = tuple(values if index == destination else current for index, current in enumerate(state))
+    expected = registers(record["target_text"])
+    if expected is None or expected != state:
+        raise ScoringError(f"{record['example_id']}: stored target {record['target_text']!r} does not execute to {state!r}")
+    import hashlib
+    identity = hashlib.sha256((record["prompt"] + record["target_text"]).encode()).hexdigest()[:20]
+    if record["example_id"] != f"structured-{record['split']}-{identity}":
+        raise ScoringError(f"{record['example_id']}: example identity does not match prompt and target")
+    return state
 
 
 def load(path):
@@ -65,6 +115,7 @@ def summarize(records, source):
     value_loss = []
     first_errors = []
     details = []
+    score_changes = []
     for record in records:
         source_record = source[record["example_id"]]
         expected = registers(record["target_text"])
@@ -78,6 +129,12 @@ def summarize(records, source):
         eos += bool(record.get("stopped_on_eos"))
         truncated += bool(record.get("truncated"))
         first_error = error_details(record["completion_text"], record["target_text"], expected, actual)
+        if record.get("correct") is not None and record["correct"] != (actual == expected):
+            score_changes.append({"example_id": record["example_id"], "metric": "exact_match",
+                                  "original": record["correct"], "independent": actual == expected})
+        if record.get("valid") is not None and record["valid"] != (actual is not None):
+            score_changes.append({"example_id": record["example_id"], "metric": "format_valid",
+                                  "original": record["valid"], "independent": actual is not None})
         if actual is not None:
             for index, (left, right) in enumerate(zip(actual, expected)):
                 register_correct[index] += left == right
@@ -116,6 +173,7 @@ def summarize(records, source):
             "program_source_is_in_prompt": True,
         },
         "first_errors": first_errors,
+        "score_changes": score_changes,
         "records": details,
     }
 
@@ -123,6 +181,11 @@ def summarize(records, source):
 def rescore(study, data, output):
     sources = source_records(data)
     result = {"format": "native-independent-generation-rescore-v1", "study": str(study), "arms": {}}
+    validated = 0
+    for record in sources.values():
+        execute_saved_program(record)
+        validated += 1
+    result["target_validation"] = {"executed_programs": validated, "rejected_inconsistent_targets": []}
     for mode in (mode for mode in MODES if (study / "arms" / mode / "evaluation.json").is_file()):
         evaluation = load(study / "arms" / mode / "evaluation.json")
         arm = {"structured": {}, "code": None}

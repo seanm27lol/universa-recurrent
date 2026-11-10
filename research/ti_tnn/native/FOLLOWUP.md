@@ -33,23 +33,24 @@ The new `packing="intact"` path:
 
 The bounded study data has 1,999,998 train tokens / 1,975,083 loss targets and 99,942 dev tokens / 98,695 loss
 targets. It contains 24,915 train and 1,247 dev structured documents with **zero cross-row documents**. No bounded-
-prefix example required exclusion.
+prefix example required exclusion. Whole-example budget caps now permit documented underfill rather than failing
+when the next complete example would cross the cap; the manifest records the underfill amount and reason.
 
 ## 2. Consumed-state repair
 
-The old placement supervised the instruction after-state only at pass four, after its final possible read. The new
-placement is minimal:
+The earlier pass-three placement can affect current-token logits, but it has no direct path through the saved
+attention cache to later answer tokens: slot tensors are local to each token and are not carried in that cache.
+The corrected coherent schedule makes the after-state available early enough for hidden-state attention to affect
+later positions:
 
 ```text
-pass 1: before    pass 2: before    pass 3: after    pass 4: before
+pass 1: before    pass 2: after    pass 3: after    pass 4: after
 ```
 
-Pass three therefore supervises the after-state before the real pass-four downstream read. Pass four remains the
-pre-commit state for the next instruction. All four modes receive the same target placement; no new loss or model
-initialization was introduced.
-
-Tests verify the placement and directly mask the third-pass slot read in dense, shared, untyped and typed models,
-changing downstream logits in every mode. That establishes a physical causal path, not learned semantic use.
+All four modes receive the same target placement; no new loss or model initialization was introduced. The causal
+test now identifies an instruction-token after-state intervention during the second pass and measures its effect on
+a later answer token through the saved attention cache. This establishes a later-position causal path, not learned
+semantic use.
 
 ## 3. Saved-generation diagnostics
 
@@ -64,6 +65,14 @@ changing downstream logits in every mode. That establishes a physical causal pat
 The original structured prompts contain `Initial:` and all ordered program instructions. All 512 structured examples
 per arm have complete prerequisites. All 64 code prompts have truncated prerequisites. Answer-value loss is not a
 cross-entropy score; it is the mean absolute register-value error over format-valid completions.
+
+The independent scorer also parses and executes every saved program itself, validating canonical syntax, register
+ranges, target text and example identity. All **71,680 stored targets passed; zero inconsistent targets and zero
+score changes were discovered**. Original score files are preserved beside the new executed-rescoring files.
+
+Answer-token cross-entropy is computed separately from mean absolute register error. On ordinary dev it is
+0.801797 dense, 0.812047 shared, 0.812917 untyped and 0.814691 typed; on the paired intact run it is 0.821640
+untyped and 0.823888 typed. These are model losses, not register-value errors.
 
 The independent rescore is reproducible in the weight-free bundle. Its `study` path field is the only difference
 between source and bundle outputs; all result content is identical.

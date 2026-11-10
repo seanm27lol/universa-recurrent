@@ -9,8 +9,9 @@ from native.config import NativeConfig
 from native.data import DataError, Document, TokenRun, TokenizedDocument, pack_runs
 from native.model import NativeModel
 from native.structured import Instruction, execute, make_example
-from native.independent.rescore_generations import summarize
+from native.independent.rescore_generations import ScoringError, execute_saved_program, summarize
 from native.prepare_structured_study import prepare
+from native.evaluate_state_path import _answer_cross_entropy
 from tokenizers import Tokenizer, models, pre_tokenizers, trainers
 
 
@@ -81,36 +82,40 @@ def test_intact_builder_moves_fitting_examples_and_audits_long_exclusions():
 
 def test_after_state_is_placed_before_downstream_read():
     event = execute([Instruction("multiply", 0, src=1)], initial=(2, 3, 4, 5)).events[0]
-    assert event.states[:2] == (event.before, event.before)
-    assert event.states[2] == event.after
-    assert event.states[3] == event.before
+    assert event.states[0] == event.before
+    assert event.states[1:] == (event.after,) * 3
 
 
 @pytest.mark.parametrize("mode", ["dense", "shared", "untyped", "typed"])
-def test_third_pass_state_read_has_downstream_effect(mode):
+def test_instruction_state_intervention_changes_later_answer_through_cache(mode):
     torch.manual_seed(7)
     model = NativeModel(NativeConfig(
         vocab_size=32, context_length=8, d_model=16, d_slot=8, d_ff=32,
         n_heads=4, mode=mode, n_state_classes=32,
     ))
-    input_ids = torch.tensor([[1, 2, 3, 4]])
-    baseline = model(input_ids).logits
+    input_ids = torch.tensor([[1, 2, 3, 4, 5, 6]])
+    instruction_index, answer_index = 2, 2
+    baseline_prefix = model(input_ids[:, :3], use_cache=True)
+    baseline_answer = model(input_ids[:, 3:], cache=baseline_prefix.cache).logits
     reader = model.slot_reader if mode != "typed" else model.slot_readers[0]
     calls = [0]
 
-    def mask_third_pass(module, inputs):
+    def mask_instruction_after_state(module, inputs):
         calls[0] += 1
-        if calls[0] == (2 if mode == "typed" else 8):
-            return (torch.zeros_like(inputs[0]),)
+        if calls[0] == (1 if mode == "typed" else 4):
+            changed = inputs[0].clone()
+            changed[:, instruction_index] = 0
+            return (changed,)
         return inputs
 
-    handle = reader.register_forward_pre_hook(mask_third_pass)
+    handle = reader.register_forward_pre_hook(mask_instruction_after_state)
     try:
-        intervened = model(input_ids).logits
+        intervened_prefix = model(input_ids[:, :3], use_cache=True)
     finally:
         handle.remove()
+    intervened_answer = model(input_ids[:, 3:], cache=intervened_prefix.cache).logits
     assert calls[0] == (4 if mode == "typed" else 16)
-    assert not torch.equal(baseline, intervened)
+    assert not torch.equal(baseline_answer[:, answer_index], intervened_answer[:, answer_index])
 
 
 def test_independent_rescore_reports_register_loss_and_complete_prerequisites():
@@ -133,6 +138,37 @@ def test_independent_rescore_reports_register_loss_and_complete_prerequisites():
     assert metrics["prerequisites"]["program_source_is_in_prompt"]
 
 
+def test_independent_scorer_executes_and_rejects_inconsistent_targets():
+    example = make_example("train", [Instruction("multiply", 0, src=1)], (2, 3, 4, 5))
+    assert execute_saved_program(example.to_record()) == (6, 3, 4, 5)
+    invalid = example.to_record()
+    invalid["target_text"] = "r0=7 r1=3 r2=4 r3=5"
+    with pytest.raises(ScoringError, match="does not execute"):
+        execute_saved_program(invalid)
+    invalid = example.to_record()
+    invalid["program"] = ["add r0 32"]
+    with pytest.raises(ScoringError):
+        execute_saved_program(invalid)
+
+
+def test_answer_cross_entropy_is_separate_from_register_error(tmp_path):
+    from types import SimpleNamespace
+    for split in ("train", "dev", "unseen_composition", "longer_length"):
+        (tmp_path / f"{split}.jsonl").write_text(json.dumps({"prompt": "prompt", "target_text": "target"}) + "\n")
+    tokenizer = SimpleNamespace(encode=lambda text, add_special_tokens=False: SimpleNamespace(ids=[1] if text == "prompt" else [2]))
+    class FakeModel:
+        config = SimpleNamespace(context_length=4)
+
+        def __call__(self, input_ids):
+            return SimpleNamespace(logits=torch.zeros(1, input_ids.shape[1], 50257))
+
+    model = FakeModel()
+    result = _answer_cross_entropy(model, tokenizer, tmp_path)
+    for values in result.values():
+        assert values["count"] == 2
+        assert values["mean"] == pytest.approx(float(torch.log(torch.tensor(50257.0))))
+
+
 def test_prepare_structured_study_uses_intact_examples_and_audits_exclusions(tmp_path, monkeypatch):
     source = tmp_path / "source"
     (source / "structured").mkdir(parents=True)
@@ -149,9 +185,11 @@ def test_prepare_structured_study_uses_intact_examples_and_audits_exclusions(tmp
     texts = [line for path in (source / "structured").glob("*.jsonl") for line in path.read_text().splitlines()]
     tokenizer.train_from_iterator(texts, trainers.WordLevelTrainer(special_tokens=["[UNK]"]))
     monkeypatch.setattr("native.prepare_structured_study.D.load_gpt2_tokenizer", lambda path: tokenizer)
-    manifest = prepare(source, tmp_path / "packed", train_tokens=51, dev_tokens=51, context_length=64)
+    manifest = prepare(source, tmp_path / "packed", train_tokens=52, dev_tokens=52, context_length=64)
     for split in ("train", "dev"):
         values = manifest["splits"][split]
+        assert values["underfill_tokens"] == 1
+        assert "no document was split" in values["underfill_reason"]
         assert values["long_examples_excluded"] == 1
         assert values["long_excluded_tokens"] > 0
         doc_ids = np.load(tmp_path / "packed" / split / "doc_ids.npy")
