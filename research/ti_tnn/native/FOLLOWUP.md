@@ -137,10 +137,19 @@ CUDA_VISIBLE_DEVICES='' $PY -m pytest -q tests/test_ti_tnn_native_followup.py
 $PY research/ti_tnn/native/independent/rescore_generations.py \
   --study /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_followup \
   --data /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native/data \
-  --output /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_followup/paired_generation_diagnostics.json
+  --output /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_followup/paired_generation_diagnostics.reproduced.json
 
 # Rebuild the compact weight-free bundle.
 $PY research/ti_tnn/native/independent/export_followup_bundle.py
 ```
 
 The full native suite passed **223 tests** after the data/state changes. No WSP phase has begun.
+
+## Subsequent acquisition
+
+The bounded acquisition and document-local position correction are reported in `ACQUISITION.md`. The first run was
+11/32; the separately frozen position correction reached 32/32 training answers in all three arms, with 0/32 on the
+separate development set. A targeted learned-state intervention changed 0/96 completions, so semantic state use is
+not established. These two reservations consumed 0.482232927 hours combined. Native usage is now 3.785954902/12
+hours, leaving 8.214045098 hours; the earlier ledger figures above remain the historical record for the prior study.
+No 124M campaign or WSP phase has begun.

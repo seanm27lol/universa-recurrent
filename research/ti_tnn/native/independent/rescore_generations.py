@@ -246,7 +246,9 @@ def rescore(study, data, output):
         result["arms"][mode] = arm
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    with output.open("x", encoding="utf-8") as handle:
+        json.dump(result, handle, indent=2, sort_keys=True)
+        handle.write("\n")
     return result
 
 

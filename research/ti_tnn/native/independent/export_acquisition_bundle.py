@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 
 def load(path):
@@ -146,7 +147,8 @@ def export(run, data, output):
     for name in ('launch.json', 'protocol.json', 'protocol.sha256', 'run_status.json'):
         copy(run / name, name)
     for name in ('generation_diagnostics.json', 'position_diagnostic.json',
-                 'loss_gradient_diagnostic.json', 'loss_gradient_diagnostic_v2.json'):
+                 'loss_gradient_diagnostic.json', 'loss_gradient_diagnostic_v2.json',
+                 'learned_state_intervention.json', 'baselines.json', 'diagnostic_identities.json'):
         source = run / name
         if source.is_file():
             copy(source, f'diagnostics/{name}')
@@ -166,41 +168,65 @@ def export(run, data, output):
     selected = [event for event in events if event['reservation'] in reservation_ids]
     (output / 'acquisition_ledger.jsonl').write_text(
         ''.join(json.dumps(event, sort_keys=True) + '\n' for event in selected))
+    scorer = Path(__file__).with_name('rescore_generations.py')
     subprocess.run([
-        sys.executable, str(Path(__file__).with_name('rescore_generations.py')),
+        sys.executable, str(scorer),
         '--study', str(run), '--data', str(data), '--output', str(output / 'generation_diagnostics.json'),
     ], check=True)
+    with tempfile.TemporaryDirectory(prefix='native-acquisition-rescore-') as temporary:
+        reproduced = Path(temporary) / 'generation_diagnostics.json'
+        subprocess.run([
+            sys.executable, str(scorer), '--study', str(output), '--data', str(output / 'data'),
+            '--output', str(reproduced),
+        ], check=True)
+        original_rescore = load(output / 'generation_diagnostics.json')
+        reproduced_rescore = load(reproduced)
+        if ({key: value for key, value in original_rescore.items() if key != 'study'}
+                != {key: value for key, value in reproduced_rescore.items() if key != 'study'}):
+            raise RuntimeError('weight-free bundle does not reproduce its generation diagnostics')
+        copy(reproduced, 'generation_diagnostics.reproduced.json')
+    summary['independent_bundle_rescore_verified'] = True
     (output / 'summary.json').write_text(json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + '\n')
     report = Path(__file__).resolve().parents[1] / 'ACQUISITION.md'
     if report.is_file():
         copy(report, 'ACQUISITION.md')
     (output / 'REPRODUCE.md').write_text(f'''# Weight-free acquisition evidence
 
-Run: `{launch['run_id']}` at source commit `{launch['source_commit']}`.
+Run: `{launch['run_id']}` at training source commit `{launch['source_commit']}`.
 This bundle contains no neural weights, packed arrays or raw text/code corpus. The 32 training examples and 32
 separate development examples are executable synthetic programs. Checkpoint manifests identify, but do not contain,
 the preserved local weights. Training-set exact answers measure memorization only, not generalization or superiority.
+Post-run diagnostic code and artifact identities, when available, are separate in `diagnostics/diagnostic_identities.json`.
 
-To independently execute all source programs and rescore every saved generation, run this from a source checkout,
-replacing `BUNDLE` with this bundle's absolute or relative path:
+To independently execute all source programs and rescore every saved generation, run this from a source checkout.
+A fresh temporary directory makes this safe to repeat without overwriting any bundle evidence:
 
 ```bash
 export BUNDLE=/path/to/exported-bundle
+WORK="$(mktemp -d)"
 python research/ti_tnn/native/independent/rescore_generations.py \\
-  --study "$BUNDLE" --data "$BUNDLE/data" --output "$BUNDLE/generation_diagnostics.reproduced.json"
+  --study "$BUNDLE" --data "$BUNDLE/data" --output "$WORK/generation_diagnostics.json"
+python -c 'import json, sys; a = json.load(open(sys.argv[1])); b = json.load(open(sys.argv[2])); \\
+assert {{k: v for k, v in a.items() if k != "study"}} == {{k: v for k, v in b.items() if k != "study"}}' \\
+  "$BUNDLE/generation_diagnostics.json" "$WORK/generation_diagnostics.json"
 ```
 
-`generation_diagnostics.json` is the preserved first rescore. Apart from the `study` path, the reproduced JSON must
-match it. `summary.json` contains the compact reported tables; full per-example completions and answer losses are in
-`arms/`. `acquisition_ledger.jsonl` contains all start, heartbeat and end events for this run's one reservation.
-`architecture.json` distinguishes unique parameters and nominal decoded-token MAC rules from measured token throughput.
+`generation_diagnostics.json` is the preserved first rescore; `generation_diagnostics.reproduced.json` is the
+bundle-only reproduction verified at export. Apart from the `study` path, the fresh output must match the former.
+`summary.json` contains compact reported tables; full completions and answer losses are in `arms/`.
+`acquisition_ledger.jsonl` contains all events for this run's reservation. `architecture.json` distinguishes unique
+parameters and nominal decoded-token MAC rules from measured token throughput. `SHA256SUMS` covers every file except
+itself and `bundle_manifest.json`; the manifest records the exact hashed-file count and payload bytes.
 ''')
-    files = sorted(path for path in output.rglob('*') if path.is_file() and path.name != 'SHA256SUMS')
+    files = sorted(path for path in output.rglob('*') if path.is_file()
+                   and path.name not in ('SHA256SUMS', 'bundle_manifest.json'))
     (output / 'SHA256SUMS').write_text(''.join(f'{digest(path)}  {path.relative_to(output)}\n' for path in files))
     manifest = {
-        'format': 'native-acquisition-weight-free-evidence-v1', 'run_id': launch['run_id'],
-        'source_commit': launch['source_commit'], 'files': len(files) + 1,
-        'bytes': sum(path.stat().st_size for path in files), 'contains_weights': False,
+        'format': 'native-acquisition-weight-free-evidence-v2', 'run_id': launch['run_id'],
+        'source_commit': launch['source_commit'], 'files_hashed': len(files), 'files_total': len(files) + 2,
+        'payload_bytes': sum(path.stat().st_size for path in files), 'contains_weights': False,
+        'hash_coverage': 'every file except SHA256SUMS and bundle_manifest.json',
+        'independent_bundle_rescore_verified': True,
         'complete': status['complete'],
     }
     (output / 'bundle_manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n')

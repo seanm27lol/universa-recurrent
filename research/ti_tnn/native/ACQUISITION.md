@@ -5,6 +5,11 @@ A model can have low packed training loss and still fail to generate answers fro
 examples at the start of a packed row. Replaying the other 21 at their trained absolute positions recovered every
 answer. This identified a data-position mismatch, not an MoE advantage.
 
+The separately frozen document-local correction reached **32/32 exact training answers in every arm**, exceeding the
+31/32 memorization target. The separate development result is **0/32 in every arm**. A targeted after-state-update
+intervention changed **0/96 completions**. Thus complete-program memorization is demonstrated; generalization and a
+usable semantic state path are not.
+
 ## 1. Frozen acquisition
 
 The first run is `20261110T075533-a8827fef`, at source commit `60fec73`. Its preserved directory is:
@@ -54,8 +59,8 @@ untyped register and 0.6875 for every typed register. Full completions, per-regi
 EOS behavior are in each arm's `evaluation.json` and the independently executed `generation_diagnostics.json`.
 The program source is in the prompt; these failures are not attributed to a missing parser or truncated prompt.
 
-The final development router distributions include one untyped starved expert in pass four (expert zero, 0/16
-packed-row decisions). Typed pass-four expert zero is used in 6.85% of decisions. All per-pass counts, probabilities,
+The final development router distributions include one untyped starved expert in pass four (expert zero, 0/2,539
+token-level decisions, across 11 packed rows and two batches). Typed pass-four expert zero is used in 6.85% of decisions. All per-pass counts, probabilities,
 load balancing and starvation diagnostics remain in `train-result.json`; routing differences do not explain the
 identical row-first failure pattern.
 
@@ -165,3 +170,129 @@ $PY research/ti_tnn/native/independent/export_acquisition_bundle.py \
 
 The exact launch command and corrective measurements are recorded with the corrective run's `launch.json`,
 `run_status.json` and this report's results section after execution. No WSP editing is authorized by this study.
+
+## 6. Corrective outcome: memorization passes, generalization and state use do not
+
+The corrective run is `20261110T091534-c25a2b1b`, at source commit `a708fc5`, in:
+
+```text
+runs/ti_tnn_native_acquisition_local_positions/acquisition/20261110T091534-c25a2b1b/
+```
+
+Every arm again completed exactly 4,096 updates and 5,201,920 loss-bearing tokens, with no failed or truncated arm.
+All generated training answers are canonical, EOS-terminated and exact. Answer-token cross-entropy is separate from
+register error; both are reported below.
+
+| Metric | Dense | Untyped MoE | Typed MoE |
+|---|---:|---:|---:|
+| First → last logged train LM loss | 10.8546 → 0.04315 | 10.9056 → 0.04311 | 10.8974 → 0.04304 |
+| Exact training answers | **32/32** | **32/32** | **32/32** |
+| Training answer-token CE | 0.000442 | 0.000441 | 0.000476 |
+| Training format / EOS / truncation | 32 / 32 / 0 | 32 / 32 / 0 | 32 / 32 / 0 |
+| Training per-register accuracy / mean absolute error | 1.0 / 0.0 | 1.0 / 0.0 | 1.0 / 0.0 |
+| Training state readout, every pass | 100% | 100% | 100% |
+| Exact development answers | 0/32 | 0/32 | 0/32 |
+| Development answer-token CE | 3.053245 | 3.424107 | 3.443900 |
+| Development format / EOS / truncation | 14 / 32 / 0 | 8 / 30 / 2 | 13 / 32 / 0 |
+| Development mean absolute register error, valid outputs | 10.5179 | 12.0625 | 11.1154 |
+| Development state-readout range | 5.7–8.0% | 5.7–6.3% | 4.8–6.5% |
+| Development LM loss | 1.986725 | 2.072663 | 2.167742 |
+
+The exact-lookup baseline is also 32/32 on these repeated training prompts and 0/32 on unseen development prompts.
+The supplied-program executor is 32/32 on both, as expected for a reference executor rather than a neural model.
+These baselines are in `baselines.json`; neither is substituted for the model. The training result therefore shows
+that the corrected pipeline can memorize complete programs, not that it learned the general register algorithm.
+
+Final corrective routing has no zero-count expert in any pass. Untyped pass-four expert zero is used in 3.47% of
+development decisions and typed pass-four expert zero in 4.49%; full usage, probability and load diagnostics are
+saved. No routing or state-readout difference is credited as an architectural advantage from this single seed.
+
+### Corrective checkpoints and costs
+
+| Metric | Dense | Untyped MoE | Typed MoE |
+|---|---:|---:|---:|
+| Final checkpoint SHA256 | `4d4c0ede6afcf32c353e228866d8a9084c97b1a30e51c4e6dc45cdb668586b0c` | `bf12f250beaa995d66397e056aa93d43cbb8c85199ad09ad510f627830ed447e` | `b671d0a46f6633deab05d37d6142c14116b3904a5c3b9b5caa65b5e1a0688d67` |
+| Training component time, seconds | 222.496 | 199.760 | 208.054 |
+| Actual loss tokens/second | 23,379.8 | 26,040.9 | 25,002.7 |
+| Data / forward / backward / optimizer, seconds | 3.28 / 47.91 / 130.26 / 41.05 | 2.91 / 54.54 / 102.07 / 40.24 | 3.03 / 57.16 / 106.75 / 41.12 |
+| Checkpoint time, seconds | 7.680 | 8.010 | 7.368 |
+| Train + CPU evaluation/replay wall, seconds | 303.799 | 284.309 | 297.171 |
+| Peak CUDA allocated / reserved, GiB | 1.75 / 6.35 | 1.76 / 6.14 | 1.76 / 6.13 |
+| FP32 reconstruction report SHA256 | `47e2235d926db894a741c1095538321e4d114e07d384a732feefc4a31de6172a` | `b2eab95f8f0726b1b2564c9f4456601b9112c56a92481f51c0575e4928d1ef03` | `fa99b495af7ff36443fb89e629cb0854d99f7df8b460d99c608d5dadade6ef6c` |
+
+This reservation consumed **0.246031621 hours** (885.714 seconds), including training, evaluation and replay.
+The two acquisition reservations total **0.482232927 hours**, below the one-hour authorization. Native cumulative
+usage is now 3.785954902/12 hours, leaving 8.214045098 hours. No additional training was launched after inspecting
+these outcomes.
+
+### Learned-state intervention
+
+`learned_state_intervention.json` (SHA256 `f033e4ff16a23b9d128b2be3b93124d72544af2c5aaacfdb3bb15e2c9f67b991`)
+identifies the final instruction's last overlapping prompt token and suppresses all four slot-writer output vectors
+at that token during pass two only. That is the first supervised after-state in `before,after,after,after`. The
+incoming slot state is retained; later passes and suffix forwards receive no direct suppression. Generation uses
+the saved attention cache. Baselines run without instrumentation and reproduce all 96 saved completions.
+
+| Arm | Baseline exact | Suppressed exact | Changed completions / generated suffixes |
+|---|---:|---:|---:|
+| Dense | 32/32 | 32/32 | 0 / 0 |
+| Untyped | 32/32 | 32/32 | 0 / 0 |
+| Typed | 32/32 | 32/32 | 0 / 0 |
+
+This negative generation-level intervention may reflect redundant token/hidden-state paths. It does **not** prove
+state is absent. Conversely, a changed output would have established causal dependence, not semantic faithfulness.
+Consequently, this study does not establish a usable learned semantic state interface, despite perfect training
+readout and the causal construction test.
+
+## 7. Numerical and independent-review scope
+
+All six parent/corrective checkpoints passed the declared FP32 full/cached reconstruction rule, including exact
+integer routes and exact fixed-replay generated tokens. Independent re-review measured maximum relative RMS errors
+below approximately \(6\times10^{-7}\), well inside the 0.05 serving tolerance. **Strict `allclose` is false**:
+these are tolerance-based FP32 results, not bitwise equality or a reproduction of BF16 CUDA training. The earlier
+BF16 route failure and original strict FP32 failures remain preserved; no acceptance history is rewritten.
+
+The independent scorer, which imports no producer modules, executed all 64 saved programs per run and reproduced
+both generation-diagnostics artifacts with zero score changes. This is independent execution/rescoring of saved
+completions, not independent model regeneration or external replication. Checkpoint SHA256 values identify local
+bytes; they do not authenticate a remote execution.
+
+## 8. Next bounded experiment proposal — not launched
+
+A useful next step is a separately authorized acquisition/generalization diagnostic on **new, disjoint programs**,
+not more repetitions of these 32 prompts. Freeze equal data, initialization and update budgets for dense, untyped
+and typed models; include unseen compositions and longer programs. Report exact complete generation, answer CE,
+lookup/executor baselines and per-register/EOS diagnostics separately for train and holdouts.
+
+For state specifically, include counterfactual pairs that require different final states despite a shared visible
+suffix. Predeclare targeted after-state interventions and distinguish direct token memorization, redundant paths,
+and demonstrated semantic state dependence. A positive training probe alone remains insufficient. Size any such
+run from the measured throughput above and request a separate bounded allocation before launching it. No 124M
+campaign, WSP edit or scaling claim follows from this memorization result.
+
+## 9. Exact corrective launch and evidence commands
+
+The following is the executed source-bound training interface. A new invocation creates a new immutable attempt
+and consumes additional reservation time; it is not a request to relabel or overwrite this completed run.
+
+```bash
+export PYTHONPATH=research/ti_tnn
+export PYTHONDONTWRITEBYTECODE=1
+export TI_TNN_SCALING_RUNS=/home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_scaling
+PY=/home/seanjazm27/projects/universa-recurrent-native/.venv-native/bin/python
+
+$PY -m native.run_acquisition \
+  --data /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_acquisition_local_positions \
+  --repository /home/seanjazm27/projects/universa-recurrent-native-followup \
+  --python "$PY" \
+  --tokenizer /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native/cache/tokenizer/tokenizer.json
+
+# CPU-only learned-state intervention; the default output is new and non-overwriting.
+CUDA_VISIBLE_DEVICES='' $PY -m native.diagnose_learned_state \
+  --run /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_acquisition_local_positions/acquisition/20261110T091534-c25a2b1b \
+  --data /home/seanjazm27/projects/universa-recurrent-scaling/runs/ti_tnn_native_acquisition_local_positions
+```
+
+For weight-free reproduction, set `RUN` to the preserved run above and `DATA` to its containing acquisition data
+root, then use the commands in section 5. The independent rescorer now refuses to overwrite an existing output;
+the diagnostic commands above also default to new, non-overwriting paths.

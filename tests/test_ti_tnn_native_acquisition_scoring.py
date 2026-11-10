@@ -127,6 +127,11 @@ def test_acquisition_rescore_uses_available_splits_and_separate_answer_loss(tmp_
     for split in ("train", "dev"):
         assert arm["structured"][split]["exact_count"] == 1
         assert arm["structured"][split]["answer_value_loss"] == 0.0
+    output.write_text("preserved existing evidence\n")
+    with pytest.raises(FileExistsError):
+        rescore(study, data, output)
+    assert output.read_text() == "preserved existing evidence\n"
+    assert evaluation_path.read_text() == original_evaluation
 
 
 def test_normal_four_split_rescore_schema_still_runs(tmp_path):

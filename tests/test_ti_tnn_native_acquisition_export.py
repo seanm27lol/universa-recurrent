@@ -152,7 +152,7 @@ def test_failed_and_unstarted_arms_remain_exportable_and_rescoreable(tmp_path):
     subprocess.run([
         sys.executable, 'research/ti_tnn/native/independent/rescore_generations.py',
         '--study', str(output), '--data', str(output / 'data'),
-        '--output', str(output / 'generation_diagnostics.reproduced.json'),
+        '--output', str(tmp_path / 'second-reproduction.json'),
     ], cwd=Path(__file__).parents[1], check=True)
     first = json.loads((output / 'generation_diagnostics.json').read_text())
     reproduced = json.loads((output / 'generation_diagnostics.reproduced.json').read_text())

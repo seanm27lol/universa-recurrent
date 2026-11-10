@@ -123,14 +123,14 @@ review is preserved byte-for-byte; it is an artifact-consistency review, not ind
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/rescore_generations.py \
-  --study . --data ./data --output ./generation_diagnostics.json
+  --study . --data ./data --output ./generation_diagnostics.reproduced.json
 ```
 
 For the paired intact-data result:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/rescore_generations.py \
-  --study ./paired --data ./data --output ./paired/generation_diagnostics.json
+  --study ./paired --data ./data --output ./paired/generation_diagnostics.reproduced.json
 
 # Attach answer-token cross-entropy from the preserved checkpoint evaluations.
 PYTHONDONTWRITEBYTECODE=1 python research/ti_tnn/native/independent/merge_answer_losses.py \
