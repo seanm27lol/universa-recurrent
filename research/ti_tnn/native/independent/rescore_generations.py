@@ -10,6 +10,9 @@ from pathlib import Path
 REGISTER = re.compile(r"^r0=(0|[1-9][0-9]*) r1=(0|[1-9][0-9]*) r2=(0|[1-9][0-9]*) r3=(0|[1-9][0-9]*)$")
 MODES = ("dense", "shared", "untyped", "typed")
 SPLITS = ("train", "dev", "unseen_composition", "longer_length")
+PROGRAM_STUDY_SPLITS = ("train", "dev", "initial_values", "unseen_composition", "longer_length")
+PROGRAM_STUDY_FORMAT = "native-program-study-evaluation-v1"
+OPERATIONS = ("set", "add", "multiply", "copy")
 INSTRUCTION = re.compile(r"^(set|add|multiply|copy) r([0-3]) (?:r([0-3])|(0|[1-9][0-9]*))$")
 
 
@@ -76,9 +79,10 @@ def registers(text):
     return values if all(0 <= value < 32 for value in values) else None
 
 
-def source_records(data):
+def source_records(data, splits=SPLITS):
+    data = Path(data)
     result = {}
-    for split in SPLITS:
+    for split in splits:
         path = data / "structured" / f"{split}.jsonl"
         if not path.is_file():
             continue
@@ -196,16 +200,141 @@ def summarize(records, source):
     }
 
 
-def rescore(study, data, output):
-    sources = source_records(data)
+def summarize_program_study(records, source):
+    result = summarize(records, source)
+    result["by_final_operation"] = {}
+    for operation in OPERATIONS:
+        selected = [
+            record for record in records
+            if source[record["example_id"]]["program"][-1].split(" ", 1)[0] == operation
+        ]
+        summary = summarize(selected, source)
+        result["by_final_operation"][operation] = {
+            key: summary[key]
+            for key in ("examples", "exact_count", "exact_match", "format_valid_count", "format_validity")
+        }
+    return result
+
+
+def summarize_program_study_interventions(records, ordinary_records, source):
+    baselines = {}
+    for record in ordinary_records:
+        example_id = record["example_id"]
+        if example_id in baselines:
+            raise ScoringError(f"{example_id}: duplicate ordinary generation for intervention join")
+        baselines[example_id] = record
+    intervened_records = []
+    details = []
+    score_changes = []
+    identities = set()
+    for record in records:
+        example_id = record["example_id"]
+        if example_id in identities:
+            raise ScoringError(f"{example_id}: duplicate intervention record")
+        identities.add(example_id)
+        if example_id not in baselines:
+            raise ScoringError(f"{example_id}: no primary or supplemental ordinary generation")
+        intervened = record["intervened"]
+        if intervened.get("example_id") != example_id:
+            raise ScoringError(f"{example_id}: intervened generation has a different example identity")
+        baseline = baselines[example_id]
+        changed_completion = baseline["completion_ids"] != intervened["completion_ids"]
+        changed_suffix = baseline["generated_ids"] != intervened["generated_ids"]
+        if record.get("changed_completion") != changed_completion:
+            score_changes.append({
+                "example_id": example_id,
+                "metric": "changed_completion",
+                "original": record.get("changed_completion"),
+                "independent": changed_completion,
+            })
+        if record.get("changed_generated_suffix") != changed_suffix:
+            score_changes.append({
+                "example_id": example_id,
+                "metric": "changed_generated_suffix",
+                "original": record.get("changed_generated_suffix"),
+                "independent": changed_suffix,
+            })
+        final_operation = source[example_id]["program"][-1].split(" ", 1)[0]
+        details.append({
+            "example_id": example_id,
+            "final_operation": final_operation,
+            "changed_completion": changed_completion,
+            "changed_generated_suffix": changed_suffix,
+        })
+        intervened_records.append(intervened)
+    by_operation = {}
+    for operation in OPERATIONS:
+        selected = [record for record in details if record["final_operation"] == operation]
+        by_operation[operation] = {
+            "examples": len(selected),
+            "changed_completions": sum(record["changed_completion"] for record in selected),
+            "changed_generated_suffixes": sum(record["changed_generated_suffix"] for record in selected),
+        }
+    return {
+        "examples": len(records),
+        "intervened": summarize_program_study(intervened_records, source),
+        "changed_completions": sum(record["changed_completion"] for record in details),
+        "changed_generated_suffixes": sum(record["changed_generated_suffix"] for record in details),
+        "by_final_operation": by_operation,
+        "score_changes": score_changes,
+        "records": details,
+    }
+
+
+def rescore(study, data, output, modes=None):
+    study = Path(study)
+    if modes is None:
+        selected_modes = MODES
+    else:
+        if isinstance(modes, str):
+            raise ValueError("modes must be an iterable of mode names, not a string")
+        selected_modes = tuple(modes)
+        if len(set(selected_modes)) != len(selected_modes):
+            raise ValueError("modes must not contain duplicates")
+        unknown = set(selected_modes) - set(MODES)
+        if unknown:
+            raise ValueError(f"unknown generation-rescore modes: {sorted(unknown)}")
+    evaluation_paths = {
+        mode: study / "arms" / mode / "evaluation.json"
+        for mode in selected_modes
+        if (study / "arms" / mode / "evaluation.json").is_file()
+    }
+    program_study = any(load(path).get("format") == PROGRAM_STUDY_FORMAT for path in evaluation_paths.values())
+    sources = source_records(data, PROGRAM_STUDY_SPLITS if program_study else SPLITS)
     result = {"format": "native-independent-generation-rescore-v1", "study": str(study), "arms": {}}
+    if program_study:
+        result["evaluation_format"] = PROGRAM_STUDY_FORMAT
     validated = 0
     for record in sources.values():
         execute_saved_program(record)
         validated += 1
     result["target_validation"] = {"executed_programs": validated, "rejected_inconsistent_targets": []}
-    for mode in (mode for mode in MODES if (study / "arms" / mode / "evaluation.json").is_file()):
-        evaluation = load(study / "arms" / mode / "evaluation.json")
+    for mode, evaluation_path in evaluation_paths.items():
+        evaluation = load(evaluation_path)
+        if evaluation.get("format") == PROGRAM_STUDY_FORMAT:
+            arm = {
+                "structured": {},
+                "supplemental_baseline_generation": {},
+                "interventions": {},
+                "code": {"status": "not_run", "reason": "code generation is not part of native program-study evaluation"},
+                "answer_token_cross_entropy": {},
+            }
+            for split in PROGRAM_STUDY_SPLITS:
+                split_evaluation = evaluation["splits"][split]
+                primary_records = split_evaluation["generation"]["records"]
+                interventions = split_evaluation["interventions"]
+                supplemental_records = interventions["supplemental_baseline_generation"]["records"]
+                arm["structured"][split] = summarize_program_study(primary_records, sources)
+                arm["supplemental_baseline_generation"][split] = summarize_program_study(
+                    supplemental_records, sources
+                )
+                arm["interventions"][split] = summarize_program_study_interventions(
+                    interventions["records"], [*primary_records, *supplemental_records], sources
+                )
+                answer_losses = split_evaluation["state_path"]["answer_token_cross_entropy"]
+                arm["answer_token_cross_entropy"][split] = answer_losses[split]
+            result["arms"][mode] = arm
+            continue
         if evaluation.get("format") == "native-acquisition-evaluation-v1":
             arm = {
                 "structured": {},
