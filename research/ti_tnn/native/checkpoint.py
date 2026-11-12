@@ -148,11 +148,12 @@ def save_checkpoint(path, model, optimizer=None, scheduler=None, *, sampler=None
                     cursor: int | None = None, consumed_loss_tokens: int | None = None,
                     step: int | None = None, config=None, code_identity=None,
                     data_identity=None, order_identity=None, identities: Mapping | None = None,
-                    extra: Mapping | None = None) -> dict:
+                    extra: Mapping | None = None, rng_state: Mapping | None = None) -> dict:
     """Save complete training state and return the durable manifest descriptor.
 
     Cursor and token counters are derived from ``sampler`` when omitted. Explicit values must agree with its state.
-    ``extra`` is reserved for run metadata; trainer loops and loss computation remain outside this module.
+    ``extra`` is reserved for run metadata; trainer loops and loss computation remain outside this module. Supplying
+    ``rng_state`` saves that exact mapping instead of capturing live RNGs, which lets a fork retain its parent's state.
     """
     path = Path(path)
     sampler_state = None
@@ -198,7 +199,7 @@ def save_checkpoint(path, model, optimizer=None, scheduler=None, *, sampler=None
         "sampler": sampler_state,
         "cursor": cursor,
         "consumed_loss_tokens": consumed_loss_tokens,
-        "rng": capture_rng_state(),
+        "rng": capture_rng_state() if rng_state is None else rng_state,
         "config": config,
         "identities": identity_values,
         "state_hashes": state_hashes,

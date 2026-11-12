@@ -281,27 +281,46 @@ def summarize_program_study_interventions(records, ordinary_records, source):
     }
 
 
-def rescore(study, data, output, modes=None):
+def rescore(study, data, output, modes=None, *, evaluation_paths=None):
     study = Path(study)
-    if modes is None:
-        selected_modes = MODES
-    else:
-        if isinstance(modes, str):
-            raise ValueError("modes must be an iterable of mode names, not a string")
-        selected_modes = tuple(modes)
-        if len(set(selected_modes)) != len(selected_modes):
-            raise ValueError("modes must not contain duplicates")
+    explicit_paths = evaluation_paths is not None
+    if explicit_paths:
+        if modes is not None:
+            raise ValueError("modes and evaluation_paths are mutually exclusive")
+        if not hasattr(evaluation_paths, "items"):
+            raise ValueError("evaluation_paths must be a mapping from mode names to evaluation JSON paths")
+        selected_modes = tuple(evaluation_paths)
+        if not selected_modes:
+            raise ValueError("evaluation_paths must not be empty")
         unknown = set(selected_modes) - set(MODES)
         if unknown:
             raise ValueError(f"unknown generation-rescore modes: {sorted(unknown)}")
-    evaluation_paths = {
-        mode: study / "arms" / mode / "evaluation.json"
-        for mode in selected_modes
-        if (study / "arms" / mode / "evaluation.json").is_file()
-    }
+        evaluation_paths = {mode: Path(evaluation_paths[mode]) for mode in selected_modes}
+        for mode, path in evaluation_paths.items():
+            if not path.is_file():
+                raise FileNotFoundError(f"{mode}: explicit evaluation path does not exist: {path}")
+    else:
+        if modes is None:
+            selected_modes = MODES
+        else:
+            if isinstance(modes, str):
+                raise ValueError("modes must be an iterable of mode names, not a string")
+            selected_modes = tuple(modes)
+            if len(set(selected_modes)) != len(selected_modes):
+                raise ValueError("modes must not contain duplicates")
+            unknown = set(selected_modes) - set(MODES)
+            if unknown:
+                raise ValueError(f"unknown generation-rescore modes: {sorted(unknown)}")
+        evaluation_paths = {
+            mode: study / "arms" / mode / "evaluation.json"
+            for mode in selected_modes
+            if (study / "arms" / mode / "evaluation.json").is_file()
+        }
     program_study = any(load(path).get("format") == PROGRAM_STUDY_FORMAT for path in evaluation_paths.values())
     sources = source_records(data, PROGRAM_STUDY_SPLITS if program_study else SPLITS)
     result = {"format": "native-independent-generation-rescore-v1", "study": str(study), "arms": {}}
+    if explicit_paths:
+        result["evaluation_paths"] = {mode: str(path.resolve()) for mode, path in evaluation_paths.items()}
     if program_study:
         result["evaluation_format"] = PROGRAM_STUDY_FORMAT
     validated = 0

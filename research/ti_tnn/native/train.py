@@ -1,9 +1,10 @@
 """Deterministic teacher-forced training for the four native TI-TNN arms.
 
-The token budget counts ``labels[:, 1:] != -100``, exactly the targets scored by
-:func:`native.losses.next_token_cross_entropy`.  Batches are atomic: the last batch
-may cross the requested budget, but padded positions and same-position final labels
-never make a run stop early.
+The stopping budget always counts ordered full-label exposure,
+``labels[:, 1:] != -100``.  ``answer_eos`` changes only the targets scored by
+the main language loss; it never changes model inputs or sampler accounting.
+Batches are atomic: the last batch may cross the requested budget, but padded
+positions and same-position final labels never make a run stop early.
 
 A tiny run checks the training and recovery pipeline, not learning.  Learning
 curves keep language-model loss separate from the weighted auxiliary objective.
@@ -26,6 +27,7 @@ import numpy as np
 import torch
 
 from . import checkpoint as C
+from . import continuation as Continuation
 from .config import MODES, NativeConfig
 from .data import (
     ARRAY_NAMES,
@@ -178,6 +180,33 @@ def build_scheduler(
     return torch.optim.lr_scheduler.LambdaLR(optimizer, multiplier)
 
 
+def main_loss_labels(batch: Mapping[str, torch.Tensor], loss_mode: str = "full_sequence") -> torch.Tensor:
+    """Return target-only labels, selecting answer and EOS positions when requested."""
+    if loss_mode not in Continuation.LOSS_MODES:
+        raise ValueError(f"loss_mode must be one of {Continuation.LOSS_MODES}")
+    labels = batch["labels"]
+    if loss_mode == "full_sequence":
+        return labels
+    answer_mask = batch.get("answer_mask")
+    if answer_mask is None:
+        raise ValueError("answer_eos requires the target-only answer_mask array")
+    if answer_mask.shape != labels.shape:
+        raise ValueError(
+            f"answer_mask must have labels shape {tuple(labels.shape)}, got {tuple(answer_mask.shape)}"
+        )
+    selected = answer_mask.to(device=labels.device, dtype=torch.bool) & labels.ne(IGNORE_INDEX)
+    return labels.masked_fill(~selected, IGNORE_INDEX)
+
+
+def main_loss_token_count(batch: Mapping[str, torch.Tensor], loss_mode: str = "full_sequence") -> int:
+    labels = main_loss_labels(batch, loss_mode)
+    return int(torch.count_nonzero(labels[:, 1:] != IGNORE_INDEX).item())
+
+
+def exposure_token_count(batch: Mapping[str, torch.Tensor]) -> int:
+    return int(torch.count_nonzero(batch["labels"][:, 1:] != IGNORE_INDEX).item())
+
+
 def forward_losses(
     model: NativeModel,
     batch: Mapping[str, torch.Tensor],
@@ -185,15 +214,17 @@ def forward_losses(
     lambda_balance: float = 0.01,
     lambda_route: float = 0.1,
     lambda_state: float = 0.1,
+    loss_mode: str = "full_sequence",
 ):
     """Run only model inputs through NativeModel and all targets through external losses."""
     inputs = {name: batch[name] for name in MODEL_INPUT_ARRAYS}
+    labels = main_loss_labels(batch, loss_mode)
     with _autocast(inputs["input_ids"].device):
         output = model(**inputs, return_aux=True)
         routed = output.route_logits is not None
         losses = compute_losses(
             output.logits,
-            batch["labels"],
+            labels,
             route_logits=output.route_logits,
             route_indices=output.route_indices,
             route_targets=batch["route_targets"] if routed else None,
@@ -206,6 +237,8 @@ def forward_losses(
             lambda_route=lambda_route,
             lambda_state=lambda_state,
         )
+    losses["main_loss_token_count"] = losses["token_count"]
+    losses["exposure_token_count"] = batch["labels"][:, 1:].ne(IGNORE_INDEX).sum()
     for name in LOSS_NAMES:
         if losses[name].dtype != torch.float32:
             raise AssertionError(f"{name} loss must be float32, got {losses[name].dtype}")
@@ -294,8 +327,11 @@ def train_batch(
     lambda_route: float = 0.1,
     lambda_state: float = 0.1,
     expected_loss_tokens: int | None = None,
+    expected_answer_tokens: int | None = None,
+    expected_exposure_tokens: int | None = None,
+    loss_mode: str = "full_sequence",
 ) -> dict:
-    """Apply one ordinary AdamW update and return separately timed loss diagnostics."""
+    """Apply one AdamW update and distinguish selected-loss from ordered-exposure tokens."""
     started = time.perf_counter()
     device = batch["input_ids"].device
     _sync(device)
@@ -306,13 +342,27 @@ def train_batch(
         lambda_balance=lambda_balance,
         lambda_route=lambda_route,
         lambda_state=lambda_state,
+        loss_mode=loss_mode,
     )
     _sync(device)
     forward_seconds = time.perf_counter() - forward_started
     actual_tokens = int(losses["token_count"].item())
-    if expected_loss_tokens is not None and actual_tokens != expected_loss_tokens:
+    actual_exposure = int(losses["exposure_token_count"].item())
+    if loss_mode == "answer_eos" and expected_answer_tokens is None:
+        expected_answer_tokens = expected_loss_tokens
+    if expected_loss_tokens is not None and loss_mode == "full_sequence" \
+            and actual_tokens != expected_loss_tokens:
         raise AssertionError(
             f"sampler accounted {expected_loss_tokens} shifted labels but loss received {actual_tokens}"
+        )
+    if expected_answer_tokens is not None and loss_mode == "answer_eos" \
+            and actual_tokens != expected_answer_tokens:
+        raise AssertionError(
+            f"answer mask selected {expected_answer_tokens} shifted labels but loss received {actual_tokens}"
+        )
+    if expected_exposure_tokens is not None and actual_exposure != expected_exposure_tokens:
+        raise AssertionError(
+            f"sampler accounted {expected_exposure_tokens} exposure tokens but full labels contain {actual_exposure}"
         )
     optimizer.zero_grad(set_to_none=True)
     backward_started = time.perf_counter()
@@ -338,7 +388,10 @@ def train_batch(
         "balance_loss": float(losses["balance"].detach()),
         "weighted_auxiliary_loss": objective - language,
         "objective_loss": objective,
+        "loss_mode": loss_mode,
         "loss_tokens": actual_tokens,
+        "main_loss_tokens": actual_tokens,
+        "exposure_tokens": actual_exposure,
         "route_targets": int(losses["route_count"].item()),
         "state_targets": int(losses["state_count"].item()),
         "balance_decisions": int(losses["balance_count"].item()),
@@ -352,6 +405,8 @@ def train_batch(
         "checkpoint_seconds": 0.0,
         "wall_seconds": wall_seconds,
         "loss_tokens_per_second": actual_tokens / training_seconds if training_seconds > 0 else 0.0,
+        "main_loss_tokens_per_second": actual_tokens / training_seconds if training_seconds > 0 else 0.0,
+        "exposure_tokens_per_second": actual_exposure / training_seconds if training_seconds > 0 else 0.0,
         "route_usage": _route_usage(output, batch["key_padding_mask"]),
     }
 
@@ -377,6 +432,8 @@ def _load_batch(dataset: PackedDataset, indices, device: torch.device) -> tuple[
         "model_inputs_sha256": _batch_hash(cpu_batch, MODEL_INPUT_ARRAYS),
         "targets_sha256": _batch_hash(cpu_batch, TARGET_ARRAYS),
     }
+    if "answer_mask" in cpu_batch:
+        identity["answer_mask_sha256"] = _batch_hash(cpu_batch, ("answer_mask",))
     batch = {name: tensor.to(device) for name, tensor in cpu_batch.items()}
     _sync(device)
     return batch, identity, time.perf_counter() - started
@@ -392,12 +449,13 @@ def evaluate_teacher_forced(
     lambda_balance: float = 0.01,
     lambda_route: float = 0.1,
     lambda_state: float = 0.1,
+    loss_mode: str = "full_sequence",
 ) -> dict:
     """Evaluate shifted LM and auxiliary terms separately, without advancing training state."""
     was_training = model.training
     model.eval()
     sums = {name: 0.0 for name in ("language", "route", "state", "balance")}
-    counts = {name: 0 for name in ("language", "route", "state")}
+    counts = {name: 0 for name in ("language", "route", "state", "exposure")}
     route_usage = []
     data_seconds = 0.0
     forward_seconds = 0.0
@@ -418,10 +476,12 @@ def evaluate_teacher_forced(
                     lambda_balance=lambda_balance,
                     lambda_route=lambda_route,
                     lambda_state=lambda_state,
+                    loss_mode=loss_mode,
                 )
                 _sync(device)
                 forward_seconds += time.perf_counter() - started
                 token_count = int(losses["token_count"].item())
+                exposure_count = int(losses["exposure_token_count"].item())
                 route_count = int(losses["route_count"].item())
                 state_count = int(losses["state_count"].item())
                 sums["language"] += float(losses["language"]) * token_count
@@ -430,6 +490,7 @@ def evaluate_teacher_forced(
                 routing_decisions = int(losses["balance_count"].item())
                 sums["balance"] += float(losses["balance"]) * routing_decisions
                 counts["language"] += token_count
+                counts["exposure"] += exposure_count
                 counts["route"] += route_count
                 counts["state"] += state_count
                 counts["balance"] = counts.get("balance", 0) + routing_decisions
@@ -451,6 +512,7 @@ def evaluate_teacher_forced(
         "teacher_forced": True,
         "split": "dev",
         "batches": batches,
+        "loss_mode": loss_mode,
         "loss": averages["language"],
         "language_loss": averages["language"],
         "route_loss": averages["route"],
@@ -459,6 +521,8 @@ def evaluate_teacher_forced(
         "weighted_auxiliary_loss": auxiliary,
         "objective_loss": averages["language"] + auxiliary,
         "loss_tokens": counts["language"],
+        "main_loss_tokens": counts["language"],
+        "exposure_tokens": counts["exposure"],
         "route_targets": counts["route"],
         "state_targets": counts["state"],
         "balance_decisions": counts["balance"],
@@ -469,6 +533,8 @@ def evaluate_teacher_forced(
         "optimizer_seconds": 0.0,
         "checkpoint_seconds": 0.0,
         "loss_tokens_per_second": counts["language"] / timed if timed > 0 else 0.0,
+        "main_loss_tokens_per_second": counts["language"] / timed if timed > 0 else 0.0,
+        "exposure_tokens_per_second": counts["exposure"] / timed if timed > 0 else 0.0,
     }
 
 
@@ -524,12 +590,24 @@ def _execute(
     batch_hook=None,
 ) -> dict:
     output = Path(args.output)
+    fork = run_config.get("fork")
+    if fork is not None and not (output / JOURNAL_NAME).is_file():
+        raise C.RecoveryError("continuation requires an existing explicit initial-fork journal")
     output.mkdir(parents=True, exist_ok=True)
     config_path = output / "run_config.json"
     encoded_config = _json_bytes(run_config)
-    if config_path.exists() and config_path.read_bytes() != encoded_config:
-        raise C.CheckpointIdentityMismatch(f"{config_path} belongs to a different training configuration")
-    if not config_path.exists():
+    config_exists = config_path.exists()
+    config_matches = config_exists and config_path.read_bytes() == encoded_config
+    recovery_config = run_config
+    if config_exists and not config_matches:
+        previous_config = _read_training_config(config_path) if fork is not None else None
+        owner_fields = {"acquisition_run_id", "reservation_id"}
+        if previous_config is None or previous_config == run_config \
+                or {key: value for key, value in previous_config.items() if key not in owner_fields} \
+                != {key: value for key, value in run_config.items() if key not in owner_fields}:
+            raise C.CheckpointIdentityMismatch(f"{config_path} belongs to a different training configuration")
+        recovery_config = previous_config
+    if not config_matches:
         C.atomic_write(config_path, encoded_config)
 
     _seed_model(args.model_seed)
@@ -542,12 +620,19 @@ def _execute(
         betas=tuple(args.betas),
         eps=args.eps,
     )
-    scheduler = build_scheduler(
-        optimizer,
-        planned_updates,
-        warmup_fraction=args.warmup_fraction,
-        final_lr_fraction=args.final_lr_fraction,
-    )
+    if fork is None:
+        scheduler = build_scheduler(
+            optimizer,
+            planned_updates,
+            warmup_fraction=args.warmup_fraction,
+            final_lr_fraction=args.final_lr_fraction,
+        )
+    else:
+        scheduler = Continuation.build_constant_scheduler(
+            optimizer,
+            fork["additional_updates"],
+            learning_rate=fork["schedule"]["learning_rate"],
+        )
     model.train()
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
@@ -567,8 +652,14 @@ def _execute(
 
     totals = {"data": 0.0, "forward": 0.0, "backward": 0.0, "optimizer": 0.0, "checkpoint": 0.0}
     processed_tokens = 0
+    processed_exposure = 0
     processed_updates = 0
     replayed_updates = 0
+    checkpoint_identities = {"dev_data": dev_identity, "data_manifest": data_manifest_identity}
+    if fork is not None:
+        checkpoint_identities.update(Continuation.fork_checkpoint_identities(
+            fork["parent"], fork["run_id"], fork["loss_mode"]
+        ))
 
     def save(kind: str, *, recovery_id: str | None = None, extra: Mapping | None = None) -> tuple[dict, float]:
         started = time.perf_counter()
@@ -592,7 +683,7 @@ def _execute(
             code_identity=code_identity,
             data_identity=sampler.data_identity,
             order_identity=sampler.order_identity,
-            identities={"dev_data": dev_identity, "data_manifest": data_manifest_identity},
+            identities=checkpoint_identities,
             extra={
                 "checkpoint_kind": kind,
                 "mode": args.mode,
@@ -613,11 +704,11 @@ def _execute(
     if journal.path.exists():
         plan = C.recover(
             journal.path,
-            expected_config=run_config,
+            expected_config=recovery_config,
             expected_code_identity=code_identity,
             expected_data_identity=sampler.data_identity,
             expected_order_identity=sampler.order_identity,
-            expected_identities={"dev_data": dev_identity, "data_manifest": data_manifest_identity},
+            expected_identities=checkpoint_identities,
         )
         plan.restore(
             model,
@@ -625,11 +716,11 @@ def _execute(
             scheduler,
             sampler,
             strict_cuda=device.type == "cuda",
-            expected_config=run_config,
+            expected_config=recovery_config,
             expected_code_identity=code_identity,
             expected_data_identity=sampler.data_identity,
             expected_order_identity=sampler.order_identity,
-            expected_identities={"dev_data": dev_identity, "data_manifest": data_manifest_identity},
+            expected_identities=checkpoint_identities,
         )
         expected_replay = plan.validate_replay(sampler)
         previous_recoveries = 0
@@ -664,7 +755,11 @@ def _execute(
                 lambda_balance=args.lambda_balance,
                 lambda_route=args.lambda_route,
                 lambda_state=args.lambda_state,
-                expected_loss_tokens=actual.loss_tokens,
+                expected_loss_tokens=actual.loss_tokens if args.loss_mode == "full_sequence" else None,
+                expected_answer_tokens=(main_loss_token_count(batch, args.loss_mode)
+                                        if args.loss_mode == "answer_eos" else None),
+                expected_exposure_tokens=actual.loss_tokens,
+                loss_mode=args.loss_mode,
             )
             record.update({
                 **common("replay"),
@@ -677,13 +772,15 @@ def _execute(
                 "indices": list(actual.indices),
                 "batch_identity": actual.batch_identity,
                 "consumed_loss_tokens": actual.consumed_loss_tokens,
+                "consumed_exposure_tokens": actual.consumed_loss_tokens,
             })
             record["data_loading_seconds"] = loading
             totals["data"] += loading
             totals["forward"] += record["forward_seconds"]
             totals["backward"] += record["backward_seconds"]
             totals["optimizer"] += record["optimizer_seconds"]
-            processed_tokens += actual.loss_tokens
+            processed_tokens += record["main_loss_tokens"]
+            processed_exposure += actual.loss_tokens
             processed_updates += 1
             replayed_updates += 1
             _append_jsonl(learning_log, record)
@@ -710,7 +807,10 @@ def _execute(
             "update": 0,
             "cursor": 0,
             "consumed_loss_tokens": 0,
+            "consumed_exposure_tokens": 0,
             "loss_tokens": 0,
+            "main_loss_tokens": 0,
+            "exposure_tokens": 0,
             "checkpoint_seconds": checkpoint_seconds,
             "checkpoint": descriptor,
         })
@@ -731,10 +831,15 @@ def _execute(
             lambda_balance=args.lambda_balance,
             lambda_route=args.lambda_route,
             lambda_state=args.lambda_state,
-            expected_loss_tokens=sampler_batch.loss_tokens,
+            expected_loss_tokens=(sampler_batch.loss_tokens if args.loss_mode == "full_sequence" else None),
+            expected_answer_tokens=(main_loss_token_count(batch, args.loss_mode)
+                                    if args.loss_mode == "answer_eos" else None),
+            expected_exposure_tokens=sampler_batch.loss_tokens,
+            loss_mode=args.loss_mode,
         )
         journal.append_batch(sampler_batch, sampler)
-        processed_tokens += sampler_batch.loss_tokens
+        processed_tokens += record["main_loss_tokens"]
+        processed_exposure += sampler_batch.loss_tokens
         processed_updates += 1
         new_updates += 1
         totals["data"] += loading
@@ -752,6 +857,7 @@ def _execute(
             "dropped_indices": list(sampler_batch.dropped_indices),
             "batch_identity": sampler_batch.batch_identity,
             "consumed_loss_tokens": sampler_batch.consumed_loss_tokens,
+            "consumed_exposure_tokens": sampler_batch.consumed_loss_tokens,
         })
         record["data_loading_seconds"] = loading
         if batch_hook is not None:
@@ -770,6 +876,7 @@ def _execute(
                 lambda_balance=args.lambda_balance,
                 lambda_route=args.lambda_route,
                 lambda_state=args.lambda_state,
+                loss_mode=args.loss_mode,
             )
         if periodic:
             descriptor, checkpoint_seconds = save("periodic")
@@ -795,6 +902,15 @@ def _execute(
             f"got step {sampler.batches_consumed}, tokens {sampler.consumed_loss_tokens}; "
             f"expected step {planned_updates}, tokens {planned_tokens}"
         )
+    if fork is not None:
+        actual_endpoint = (sampler.batches_consumed, sampler.consumed_loss_tokens, sampler.cursor)
+        expected_endpoint = (fork["target_updates"], fork["target_exposure_tokens"], fork["target_cursor"])
+        if actual_endpoint != expected_endpoint:
+            raise C.ReplayMismatch(
+                f"continuation endpoint is {actual_endpoint}, expected complete-epoch endpoint {expected_endpoint}"
+            )
+        if any(group["lr"] != Continuation.CONTINUATION_LEARNING_RATE for group in optimizer.param_groups):
+            raise AssertionError("continuation scheduler changed the constant learning rate")
     if reservation is not None:
         reservation.check()
     final_dev = evaluate_teacher_forced(
@@ -806,6 +922,7 @@ def _execute(
         lambda_balance=args.lambda_balance,
         lambda_route=args.lambda_route,
         lambda_state=args.lambda_state,
+        loss_mode=args.loss_mode,
     )
     descriptor, checkpoint_seconds = save("final", extra={"dev": final_dev})
     final_dev.update({
@@ -826,7 +943,10 @@ def _execute(
         "update": sampler.batches_consumed,
         "cursor": sampler.cursor,
         "consumed_loss_tokens": sampler.consumed_loss_tokens,
+        "consumed_exposure_tokens": sampler.consumed_loss_tokens,
         "loss_tokens": 0,
+        "main_loss_tokens": 0,
+        "exposure_tokens": 0,
         "checkpoint_seconds": checkpoint_seconds,
         "checkpoint": descriptor,
     })
@@ -834,22 +954,28 @@ def _execute(
     return {
         "format": TRAIN_FORMAT,
         "mode": args.mode,
+        "loss_mode": args.loss_mode,
         "device": str(device),
         "step": sampler.batches_consumed,
         "cursor": sampler.cursor,
         "consumed_loss_tokens": sampler.consumed_loss_tokens,
+        "consumed_exposure_tokens": sampler.consumed_loss_tokens,
         "max_loss_tokens": args.max_loss_tokens,
         "planned_updates": planned_updates,
         "new_updates": new_updates,
         "replayed_updates": replayed_updates,
         "processed_updates_this_invocation": processed_updates,
         "processed_loss_tokens_this_invocation": processed_tokens,
+        "processed_main_loss_tokens_this_invocation": processed_tokens,
+        "processed_exposure_tokens_this_invocation": processed_exposure,
         "data_loading_seconds": totals["data"],
         "forward_seconds": totals["forward"],
         "backward_seconds": totals["backward"],
         "optimizer_seconds": totals["optimizer"],
         "checkpoint_seconds": totals["checkpoint"],
         "actual_loss_tokens_per_second": processed_tokens / training_seconds if training_seconds > 0 else 0.0,
+        "actual_main_loss_tokens_per_second": processed_tokens / training_seconds if training_seconds > 0 else 0.0,
+        "actual_exposure_tokens_per_second": processed_exposure / training_seconds if training_seconds > 0 else 0.0,
         "training_seconds": training_seconds,
         "reservation_id": reservation_id,
         **_memory(device),
@@ -862,9 +988,91 @@ def _execute(
     }
 
 
+def _read_training_config(path) -> dict:
+    payload = json.loads(Path(path).read_text())
+    if not isinstance(payload, dict):
+        raise ValueError("training config must be a JSON object")
+    return payload
+
+
+def _apply_fork_contract(args: argparse.Namespace, config: dict) -> dict | None:
+    fork = config.get("fork")
+    explicit_run_id = getattr(args, "fork", None)
+    if fork is None:
+        if explicit_run_id is not None:
+            raise ValueError("--fork requires a config containing fork.run_id")
+        return None
+    if not isinstance(fork, dict) or fork.get("format") != Continuation.CONTINUATION_FORMAT:
+        raise ValueError("malformed continuation fork config")
+    if explicit_run_id is None:
+        raise ValueError("a fork config requires an explicit --fork run ID")
+    if explicit_run_id != fork.get("run_id") or config.get("run_id") != fork.get("run_id"):
+        raise C.CheckpointIdentityMismatch("--fork run ID does not match config.fork.run_id")
+    declared_loss_mode = fork.get("loss_mode")
+    if getattr(args, "loss_mode", "full_sequence") != declared_loss_mode:
+        raise C.CheckpointIdentityMismatch(
+            f"fork {explicit_run_id!r} requires its declared --loss-mode {declared_loss_mode}"
+        )
+    if declared_loss_mode not in Continuation.LOSS_MODES:
+        raise ValueError("fork declares an unsupported loss mode")
+    training = config["training"]
+    if config["model"].get("mode") != args.mode:
+        raise C.CheckpointIdentityMismatch("fork model mode differs from --mode")
+    if str(torch.device(training["device"])) != str(torch.device(args.device)):
+        raise C.CheckpointIdentityMismatch("fork device differs from --device")
+    if Path(config["data"]).resolve() != Path(args.data).resolve():
+        raise C.CheckpointIdentityMismatch("fork data path differs from --data")
+    schedule = fork.get("schedule", {})
+    if schedule.get("learning_rate") != Continuation.CONTINUATION_LEARNING_RATE \
+            or training.get("learning_rate") != Continuation.CONTINUATION_LEARNING_RATE \
+            or training.get("warmup_fraction") != 0.0 or training.get("final_lr_fraction") != 1.0 \
+            or schedule.get("inherits_parent_scheduler") is not False:
+        raise ValueError("fork must use the new constant 3e-5 no-warmup schedule")
+    for name in (
+        "max_loss_tokens", "batch_size", "seed", "model_seed", "data_seed", "learning_rate",
+        "weight_decay", "betas", "eps", "grad_clip", "lambda_balance", "lambda_route", "lambda_state",
+        "warmup_fraction", "final_lr_fraction", "checkpoint_every", "dev_every", "dev_batches",
+    ):
+        setattr(args, name, training[name])
+    args.betas = tuple(args.betas)
+    configured_masks = fork.get("answer_masks")
+    supplied_masks = getattr(args, "answer_masks", None)
+    if declared_loss_mode == "answer_eos":
+        if configured_masks is None:
+            raise ValueError("answer_eos fork has no answer_masks identity")
+        if supplied_masks is None:
+            args.answer_masks = configured_masks
+        elif Path(supplied_masks).resolve() != Path(configured_masks).resolve():
+            raise C.CheckpointIdentityMismatch("answer-mask path differs from the fork declaration")
+        if Continuation._path_identity(args.answer_masks) != fork.get("answer_masks_identity"):
+            raise C.CheckpointIdentityMismatch("answer-mask content differs from the fork declaration")
+    else:
+        if supplied_masks is not None or configured_masks is not None:
+            raise ValueError("full_sequence fork does not accept answer masks")
+        args.answer_masks = None
+    if training.get("max_loss_tokens") != fork.get("target_exposure_tokens") \
+            or training.get("planned_updates") != fork.get("target_updates") \
+            or training.get("planned_consumed_loss_tokens") != fork.get("target_exposure_tokens"):
+        raise ValueError("fork training budget differs from its complete-epoch endpoint")
+    if not (Path(args.output) / JOURNAL_NAME).is_file():
+        raise C.RecoveryError("missing explicit initial-fork journal; implicit parent resume is forbidden")
+    return config
+
+
+def _training_dataset(args: argparse.Namespace, data_root: Path, split: str) -> PackedDataset:
+    if args.loss_mode == "full_sequence":
+        return PackedDataset(data_root, split)
+    from .answer_analysis import AnswerMaskedDataset
+
+    return AnswerMaskedDataset(data_root, split, args.answer_masks)
+
+
 def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
-    """Build the actual native APIs and run one invocation, recovering an existing journal automatically."""
+    """Build native APIs, requiring explicit matching run/loss identities for checkpoint forks."""
     _validate_args(args)
+    args.loss_mode = getattr(args, "loss_mode", "full_sequence")
+    if args.loss_mode not in Continuation.LOSS_MODES:
+        raise ValueError(f"loss_mode must be one of {Continuation.LOSS_MODES}")
     if args.model_seed is None:
         args.model_seed = args.seed
     if args.data_seed is None:
@@ -880,11 +1088,18 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
         )
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA was requested but is not available")
+    source_config = _read_training_config(args.config)
+    run_config = _apply_fork_contract(args, source_config)
+    fork = run_config.get("fork") if run_config is not None else None
+    if run_config is None:
+        if (args.loss_mode == "answer_eos") != (getattr(args, "answer_masks", None) is not None):
+            raise ValueError("answer_eos requires --answer-masks and full_sequence forbids them")
+    _validate_args(args)
     base_config = NativeConfig.from_json(args.config)
     model_config = replace(base_config, mode=args.mode)
     data_root = Path(args.data)
-    train_dataset = PackedDataset(data_root, "train")
-    dev_dataset = PackedDataset(data_root, "dev")
+    train_dataset = _training_dataset(args, data_root, "train")
+    dev_dataset = _training_dataset(args, data_root, "dev")
     if train_dataset.arrays["input_ids"].shape[1] != model_config.context_length:
         raise ValueError("packed context length differs from NativeConfig.context_length")
     if int(train_dataset.arrays["input_ids"].max()) >= model_config.vocab_size:
@@ -895,45 +1110,60 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
     code_identity = _code_identity()
     manifest_path = data_root / "manifest.json"
     data_manifest_identity = sha256_file(manifest_path) if manifest_path.is_file() else None
-    run_config = {
-        "format": TRAIN_FORMAT,
-        "model": model_config.to_dict(),
-        "training": {
-            "max_loss_tokens": args.max_loss_tokens,
-            "batch_size": args.batch_size,
-            "seed": args.seed,
-            "model_seed": args.model_seed,
-            "data_seed": args.data_seed,
-            "learning_rate": args.learning_rate,
-            "weight_decay": args.weight_decay,
-            "betas": list(args.betas),
-            "eps": args.eps,
-            "grad_clip": args.grad_clip,
-            "lambda_balance": args.lambda_balance,
-            "lambda_route": args.lambda_route,
-            "lambda_state": args.lambda_state,
-            "warmup_fraction": args.warmup_fraction,
-            "final_lr_fraction": args.final_lr_fraction,
-            "checkpoint_every": args.checkpoint_every,
-            "dev_every": args.dev_every,
-            "dev_batches": args.dev_batches,
-            "device": str(device),
-            "optimizer": "torch.optim.AdamW; matrices decay, biases and norm vectors do not",
-            "scheduler": "2% update warmup then cosine to 10% of base learning rate",
-            "autocast": "bfloat16 on CUDA only; all losses float32",
-            "token_rule": "count labels[:,1:] != -100; atomic batches stop at the first count >= max_loss_tokens",
-            "planned_updates": planned_updates,
-            "planned_consumed_loss_tokens": planned_tokens,
-        },
-        "source_config_sha256": sha256_file(args.config),
-        "data": str(data_root.resolve()),
-        "train_data_identity": sampler.data_identity,
-        "dev_data_identity": dev_sampler.data_identity,
-        "order_identity": sampler.order_identity,
-        "code_identity": code_identity,
-        "torch_version": torch.__version__,
-        "numpy_version": np.__version__,
-    }
+    if fork is not None:
+        if code_identity != run_config.get("code_identity"):
+            raise C.CheckpointIdentityMismatch("fork code identity differs from the current native source")
+        if sampler.data_identity != run_config.get("train_data_identity") \
+                or dev_sampler.data_identity != run_config.get("dev_data_identity") \
+                or sampler.order_identity != run_config.get("order_identity"):
+            raise C.CheckpointIdentityMismatch("fork data or ordered sampler identity has changed")
+        if planned_updates != fork["target_updates"] or planned_tokens != fork["target_exposure_tokens"]:
+            raise C.CheckpointIdentityMismatch("fork sampler does not reproduce its declared endpoint")
+    else:
+        masks_path = getattr(args, "answer_masks", None)
+        run_config = {
+            "format": TRAIN_FORMAT,
+            "model": model_config.to_dict(),
+            "training": {
+                "max_loss_tokens": args.max_loss_tokens,
+                "batch_size": args.batch_size,
+                "seed": args.seed,
+                "model_seed": args.model_seed,
+                "data_seed": args.data_seed,
+                "learning_rate": args.learning_rate,
+                "weight_decay": args.weight_decay,
+                "betas": list(args.betas),
+                "eps": args.eps,
+                "grad_clip": args.grad_clip,
+                "lambda_balance": args.lambda_balance,
+                "lambda_route": args.lambda_route,
+                "lambda_state": args.lambda_state,
+                "warmup_fraction": args.warmup_fraction,
+                "final_lr_fraction": args.final_lr_fraction,
+                "checkpoint_every": args.checkpoint_every,
+                "dev_every": args.dev_every,
+                "dev_batches": args.dev_batches,
+                "device": str(device),
+                "optimizer": "torch.optim.AdamW; matrices decay, biases and norm vectors do not",
+                "scheduler": "2% update warmup then cosine to 10% of base learning rate",
+                "autocast": "bfloat16 on CUDA only; all losses float32",
+                "token_rule": "count labels[:,1:] != -100; atomic batches stop at the first count >= max_loss_tokens",
+                "main_loss_rule": "mean selected-token cross entropy per batch",
+                "loss_mode": args.loss_mode,
+                "answer_masks": str(Path(masks_path).resolve()) if masks_path is not None else None,
+                "answer_masks_identity": Continuation._path_identity(masks_path) if masks_path is not None else None,
+                "planned_updates": planned_updates,
+                "planned_consumed_loss_tokens": planned_tokens,
+            },
+            "source_config_sha256": sha256_file(args.config),
+            "data": str(data_root.resolve()),
+            "train_data_identity": sampler.data_identity,
+            "dev_data_identity": dev_sampler.data_identity,
+            "order_identity": sampler.order_identity,
+            "code_identity": code_identity,
+            "torch_version": torch.__version__,
+            "numpy_version": np.__version__,
+        }
     if device.type == "cpu":
         return _execute(
             args,
@@ -953,12 +1183,23 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
         )
 
     inherited = native_ledger.active()
-    if inherited is not None:
+    if fork is not None:
+        continuation_study_id = fork.get("continuation_study_id")
+        if inherited is None:
+            raise RuntimeError("a forked GPU run requires an inherited continuation reservation")
+        if not continuation_study_id \
+                or inherited.extra.get("native_continuation_run_id") != continuation_study_id \
+                or inherited.extra.get("native_continuation_authorized_hours") != 3.0:
+            raise RuntimeError("inherited GPU reservation is not the authorized continuation owner")
+        run_config["acquisition_run_id"] = inherited.extra["native_continuation_run_id"]
+        run_config["reservation_id"] = inherited.id
+    elif inherited is not None:
         run_id = os.environ.get("TI_TNN_NATIVE_ACQUISITION_RUN_ID")
         if inherited.extra.get("native_acquisition_run_id") != run_id or run_id is None:
             raise RuntimeError("a nested GPU reservation is not an authorized acquisition owner")
         run_config["acquisition_run_id"] = run_id
         run_config["reservation_id"] = inherited.id
+    if inherited is not None:
         return _execute(
             args,
             model_config=model_config,
@@ -1008,6 +1249,9 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--mode", required=True, choices=MODES)
     result.add_argument("--data", required=True, help="PackedDataset root containing train/ and dev/")
     result.add_argument("--output", required=True, help="arm output directory; an existing journal is recovered")
+    result.add_argument("--fork", default=None, help="explicit child run ID required by a continuation fork config")
+    result.add_argument("--loss-mode", choices=Continuation.LOSS_MODES, default="full_sequence")
+    result.add_argument("--answer-masks", default=None, help="companion masks loaded by AnswerMaskedDataset")
     result.add_argument("--device", default="cpu")
     result.add_argument("--max-loss-tokens", type=int, default=4096)
     result.add_argument("--batch-size", type=int, default=2)
