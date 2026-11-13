@@ -1,5 +1,51 @@
 # Claim ledger
 
+## Completed native initial-state study (2026-11-13)
+
+See [results](../research/ti_tnn/native/INITIAL_STATE_RESULTS.md),
+[all population metrics](../research/ti_tnn/native/INITIAL_STATE_DETAILS.md) and
+[independent review](../research/ti_tnn/native/INITIAL_STATE_RESULTS_REVIEW.md).
+The preparation entries below retain their historical pre-authorization status.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| All eight authorized arms reached the fixed endpoint | Completed locally and artifact-checked | 16 epochs, 1,424 updates, cursor 11,376 and 2,590,592 full-label tokens each; nine populations per arm; no recovery, failed or incomplete arms |
+| Eight initial states pass the registered value/composition screen | Not supported | Dense value deltas +2/+2, shared 0/+1, below +8/+8 required in both; both recommendations false; multi-state anchors only 0–2/128, limiting the negative inference |
+| Improved partial scores establish learned transition computation | Not inferred | Heldout numeric CE improves throughout; shared individual-transition gains occur among unchanged values while changed accuracy falls 24→23/114. All high-initial unchanged positions fail, and all longer outputs are malformed |
+| Saved outputs and final checkpoint identities are internally consistent | Locally reproduced and independently checked | 72 complete score objects match; independent scoring covers 9,216 completions and malformed denominators; 32 checkpoints, 232 completion artifacts, source/data/model/sampler bindings verified; not independent learning replication |
+| This study's numerical replay establishes bitwise or general BF16 equivalence | False | Eight bounded CPU FP32 reports pass scale and strict allclose, with exact applicable routes/tokens; floating tensors differ bitwise. Historical #79 strict-allclose failures remain preserved |
+| The study increased the native cap or authorizes further training | False | 0.9253861445033302 h charged from the existing 12 h cap under a four-hour maximum; native balance 4.853301779298153 h; no further treatment or merge authorized |
+
+## Native initial-state composition contract and runner (2026-11-13)
+
+See the revised [protocol](../research/ti_tnn/native/INITIAL_STATE_STUDY.md) and
+[independent review](../research/ti_tnn/native/INITIAL_STATE_REVIEW.md).
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| A multiplication read path plus final initial dependence guarantees an effective multiplication | False | The zeroed-multiplication counterexample passes v1. V2 requires functional dependence of multiplication output plus an actual-initial skip-write target witness; independent exhaustive checks pass for all 128 revised examples |
+| Revised composition selection changes the main one-state/eight-state treatment | False | 102 composition examples retained, 26 replaced; training and all other evaluation populations byte-preserved, original preparation identity retained, endpoint/objective/seeds fixed |
+| Better register scores necessarily mean better value-changing transitions | Not inferred | Saved #79 scores now separate changed from preserved reference values, retaining malformed denominators and every previous score. These are task categories, not mechanisms |
+| The eight-arm runner enforces a bounded cumulative comparison | CPU fixture-tested and independently reviewed | Exact source/data/model/sampler binding; fixed endpoints; explicit authorization; failed/missing arms incomplete; prior charges retained; duplicate claims rejected. Uses existing reservation/checkpoint machinery, no new scheduler |
+| Four proposed hours increase the native budget | False | Approximately 2.515 h projected, four-hour maximum including margin/recovery drawn from the existing 12-hour native cap. No execution authorized or launched |
+| Multiple initial states improve learned transitions or composition | Still proposed, untested | No study training or checkpoint inference. Complete-answer development screen unchanged; changed/unchanged metrics are descriptive |
+
+## Native TI-TNN CPU takeover and initial-state proposal (2026-11-12)
+
+The [current state](../research/ti_tnn/native/CURRENT_STATE.md),
+[saved-output diagnostic](../research/ti_tnn/native/DEPENDENCY_DIAGNOSTIC.md), and
+[draft protocol](../research/ti_tnn/native/INITIAL_STATE_STUDY.md) describe this scope.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| #79's saved outputs and identified checkpoint bytes remain consistent | Locally checked again | 15 parent/fork/final hashes match the report/manifests; 260 bundle checks pass; the documented 4,980-output rescore matches all fields except `study`. No training or model-output regeneration; not external replication |
+| The high-initial-value failure is confined to arithmetic | Contradicted by saved-output categories | Untouched targets score 0–1/171 per child; all functionally initial-dependent targets score 3–7/391. These are reference-task properties, not a neural-mechanism explanation |
+| Reference dependencies and final effective writes are the same classification | False | Independent versioned read graphs distinguish set/copy/add/multiply/untouched from depth, discarded prior writes and exhaustively checked initial support. Modular cancellations are included |
+| Multiple initial states improve learning or composition | Proposed, untested | CPU-tested paired preparation: 256 patterns, 2,048 documents per condition, four architectures including shared recurrence, fixed full-sequence objective, disjoint value/composition evaluations. No optimizer step or learning result from this preparation |
+| The next study is authorized because native hours remain | False | The draft projects 2.479 hours and proposes a separate 4-hour maximum, including margin/recovery. No reservation opened; a reviewed runner integration and explicit owner authorization are required |
+| Answer-only continuation should replace the full-sequence recipe | Not supported by #79's frozen rule | Preserve `retain_full_sequence` for all three parents. Better fitting did not establish useful generalization; this is not universal inferiority of answer-focused supervision |
+
+
 ## Phase Two Milestone 1 (2026-09-21)
 
 An isolated [Qwen/NLA engineering implementation](../research/open_weight_lingua/README.md)
