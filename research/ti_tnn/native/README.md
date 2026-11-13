@@ -1,10 +1,10 @@
 # TI-TNN native: reproduction interface
 
-For the latest CPU takeover, see [CURRENT_STATE.md](CURRENT_STATE.md), the
-[saved-output dependency diagnostic](DEPENDENCY_DIAGNOSTIC.md), and the
-[multiple-initial-state draft](INITIAL_STATE_STUDY.md). The draft is prepared,
-not authorized for training. The older run status and reproduction details below
-describe the original native engineering study.
+For the latest work, see [CURRENT_STATE.md](CURRENT_STATE.md), the completed
+[initial-state results](INITIAL_STATE_RESULTS.md), and the proposed
+[corrected mixed text/code comparison](MIXED_LEARNING.md). The latter is CPU
+preparation only and has no execution authorization. The older run status and
+reproduction details below describe the original native engineering study.
 
 **Status: complete four-arm engineering run with measured development results.** Read
 [`REPORT.md`](REPORT.md) for learning curves, complete-generation results, resource accounting and the 125M

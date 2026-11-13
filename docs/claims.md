@@ -1,5 +1,18 @@
 # Claim ledger
 
+## Corrected mixed text/code preparation (2026-11-13)
+
+See the [draft work order](../research/ti_tnn/native/MIXED_LEARNING.md).
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| #80 establishes universal ineffectiveness of state diversity | False | Multi-state complete answers were not acquired at the fixed endpoint; each pair had one eighth the repetitions; some heldout CE/register behavior improved. Not matched convergence, readout quality or causal-state evidence |
+| The original mixed-data run can be relabeled as corrected | False | Original learning curves, packing/position/target-placement limitations, truncated code evaluation and numerical failures remain unchanged |
+| Corrected mixed preparation and bounded capability evaluation are available | Implemented and CPU-tested | Whole-program quota handling, existing intact/document-local packing, fixed targets and pinned sources; hash-selected text/code documents and target-free 128-token prompts; saved 32-token scoring retains missing/malformed denominators |
+| The next comparison has already demonstrated language/code capability | Not run | Four fixed engineering architectures, full-sequence objective and 40,001,786-token planned endpoint each; CPU preparation is not training or model-output evidence |
+| Synthetic execution, readout and causal state use are interchangeable | False | Fixed #80 populations are historical diagnostic monitors; separate answer and state metrics; no new causal experiment or perfect-register gate |
+| The proposed 4.75 hours are already authorized or increase the cap | False | 3.186 h raw / 4.501 h with margins and allowances projected from historical measurements; 4.853301779298153 h live balance; zero GPU hours used by preparation; separate explicit authorization required |
+
 ## Completed native initial-state study (2026-11-13)
 
 See [results](../research/ti_tnn/native/INITIAL_STATE_RESULTS.md),

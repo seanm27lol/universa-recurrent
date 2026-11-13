@@ -1,5 +1,30 @@
 # Native TI-TNN: current state
 
+## Next native phase: mixed text/code preparation, 2026-11-13
+
+Remote #80 is merged at `11f3aa5051f345d33128a49b75d38a7c38da52fa`, containing
+the approved reporting head `a5bf0134acd0d60e0fd98d25fe61b423b31766ec`. The
+implementation agent observed this merge and did not perform it. A separate
+`ti-tnn-native-mixed-learning` branch starts there; completed study worktrees and
+artifacts remain unchanged.
+
+The [mixed text/code work order](MIXED_LEARNING.md) returns language/code learning
+to the primary role, with dense/shared/untyped/typed controls and a fixed register
+monitor. It reuses validated packing, document positions, target timing, tokenizer,
+model, losses, sampler and recovery components. Missing bounded mixed allocation
+and capability preparation/scoring are implemented and CPU-tested.
+
+The proposed per-arm endpoint is 40,001,786 loss tokens / 19,862 updates / cursor
+158,896. Complete cost projects to 3.186 h raw, 4.501 h with margin and allowances.
+The proposed 4.75 h maximum is drawn from the live **4.853301779298153 h remaining**,
+not added to the native cap. No new reservation, research training, inference on
+saved checkpoints, larger-model campaign, shaping or WSP was run in this phase.
+Next permitted action: review the draft work order and thin preparation/evaluation
+changes. A future reviewed execution binding and explicit owner authorization are
+required before any profiling or training.
+
+The completed #80 record and earlier preparation snapshots follow.
+
 A register program can be memorized without learning how to execute a new one.
 The completed one-state/eight-state comparison separates training fit, transition
 transfer, composition and value preservation without establishing useful
