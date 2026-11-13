@@ -1088,6 +1088,24 @@ def bind_initial_state_owner(run_config, binding, reservation):
     return {**run_config, "initial_state_study": owner}
 
 
+def bind_mixed_learning_owner(run_config, binding, reservation):
+    """Separate fixed mixed-study owner; historical four-hour rules stay intact."""
+    if reservation is None or not isinstance(binding, dict):
+        raise RuntimeError("mixed learning requires an active reservation")
+    owner = binding.get("owner")
+    if (not isinstance(owner, dict)
+            or set(owner) != {"study_id", "protocol_sha256", "output", "allocation_hours"}
+            or owner.get("study_id") != "native-mixed-learning-v1"
+            or owner.get("allocation_hours") != 4.75 or not owner.get("protocol_sha256")):
+        raise RuntimeError("malformed fixed mixed-learning owner")
+    if (reservation.extra.get("mixed_learning_study") != owner or any(key in reservation.extra
+            for key in ("initial_state_study", "native_acquisition_run_id", "native_continuation_run_id"))):
+        raise RuntimeError("inherited reservation is not the authorized mixed-learning owner")
+    if run_config != binding.get("expected_config"):
+        raise C.CheckpointIdentityMismatch("mixed-learning source/data/model/sampler/training identity mismatch")
+    return {**run_config, "mixed_learning_study": owner}
+
+
 def fresh_run_config(args, model_config, data_root, sampler, dev_sampler, planned_updates, planned_tokens, code_identity):
     """Pure configuration construction, also used by the initial-state preflight."""
     masks_path = getattr(args, "answer_masks", None)
@@ -1192,6 +1210,11 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
         run_config = fresh_run_config(args, model_config, data_root, sampler, dev_sampler,
                                       planned_updates, planned_tokens, code_identity)
     study_binding = getattr(args, "initial_state_study_binding", None)
+    mixed_binding = getattr(args, "mixed_learning_binding", None)
+    if mixed_binding is not None:
+        if device.type != "cuda" or fork is not None or study_binding is not None:
+            raise RuntimeError("mixed learning requires its sole inherited CUDA owner and fresh configuration")
+        run_config = bind_mixed_learning_owner(run_config, mixed_binding, native_ledger.active())
     if study_binding is not None:
         if device.type != "cuda" or fork is not None:
             raise RuntimeError("initial-state study requires its inherited CUDA owner and fresh configuration")
@@ -1225,7 +1248,7 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
             raise RuntimeError("inherited GPU reservation is not the authorized continuation owner")
         run_config["acquisition_run_id"] = inherited.extra["native_continuation_run_id"]
         run_config["reservation_id"] = inherited.id
-    elif inherited is not None and study_binding is None:
+    elif inherited is not None and study_binding is None and mixed_binding is None:
         run_id = os.environ.get("TI_TNN_NATIVE_ACQUISITION_RUN_ID")
         if inherited.extra.get("native_acquisition_run_id") != run_id or run_id is None:
             raise RuntimeError("a nested GPU reservation is not an authorized acquisition owner")

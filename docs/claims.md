@@ -1,5 +1,19 @@
 # Claim ledger
 
+## Corrected mixed text/code preparation (2026-11-13)
+
+See the [draft work order](../research/ti_tnn/native/MIXED_LEARNING.md).
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| #80 establishes universal ineffectiveness of state diversity | False | Multi-state complete answers were not acquired at the fixed endpoint; each pair had one eighth the repetitions; some heldout CE/register behavior improved. Not matched convergence, readout quality or causal-state evidence |
+| The original mixed-data run can be relabeled as corrected | False | Original learning curves, packing/position/target-placement limitations, truncated code evaluation and numerical failures remain unchanged |
+| Corrected mixed preparation and bounded capability evaluation are available | Implemented and CPU-tested | Whole-program quota handling, existing intact/document-local packing, fixed targets and pinned sources; hash-selected text/code documents and target-free 128-token prompts; saved 32-token scoring retains missing/malformed denominators |
+| The next comparison has already demonstrated language/code capability | Not run | Four fixed engineering architectures, full-sequence objective and 40,001,786-token planned endpoint each; CPU preparation is not training or model-output evidence |
+| Synthetic execution, readout and causal state use are interchangeable | False | Fixed #80 populations are historical diagnostic monitors; separate answer and state metrics; no new causal experiment or perfect-register gate |
+| The proposed 4.75 hours fit or increase the cap | False; admission blocked | 3.775149 h raw / 5.937724 h with existing 50% margin and allowances; exceeds proposed allocation by 1.187724 h and native balance by 1.084422 h. Includes measured full-size CPU setup and conservative live-sampler allowance; supersedes earlier margin-only estimates; no automatic cap expansion or reduced endpoint |
+| The mixed execution binding is a launched comparison | False | CPU-tested adapter to existing reservation/checkpoint/recovery machinery; source/data/model/sampler identities enforced; failed/missing arms stay incomplete; recovery retains prior costs; zero research GPU hours used; separate owner authorization required |
+
 ## Completed native initial-state study (2026-11-13)
 
 See [results](../research/ti_tnn/native/INITIAL_STATE_RESULTS.md),

@@ -1,5 +1,40 @@
 # Native TI-TNN: current state
 
+## Next native phase: mixed text/code preparation, 2026-11-13
+
+Remote #80 is merged at `11f3aa5051f345d33128a49b75d38a7c38da52fa`, containing
+the approved reporting head `a5bf0134acd0d60e0fd98d25fe61b423b31766ec`. The
+implementation agent observed this merge and did not perform it. A separate
+`ti-tnn-native-mixed-learning` branch starts there; completed study worktrees and
+artifacts remain unchanged.
+
+The [mixed text/code work order](MIXED_LEARNING.md) returns language/code learning
+to the primary role, with dense/shared/untyped/typed controls and a fixed register
+monitor. It reuses validated packing, document positions, target timing, tokenizer,
+model, losses, sampler and recovery components. Missing bounded mixed allocation
+and capability preparation/scoring are implemented and CPU-tested.
+
+The proposed per-arm endpoint is 40,001,786 loss tokens / 19,862 updates / cursor
+158,896. Complete cost projects to 3.775149 h raw, **5.937724 h** with the existing
+reservation's 50% margin and all allowances. The earlier 35% / 4.501 h and 50%-only / 5.054 h estimates
+are superseded; their historical artifacts remain preserved. The correction includes
+measured full-size CPU setup/planning and a conservative live-sampling allowance. **Admission is blocked:**
+the complete comparison exceeds the proposed allocation by 1.187724 h and the live
+native balance by 1.084422 h.
+The proposed 4.75 h maximum is drawn from the live **4.853301779298153 h remaining**,
+not added to the native cap. No new reservation, research training, inference on
+saved checkpoints, larger-model campaign, shaping or WSP was run in this phase.
+The thin execution adapter now binds the existing training, reservation, checkpoint
+and recovery machinery. CPU fixtures cover explicit authorization, read-only preflight,
+all four fixed endpoints, identity rejection, incomplete arms, cumulative recovery,
+duplicate comparisons and concurrency admission. Historical runner contracts remain
+unchanged. Private runtime bindings stay outside the public repository.
+Next permitted action: review the draft PR, frozen binding and budget shortfall.
+A revised, reviewed resource work order and separate explicit owner authorization
+are required before any execution; the prepared command cannot override admission.
+
+The completed #80 record and earlier preparation snapshots follow.
+
 A register program can be memorized without learning how to execute a new one.
 The completed one-state/eight-state comparison separates training fit, transition
 transfer, composition and value preservation without establishing useful
