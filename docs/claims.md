@@ -1,5 +1,21 @@
 # Claim ledger
 
+## Completed native initial-state study (2026-11-13)
+
+See [results](../research/ti_tnn/native/INITIAL_STATE_RESULTS.md),
+[all population metrics](../research/ti_tnn/native/INITIAL_STATE_DETAILS.md) and
+[independent review](../research/ti_tnn/native/INITIAL_STATE_RESULTS_REVIEW.md).
+The preparation entries below retain their historical pre-authorization status.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| All eight authorized arms reached the fixed endpoint | Completed locally and artifact-checked | 16 epochs, 1,424 updates, cursor 11,376 and 2,590,592 full-label tokens each; nine populations per arm; no recovery, failed or incomplete arms |
+| Eight initial states pass the registered value/composition screen | Not supported | Dense value deltas +2/+2, shared 0/+1, below +8/+8 required in both; both recommendations false; multi-state anchors only 0–2/128, limiting the negative inference |
+| Improved partial scores establish learned transition computation | Not inferred | Heldout numeric CE improves throughout; shared individual-transition gains occur among unchanged values while changed accuracy falls 24→23/114. All high-initial unchanged positions fail, and all longer outputs are malformed |
+| Saved outputs and final checkpoint identities are internally consistent | Locally reproduced and independently checked | 72 complete score objects match; independent scoring covers 9,216 completions and malformed denominators; 32 checkpoints, 232 completion artifacts, source/data/model/sampler bindings verified; not independent learning replication |
+| This study's numerical replay establishes bitwise or general BF16 equivalence | False | Eight bounded CPU FP32 reports pass scale and strict allclose, with exact applicable routes/tokens; floating tensors differ bitwise. Historical #79 strict-allclose failures remain preserved |
+| The study increased the native cap or authorizes further training | False | 0.9253861445033302 h charged from the existing 12 h cap under a four-hour maximum; native balance 4.853301779298153 h; no further treatment or merge authorized |
+
 ## Native initial-state composition contract and runner (2026-11-13)
 
 See the revised [protocol](../research/ti_tnn/native/INITIAL_STATE_STUDY.md) and

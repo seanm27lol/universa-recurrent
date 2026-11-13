@@ -1,10 +1,44 @@
-# Native TI-TNN: CPU takeover and launch preparation
+# Native TI-TNN: current state
 
 A register program can be memorized without learning how to execute a new one.
-The next task is to distinguish those failures using saved answers, then prepare
-a controlled test of showing the same program several initial states.
+The completed one-state/eight-state comparison separates training fit, transition
+transfer, composition and value preservation without establishing useful
+complete-program generalization.
 
-## Update: 2026-11-13, draft #80
+## Completed owner-authorized study: 2026-11-13
+
+All eight arms completed the fixed 16-epoch endpoint: 1,424 updates, cursor 11,376
+and 2,590,592 full-label tokens each. All nine 128-example populations were
+evaluated. Multi-state training-anchor scores are only 0–2/128 versus 38–119/128
+for repeat_one. Both registered development recommendations are false. Lower
+heldout numeric CE and partial register gains remain visible alongside the poor
+fit and failed screen; these do not establish reusable neural transitions.
+
+See [results](INITIAL_STATE_RESULTS.md), [all metrics](INITIAL_STATE_DETAILS.md)
+and [independent results review](INITIAL_STATE_RESULTS_REVIEW.md). All 72 saved
+score objects reproduce exactly without model calls. Independent reviewers checked
+all 9,216 completions, endpoints, identities and ledger accounting with no blocking
+findings. The frozen training source is `3808e8209b4b22e36eded29343721195ca682ca4`;
+the protocol is `bd108e03f51aefbc5bf8ce1cc0086c874d450b79ecf5668a23b275d1f37f50df`.
+Reporting changes are made in a separate worktree; frozen source and preparation
+remain unchanged. Remote main was fetched again and remains
+`52384a6addd7e06922931f583e8f8be13c48eed2`.
+
+The single reservation closed normally after **0.9253861445033302 hours**, with
+no recovery or failed study attempt. Native use is **7.146698220701847 / 12 hours**,
+leaving **4.853301779298153 hours**. The authorized four-hour maximum came from
+that cap. No comparison process or native reservation remains active at the
+completion audit. Runtime paths and operational records remain private.
+
+Next permitted action: review the completed results in draft #80. No merge,
+additional run, larger-model campaign, shaping or WSP is authorized. Preparation
+test results below are historical local checks; post-run checks are saved-artifact
+reconstruction and independent review, not another training replication.
+
+## Historical pre-authorization update: 2026-11-13, draft #80
+
+This section records the preparation checkpoint before the later explicit owner
+authorization and completed run above. Its pending-action wording is historical.
 
 Remote main was fetched again and remains `52384a6addd7e06922931f583e8f8be13c48eed2`.
 The v1 preparation and every historical artifact remain preserved. Composition
