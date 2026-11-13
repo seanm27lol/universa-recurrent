@@ -5,7 +5,7 @@ model predict a useful continuation? This phase returns language/code learning t
 the primary role. A fixed register suite remains a diagnostic; perfect synthetic
 execution is not a gate for ordinary language-model experiments.
 
-**Status: CPU preparation, not execution authorization.** The four engineering
+**Status: CPU preparation; execution is budget-blocked and unauthorized.** The four engineering
 architectures and the initial training objective stay fixed. No model, activation,
 tokenizer, router, curriculum, shaping or stopping mechanism is redesigned here.
 
@@ -59,7 +59,7 @@ All raw corpora, arrays, generated strings and weights stay local.
 
 ## Fixed comparison
 
-Use fresh random initialization with model/data seed **20261108**, matching the
+Use fresh random initialization, **no parent checkpoint**, with model/data seed **20261108**, matching the
 original declared development seed. Each arm consumes the same prepared arrays
 and shuffled batches. Modes remain dense, shared recurrent, untyped MoE and typed
 MoE, with the unchanged engineering configuration: vocabulary 50,257, context 256,
@@ -92,6 +92,10 @@ The completed CPU build fixes **40,001,786 loss tokens, 19,862 updates and curso
 comparison. Each arm consumes 40,206,149 real input tokens and 40,677,376 padded
 slots; its loss tokens comprise 18,036,675 Wikipedia, 18,011,928 code and 3,953,183
 structured targets. It visits less than one full pass of the 173,894 prepared rows.
+The actual loss-token proportions are **45.0897% / 45.0278% / 9.8825%** respectively.
+The existing sampler shuffles packed row indices once with the declared seed,
+without replacement before this endpoint. It does not resample documents or
+rebalance sources by model performance. All arms receive the identical batch order.
 
 Preparation manifest SHA256:
 `592017bbf9efbc1888791c19c6750cda3e64641cd238aa11325ab0d60a8484c0`.
@@ -108,6 +112,13 @@ where \(I_s\) contains that source's nonmasked shifted target positions, \(N_s=|
 \(x_i\) is the observed token, and \(\theta\) denotes the trained weights. Report
 the sum and count alongside CE and \(\exp(L_s)\). Context is limited to the visible
 document prefix or chunk. No cross-source average substitutes for separate results.
+These capability losses contain **only the main LM cross entropy**, excluding
+route, state and balance penalties. One prefix per document limits long-document
+dominance; aggregation is by eligible tokens, not a macro-average of document CE.
+Training minimizes the existing mean eligible-token CE per batch plus the declared
+auxiliaries. Shifted first-document and first-row targets and padding are masked;
+attention is causal within each document segment, with no cross-document attention.
+Short documents retain their EOS target; truncated prefixes do not invent an EOS.
 
 | Claim family | Fixed population and endpoint outputs | Limit |
 |---|---|---|
@@ -129,13 +140,19 @@ The prepared capability CE denominators are **28,877 Wikipedia tokens** and
 **32,640 code tokens**, each across 128 documents. The two continuation populations
 each retain 64 examples and 2,048 token decisions, regardless of short, malformed
 or missing outputs. All 1,152 fixed register examples remain separate by population.
+Generation is greedy with the existing cache, a common 32-token upper bound and
+EOS termination; gold target tokens never enter inference. Code exact match means
+all 32 saved token IDs match the reference suffix. Token agreement counts matching
+IDs at the same positions, with missing positions wrong. Neither metric checks
+syntax, runs code, measures pass@k, or certifies semantic correctness. Missing and
+malformed records remain in denominators; duplicate/unknown IDs are integrity errors.
 
 ## Complete-run resource proposal
 
 The live ledger at preparation records **7.146698220701847 / 12 native hours used**,
 leaving **4.853301779298153 hours**. No new reservation was created. Propose a
 separately authorized **4.75-hour cumulative maximum from that balance**, including
-profiling, failures, endpoint evaluation and explicit recovery. It does not increase
+loading, failures, endpoint evaluation and explicit recovery. It does not increase
 the native cap. A full charge would leave **0.103301779298153 hours**.
 
 The original clean engineering profiles measured 27,355.23 / 27,922.86 / 25,726.43 /
@@ -162,12 +179,22 @@ Each arm additionally gets explicit **120 s for answer CE/state readouts** and
 **60 s for saved scoring, hashes and logging**. These two entries are allowances,
 not fabricated measurements. No state intervention is budgeted or proposed.
 
-The complete raw comparison is **3.186008 h**. A **35% margin** plus **0.15 h for
-fresh profiling/preflight** and **0.05 h shutdown allowance** gives **4.501111 h**.
-Margin/recovery belongs inside the proposed 4.75 h maximum. If fresh measured
-costs or failures no longer permit all four fixed endpoints, stop for owner review;
-do not quietly reduce tokens, populations or controls. A second seed or larger
-model would need a separate, explicitly budgeted work order.
+The complete raw comparison is **3.186008 h**. The existing reservation watchdog
+requires **50% margin**, including the **0.15 h common loading, warmup and reserved
+identity/preflight allowance**. Adding **0.05 h shutdown allowance** gives
+**(3.1860077914841516 + 0.15) × 1.5 + 0.05 = 5.054011687226227 h**.
+This supersedes the earlier draft's 35% / 4.501111 h estimate, retained in its
+historical commit and private v1 resource artifact. No fresh profiling optimizer
+steps are proposed. CPU endpoint evaluation and reconstruction occur inside the
+reservation and are charged even when the GPU is idle.
+
+**Admission fails:** the complete plan exceeds the proposed 4.75 h allocation by
+**0.304011687226227 h**, and the live native balance by **0.200709907928074 h**.
+The runner returns `blocked_budget` without claiming an output or reserving the GPU.
+No control, endpoint or evaluation is reduced, and no cap is expanded. The owner
+must resolve this shortfall in a separately reviewed work order before execution.
+Failures/recovery consume the same cumulative allocation; they do not reset it.
+A second seed or larger model would require a separate work order.
 
 Retaining all 164 planned checkpoints projects **41,761,987,542 bytes**. Prepared
 artifacts occupy **3,407,625,270 bytes**; reserve a further 8 GiB for logs, exports and
@@ -201,8 +228,9 @@ document-local positions, auxiliary target isolation, independent capability row
 fixed continuation bounds, missing/malformed output denominators, duplicate ids,
 gold-field rejection at inference and refusal to overwrite preparation.
 
-Locally run with the pinned environment and CUDA hidden: **423 native CPU tests
-passed in 19.22 s**, including 11 new mixed-preparation/evaluation cases. The release
+Locally run with the pinned environment and CUDA hidden: **458 native CPU tests
+passed in 21.19 s**, including 11 mixed-preparation/evaluation and 35 execution-binding
+cases. The earlier preparation checkpoint passed 423 tests in 19.22 s. The release
 check passed. Endpoint adapter tests use CPU fixtures and preserve incomplete
 capability or register evaluations explicitly. Existing tiny synthetic regression
 training tests are engineering fixtures; no research training or saved-checkpoint
@@ -213,23 +241,54 @@ source hashes, unchanged historical dev document membership, zero packed train/d
 content overlap and 54,820/1,247 intact structured train/dev examples. All copied
 register-monitor files are byte-identical to the frozen #80 preparation. This is a
 local saved-array check, not independent external replication or a model result.
+Independent read-only review reproduced the endpoint and source counts, checked all
+1,152 fixed references with a separate scalar executor and verified capability loss
+aggregation using static logits. Runner review found and corrected CLI completion,
+concurrent-resume, checkpoint identity and admission-race reporting issues, with
+CPU regression fixtures. Exact frozen-source reviews and CI results accompany the PR.
 
-## Execution and recovery boundary
+## Execution binding and recovery boundary
 
-This work order is a proposal. A launch binding must name the reviewed commit,
+The CPU-only `freeze_mixed_learning.py` writes a new, versioned private binding
+without modifying the existing preparation. It names the clean reviewed commit,
 prepared manifest and all data/tokenizer/model/sampler identities, pinned environment,
 canonical comparison output and one cumulative allocation. The existing shared
 ledger/lock, reservation watchdog, checkpoint journals and explicit recovery remain
 mandatory. Historical profile identity checks must not be bypassed or relabeled as
-new profiles. Transfer projections below are planning evidence, not fresh profile
+new profiles. Transfer projections above are planning evidence, not fresh profile
 measurements or a passed launch preflight.
+
+`run_mixed_learning.py` is a fixed four-arm adapter to `native.train`, not another
+scheduler. Its default read-only preflight checks source, pinned interpreter and
+package versions, all data hashes, sampler endpoint/order, output-filesystem space,
+existing locks and live cumulative costs. It constructs no neural model and creates
+no reservation, claim, comparison lock or research output. The registered requested
+threshold remains 40,000,000; its actual atomic endpoint remains 40,001,786.
+
+```bash
+python -m native.run_mixed_learning --protocol "$FROZEN_PROTOCOL" \
+  --tokenizer "$PINNED_TOKENIZER" --expected-protocol-sha256 "$PROTOCOL_SHA256"
+```
+
+Exit 0 means the dry-run checks pass, not authorization. Exit 2 with `blocked_budget`
+means identities passed but the complete comparison does not fit. Execution requires
+separate owner authorization and explicit `--execute --authorize-hours 4.75`; those
+flags cannot override budget admission. Canonical output and ledger ownership reject
+duplicate comparisons, even across sessions. The new mixed-study owner is separate
+from the historical four-hour initial-state owner; historical contracts are unchanged.
 
 Use the existing training and checkpoint recovery machinery for every arm. Failed
 attempts retain their costs; explicit recovery continues the same comparison and
-allowance from a valid journaled checkpoint. Preserve incomplete/failed arms and
+allowance from a valid journaled checkpoint, via the same command plus `--resume`.
+There is no automatic recovery or fresh comparison. Completed arms are revalidated
+and skipped; an interrupted final descriptor is recovered only from a valid journaled
+final checkpoint. Earlier failed evaluations remain in their attempt directories.
+Preserve incomplete/failed arms and
 every attempt. Duplicate comparison admission must fail closed. If the complete
 remaining comparison no longer fits, stop and request a revised owner work order;
-do not cut the endpoint or omit a control. A later thin execution binding must be
-reviewed before owner authorization; none is invoked by these preparation commands.
+do not cut the endpoint or omit a control. Reporting must list every arm and all
+populations, including missing/failed arms, and preserve strict numerical failures.
+Only the fixed final checkpoint is selected. Private binding, read-only preflight,
+review and exact-head CI records accompany the draft PR before owner consideration.
 
 No GPU launch, larger-model campaign, shaping, WSP or automatic merge is authorized.

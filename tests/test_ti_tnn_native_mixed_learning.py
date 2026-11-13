@@ -7,6 +7,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 import torch
+
+pytest.importorskip("tokenizers")
 from tokenizers import Tokenizer, models, pre_tokenizers, trainers
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "research/ti_tnn"))

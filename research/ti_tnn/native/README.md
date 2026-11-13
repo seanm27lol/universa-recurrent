@@ -3,7 +3,8 @@
 For the latest work, see [CURRENT_STATE.md](CURRENT_STATE.md), the completed
 [initial-state results](INITIAL_STATE_RESULTS.md), and the proposed
 [corrected mixed text/code comparison](MIXED_LEARNING.md). The latter is CPU
-preparation only and has no execution authorization. The older run status and
+preparation only, is budget-blocked under the existing reservation margin, and has
+no execution authorization. The older run status and
 reproduction details below describe the original native engineering study.
 
 **Status: complete four-arm engineering run with measured development results.** Read

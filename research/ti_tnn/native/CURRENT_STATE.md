@@ -15,13 +15,22 @@ model, losses, sampler and recovery components. Missing bounded mixed allocation
 and capability preparation/scoring are implemented and CPU-tested.
 
 The proposed per-arm endpoint is 40,001,786 loss tokens / 19,862 updates / cursor
-158,896. Complete cost projects to 3.186 h raw, 4.501 h with margin and allowances.
+158,896. Complete cost projects to 3.186 h raw, **5.054012 h** with the existing
+reservation's 50% margin and all allowances. The earlier 35% / 4.501 h draft estimate
+is superseded; its historical artifact remains preserved. **Admission is blocked:**
+the complete comparison exceeds the proposed allocation by 0.304012 h and the live
+native balance by 0.200710 h.
 The proposed 4.75 h maximum is drawn from the live **4.853301779298153 h remaining**,
 not added to the native cap. No new reservation, research training, inference on
 saved checkpoints, larger-model campaign, shaping or WSP was run in this phase.
-Next permitted action: review the draft work order and thin preparation/evaluation
-changes. A future reviewed execution binding and explicit owner authorization are
-required before any profiling or training.
+The thin execution adapter now binds the existing training, reservation, checkpoint
+and recovery machinery. CPU fixtures cover explicit authorization, read-only preflight,
+all four fixed endpoints, identity rejection, incomplete arms, cumulative recovery,
+duplicate comparisons and concurrency admission. Historical runner contracts remain
+unchanged. Private runtime bindings stay outside the public repository.
+Next permitted action: review the draft PR, frozen binding and budget shortfall.
+A revised, reviewed resource work order and separate explicit owner authorization
+are required before any execution; the prepared command cannot override admission.
 
 The completed #80 record and earlier preparation snapshots follow.
 

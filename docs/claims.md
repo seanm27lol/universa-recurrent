@@ -11,7 +11,8 @@ See the [draft work order](../research/ti_tnn/native/MIXED_LEARNING.md).
 | Corrected mixed preparation and bounded capability evaluation are available | Implemented and CPU-tested | Whole-program quota handling, existing intact/document-local packing, fixed targets and pinned sources; hash-selected text/code documents and target-free 128-token prompts; saved 32-token scoring retains missing/malformed denominators |
 | The next comparison has already demonstrated language/code capability | Not run | Four fixed engineering architectures, full-sequence objective and 40,001,786-token planned endpoint each; CPU preparation is not training or model-output evidence |
 | Synthetic execution, readout and causal state use are interchangeable | False | Fixed #80 populations are historical diagnostic monitors; separate answer and state metrics; no new causal experiment or perfect-register gate |
-| The proposed 4.75 hours are already authorized or increase the cap | False | 3.186 h raw / 4.501 h with margins and allowances projected from historical measurements; 4.853301779298153 h live balance; zero GPU hours used by preparation; separate explicit authorization required |
+| The proposed 4.75 hours fit or increase the cap | False; admission blocked | 3.186 h raw / 5.054012 h with existing 50% margin and allowances; exceeds proposed allocation by 0.304012 h and native balance by 0.200710 h. Supersedes the earlier 35% draft estimate; no automatic cap expansion or reduced endpoint |
+| The mixed execution binding is a launched comparison | False | CPU-tested adapter to existing reservation/checkpoint/recovery machinery; source/data/model/sampler identities enforced; failed/missing arms stay incomplete; recovery retains prior costs; zero research GPU hours used; separate owner authorization required |
 
 ## Completed native initial-state study (2026-11-13)
 

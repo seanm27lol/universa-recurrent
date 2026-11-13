@@ -32,6 +32,8 @@ jobs:
           python-version: "3.11"
       - name: Install supported CPU PyTorch
         run: python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.10.0"
+      - name: Install pinned native tokenizer for CPU preparation fixtures
+        run: python -m pip install "tokenizers==0.23.3"
       - run: python -m pip install 'setuptools>=68' wheel
       - run: python -m pip install -e ".[test]"
       - name: Run every classical and neural test, including dual-output regression cases
