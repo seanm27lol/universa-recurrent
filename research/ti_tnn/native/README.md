@@ -1,5 +1,11 @@
 # TI-TNN native: reproduction interface
 
+For the latest CPU takeover, see [CURRENT_STATE.md](CURRENT_STATE.md), the
+[saved-output dependency diagnostic](DEPENDENCY_DIAGNOSTIC.md), and the
+[multiple-initial-state draft](INITIAL_STATE_STUDY.md). The draft is prepared,
+not authorized for training. The older run status and reproduction details below
+describe the original native engineering study.
+
 **Status: complete four-arm engineering run with measured development results.** Read
 [`REPORT.md`](REPORT.md) for learning curves, complete-generation results, resource accounting and the 125M
 proposal. The native causal LM is in [`model.py`](model.py), with training in [`train.py`](train.py), evaluation in

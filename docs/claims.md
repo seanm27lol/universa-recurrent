@@ -1,5 +1,21 @@
 # Claim ledger
 
+## Native TI-TNN CPU takeover and initial-state proposal (2026-11-12)
+
+The [current state](../research/ti_tnn/native/CURRENT_STATE.md),
+[saved-output diagnostic](../research/ti_tnn/native/DEPENDENCY_DIAGNOSTIC.md), and
+[draft protocol](../research/ti_tnn/native/INITIAL_STATE_STUDY.md) describe this scope.
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| #79's saved outputs and identified checkpoint bytes remain consistent | Locally checked again | 15 parent/fork/final hashes match the report/manifests; 260 bundle checks pass; the documented 4,980-output rescore matches all fields except `study`. No training or model-output regeneration; not external replication |
+| The high-initial-value failure is confined to arithmetic | Contradicted by saved-output categories | Untouched targets score 0–1/171 per child; all functionally initial-dependent targets score 3–7/391. These are reference-task properties, not a neural-mechanism explanation |
+| Reference dependencies and final effective writes are the same classification | False | Independent versioned read graphs distinguish set/copy/add/multiply/untouched from depth, discarded prior writes and exhaustively checked initial support. Modular cancellations are included |
+| Multiple initial states improve learning or composition | Proposed, untested | CPU-tested paired preparation: 256 patterns, 2,048 documents per condition, four architectures including shared recurrence, fixed full-sequence objective, disjoint value/composition evaluations. No optimizer step or learning result from this preparation |
+| The next study is authorized because native hours remain | False | The draft projects 2.479 hours and proposes a separate 4-hour maximum, including margin/recovery. No reservation opened; a reviewed runner integration and explicit owner authorization are required |
+| Answer-only continuation should replace the full-sequence recipe | Not supported by #79's frozen rule | Preserve `retain_full_sequence` for all three parents. Better fitting did not establish useful generalization; this is not universal inferiority of answer-focused supervision |
+
+
 ## Phase Two Milestone 1 (2026-09-21)
 
 An isolated [Qwen/NLA engineering implementation](../research/open_weight_lingua/README.md)
