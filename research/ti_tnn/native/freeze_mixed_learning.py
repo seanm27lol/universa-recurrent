@@ -3,10 +3,61 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
+import math
 from pathlib import Path
 import sys
+import subprocess
 
 from . import data as D, ledger, run_initial_state_study as I, run_mixed_learning as R
+
+
+def verify_sampler_cost(resource, preparation, source_root):
+    """Bind CPU setup and a conservative live-sampler proxy to the same arrays/code.
+
+    Historical throughput already includes the smaller sampler. Retaining that
+    cost and adding the full new planning walk deliberately overcounts it rather
+    than assuming occupancy adjustment covers the larger row permutation.
+    """
+    basis = resource["cpu_sampler_measurement"]
+    D.verify_file(basis["path"], basis["sha256"])
+    measured = I.read_json(basis["path"])
+    if measured["preparation_sha256"] != D.sha256_file(Path(preparation) / "manifest.json"):
+        raise RuntimeError("CPU sampler measurement uses another preparation")
+    if measured["endpoint"] != {"updates": R.ENDPOINT["updates"], "loss_tokens": R.ENDPOINT["full_label_tokens"]}:
+        raise RuntimeError("CPU sampler measurement did not plan the full endpoint")
+    endpoint = I.read_json(Path(preparation) / "manifest.json")["endpoint"]
+    if (measured["identities"]["train"] != endpoint["data_identity"]
+            or measured["identities"]["order"] != endpoint["order_identity"]):
+        raise RuntimeError("CPU sampler measurement data/order identity mismatch")
+    required = {"research/ti_tnn/native/train.py", "research/ti_tnn/native/sampler.py"}
+    if set(basis["source_files"]) != required:
+        raise RuntimeError("CPU sampler measurement source binding incomplete")
+    I.verify_hashes(source_root, basis["source_files"])
+    commit = measured["source_commit"]
+    if len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit):
+        raise RuntimeError("invalid CPU measurement source commit")
+    for relative, digest in basis["source_files"].items():
+        original = subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=source_root)
+        if hashlib.sha256(original).hexdigest() != digest:
+            raise RuntimeError("CPU measurement source differs from the bound sampler")
+    setup = measured["total_seconds"]
+    live = measured["timings"]["clone_and_endpoint_planning_seconds"]
+    stages = measured["timings"]
+    if (set(stages) != {"dataset_load_and_checks_seconds", "train_sampler_seconds", "dev_sampler_seconds",
+                       "clone_and_endpoint_planning_seconds"}
+            or not all(math.isfinite(n) and n >= 0 for n in stages.values())
+            or setup + 1e-6 < math.fsum(stages.values())):
+        raise ValueError("CPU setup total must include all measured stages")
+    if not all(math.isfinite(n) and n > 0 for n in (setup, live)) or setup < live:
+        raise ValueError("invalid CPU sampler timings")
+    for arm in resource["arms"].values():
+        if arm["cpu_training_setup_seconds"] != setup or arm["cpu_live_sampler_allowance_seconds"] != live:
+            raise RuntimeError("full CPU sampler cost omitted or changed")
+        expected = sum(arm[k] for k in ("train_seconds", "complete_evaluation_seconds", "reconstruction_seconds")) + setup + live
+        if not math.isclose(arm["total_seconds"], expected, rel_tol=0, abs_tol=1e-8):
+            raise RuntimeError("complete resource components do not sum to total")
+    return basis
 
 
 def freeze(preparation, resource_proposal, output):
@@ -21,17 +72,19 @@ def freeze(preparation, resource_proposal, output):
             or resource["actual_fixed_endpoint"] != manifest["endpoint"]):
         raise RuntimeError("resource/preparation endpoint binding mismatch")
     I.verify_hashes(preparation, manifest["artifacts"])
+    cpu_cost_basis = verify_sampler_cost(resource, preparation, root)
     endpoint = manifest["endpoint"]
     observed = {"requested_loss_tokens": endpoint["requested_loss_tokens"],
         "full_label_tokens": endpoint["actual_loss_tokens"], "updates": endpoint["updates"],
         "cursor": endpoint["cursor"], "batch_size": endpoint["batch_size"]}
     if observed != R.ENDPOINT:
         raise RuntimeError("fixed endpoint changed")
-    # v1 is retained as historical input; its 35% planning fields are superseded
+    # v1 is retained as historical provenance; its 35% planning fields are superseded
     # by the shared ledger's margin. Copy only the disjoint raw cost components.
     raw_fields = ("train_seconds", "complete_evaluation_seconds", "complete_evaluation_components_seconds",
         "reconstruction_seconds", "checkpoints", "complete_train_dev_passes", "seconds_per_complete_dev_pass",
-        "original_profile_loss_tokens_per_second", "transferred_loss_tokens_per_second")
+        "original_profile_loss_tokens_per_second", "transferred_loss_tokens_per_second",
+        "cpu_training_setup_seconds", "cpu_live_sampler_allowance_seconds")
     p = {"format": R.FORMAT, "status": "frozen_cpu_preparation_no_execution_authorization",
         "modes": list(R.MODES), "objective": "full_sequence", "model_seed": 20261108, "sampler_seed": 20261108,
         "initialization": {"kind": "fresh_random", "parent_checkpoint": None, "seed": 20261108},
@@ -69,8 +122,11 @@ def freeze(preparation, resource_proposal, output):
             "additional_data_logs_export_storage_allowance_bytes": resource["additional_storage_allowance_bytes"],
             "required_free_bytes": 64 * 1024**3, "planning_memory_gib": 12,
             "source_proposal_sha256": D.sha256_file(resource_proposal),
+            "cpu_sampler_measurement": cpu_cost_basis,
             "historical_profile_protocol_sha256": resource["source_measurement_protocol_sha256"],
             "limits": "historical timing transfer, not fresh GPU profiles; CPU preparation outside reservation reported separately; "
+                      "full CPU setup plus cloned endpoint-planning duration as conservative live-sampler proxy; "
+                      "old smaller sampler costs deliberately retained too; no fresh GPU throughput measurement; "
                       "all in-reservation evaluation/recovery costs count; no added profiling optimizer steps; shared 50% watchdog margin retained"}}
     native = Path(__file__).parent
     files = [*native.glob("*.py"), *native.joinpath("independent").glob("*.py"), native / "configs/engineering.json",

@@ -15,11 +15,12 @@ model, losses, sampler and recovery components. Missing bounded mixed allocation
 and capability preparation/scoring are implemented and CPU-tested.
 
 The proposed per-arm endpoint is 40,001,786 loss tokens / 19,862 updates / cursor
-158,896. Complete cost projects to 3.186 h raw, **5.054012 h** with the existing
-reservation's 50% margin and all allowances. The earlier 35% / 4.501 h draft estimate
-is superseded; its historical artifact remains preserved. **Admission is blocked:**
-the complete comparison exceeds the proposed allocation by 0.304012 h and the live
-native balance by 0.200710 h.
+158,896. Complete cost projects to 3.775149 h raw, **5.937724 h** with the existing
+reservation's 50% margin and all allowances. The earlier 35% / 4.501 h and 50%-only / 5.054 h estimates
+are superseded; their historical artifacts remain preserved. The correction includes
+measured full-size CPU setup/planning and a conservative live-sampling allowance. **Admission is blocked:**
+the complete comparison exceeds the proposed allocation by 1.187724 h and the live
+native balance by 1.084422 h.
 The proposed 4.75 h maximum is drawn from the live **4.853301779298153 h remaining**,
 not added to the native cap. No new reservation, research training, inference on
 saved checkpoints, larger-model campaign, shaping or WSP was run in this phase.

@@ -157,16 +157,16 @@ the native cap. A full charge would leave **0.103301779298153 hours**.
 
 The original clean engineering profiles measured 27,355.23 / 27,922.86 / 25,726.43 /
 25,277.47 loss tokens/s for dense/shared/untyped/typed, including sampler/hash/logging
-costs. The projection uses the existing `study.project_arm`, scaling those rates by
+costs. The base projection uses the existing `study.project_arm`, scaling those rates by
 the ratio of new to old loss-bearing occupancy per padded slot (0.98867396). This is
 a transfer estimate, not new throughput measured on the corrected data.
 
-| Mode | Transferred loss tokens/s | Training, checkpoints, periodic dev, endpoint evaluation and replay, seconds |
+| Mode | Base transferred loss tokens/s | CPU setup/sampling, training, checkpoints, periodic dev, endpoint evaluation and replay, seconds |
 |---|---:|---:|
-| Dense | 27,045.40 | 2,818.919 |
-| Shared | 27,606.60 | 2,749.430 |
-| Untyped | 25,435.06 | 2,948.287 |
-| Typed | 24,991.17 | 2,952.991 |
+| Dense | 27,045.40 | 3,349.146 |
+| Shared | 27,606.60 | 3,279.658 |
+| Untyped | 25,435.06 | 3,478.515 |
+| Typed | 24,991.17 | 3,483.219 |
 
 Every arm retains 41 checkpoints (initial, 39 periodic, final) and 20 complete
 periodic/final training-dev passes, each with 32,455 eligible targets. The projection
@@ -179,17 +179,29 @@ Each arm additionally gets explicit **120 s for answer CE/state readouts** and
 **60 s for saved scoring, hashes and logging**. These two entries are allowances,
 not fabricated measurements. No state intervention is budgeted or proposed.
 
-The complete raw comparison is **3.186008 h**. The existing reservation watchdog
-requires **50% margin**, including the **0.15 h common loading, warmup and reserved
-identity/preflight allowance**. Adding **0.05 h shutdown allowance** gives
-**(3.1860077914841516 + 0.15) × 1.5 + 0.05 = 5.054011687226227 h**.
-This supersedes the earlier draft's 35% / 4.501111 h estimate, retained in its
-historical commit and private v1 resource artifact. No fresh profiling optimizer
-steps are proposed. CPU endpoint evaluation and reconstruction occur inside the
-reservation and are charged even when the GPU is idle.
+A CPU-only setup measurement exposed costs omitted from the initial transfer:
+full train/dev sampler construction and cloned endpoint planning take **272.220 s**
+per arm, of which **258.007 s** is clone/planning. The historical profile used
+85,938 train rows; this preparation has 173,894. The existing sampler rebuilds the
+whole row permutation each batch, so occupancy alone does not scale its live cost.
+Add the full **272.220 s setup** plus **258.007 s live-sampler proxy per arm**.
+The latter uses the full clone/planning duration, deliberately retaining clone
+and smaller historical sampler costs as conservatism. The timed CPU sample ran
+alongside the read-only CPU preflight; it is not a fresh GPU throughput measurement.
+No sampler implementation or training exposure changed.
+
+The corrected raw comparison is **3.775149038241958 h**. The existing reservation
+watchdog requires **50% margin**, including the **0.15 h common loading, warmup and
+reserved identity/preflight allowance**. Adding **0.05 h shutdown allowance** gives
+**(3.775149038241958 + 0.15) × 1.5 + 0.05 = 5.937723557362936 h**.
+The 3.186008 h base remains in the calculation. Earlier 35% / 4.501111 h and
+50%-only / 5.054012 h estimates remain preserved as superseded private resource
+versions and source history. No fresh profiling optimizer steps are proposed.
+CPU setup, endpoint evaluation and reconstruction inside the reservation are
+charged even when the GPU is idle.
 
 **Admission fails:** the complete plan exceeds the proposed 4.75 h allocation by
-**0.304011687226227 h**, and the live native balance by **0.200709907928074 h**.
+**1.187723557362936 h**, and the live native balance by **1.084421778064783 h**.
 The runner returns `blocked_budget` without claiming an output or reserving the GPU.
 No control, endpoint or evaluation is reduced, and no cap is expanded. The owner
 must resolve this shortfall in a separately reviewed work order before execution.
@@ -202,9 +214,11 @@ recovery bookkeeping, and require at least 64 GiB free before execution. Model
 memory planning uses a conservative 12 GiB allowance; this is not a new measured
 peak. Old measured memory/cost values in `REPORT.md` remain historical.
 
-Actual work so far: **318.525 s of CPU-side preparation wall time and zero GPU-
-reservation hours**. Saved-array audits, tests and review time are separate CPU
-work. Neither this projection nor a passing CPU test is an executed learning result.
+Actual CPU work includes **318.525 s preparation**, **272.220 s sampler measurement**
+and **226.078 s first real read-only preflight**, all outside a reservation. The first
+preflight passed identity/endpoint/environment checks and returned `blocked_budget`;
+its protocol remains preserved. GPU-reservation cost is **zero**. Saved-array audits,
+tests, freeze/review and the revised final preflight are recorded separately. Neither this projection nor a passing CPU test is an executed learning result.
 
 ## Runnable CPU preparation and missing-piece tests
 
@@ -228,9 +242,11 @@ document-local positions, auxiliary target isolation, independent capability row
 fixed continuation bounds, missing/malformed output denominators, duplicate ids,
 gold-field rejection at inference and refusal to overwrite preparation.
 
-Locally run with the pinned environment and CUDA hidden: **458 native CPU tests
-passed in 21.19 s**, including 11 mixed-preparation/evaluation and 35 execution-binding
-cases. The earlier preparation checkpoint passed 423 tests in 19.22 s. The release
+Locally run with the pinned environment and CUDA hidden: **469 native CPU tests
+passed in 20.66 s**, including 11 mixed-preparation/evaluation and 46 execution/resource
+binding cases. Resource fixtures reject changed source/order/endpoint, omitted or
+nonfinite stage timings, understated totals and omitted sampler costs. Earlier
+preparation checkpoints passed 423 and 458 tests. The release
 check passed. Endpoint adapter tests use CPU fixtures and preserve incomplete
 capability or register evaluations explicitly. Existing tiny synthetic regression
 training tests are engineering fixtures; no research training or saved-checkpoint
@@ -288,7 +304,7 @@ every attempt. Duplicate comparison admission must fail closed. If the complete
 remaining comparison no longer fits, stop and request a revised owner work order;
 do not cut the endpoint or omit a control. Reporting must list every arm and all
 populations, including missing/failed arms, and preserve strict numerical failures.
-Only the fixed final checkpoint is selected. Private binding, read-only preflight,
+Only the fixed final checkpoint is selected. Versioned private bindings, read-only preflights,
 review and exact-head CI records accompany the draft PR before owner consideration.
 
 No GPU launch, larger-model campaign, shaping, WSP or automatic merge is authorized.

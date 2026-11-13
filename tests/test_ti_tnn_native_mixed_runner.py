@@ -266,3 +266,39 @@ def test_read_only_preflight_enforces_frozen_identities(tmp_path,monkeypatch,att
     else:
         with pytest.raises((RuntimeError,ValueError)):R.preflight(protocol,tokenizer,digest)
     assert not Path(p['execution']['output']).exists()
+
+
+@pytest.mark.parametrize('attack',[None,'artifact','source','endpoint','omitted','understated','nonfinite','order','lineage','short_total','missing_stage'])
+def test_freeze_requires_full_cpu_sampler_projection(tmp_path,monkeypatch,attack):
+    from native import freeze_mixed_learning as F
+    data=tmp_path/'data';data.mkdir()
+    R.write_json(data/'manifest.json',{'endpoint':{'data_identity':'train','order_identity':'order'}})
+    files={}
+    for name in ('train.py','sampler.py'):
+        relative='research/ti_tnn/native/'+name
+        path=tmp_path/relative;path.parent.mkdir(parents=True,exist_ok=True);path.write_text('CPU fixture')
+        files[relative]=D.sha256_file(path)
+    m={'preparation_sha256':D.sha256_file(data/'manifest.json'),'total_seconds':12.,
+       'timings':{'clone_and_endpoint_planning_seconds':8.,'dataset_load_and_checks_seconds':1.,
+                  'train_sampler_seconds':2.,'dev_sampler_seconds':1.},'endpoint':{'updates':19862,'loss_tokens':40001786},
+       'identities':{'train':'train','order':'order'},'source_commit':'a'*40}
+    monkeypatch.setattr(F.subprocess,'check_output',lambda *a,**kw:b'changed historical source' if attack=='lineage' else b'CPU fixture')
+    if attack=='endpoint':m['endpoint']['updates']=1
+    if attack=='nonfinite':m['total_seconds']=float('inf')
+    if attack=='order':m['identities']['order']='another order'
+    if attack=='short_total':m['total_seconds']=8.
+    if attack=='missing_stage':m['timings'].pop('dev_sampler_seconds')
+    measured=tmp_path/'timing.json'
+    measured.write_text(json.dumps(m))
+    resource={'cpu_sampler_measurement':{'path':str(measured),'sha256':D.sha256_file(measured),'source_files':files},
+        'arms':{mode:{'train_seconds':20.,'complete_evaluation_seconds':2.,'reconstruction_seconds':1.,
+            'cpu_training_setup_seconds':12.,'cpu_live_sampler_allowance_seconds':8.,'total_seconds':43.} for mode in R.MODES}}
+    if attack=='artifact':measured.write_text('{}')
+    elif attack=='source':(tmp_path/'research/ti_tnn/native/sampler.py').write_text('changed')
+    elif attack=='omitted':resource['arms']['shared']['cpu_live_sampler_allowance_seconds']=0
+    elif attack=='understated':resource['arms']['typed']['total_seconds']=23.
+    elif attack=='short_total':
+        for a in resource['arms'].values():a['cpu_training_setup_seconds']=8.;a['total_seconds']=39.
+    if attack is None:assert F.verify_sampler_cost(resource,data,tmp_path)==resource['cpu_sampler_measurement']
+    else:
+        with pytest.raises((ValueError,RuntimeError)):F.verify_sampler_cost(resource,data,tmp_path)
