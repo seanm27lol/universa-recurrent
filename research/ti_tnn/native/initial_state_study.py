@@ -12,7 +12,7 @@ from pathlib import Path
 import random
 
 from . import structured as S
-from .independent.dependency_diagnostic import analyze_program
+from .independent.dependency_diagnostic import analyze_program, composition_contract
 from .independent.rescore_generations import execute_saved_program
 
 CONDITIONS = ("repeat_one", "multi_state")
@@ -49,7 +49,7 @@ def read_history(paths):
 
 
 def generate(history, *, seed=2026111201, composed_patterns=192, states_per_pattern=8,
-             evaluation_count=128):
+             evaluation_count=128, composition_version=2):
     """Generate a bounded pair and disjoint evaluation sets with identical treatments.
 
     All 64 atomic instructions are training patterns: 16 set instructions (four
@@ -144,6 +144,27 @@ def generate(history, *, seed=2026111201, composed_patterns=192, states_per_patt
                              for _ in range(evaluation_count)]
     common["longer"] = [fresh_example(novel_program((6, 8)), split="longer_length")
                         for _ in range(evaluation_count)]
+    # Preserve the v1 draw stream in full, including the later length holdout.
+    # Repair only rejected composition examples using a purpose-tagged stream;
+    # no model outcomes enter this operation. Version 1 remains reproducible.
+    if composition_version not in (1, 2):
+        raise ValueError("unknown composition contract")
+    original = list(common["composition"])
+    old_contracts = [composition_contract(pattern_key(e.program), e.initial) for e in original]
+    if composition_version == 2:
+        rng = random.Random(f"{seed}:composition-contract-v2")
+        for index, contract in enumerate(old_contracts):
+            if contract["eligible"]:
+                continue
+            for _ in range(20000):
+                candidate = fresh_example(novel_program((2, 4), True), split="unseen_composition")
+                if composition_contract(pattern_key(candidate.program), candidate.initial)["eligible"]:
+                    common["composition"][index] = candidate
+                    break
+            else:
+                raise RuntimeError("bounded composition repair exhausted")
+    witnesses = [{"example_id": e.example_id, **composition_contract(pattern_key(e.program), e.initial)}
+                 for e in common["composition"]]
     evaluations = {}
     for condition in CONDITIONS:
         evaluations[condition] = {**common, "train_sample": [
@@ -151,6 +172,14 @@ def generate(history, *, seed=2026111201, composed_patterns=192, states_per_patt
     return {"training": training, "evaluations": evaluations,
             "patterns": [list(pattern_key(p)) for p in patterns], "slots": slots,
             "seed": seed, "states_per_pattern": states_per_pattern,
+            "composition_version": composition_version, "composition_witnesses": witnesses,
+            "composition_revision": {
+                "original_count": len(original),
+                "constant_multiplication_count": sum(not c["multiplication_functional_initial_registers"] for c in old_contracts),
+                "no_actual_initial_witness_count": sum(not c["witness"]["designated_target_changes"] for c in old_contracts),
+                "original_eligible_count": sum(c["eligible"] for c in old_contracts),
+                "replacements": [{"index": i, "old_example_id": old.example_id, "new_example_id": new.example_id}
+                                 for i, (old, new) in enumerate(zip(original, common["composition"])) if old != new]},
             "historical_sha256": history["sha256"],
             "unique_history_pairs": len(history["pairs"]),
             "distinct_target_counts": [len({e.target_text for e in group}) for group in states]}
@@ -211,6 +240,13 @@ def audit(dataset, history):
                             or len(example.program) - 2 not in dependency["relevant_instructions"]
                             or not dependency["depends_on_initial"]):
                         raise ValueError("reserved dependency does not survive to a target")
+                    if dataset.get("composition_version") == 2:
+                        contract = composition_contract(pattern_key(example.program), example.initial)
+                        if not contract["eligible"]:
+                            raise ValueError("composition lacks functional multiplication or actual-state ablation witness")
+                        recorded = {w["example_id"]: w for w in dataset["composition_witnesses"]}
+                        if recorded.get(example.example_id) != {"example_id": example.example_id, **contract}:
+                            raise ValueError("composition witness mismatch")
             if name in ("dev", "composition", "longer"):
                 if any(pattern_key(e.program) in patterns | history["patterns"] for e in examples):
                     raise ValueError("novel-program holdout contains an old pattern")

@@ -1,5 +1,19 @@
 # Claim ledger
 
+## Native initial-state composition contract and runner (2026-11-13)
+
+See the revised [protocol](../research/ti_tnn/native/INITIAL_STATE_STUDY.md) and
+[independent review](../research/ti_tnn/native/INITIAL_STATE_REVIEW.md).
+
+| Claim | Status | Evidence and boundary |
+|---|---|---|
+| A multiplication read path plus final initial dependence guarantees an effective multiplication | False | The zeroed-multiplication counterexample passes v1. V2 requires functional dependence of multiplication output plus an actual-initial skip-write target witness; independent exhaustive checks pass for all 128 revised examples |
+| Revised composition selection changes the main one-state/eight-state treatment | False | 102 composition examples retained, 26 replaced; training and all other evaluation populations byte-preserved, original preparation identity retained, endpoint/objective/seeds fixed |
+| Better register scores necessarily mean better value-changing transitions | Not inferred | Saved #79 scores now separate changed from preserved reference values, retaining malformed denominators and every previous score. These are task categories, not mechanisms |
+| The eight-arm runner enforces a bounded cumulative comparison | CPU fixture-tested and independently reviewed | Exact source/data/model/sampler binding; fixed endpoints; explicit authorization; failed/missing arms incomplete; prior charges retained; duplicate claims rejected. Uses existing reservation/checkpoint machinery, no new scheduler |
+| Four proposed hours increase the native budget | False | Approximately 2.515 h projected, four-hour maximum including margin/recovery drawn from the existing 12-hour native cap. No execution authorized or launched |
+| Multiple initial states improve learned transitions or composition | Still proposed, untested | No study training or checkpoint inference. Complete-answer development screen unchanged; changed/unchanged metrics are descriptive |
+
 ## Native TI-TNN CPU takeover and initial-state proposal (2026-11-12)
 
 The [current state](../research/ti_tnn/native/CURRENT_STATE.md),

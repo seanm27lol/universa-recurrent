@@ -12,6 +12,7 @@ import numpy as np
 from . import data as D
 from . import initial_state_study as study
 from .prepare_program_study import _audit_packed_split
+from .answer_analysis import build_split_answer_masks, _write_new_array
 
 MODES = ("dense", "shared", "untyped", "typed")
 EPOCHS = 16
@@ -64,7 +65,8 @@ def resource_projection(endpoint, evaluation_count, bundle, preprocessing_second
         "checkpoints": checkpoints * checkpoint_rate,
         "generation_CE_state_readout": len(study.POPULATIONS) * evaluation_count * eval_rate,
         "answer_component_diagnostics": diagnostics,
-        "independent_scoring_and_dependency_checks": 5.0,
+        "independent_scoring_and_dependency_checks": 10.0,
+        "identity_and_checkpoint_revalidation": 10.0,
         "bounded_CPU_FP32_reconstruction": 10.0,
     }
     # No new shared-arm measurement exists; do not invent one. Use the slowest
@@ -103,7 +105,8 @@ def resource_projection(endpoint, evaluation_count, bundle, preprocessing_second
 
 
 def prepare(output, tokenizer_path, history_paths, reference_bundle, *, seed=2026111201,
-            composed_patterns=192, states_per_pattern=8, evaluation_count=128):
+            composed_patterns=192, states_per_pattern=8, evaluation_count=128,
+            previous_preparation=None, execution_output=None):
     started = time.perf_counter()
     output = Path(output).resolve()
     if output.exists():
@@ -130,6 +133,24 @@ def prepare(output, tokenizer_path, history_paths, reference_bundle, *, seed=202
             # dev/ makes each condition usable by the existing native trainer.
             directory = root / "dev" if population == "dev" else root / "evaluation_arrays" / population
             packing[condition][population], _ = pack(examples, tokenizer, directory)
+            consumed = [json.loads(line) for line in (directory / "documents.jsonl").read_text().splitlines()]
+            masks, _ = build_split_answer_masks(D.PackedDataset(directory), consumed,
+                                                [e.to_record() for e in examples], tokenizer, split=population)
+            for name, mask in masks.items():
+                _write_new_array(root / "answer_masks" / population, name, mask)
+        # Fixed bounded cache/reload parity inputs; never a substitute for the
+        # complete-prompt 128-example generation populations.
+        replay_examples = dataset["evaluations"][condition]["dev"][:2]
+        ids = [tokenizer.encode(e.prompt).ids[:16] for e in replay_examples]
+        D._atomic_json(root / "replay.json", {
+            "format": "native-reconstruction-replay-v1",
+            "teacher_forced": {"input_ids": ids, "labels": [[-100, *row[1:]] for row in ids],
+                               "positions": [list(range(16)) for _ in ids],
+                               "doc_ids": [[0] * 16 for _ in ids], "key_padding_mask": [[False] * 16 for _ in ids],
+                               "source_ids": [[1] * 16 for _ in ids]},
+            "generation_prompts": [{"example_id": e.example_id, "input_ids": tokenizer.encode(e.prompt).ids,
+                                    "positions": list(range(len(tokenizer.encode(e.prompt).ids)))} for e in replay_examples],
+            "max_new_tokens": 4, "eos_token_id": D.EOS_TOKEN_ID})
         lookup = {e.prompt: e.target_text for e in dataset["training"][condition]}
         baselines = {}
         for name, examples in dataset["evaluations"][condition].items():
@@ -171,7 +192,7 @@ def prepare(output, tokenizer_path, history_paths, reference_bundle, *, seed=202
     projection = resource_projection(endpoint, evaluation_count, reference_bundle, time.perf_counter() - started)
     root = Path(__file__).parent
     protocol = {
-        "format": "native-initial-state-preparation-v1", "status": "prepared_not_authorized_or_launched",
+        "format": "native-initial-state-preparation-v2", "status": "prepared_not_authorized_or_launched",
         "training_launched": False, "optimizer_updates_performed": 0, "reservation_created": False,
         "data_seed": seed, "model_seed": 2026111202, "sampler_seed": 2026111203,
         "conditions": list(study.CONDITIONS), "modes": list(MODES),
@@ -199,6 +220,42 @@ def prepare(output, tokenizer_path, history_paths, reference_bundle, *, seed=202
     }
     D._atomic_json(output / "pattern_plan.json", {k: dataset[k] for k in
                                                  ("patterns", "slots", "distinct_target_counts")})
+    D._atomic_json(output / "composition_revision.json", dataset["composition_revision"])
+    D._atomic_jsonl(output / "composition_witnesses.jsonl", dataset["composition_witnesses"])
+    protocol["composition_contract"] = "v2: functional multiply output plus skip-write witness at actual initial vector"
+    if previous_preparation is not None:
+        previous = Path(previous_preparation).resolve()
+        old = json.loads((previous / "protocol.json").read_text())
+        if old["format"] != "native-initial-state-preparation-v1" or old["endpoint_per_run"] != endpoint:
+            raise ValueError("revision must preserve the original preparation endpoint")
+        preserved = []
+        for name, digest in old["artifact_sha256"].items():
+            if D.sha256_file(previous / name) != digest:
+                raise ValueError("previous preparation identity changed")
+            parts = Path(name).parts
+            if "composition" in parts or name.endswith("/composition.jsonl") or name.endswith(("/baselines.json", "/manifest.json")):
+                continue
+            if D.sha256_file(output / name) != digest:
+                raise ValueError(f"noncomposition artifact changed: {name}")
+            preserved.append(name)
+        for condition in study.CONDITIONS:
+            for filename, field in (("baselines.json", "populations"), ("manifest.json", "splits")):
+                left = json.loads((previous / condition / filename).read_text())[field]
+                right = json.loads((output / condition / filename).read_text())[field]
+                if {k: v for k, v in left.items() if k != "composition"} != {k: v for k, v in right.items() if k != "composition"}:
+                    raise ValueError("noncomposition metadata changed")
+        protocol["supersedes_preparation"] = {"protocol_sha256": D.sha256_file(previous / "protocol.json"),
+                                               "preserved_artifacts": preserved,
+                                               "scope": "only composition population changes; new masks, witnesses and runner bindings"}
+    if execution_output is not None:
+        if (seed, composed_patterns, states_per_pattern, evaluation_count) != (2026111201, 192, 8, 128):
+            raise ValueError("launch binding requires the registered data size and seed")
+        if previous_preparation is None:
+            raise ValueError("launch binding requires the preserved v1 preparation")
+        from .run_initial_state_study import freeze_execution
+        protocol["execution"] = freeze_execution(protocol, output, execution_output)
+    protocol["resource_projection"] = resource_projection(
+        endpoint, evaluation_count, reference_bundle, time.perf_counter() - started)
     protocol["artifact_sha256"] = {str(p.relative_to(output)): D.sha256_file(p)
                                    for p in sorted(output.rglob("*")) if p.is_file()}
     D._atomic_json(output / "protocol.json", protocol)
@@ -211,9 +268,12 @@ def main():
     parser.add_argument("--tokenizer", required=True)
     parser.add_argument("--history-inventory", required=True, help="private JSON with explicit files list")
     parser.add_argument("--reference-bundle", required=True)
+    parser.add_argument("--previous-preparation", required=True)
+    parser.add_argument("--execution-output", required=True, help="one canonical future comparison path; not created")
     args = parser.parse_args()
     files = json.loads(Path(args.history_inventory).read_text())["files"]
-    protocol = prepare(args.output, args.tokenizer, files, args.reference_bundle)
+    protocol = prepare(args.output, args.tokenizer, files, args.reference_bundle,
+                       previous_preparation=args.previous_preparation, execution_output=args.execution_output)
     print(json.dumps({"status": protocol["status"], "endpoint": protocol["endpoint_per_run"],
                       "invariants": protocol["invariants"], "resource_projection": protocol["resource_projection"]}))
 

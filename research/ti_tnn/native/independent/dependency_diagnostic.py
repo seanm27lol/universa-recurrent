@@ -127,6 +127,56 @@ def analyze_program(program: tuple[str, ...]) -> tuple[dict, ...]:
     return tuple(result)
 
 
+def composition_contract(program, initial):
+    """Reference-only v2 contract for the terminal multiply → add holdout.
+
+    The multiplication's value must be nonconstant over the full initial domain
+    {0,...,31}**4. Its declared ablation skips that write, retaining its old
+    destination value; every other instruction executes normally. The example's
+    actual initial vector must witness a change in the designated final add's
+    destination. This is a task-selection intervention, never model inference.
+    """
+    program = tuple(program)
+    nodes, roots, _ = _graph(program)
+    index = len(program) - 2
+    if index < 0 or nodes[index + 4][0] != "multiply" or nodes[-1][0] != "add":
+        raise ScoringError("composition requires terminal multiply then add")
+    multiply_dst = int(INSTRUCTION.fullmatch(program[index]).group(2))
+    target = int(INSTRUCTION.fullmatch(program[-1]).group(2))
+    if target == multiply_dst or int(INSTRUCTION.fullmatch(program[-1]).group(3)) != multiply_dst:
+        raise ScoringError("final add must read multiplication into a distinct target")
+    if len(initial) != 4 or any(type(v) is not int or not 0 <= v < 32 for v in initial):
+        raise ScoringError("invalid composition initial vector")
+    support = _functional_support(nodes, index + 4,
+                                  sorted(n for n in _ancestors(nodes, index + 4) if n < 4))
+
+    def execute(skip):
+        state = list(initial)
+        for step, text in enumerate(program):
+            op, dst, src, value = INSTRUCTION.fullmatch(text).groups()
+            dst = int(dst)
+            if step == skip:
+                continue
+            if op == "set":
+                state[dst] = int(value)
+            elif op == "copy":
+                state[dst] = state[int(src)]
+            elif op == "add":
+                state[dst] = (state[dst] + state[int(src)]) % 32
+            else:
+                state[dst] = state[dst] * state[int(src)] % 32
+        return state
+
+    ordinary, ablated = execute(None), execute(index)
+    changed = ordinary[target] != ablated[target]
+    return {"contract": "composition-v2", "eligible": bool(support) and changed,
+            "multiplication_index": index, "multiplication_functional_initial_registers": support,
+            "ablation": "skip_multiplication_write_retain_previous_destination",
+            "designated_final_target": target,
+            "witness": {"initial": list(initial), "ordinary_final": ordinary,
+                        "ablated_final": ablated, "designated_target_changes": changed}}
+
+
 def _counts(rows):
     total = len(rows)
     valid = sum(row["valid"] for row in rows)
@@ -167,6 +217,7 @@ def score_population(saved, source, *, expected_count=None):
         for index, dependency in enumerate(dependencies):
             targets.append({**dependency, "example_id": record["example_id"],
                             "valid": valid, "correct": valid and actual[index] == expected[index],
+                            "changed_from_initial": expected[index] != example["initial"][index],
                             "answer_correct": exact})
     report = {
         "complete_answers": _counts(answers),
@@ -174,6 +225,12 @@ def score_population(saved, source, *, expected_count=None):
         "truncated": sum(bool(r.get("truncated")) for r in saved),
         "registers": _counts(targets),
         "per_register": {str(i): _counts([r for r in targets if r["register"] == i]) for i in range(4)},
+        "by_value_change": {name: _counts([r for r in targets if r["changed_from_initial"] == changed])
+                            for name, changed in (("changed", True), ("unchanged", False))},
+        "per_register_by_value_change": {
+            str(i): {name: _counts([r for r in targets if r["register"] == i
+                                   and r["changed_from_initial"] == changed])
+                     for name, changed in (("changed", True), ("unchanged", False))} for i in range(4)},
         "by_final_write": {op: _counts([r for r in targets if r["final_write"] == op]) for op in WRITES},
         "by_initial_dependence": _group(targets, "depends_on_initial"),
         "by_dependency_depth": _group(targets, "dependency_depth"),
@@ -210,7 +267,7 @@ def analyze_bundle(bundle, output):
                 raise ScoringError("duplicate source or split mismatch")
             execute_saved_program(record)
             source[record["example_id"]] = record
-    report = {"format": "native-saved-dependency-v1", "populations": {}, "input_sha256": input_hashes,
+    report = {"format": "native-saved-dependency-v2", "populations": {}, "input_sha256": input_hashes,
               "scope": "primary saved #79 outputs only; 128 examples/512 register positions per child/split",
               "excluded": "180 supplemental and 960 intervened outputs; reused selected baselines are not additional observations",
               "interpretation": "reference task categories, not neural mechanisms or fresh confirmation"}

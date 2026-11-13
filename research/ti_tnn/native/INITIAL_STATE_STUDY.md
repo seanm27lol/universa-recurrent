@@ -5,7 +5,7 @@ answer. Seeing that same instruction with eight different vectors requires
 different answers. The proposed experiment changes that diversity while keeping
 the program patterns and training exposure fixed.
 
-**Prepared and CPU-tested; not authorized or launched.** This is a new development
+**Composition contract v2, with a CPU-tested bounded runner; not authorized or launched.** This is a new development
 experiment with fresh random weights, not an extension of any completed #79 child.
 Its diagnostic basis is the [saved-output analysis](DEPENDENCY_DIAGNOSTIC.md):
 even untouched high-valued registers fail, while deeper dependencies perform
@@ -75,13 +75,46 @@ counts are not 128 independent program-pattern replications.
 | `program_values_id` | 64 training composed patterns × two fresh low states; value transfer with familiar compositions |
 | `program_values_ood` | The same 64 composed patterns × two fresh high states |
 | `dev` | 128 new length-2–4 composed patterns, low states, excluding reserved adjacency |
-| `composition` | 128 new length-2–4 patterns ending in multiply then add; the add reads the multiply's destination, and that write survives in a final target with nonempty functional initial support |
+| `composition` | 128 new length-2–4 patterns ending in multiply then add; multiplication output has functional initial support and the actual initial state witnesses a change in the final add target when multiplication is skipped |
 | `longer` | 128 new length-6–8 patterns, low states, excluding reserved adjacency; length extrapolation diagnostic |
 
 The reserved adjacent multiply→add pair is absent from all other populations.
-Unlike #78/#79's adjacency-only holdout, the new composition population requires
-an actual surviving reference read dependency. This remains a structural task
-restriction; it does not show that a trained model composes operations.
+Composition contract v2 corrects a limitation in v1. For example,
+`set r0 0; multiply r0 r1; add r2 r0` has a multiplication in the final read
+graph and a final `r2` that depends on its initial value, yet skipping that
+multiplication never changes the answer. A reference read path alone is insufficient.
+
+For a program `P`, let `i` be the index of its penultimate multiplication, `M_i(x)`
+its written value at initial vector `x`, and `j` the distinct destination of the
+terminal add that reads this multiplication. All arithmetic is modulo 32 and
+`x` ranges over `{0,...,31}^4`. Require both:
+
+1. **Functional multiplication output:** there exist `x` and `x'` differing in
+   one initial coordinate with `M_i(x) != M_i(x')`. Exhaustive finite-domain
+   evaluation checks this, including zero annihilation and modular cancellation.
+2. **Actual-state ablation witness:** at the example's recorded initial vector
+   `x*`, `F_P(x*)[j] != F_skip_i(P)(x*)[j]`. The ablation skips only multiplication
+   write `i`, retaining that destination's previous value, and executes every
+   other instruction normally. Record the initial vector, both complete reference
+   final vectors, index `i`, target `j`, and functional initial support.
+
+The witness uses the selected example's initial state, not a different convenient
+state. This separately rejects a nonconstant but identity multiplication such as
+`set r1 1; multiply r0 r1; add r2 r0`, and a normally effective multiplication
+that happens to have no effect at the chosen state. These are reference-program
+interventions used only for selection, not neural interventions or WSP.
+
+Audit of the preserved v1 population found 6/128 constant multiplication outputs,
+21/128 without an actual-state witness, and 26/128 failing their union. Independent
+exhaustive checking also found one globally ineffective skip-write multiplication.
+V2 retains 102 examples and replaces 26 using a purpose-tagged deterministic RNG
+stream derived from the unchanged data seed, after all original populations have
+been drawn. It retains 128 observations; no model performance enters selection.
+The same revised composition population serves both conditions. All training and
+noncomposition artifacts, pattern order, seeds, objective, and endpoint are unchanged.
+An independent checker exhaustively verified all 128 revised examples and every
+recorded witness. This establishes task selection, not neural composition.
+
 High values are held out **as initial values**; 24–31 may occur in set constants
 and intermediate/final values during training.
 
@@ -106,6 +139,7 @@ example ID and prompt. The symbolic executor is used in data construction and
 independent post-generation scoring; it is never an inference component.
 
 Report complete exact answers, all-register and valid-only register accuracy,
+changed-register versus unchanged-register accuracy (also per register),
 format validity, EOS/truncation, final-write/dependency strata, numeric-value CE,
 formatting/EOS CE, and separate state readouts. Free generation and teacher-forced
 CE must remain distinct. Malformed strings fail all four register positions;
@@ -130,7 +164,8 @@ hashes and a draft protocol. It has **no execute or reservation option**.
 CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=research/ti_tnn \
   "$PY" -m native.prepare_initial_state_study \
   --output "$NEW_PREPARATION" --tokenizer "$TOKENIZER" \
-  --history-inventory "$PRIVATE_HISTORY_JSON" --reference-bundle "$BUNDLE"
+  --history-inventory "$PRIVATE_HISTORY_JSON" --reference-bundle "$BUNDLE" \
+  --previous-preparation "$PRESERVED_V1" --execution-output "$CANONICAL_FUTURE_RUN"
 ```
 
 `PRIVATE_HISTORY_JSON` contains `{"files": ["/explicit/structured/source.jsonl", ...]}`.
@@ -153,7 +188,7 @@ duplicate or wrong-target predictions and never imports the producer's executor
 or model. Synthetic tests exercise malformed predictions and known correct answers;
 they are construction checks, not neural performance.
 
-The full pinned-tokenizer build was performed locally. Both treatments have 711
+The original v1 pinned-tokenizer build was performed locally and remains preserved. Both treatments have 711
 packed train rows, 163,960 input tokens, 161,912 full-loss tokens and 18,056 padding
 tokens per epoch. No example was split, dropped or truncated. The actual paired
 position/document/padding/source/route arrays and state masks agree exactly.
@@ -163,11 +198,18 @@ All 263 prepared artifact hashes and 15 source hashes were checked. Preparation
 used about 5.13 CPU seconds before final protocol/hash bookkeeping and occupies
 about 50.2 MB. No optimizer update or neural generation was run for this preparation.
 
-Local protocol SHA256:
+Preserved v1 protocol SHA256:
 `5e2524b8c7f54b08533fdce501e710b48f0fe23127a6493d9a877b5727cf802f`.
-The protocol binds source files individually; the reviewed PR commit must also be
-frozen before execution. Timed CPU preparation makes a fresh manifest's whole-file
-hash differ, while the deterministic data and fixed endpoint remain reproducible.
+V2 emits a new protocol and output directory. Its preview contains 321 artifacts,
+including composition witnesses, fixed replay inputs and evaluation-only answer
+masks. The revision checks every old artifact against its recorded hash and verifies
+233 old artifact files byte-for-byte; the other 30 old files change only for
+composition or aggregate composition metadata. The final protocol additionally
+binds the exact clean source commit, native/scaling source hashes, root dependency
+lock, all 58 installed pins, tokenizer, canonical output directory, and all eight
+complete training configurations (including source/data/model/sampler identities).
+The final protocol hash and exact local command are in the private owner handoff.
+Timing fields make protocol file hashes vary on a new build; data stay deterministic.
 
 ## Endpoint, decision and recovery
 
@@ -195,14 +237,43 @@ advantage is inferred from dense-versus-MoE alone. High-value and longer results
 are separate diagnostics and cannot be pooled to manufacture a pass. These small,
 single-seed comparisons need later fresh-data/multiple-seed work for stronger claims.
 
-Use the existing journal/sampler recovery machinery and bounded reservation runner
-after a separately reviewed integration for this protocol. The historical
-`run_program_study` and `run_continuation` entry points have frozen incompatible
-contracts; **do not relax those contracts or launch this preparation through them**.
-The deliverable here is data/evaluation preparation, not a new scheduler or a
-launch-ready runner. Before any execution, bind the new protocol to the existing
-reservation/recovery mechanism, test its dry-run and cumulative failure accounting,
-and obtain explicit owner authorization for that concrete source/protocol pair.
+[`run_initial_state_study.py`](run_initial_state_study.py) binds this protocol to
+`native.ledger.Reservation`, `native.train`, and the existing checkpoint journal.
+The historical `run_program_study` and `run_continuation` contracts are unchanged.
+The default dry run validates source, installed pins, all data, and eight sampler
+endpoints, then reads the live anchored ledger. It creates no reservation, training
+output, claim, or lock. There is no new scheduler or watchdog.
+
+```bash
+# Read-only dry run. Values come from the private frozen owner handoff.
+PYTHONPATH=research/ti_tnn "$PY" -m native.run_initial_state_study \
+  --preparation "$PREP" --tokenizer "$TOKENIZER" \
+  --expected-protocol-sha256 "$PROTOCOL_SHA256"
+# Only after separate explicit owner approval, append:
+# --execute --authorize-hours 4
+# A later explicitly requested recovery also requires --resume.
+```
+
+The canonical comparison directory is claimed once and locked exclusively.
+Alternative protocol/output identities with the same study ID are rejected against
+the ledger. A duplicate launch is refused; explicit resume validates completed
+artifacts before skipping them. Completion is rechecked under the lock. All eight
+arms must have the exact final endpoint and all nine complete evaluations before
+the unchanged development screen can run. Failed/missing arms remain incomplete.
+
+This study's checkpoint configuration has a stable owner binding; reservation
+attempt IDs remain in logs/results/ledger without changing checkpoint identity.
+An interrupted final-checkpoint/result-write gap adopts the validated journaled
+final descriptor without training or regenerating the checkpoint. An unjournaled
+or invalid final fails closed. Failed evaluations get a new attempt directory;
+prior outputs remain intact and completed training is reused.
+
+The evaluator reuses existing prompt-only neural generation, full-population
+answer-component CE, supervised state readout, and CPU FP32 reconstruction APIs.
+Its fixed replay checks two 16-token teacher-forced prefixes and two complete
+prompts with four generated tokens. Scale-based agreement and exact route/token
+checks remain bounded; strict-allclose failures stay in the report. This is not
+BF16-serving equivalence or a new scientific replication.
 
 Resume only from a hash-validated checkpoint with identical source, data, model,
 optimizer, scheduler, RNG and sampler identities. Never reset the cumulative ledger
@@ -230,22 +301,30 @@ combined generation/CE/state cost is not artificially separated into invented ti
 | Four checkpoint writes | 5.819 | 7.274 |
 | Generation + selected CE + state readout | 616.610 | 770.763 |
 | Answer component diagnostics | 66.690 | 83.363 |
-| Independent scoring/dependencies allowance | 5.000 | 6.250 |
+| Independent scoring/dependencies allowance | 10.000 | 12.500 |
+| Source/data/checkpoint identity revalidation allowance | 10.000 | 12.500 |
 | Bounded CPU FP32 reconstruction allowance | 10.000 | 12.500 |
-| Total | **1,042.077** | **1,302.597** |
+| Total | **1,057.077** | **1,321.347** |
 
 No comparable new shared-arm timing exists. Its estimate is explicitly a slowest-arm
 proxy plus 25%, not a measured rate. All modes still receive the same endpoint.
 Across two conditions, plus measured preprocessing and 60 s launch/final
-hash/export allowance, projection is **2.478551 hours**. A 1.5× watchdog margin is
-3.717826 hours; adding 0.05 h shutdown allowance gives 3.767826 hours. The rounded
+hash/export allowance, the v2 preview projection is **2.514792 hours**, including 8.09 s measured CPU
+preparation. A 1.5× watchdog margin is 3.772187 hours; adding 0.05 h shutdown
+allowance gives 3.822187 hours. Final measured preparation time is bound in the
+final protocol and changes these estimates slightly. The rounded
 **proposal is a 4.0-hour maximum**, covering all eight runs and recovery. CPU
 evaluation remains charged whenever the GPU reservation is held. Preprocessing
 performed before reservation is reported separately but conservatively included
-in this projection. The watchdog is bounded additionally by the live cumulative cap.
+in this projection. Before admission and again under the shared GPU lock, require prior comparison
+charges + 1.5× remaining complete-arm projection + 0.05 h <= 4 h, and require
+the new margin/shutdown allowance to fit the live native remainder. An unfinished
+arm is conservatively budgeted at its full cost on recovery. Open comparison
+reservations require owner reconciliation; no synthetic end event is written.
+The existing watchdog is bounded additionally by the live cumulative cap.
 
-At takeover, 5.778688 native hours remain. A separately approved 4-hour maximum
-would leave at least 1.778688 hours if no other usage intervenes. This is not an
+At takeover, 5.778688 native hours remain. The proposed four hours are **drawn from the existing 12-hour native cap**, never
+added to it. A separately approved 4-hour maximum would leave at least 1.778688 hours if no other usage intervenes. This is not an
 authorization or an assurance of runtime. Re-read the live ledger before any launch.
 Budget exhaustion or an unexpectedly slow shared arm is preserved as an incomplete
 result; do not spend the remainder automatically.

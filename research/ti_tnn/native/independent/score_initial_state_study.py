@@ -41,7 +41,8 @@ def score(source_path, predictions_path, output):
             for r in predictions]
     noop_report, _ = score_population(noop, source)
     report["no_op_baseline"] = {key: noop_report[key] for key in
-                                ("complete_answers", "registers", "per_register")}
+                                ("complete_answers", "registers", "per_register", "by_value_change",
+                                 "per_register_by_value_change")}
     report["source_sha256"] = hashlib.sha256(raw_source).hexdigest()
     report["predictions_sha256"] = hashlib.sha256(raw_predictions).hexdigest()
     report["scope"] = "saved text only; no training, generation, teacher-forced CE or mechanism claim"

@@ -1067,6 +1067,75 @@ def _training_dataset(args: argparse.Namespace, data_root: Path, split: str) -> 
     return AnswerMaskedDataset(data_root, split, args.answer_masks)
 
 
+def bind_initial_state_owner(run_config, binding, reservation):
+    """Keep this study's checkpoint identity immutable across reservation attempts.
+
+    Historical acquisition/fork owner rules are unchanged. The actual reservation
+    ID remains in learning logs, results and the shared ledger, never rolled into
+    this study's configuration identity during recovery.
+    """
+    if reservation is None or not isinstance(binding, dict):
+        raise RuntimeError("initial-state study requires an active reservation")
+    owner = binding.get("owner")
+    if not isinstance(owner, dict) or set(owner) != {"study_id", "protocol_sha256", "output", "allocation_hours"}:
+        raise RuntimeError("malformed initial-state owner")
+    if owner.get("allocation_hours") != 4.0 or not owner.get("study_id") or not owner.get("protocol_sha256"):
+        raise RuntimeError("initial-state owner is not the four-hour comparison")
+    if reservation.extra.get("initial_state_study") != owner:
+        raise RuntimeError("inherited reservation is not the authorized initial-state owner")
+    if run_config != binding.get("expected_config"):
+        raise C.CheckpointIdentityMismatch("initial-state source/data/model/sampler/training identity mismatch")
+    return {**run_config, "initial_state_study": owner}
+
+
+def fresh_run_config(args, model_config, data_root, sampler, dev_sampler, planned_updates, planned_tokens, code_identity):
+    """Pure configuration construction, also used by the initial-state preflight."""
+    masks_path = getattr(args, "answer_masks", None)
+    return {
+        "format": TRAIN_FORMAT,
+        "model": model_config.to_dict(),
+        "training": {
+            "max_loss_tokens": args.max_loss_tokens,
+            "batch_size": args.batch_size,
+            "seed": args.seed,
+            "model_seed": args.model_seed,
+            "data_seed": args.data_seed,
+            "learning_rate": args.learning_rate,
+            "weight_decay": args.weight_decay,
+            "betas": list(args.betas),
+            "eps": args.eps,
+            "grad_clip": args.grad_clip,
+            "lambda_balance": args.lambda_balance,
+            "lambda_route": args.lambda_route,
+            "lambda_state": args.lambda_state,
+            "warmup_fraction": args.warmup_fraction,
+            "final_lr_fraction": args.final_lr_fraction,
+            "checkpoint_every": args.checkpoint_every,
+            "dev_every": args.dev_every,
+            "dev_batches": args.dev_batches,
+            "device": str(torch.device(args.device)),
+            "optimizer": "torch.optim.AdamW; matrices decay, biases and norm vectors do not",
+            "scheduler": "2% update warmup then cosine to 10% of base learning rate",
+            "autocast": "bfloat16 on CUDA only; all losses float32",
+            "token_rule": "count labels[:,1:] != -100; atomic batches stop at the first count >= max_loss_tokens",
+            "main_loss_rule": "mean selected-token cross entropy per batch",
+            "loss_mode": args.loss_mode,
+            "answer_masks": str(Path(masks_path).resolve()) if masks_path is not None else None,
+            "answer_masks_identity": Continuation._path_identity(masks_path) if masks_path is not None else None,
+            "planned_updates": planned_updates,
+            "planned_consumed_loss_tokens": planned_tokens,
+        },
+        "source_config_sha256": sha256_file(args.config),
+        "data": str(data_root.resolve()),
+        "train_data_identity": sampler.data_identity,
+        "dev_data_identity": dev_sampler.data_identity,
+        "order_identity": sampler.order_identity,
+        "code_identity": code_identity,
+        "torch_version": torch.__version__,
+        "numpy_version": np.__version__,
+    }
+
+
 def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
     """Build native APIs, requiring explicit matching run/loss identities for checkpoint forks."""
     _validate_args(args)
@@ -1120,50 +1189,13 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
         if planned_updates != fork["target_updates"] or planned_tokens != fork["target_exposure_tokens"]:
             raise C.CheckpointIdentityMismatch("fork sampler does not reproduce its declared endpoint")
     else:
-        masks_path = getattr(args, "answer_masks", None)
-        run_config = {
-            "format": TRAIN_FORMAT,
-            "model": model_config.to_dict(),
-            "training": {
-                "max_loss_tokens": args.max_loss_tokens,
-                "batch_size": args.batch_size,
-                "seed": args.seed,
-                "model_seed": args.model_seed,
-                "data_seed": args.data_seed,
-                "learning_rate": args.learning_rate,
-                "weight_decay": args.weight_decay,
-                "betas": list(args.betas),
-                "eps": args.eps,
-                "grad_clip": args.grad_clip,
-                "lambda_balance": args.lambda_balance,
-                "lambda_route": args.lambda_route,
-                "lambda_state": args.lambda_state,
-                "warmup_fraction": args.warmup_fraction,
-                "final_lr_fraction": args.final_lr_fraction,
-                "checkpoint_every": args.checkpoint_every,
-                "dev_every": args.dev_every,
-                "dev_batches": args.dev_batches,
-                "device": str(device),
-                "optimizer": "torch.optim.AdamW; matrices decay, biases and norm vectors do not",
-                "scheduler": "2% update warmup then cosine to 10% of base learning rate",
-                "autocast": "bfloat16 on CUDA only; all losses float32",
-                "token_rule": "count labels[:,1:] != -100; atomic batches stop at the first count >= max_loss_tokens",
-                "main_loss_rule": "mean selected-token cross entropy per batch",
-                "loss_mode": args.loss_mode,
-                "answer_masks": str(Path(masks_path).resolve()) if masks_path is not None else None,
-                "answer_masks_identity": Continuation._path_identity(masks_path) if masks_path is not None else None,
-                "planned_updates": planned_updates,
-                "planned_consumed_loss_tokens": planned_tokens,
-            },
-            "source_config_sha256": sha256_file(args.config),
-            "data": str(data_root.resolve()),
-            "train_data_identity": sampler.data_identity,
-            "dev_data_identity": dev_sampler.data_identity,
-            "order_identity": sampler.order_identity,
-            "code_identity": code_identity,
-            "torch_version": torch.__version__,
-            "numpy_version": np.__version__,
-        }
+        run_config = fresh_run_config(args, model_config, data_root, sampler, dev_sampler,
+                                      planned_updates, planned_tokens, code_identity)
+    study_binding = getattr(args, "initial_state_study_binding", None)
+    if study_binding is not None:
+        if device.type != "cuda" or fork is not None:
+            raise RuntimeError("initial-state study requires its inherited CUDA owner and fresh configuration")
+        run_config = bind_initial_state_owner(run_config, study_binding, native_ledger.active())
     if device.type == "cpu":
         return _execute(
             args,
@@ -1193,7 +1225,7 @@ def run_training(args: argparse.Namespace, *, batch_hook=None) -> dict:
             raise RuntimeError("inherited GPU reservation is not the authorized continuation owner")
         run_config["acquisition_run_id"] = inherited.extra["native_continuation_run_id"]
         run_config["reservation_id"] = inherited.id
-    elif inherited is not None:
+    elif inherited is not None and study_binding is None:
         run_id = os.environ.get("TI_TNN_NATIVE_ACQUISITION_RUN_ID")
         if inherited.extra.get("native_acquisition_run_id") != run_id or run_id is None:
             raise RuntimeError("a nested GPU reservation is not an authorized acquisition owner")

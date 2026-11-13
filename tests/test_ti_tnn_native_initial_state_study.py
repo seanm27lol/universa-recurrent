@@ -14,7 +14,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "research" / "ti_tnn"))
 from native import initial_state_study as study, prepare_initial_state_study as prepare, structured
 from native.data import PackedDataset
-from native.independent.dependency_diagnostic import analyze_program
+from native.independent.dependency_diagnostic import analyze_program, composition_contract
 from native.independent.score_initial_state_study import score
 from native.independent.rescore_generations import ScoringError
 
@@ -60,6 +60,40 @@ def test_no_historical_data_fallback_and_no_missing_exclusion_file(tmp_path):
         study.read_history([])
     with pytest.raises(FileNotFoundError):
         study.read_history([tmp_path / "missing.jsonl"])
+
+
+@pytest.mark.parametrize("program,initial,constant,changed", [
+    (("set r0 0", "multiply r0 r1", "add r2 r0"), (2, 3, 4, 5), True, False),
+    (("set r1 1", "multiply r0 r1", "add r2 r0"), (2, 3, 4, 5), False, False),
+    (("multiply r0 r1", "add r2 r0"), (2, 1, 4, 5), False, False),
+    (("multiply r0 r1", "add r2 r0"), (2, 3, 4, 5), False, True),
+    (("set r0 2", "multiply r0 r1", "add r2 r0"), (2, 3, 4, 5), False, True),
+])
+def test_composition_requires_nonconstant_multiply_and_actual_initial_witness(program, initial, constant, changed):
+    contract = composition_contract(program, initial)
+    assert bool(contract["multiplication_functional_initial_registers"]) != constant
+    assert contract["witness"]["designated_target_changes"] == changed
+    assert contract["eligible"] == (not constant and changed)
+    if changed:
+        assert contract["witness"]["ordinary_final"][2] == 10
+        assert contract["witness"]["ablated_final"][2] == 6
+
+
+def test_composition_revision_preserves_training_and_every_other_population(history, dataset):
+    old = study.generate(history, seed=23, composed_patterns=64, states_per_pattern=3,
+                         evaluation_count=8, composition_version=1)
+    assert dataset["training"] == old["training"]
+    for name in ("patterns", "slots", "distinct_target_counts"):
+        assert dataset[name] == old[name]
+    for condition in study.CONDITIONS:
+        for name in study.POPULATIONS:
+            if name != "composition":
+                assert dataset["evaluations"][condition][name] == old["evaluations"][condition][name]
+    assert all(w["eligible"] for w in dataset["composition_witnesses"])
+    broken = copy.deepcopy(dataset)
+    broken["composition_witnesses"][0]["witness"]["ablated_final"][0] = 99
+    with pytest.raises(ValueError, match="witness mismatch"):
+        study.audit(broken, history)
 
 
 def test_leakage_and_broken_pairing_are_rejected(history, dataset):
@@ -116,6 +150,13 @@ def test_intact_packing_positions_model_input_boundary_and_saved_scoring(tmp_pat
     assert result["complete_answers"]["correct"] == 7
     assert result["complete_answers"]["total"] == 8
     assert result["registers"]["total"] == 32 and result["registers"]["malformed"] == 4
+    changed = result["by_value_change"]["changed"]
+    unchanged = result["by_value_change"]["unchanged"]
+    assert changed["total"] + unchanged["total"] == 32
+    assert changed["malformed"] + unchanged["malformed"] == 4
+    assert changed["correct"] + unchanged["correct"] == result["registers"]["correct"]
+    assert result["no_op_baseline"]["by_value_change"]["changed"]["correct"] == 0
+    assert result["no_op_baseline"]["by_value_change"]["unchanged"]["correct"] == unchanged["total"]
     with pytest.raises(FileExistsError):
         score(source, pred, tmp_path / "score.json")
     pred.write_text("".join(json.dumps(r) + "\n" for r in predictions[:-1]))

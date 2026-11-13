@@ -1,8 +1,39 @@
-# Native TI-TNN: CPU takeover, 2026-11-12
+# Native TI-TNN: CPU takeover and launch preparation
 
 A register program can be memorized without learning how to execute a new one.
 The next task is to distinguish those failures using saved answers, then prepare
 a controlled test of showing the same program several initial states.
+
+## Update: 2026-11-13, draft #80
+
+Remote main was fetched again and remains `52384a6addd7e06922931f583e8f8be13c48eed2`.
+The v1 preparation and every historical artifact remain preserved. Composition
+contract v2 retains 102/128 examples and deterministically replaces 26: each
+multiplication output is functionally initial-dependent, with an actual-initial-state
+skip-write witness for its designated final target. Independent exhaustive checks
+verify all 128 witnesses. Training and all other evaluation populations are unchanged.
+
+Saved #79 text was rescored into a new v2 directory with changed/unchanged-register
+accuracy. Every previous aggregate field and complete-answer score is unchanged.
+See the appended [value-change diagnostic](DEPENDENCY_DIAGNOSTIC.md#changed-versus-unchanged-reference-values-v2-2026-11-13).
+
+The [protocol](INITIAL_STATE_STUDY.md) now includes a thin adapter to existing
+reservation, checkpoint and journal recovery. Thirty additional CPU tests bring
+the native suite to **412 passed in 27.54 s**. Independent selection/scoring and
+runner reviews report no unresolved findings; see [review](INITIAL_STATE_REVIEW.md).
+Tests include mocked execution of all eight arms, authorization, identity attacks,
+failure/recovery, cumulative costs, duplicate launch and final-checkpoint preservation.
+They establish engineering behavior, not learning or external replication.
+
+The v2 preview projects about **2.515 hours**, about 3.822 hours with margin and
+shutdown allowance. The proposed **four-hour maximum is part of the existing
+12-hour native cap**. The current final source/protocol binding, final-head CI,
+exact local command and fresh operational snapshot are recorded in the private
+owner handoff and draft PR. Next permitted action is owner review and separate
+explicit authorization of that exact command. Do not execute it merely because
+the dry run passes. No study training or saved-checkpoint inference is authorized.
+
+The remaining sections record the completed November 12 takeover checkpoint.
 
 ## Verified baseline
 
@@ -69,11 +100,10 @@ serving equivalence, or evidence of an internal algorithm.
   across dense/shared/untyped/typed; 16 epochs, 1,424 updates per run. Projected
   2.479 hours, proposed **4.0-hour maximum**, including margin and recovery.
 
-Next permitted action is owner review of the draft PR and protocol. Before any
-learning run, integrate this new protocol with the existing bounded reservation
-and recovery machinery, test its dry-run, and obtain separate explicit owner
-authorization for the frozen source/protocol pair. The historical runners retain
-their frozen contracts. No study training, saved-checkpoint output regeneration,
+At that checkpoint, runner integration and explicit owner authorization remained
+outstanding. The November 13 update above completes integration; owner authorization
+remains required. The historical runners retain their frozen contracts.
+No study training, saved-checkpoint output regeneration,
 GPU reservation, shaping, WSP, larger campaign or environment upgrade was run.
 The native regression suite includes its existing tiny synthetic CPU training tests;
 those do not rerun any research study or use its checkpoints.

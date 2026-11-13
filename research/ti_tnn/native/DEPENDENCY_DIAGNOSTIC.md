@@ -276,3 +276,52 @@ Separating familiar primitives from new combinations is an established testing
 principle ([Lake and Baroni, 2018](https://proceedings.mlr.press/v80/lake18a.html)).
 This is a diagnostic application of those ideas, not a new discovery about
 slicing or compositional generalization. See the [next-study draft](INITIAL_STATE_STUDY.md).
+
+## Changed versus unchanged reference values (v2, 2026-11-13)
+
+For an initial vector `x`, a program `P`, and target register `j`, call the target
+**changed** exactly when `F_P(x)[j] != x[j]`; otherwise call it **unchanged**.
+This is an example-specific value comparison, independent of final-write type,
+functional initial support and depth. An arithmetic write may preserve a value;
+a constant set may change it. Neither category identifies the model's algorithm.
+
+All 512 register positions remain counted per child/population. A malformed
+completion fails all four positions in their reference categories. The JSON
+also reports valid-only denominators and each register's changed/unchanged split;
+an empty group has undefined accuracy. The two groups' correct counts sum to
+the existing all-register count. Every preexisting v1 aggregate field and all
+historical complete-answer scores were checked equal after rescoring saved text.
+The original aggregate and evidence remain unchanged.
+
+A = full sequence, B = answer + EOS. Cells show A → B correct/total positions.
+
+| Architecture | Population | Changed | Unchanged |
+|---|---|---:|---:|
+| dense | train | 203 → 260 / 288 | 220 → 224 / 224 |
+| dense | dev | 61 → 82 / 297 | 176 → 175 / 215 |
+| dense | initial_values | 51 → 75 / 313 | 2 → 3 / 199 |
+| dense | unseen_composition | 48 → 57 / 342 | 124 → 129 / 170 |
+| dense | longer_length | 2 → 1 / 457 | 0 → 0 / 55 |
+| untyped | train | 87 → 130 / 288 | 198 → 201 / 224 |
+| untyped | dev | 36 → 43 / 297 | 155 → 166 / 215 |
+| untyped | initial_values | 64 → 76 / 313 | 2 → 1 / 199 |
+| untyped | unseen_composition | 32 → 39 / 342 | 104 → 111 / 170 |
+| untyped | longer_length | 1 → 2 / 457 | 1 → 0 / 55 |
+| typed | train | 91 → 128 / 288 | 204 → 208 / 224 |
+| typed | dev | 40 → 44 / 297 | 169 → 170 / 215 |
+| typed | initial_values | 36 → 44 / 313 | 0 → 0 / 199 |
+| typed | unseen_composition | 40 → 38 / 342 | 111 → 102 / 170 |
+| typed | longer_length | 1 → 0 / 457 | 1 → 0 / 55 |
+
+Dense's ordinary-development gain is concentrated in changed values (+21 correct),
+while unchanged values decrease by one. Untyped's gain is larger for preservation
+(+11) than changed values (+7); typed gains four and one respectively. This sharpens
+what to measure in the proposed multi-state study without changing #79's frozen
+`retain_full_sequence` decision or the new complete-answer development screen.
+The high-initial-value population still preserves only 0–3/199 values per child,
+and longer outputs remain dominated by malformed strings. These remain weak
+reused development results, not evidence for reusable neural transitions.
+
+V2 aggregate SHA256: `c6e167ab29be14effe6becca4da704d041e8a61a84dc6a62feffa9089f23a36d`.
+Rescoring made zero model calls. The main study will report these two value
+categories alongside its unchanged complete-answer endpoint and screen.
